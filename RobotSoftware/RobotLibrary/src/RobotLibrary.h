@@ -1,7 +1,7 @@
 /*
  Name:		RobotLibrary.h
  Created:	07.08.2019 13:20:59
- Author:	Standard
+ Author:	B.Robots
  Editor:	http://www.visualmicro.com
 */
 

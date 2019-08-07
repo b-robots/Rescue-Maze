@@ -15,13 +15,14 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <None Include="src\arduino folders read me.txt">
+      <Filter>Misc Files</Filter>
+    </None>
+    <None Include="MainProgram.ino" />
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="__vm\.MainProgram.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="src\MainProgram.ino">
-      <Filter>Source Files</Filter>
-    </None>
   </ItemGroup>
 </Project>
