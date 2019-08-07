@@ -20,7 +20,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="MainProgram.ino">
+    <None Include="src\MainProgram.ino">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

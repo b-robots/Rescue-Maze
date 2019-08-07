@@ -107,7 +107,7 @@
     <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="MainProgram.ino">
+    <None Include="src\MainProgram.ino">
       <FileType>CppCode</FileType>
     </None>
   </ItemGroup>
