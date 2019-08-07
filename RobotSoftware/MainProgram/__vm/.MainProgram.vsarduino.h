@@ -13,6 +13,7 @@
 
 #ifndef _VSARDUINO_H_
 #define _VSARDUINO_H_
+#define _VMDEBUG 1
 #define F_CPU 84000000L
 #define ARDUINO 10900
 #define ARDUINO_SAM_DUE
