@@ -7,4 +7,17 @@
 
 #include "RobotLibrary.h"
 
+namespace JAFID
+{
+	// Just for testing...
+	ReturnState robotSetup()
+	{
+		return ReturnState::ok;
+	}
+
+	ReturnState robotLoop()
+	{
+		return ReturnState::ok;
+	}
+}
 
