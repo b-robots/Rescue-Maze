@@ -2,10 +2,12 @@
  Name:		RobotLibrary.h
  Created:	07.08.2019 13:20:59
  Author:	B.Robots
- Editor:	http://www.visualmicro.com
+ Version:	1.0.0
 */
 
 #pragma once
+
+#define ROBOT_LIB_VERSION "1.0.0" 
 
 #if defined(ARDUINO) && ARDUINO >= 100
 	#include "arduino.h"
@@ -13,25 +15,23 @@
 	#include "WProgram.h"
 #endif
 
+// Includes needed for the Library
 #include <stdint.h>
+#include <SpiRAM.h>
 
-// namespace for robot (including sensors, maze solving algorithm, and so on...)
-// JAFTD = Just Ask For The Direction (proposal of name modification: WSIG = Where Should I Go?)
-// Created: Patrick, 07.08.2019 
-namespace JAFID
+// All Header files of Library
+#include "MazeMapping.h"
+#include "Helper.h"
+
+// Namespace for robot (including sensors, maze solving algorithm, and so on...)
+// JAFTD = Just Ask For The Direction (proposal of name modification: WSIG = Where Should I Go?) 
+namespace JAFTD
 {
-	// Return states
-	// Can be extended when needed
-	// Created: Patrick, 07.08.2019
-	enum struct ReturnState : uint8_t
-	{
-		fatalError,
-		error,
-		aborted,
-		ok
-	};
+	typedef struct {
+		MazeMapping::MazeMapperSet mazeMapperSet;
+	} RobotSettings;
 
 	// Setup & Loop for the Robot
-	ReturnState robotSetup();
+	ReturnState robotSetup(RobotSettings robotSettings);
 	ReturnState robotLoop();
 };

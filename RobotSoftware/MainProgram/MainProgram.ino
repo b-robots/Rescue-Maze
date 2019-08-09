@@ -4,13 +4,20 @@
  Author:	B.Robots
 */
 
+// These Includes are necessary for the RobotLibrary to work
+#include <SpiRAM.h>
+
+// RobotLibrary
 #include "RobotLibrary.h"
 
 // The setup function runs once when you press reset or power the board
 void setup() {
+	// Robot Settings
+	JAFTD::RobotSettings robotSettings;
+	robotSettings.mazeMapperSet.ramSSPin = 0;
 
 	// If robot is completely stuck, just do nothing.
-	if (JAFID::robotSetup() == JAFID::ReturnState::fatalError)
+	if (JAFTD::robotSetup(robotSettings) == ReturnState::fatalError)
 	{
 		while (true);
 	}
@@ -20,7 +27,7 @@ void setup() {
 void loop() {
 
 	// If robot is completely stuck, just do nothing.
-	if (JAFID::robotSetup() == JAFID::ReturnState::fatalError)
+	if (JAFTD::robotLoop() == ReturnState::fatalError)
 	{
 		while (true);
 	}

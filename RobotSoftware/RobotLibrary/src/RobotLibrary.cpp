@@ -1,17 +1,19 @@
 /*
  Name:		RobotLibrary.cpp
  Created:	07.08.2019 13:20:59
- Author:	Standard
- Editor:	http://www.visualmicro.com
+ Author:	B.Robots
 */
 
 #include "RobotLibrary.h"
 
-namespace JAFID
+namespace JAFTD
 {
 	// Just for testing...
-	ReturnState robotSetup()
+	ReturnState robotSetup(RobotSettings robotSettings)
 	{
+		// Setup of MazeMapper
+		auto test = MazeMapping::mazeMapperSetup(robotSettings.mazeMapperSet);
+
 		return ReturnState::ok;
 	}
 
