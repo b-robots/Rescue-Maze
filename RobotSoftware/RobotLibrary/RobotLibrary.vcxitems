@@ -19,6 +19,7 @@
     <Text Include="$(MSBuildThisFileDirectory)src\RobotLibrary.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\Helper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\MazeMapping.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\RobotLibrary.cpp" />
   </ItemGroup>

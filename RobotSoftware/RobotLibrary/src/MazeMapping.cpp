@@ -12,6 +12,7 @@ namespace JAFTD
 		ReturnState mazeMapperSetup(MazeMapperSet settings)
 		{
 			ramSSPin = settings.ramSSPin;
+			spiRam = SpiRAM(0, ramSSPin);
 			return ReturnState::ok;
 		}
 	}

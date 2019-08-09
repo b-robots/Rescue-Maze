@@ -11,6 +11,7 @@ This part of the Library is responsible for mapping the maze and finding the sho
 #endif
 
 #include "Helper.h"
+#include <SpiRAM.h>
 
 namespace JAFTD
 {
@@ -25,6 +26,7 @@ namespace JAFTD
 		namespace
 		{
 			byte ramSSPin;
+			SpiRAM spiRam(0,0);
 		}
 
 		ReturnState mazeMapperSetup(MazeMapperSet settings);

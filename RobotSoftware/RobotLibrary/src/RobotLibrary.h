@@ -15,10 +15,6 @@
 	#include "WProgram.h"
 #endif
 
-// Includes needed for the Library
-#include <stdint.h>
-#include <SpiRAM.h>
-
 // All Header files of Library
 #include "MazeMapping.h"
 #include "Helper.h"
