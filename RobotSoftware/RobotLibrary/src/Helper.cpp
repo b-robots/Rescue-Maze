@@ -3,3 +3,7 @@ In this file are all helper functions and helper types (ReturnState, fastSin, fa
 */
 
 #include "Helper.h"
+
+namespace JAFTD
+{
+}

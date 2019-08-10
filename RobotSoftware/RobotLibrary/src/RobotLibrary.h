@@ -28,6 +28,6 @@ namespace JAFTD
 	} RobotSettings;
 
 	// Setup & Loop for the Robot
-	ReturnState robotSetup(RobotSettings robotSettings);
-	ReturnState robotLoop();
+	ReturnCode robotSetup(RobotSettings robotSettings);
+	ReturnCode robotLoop();
 };

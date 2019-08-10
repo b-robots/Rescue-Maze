@@ -9,17 +9,17 @@
 namespace JAFTD
 {
 	// Just for testing...
-	ReturnState robotSetup(RobotSettings robotSettings)
+	ReturnCode robotSetup(RobotSettings robotSettings)
 	{
 		// Setup of MazeMapper
 		auto test = MazeMapping::mazeMapperSetup(robotSettings.mazeMapperSet);
 
-		return ReturnState::ok;
+		return ReturnCode::ok;
 	}
 
-	ReturnState robotLoop()
+	ReturnCode robotLoop()
 	{
-		return ReturnState::ok;
+		return ReturnCode::ok;
 	}
 }
 
