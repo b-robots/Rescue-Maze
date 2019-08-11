@@ -5,6 +5,7 @@
 */
 
 // These Includes are necessary for the RobotLibrary to work
+#include <Servo.h>
 #include <SpiRAM.h>
 
 // RobotLibrary

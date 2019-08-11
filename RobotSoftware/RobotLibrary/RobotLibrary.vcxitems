@@ -19,11 +19,13 @@
     <Text Include="$(MSBuildThisFileDirectory)src\RobotLibrary.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Dispenser.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\Helper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\MazeMapping.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\RobotLibrary.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Dispenser.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Helper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\MazeMapping.h" />
   </ItemGroup>
