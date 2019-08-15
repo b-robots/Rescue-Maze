@@ -10,6 +10,14 @@ namespace JAFTD
 	{
 		static const MapCoordinate homePosition = { 0, 0, 0 };
 
+		// Comparison operators for GridCell
+		inline bool operator==(const GridCell& lhs, const GridCell& rhs) { return (lhs.cellConnections == rhs.cellConnections && lhs.cellState == rhs.cellState); }
+		inline bool operator!=(const GridCell& lhs, const GridCell& rhs) { return !(lhs == rhs); }
+
+		// Comparison operators for MapCoordinate
+		inline bool operator==(const MapCoordinate& lhs, const MapCoordinate& rhs) { return (lhs.floor == rhs.floor && lhs.x == rhs.x && lhs.y == rhs.y); }
+		inline bool operator!=(const MapCoordinate& lhs, const MapCoordinate& rhs) { return !(lhs == rhs); }
+
 		// Setup the MazeMapper
 		ReturnCode mazeMapperSetup(MazeMapperSet settings)
 		{
@@ -159,6 +167,25 @@ namespace JAFTD
 			// Find the shortest known path from a to b
 			ReturnCode findShortestPath(MapCoordinate a, MapCoordinate goal, Direction* directions, uint8_t maxPathLength)
 			{
+				StaticQueue<MapCoordinate, 64> queue; // MaxSize = 64, because this is the maximum needed size for an 64x64 empty grid (worst case scenario)
+				
+				setGridCell(1<<0, a); // 1<<0 means visited
+				queue.enqueue(a);
+
+				while (!queue.isEmpty)
+				{
+					static MapCoordinate v;
+					queue.dequeue(&v);
+
+					if (v == goal)
+					{
+					}
+					else
+					{
+
+					}
+				}
+
 				return ReturnCode::ok;
 			}
 		}

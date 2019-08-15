@@ -18,6 +18,7 @@
 // All Header files of Library
 #include "MazeMapping.h"
 #include "Helper.h"
+#include "Dispenser.h"
 
 // Namespace for robot (including sensors, maze solving algorithm, and so on...)
 // JAFTD = Just Ask For The Direction (proposal of name modification: WSIG = Where Should I Go?) 

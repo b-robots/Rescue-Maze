@@ -46,6 +46,7 @@ void setup() {
 			}
 		}
 	}
+	MazeMapping::BFAlgorithm::findShortestPath({ 1, 1, 0}, { 0, 0, 0 }, nullptr, 0);
 	value = 0;
 	for (uint8_t floor = 0; floor <= 1; floor++)
 	{

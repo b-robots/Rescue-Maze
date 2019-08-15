@@ -61,7 +61,7 @@ namespace JAFTD
 			SpiRAM spiRam(0, 0);
 		}
 
-		// Namespace for the Depth First algorithm to find the shortest Path
+		// Namespace for the Breadth-First-Algorithm to find the shortest Path
 		namespace BFAlgorithm
 		{
 			// Find the shortest known path from a to b

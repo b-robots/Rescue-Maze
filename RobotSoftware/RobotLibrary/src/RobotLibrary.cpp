@@ -12,7 +12,7 @@ namespace JAFTD
 	ReturnCode robotSetup(RobotSettings robotSettings)
 	{
 		// Setup of MazeMapper
-		auto test = MazeMapping::mazeMapperSetup(robotSettings.mazeMapperSet);
+		auto returnCode = MazeMapping::mazeMapperSetup(robotSettings.mazeMapperSet);
 
 		return ReturnCode::ok;
 	}
