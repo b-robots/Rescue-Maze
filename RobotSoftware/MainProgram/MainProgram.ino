@@ -46,7 +46,11 @@ void setup() {
 			}
 		}
 	}
-	MazeMapping::BFAlgorithm::findShortestPath({ 1, 1, 0}, { 0, 0, 0 }, nullptr, 0);
+
+	// Test pathfinding
+	Direction directions[64];
+	MazeMapping::BFAlgorithm::findShortestPath({ 10, 5, 0}, { 0, 0, 0 }, directions, 64);
+
 	value = 0;
 	for (uint8_t floor = 0; floor <= 1; floor++)
 	{

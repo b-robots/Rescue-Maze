@@ -20,7 +20,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)src\Helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\ResMaze19-20\RobotSoftware\RobotLibrary\src\Dispenser.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\Dispenser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -38,7 +38,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\ResMaze19-20\RobotSoftware\RobotLibrary\src\Dispenser.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\Dispenser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

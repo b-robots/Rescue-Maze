@@ -10,6 +10,12 @@ This part of the Library is responsible for mapping the maze and finding the sho
 #include "WProgram.h"
 #endif
 
+// The maximum/minimum coordinates that can fit in the RAM
+#define MAX_X 31	// 0b111111 - 0b100000
+#define MIN_X -32	// -(0b100000)
+#define MAX_Y 31	// 0b111111 - 0b100000
+#define MIN_Y -32	// -(0b100000)
+
 #include "Helper.h"
 #include <SpiRAM.h>
 #include <cstdint>
@@ -39,7 +45,8 @@ namespace JAFTD
 			uint8_t cellConnections;
 
 			// Information about Speed Bumps, Victims, Checkpoints...
-			// Not used yet...
+			// From right to left:
+			// 1.Bit: Is this Cell already visited?
 			uint8_t cellState;
 		} GridCell;
 
@@ -73,12 +80,12 @@ namespace JAFTD
 
 		// Set a grid cell in the RAM
 		ReturnCode setGridCell(GridCell gridCell, MapCoordinate coor);
-		ReturnCode setGridCell(uint16_t solverValue, MapCoordinate coor);
-		ReturnCode setGridCell(GridCell gridCell, uint16_t solverValue, MapCoordinate coor);
+		ReturnCode setGridCell(uint16_t bfValue, MapCoordinate coor);
+		ReturnCode setGridCell(GridCell gridCell, uint16_t bfValue, MapCoordinate coor);
 
 		// Read a grid cell from the RAM
 		ReturnCode getGridCell(GridCell* gridCell, MapCoordinate coor);
-		ReturnCode getGridCell(uint16_t* solverValue, MapCoordinate coor);
-		ReturnCode getGridCell(GridCell* gridCell, uint16_t* solverValue, MapCoordinate coor);
+		ReturnCode getGridCell(uint16_t* bfValue, MapCoordinate coor);
+		ReturnCode getGridCell(GridCell* gridCell, uint16_t* bfValue, MapCoordinate coor);
 	}
 }
