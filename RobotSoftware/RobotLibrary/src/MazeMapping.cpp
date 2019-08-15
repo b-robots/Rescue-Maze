@@ -154,19 +154,11 @@ namespace JAFTD
 			return ReturnCode::ok;
 		}
 
-		namespace DFAlgorithm
+		namespace BFAlgorithm
 		{
-			// Move one step in the DF algorithm
-			ReturnCode doStep(MapCoordinate a, MapCoordinate goal, uint8_t distance)
-			{
-				setGridCell(distance | 0b100000000, a);
-			}
-
 			// Find the shortest known path from a to b
 			ReturnCode findShortestPath(MapCoordinate a, MapCoordinate goal, Direction* directions, uint8_t maxPathLength)
 			{
-				doStep(a, goal, 0);
-
 				return ReturnCode::ok;
 			}
 		}

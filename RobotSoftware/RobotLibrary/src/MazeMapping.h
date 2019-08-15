@@ -62,11 +62,8 @@ namespace JAFTD
 		}
 
 		// Namespace for the Depth First algorithm to find the shortest Path
-		namespace DFAlgorithm
+		namespace BFAlgorithm
 		{
-			// Move one step in the DF algorithm
-			ReturnCode doStep(MapCoordinate a, MapCoordinate goal, uint8_t distance);
-
 			// Find the shortest known path from a to b
 			ReturnCode findShortestPath(MapCoordinate a, MapCoordinate goal, Direction* directions, uint8_t maxPathLength);
 		}
