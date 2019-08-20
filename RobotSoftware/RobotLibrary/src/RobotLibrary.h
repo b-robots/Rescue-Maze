@@ -25,7 +25,7 @@
 namespace JAFTD
 {
 	typedef struct {
-		MazeMapping::MazeMapperSet mazeMapperSet;
+		internal::MazeMapping::MazeMapperSet mazeMapperSet;
 	} RobotSettings;
 
 	// Setup & Loop for the Robot

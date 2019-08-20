@@ -8,27 +8,30 @@ This part of the Library is responsible for dispensing the rescue packages.
 
 namespace JAFTD
 {
-	namespace Dispenser
+	namespace internal
 	{
-		// Set up the Dispenser System
-		ReturnCode dispenserSetup()
+		namespace Dispenser
 		{
-			// Do something...
-
-			return ReturnCode::ok;
-		}
-
-		// Dispence items
-		ReturnCode dispense(uint8_t number)
-		{
-			// Auswerfen...
-
-			if (/*irgendwas geht schief*/0)
+			// Set up the Dispenser System
+			ReturnCode dispenserSetup()
 			{
-				return ReturnCode::error;
+				// Do something...
+
+				return ReturnCode::ok;
 			}
 
-			return ReturnCode::ok;
+			// Dispence items
+			ReturnCode dispense(uint8_t number)
+			{
+				// Auswerfen...
+
+				if (/*irgendwas geht schief*/0)
+				{
+					return ReturnCode::error;
+				}
+
+				return ReturnCode::ok;
+			}
 		}
 	}
 }

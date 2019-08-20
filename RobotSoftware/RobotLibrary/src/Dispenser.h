@@ -15,12 +15,15 @@ This part of the Library is responsible for dispensing the rescue packages.
 
 namespace JAFTD
 {
-	namespace Dispenser
+	namespace internal
 	{
-		// Set up the Dispenser System
-		ReturnCode dispenserSetup();
+		namespace Dispenser
+		{
+			// Set up the Dispenser System
+			ReturnCode dispenserSetup();
 
-		// Dispence items
-		ReturnCode dispense(uint8_t number); // So könnte es aussehen
+			// Dispence items
+			ReturnCode dispense(uint8_t number); // So könnte es aussehen
+		}
 	}
 }

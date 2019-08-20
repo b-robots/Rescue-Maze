@@ -14,6 +14,7 @@
 #define LED_PIN 15
 
 using namespace JAFTD;
+using namespace JAFTD::internal; // Delete as soon as possible
 
 // The setup function runs once when you press reset or power the board
 void setup() {
@@ -50,7 +51,6 @@ void setup() {
 	// Test pathfinding
 	Direction directions[64];
 	MazeMapping::BFAlgorithm::findShortestPath({ 10, 5, 0}, { 0, 0, 0 }, directions, 64);
-
 	value = 0;
 	for (uint8_t floor = 0; floor <= 1; floor++)
 	{
