@@ -3,6 +3,7 @@ This part of the Library is responsible for mapping the maze and finding the sho
 */
 
 #include "MazeMapping.h"
+#include "StaticQueue.cpp"
 
 namespace JAFTD
 {

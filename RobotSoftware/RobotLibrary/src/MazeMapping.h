@@ -17,6 +17,8 @@ This part of the Library is responsible for mapping the maze and finding the sho
 #define MIN_Y -32	// -(0b100000)
 
 #include "Helper.h"
+#include "StaticQueue.h"
+
 #include <SpiRAM.h>
 #include <cstdint>
 
