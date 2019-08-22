@@ -6,58 +6,61 @@ In this file is the Array-based queue
 
 namespace JAFTD
 {
-	// Constructor
-	template<typename T, uint8_t maxSize>
-	StaticQueue<T, maxSize>::StaticQueue()
+	namespace internal
 	{
-		front = 0;
-		rear = -1;
-	}
-
-	// Remove front element from the queue
-	template<typename T, uint8_t maxSize>
-	ReturnCode StaticQueue<T, maxSize>::dequeue(T* element)
-	{
-		if (isEmpty())
+		// Constructor
+		template<typename T, uint8_t maxSize>
+		StaticQueue<T, maxSize>::StaticQueue()
 		{
-			return ReturnCode::error;
+			front = 0;
+			rear = -1;
 		}
 
-		*element = arr[front];
-
-		front = (front + 1) % maxSize;
-		count--;
-
-		return ReturnCode::ok;
-	}
-
-	// Add an item to the queue
-	template<typename T, uint8_t maxSize>
-	ReturnCode StaticQueue<T, maxSize>::enqueue(T item)
-	{
-		if (isFull())
+		// Remove front element from the queue
+		template<typename T, uint8_t maxSize>
+		ReturnCode StaticQueue<T, maxSize>::dequeue(T* element)
 		{
-			return ReturnCode::error;
+			if (isEmpty())
+			{
+				return ReturnCode::error;
+			}
+
+			*element = arr[front];
+
+			front = (front + 1) % maxSize;
+			count--;
+
+			return ReturnCode::ok;
 		}
 
-		rear = (rear + 1) % maxSize;
-		arr[rear] = item;
-		count++;
+		// Add an item to the queue
+		template<typename T, uint8_t maxSize>
+		ReturnCode StaticQueue<T, maxSize>::enqueue(T item)
+		{
+			if (isFull())
+			{
+				return ReturnCode::error;
+			}
 
-		return ReturnCode::ok;
-	}
+			rear = (rear + 1) % maxSize;
+			arr[rear] = item;
+			count++;
 
-	// Check if the queue is empty or not
-	template<typename T, uint8_t maxSize>
-	bool StaticQueue<T, maxSize>::isEmpty()
-	{
-		return (count == 0);
-	}
+			return ReturnCode::ok;
+		}
 
-	// Check if the queue is full or not
-	template<typename T, uint8_t maxSize>
-	bool StaticQueue<T, maxSize>::isFull()
-	{
-		return (count == maxSize);
+		// Check if the queue is empty or not
+		template<typename T, uint8_t maxSize>
+		bool StaticQueue<T, maxSize>::isEmpty()
+		{
+			return (count == 0);
+		}
+
+		// Check if the queue is full or not
+		template<typename T, uint8_t maxSize>
+		bool StaticQueue<T, maxSize>::isFull()
+		{
+			return (count == maxSize);
+		}
 	}
 }
