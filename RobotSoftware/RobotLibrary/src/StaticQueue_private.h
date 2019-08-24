@@ -1,12 +1,11 @@
 /*
-In this file is the Array-based queue
+In this file is the private Array-based queue
 */
 
 #pragma once
 
-#include "Helper.h"
-
-#include <cstdint>
+#include "RobotLibraryIncludes.h"
+#include "Helper_private.h"
 
 namespace JAFTD
 {

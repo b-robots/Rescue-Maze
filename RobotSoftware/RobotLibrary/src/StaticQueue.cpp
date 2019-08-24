@@ -2,7 +2,7 @@
 In this file is the Array-based queue
 */
 
-#include "StaticQueue.h"
+#include "StaticQueue_private.h"
 
 namespace JAFTD
 {

@@ -35,16 +35,28 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\MazeMapping.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\Dispenser_public.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\Helper.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\Helper_public.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\Dispenser.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\MazeMapping_public.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\StaticQueue.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\Dispenser_private.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\Helper_private.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\RobotLibraryIncludes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\MazeMapping_private.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\StaticQueue_private.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

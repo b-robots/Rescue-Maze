@@ -5,6 +5,9 @@
 */
 
 #include "RobotLibrary.h"
+#include "RobotLibraryIncludes.h"
+#include "MazeMapping_private.h"
+#include "Dispenser_private.h"
 
 namespace JAFTD
 {
@@ -12,7 +15,10 @@ namespace JAFTD
 	ReturnCode robotSetup(RobotSettings robotSettings)
 	{
 		// Setup of MazeMapper
-		auto returnCode = internal::MazeMapping::mazeMapperSetup(robotSettings.mazeMapperSet);
+		MazeMapping::mazeMapperSetup(robotSettings.mazeMapperSet);
+
+		// Setup of Dispenser
+		Dispenser::dispenserSetup(robotSettings.dispenserSet);
 
 		return ReturnCode::ok;
 	}
