@@ -23,7 +23,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)src\Helper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\MazeMapping.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\RobotLibrary.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\StaticQueue.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Dispenser_private.h" />

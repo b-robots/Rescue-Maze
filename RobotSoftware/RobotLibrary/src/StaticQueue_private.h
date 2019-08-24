@@ -1,5 +1,5 @@
 /*
-In this file is the private Array-based queue
+In this file is the private aArray-based queue
 */
 
 #pragma once
@@ -9,33 +9,71 @@ In this file is the private Array-based queue
 
 namespace JAFTD
 {
-	namespace internal
+	// Template class for an Array-based queue
+	template <typename T, uint8_t maxSize>
+	class StaticQueue
 	{
-		// Template class for an Array-based queue
-		template <typename T, uint8_t maxSize>
-		class StaticQueue
+	private:
+		T arr[maxSize];		// Array to store queue elements
+		int8_t front;  		// Front points to front element in the queue
+		int8_t rear;   		// Rear points to last element in the queue
+		uint8_t count;  	// Current size of the queue
+
+	public:
+		// Constructor
+		StaticQueue()
 		{
-		private:
-			T arr[maxSize];		// Array to store queue elements
-			int8_t front;  		// Front points to front element in the queue
-			int8_t rear;   		// Rear points to last element in the queue
-			uint8_t count;  	// Current size of the queue
+			front = 0;
+			rear = -1;
+		}
 
-		public:
-			// Constructor
-			StaticQueue();
+		// Remove front element from the queue
+		ReturnCode dequeue(T* element)
+		{
+			if (count == 0)
+			{
+				return ReturnCode::error;
+			}
 
-			// Remove front element from the queue
-			ReturnCode dequeue(T* element);
+			*element = arr[front];
 
-			// Add an item to the queue
-			ReturnCode enqueue(T item);
+			front = (front + 1) % maxSize;
+			count--;
 
-			// Check if the queue is empty or not
-			bool isEmpty();
+			return ReturnCode::ok;
+		}
 
-			// Check if the queue is full or not
-			bool isFull();
-		};
-	}
+		// Add an item to the queue
+		ReturnCode enqueue(T item)
+		{
+			if (count == maxSize)
+			{
+				return ReturnCode::error;
+			}
+
+			rear = (rear + 1) % maxSize;
+			arr[rear] = item;
+			count++;
+
+			return ReturnCode::ok;
+		}
+
+		// Return the size
+		uint8_t size()
+		{
+			return count;
+		}
+
+		// Check if queue is full
+		bool isFull()
+		{
+			return (count == maxSize);
+		}
+
+		// Check if queue is empty
+		bool isEmpty()
+		{
+			return (count == 0);
+		}
+	};
 }
