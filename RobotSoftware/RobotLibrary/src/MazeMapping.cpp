@@ -175,8 +175,13 @@ namespace JAFTD
 
 		namespace BFAlgorithm
 		{
+			auto equalsFive = [](int a) noexcept -> bool
+			{
+				return a == 5;
+			};
+
 			// Find the shortest known path from a to b
-			ReturnCode findShortestPath(MapCoordinate a, MapCoordinate goal, Direction* directions, uint8_t maxPathLength)
+			ReturnCode findShortestPath(MapCoordinate a, Direction* directions, uint8_t maxPathLength, bool(*goalCondition)(int) = equalsFive)
 			{
 				StaticQueue<MapCoordinate, 64> queue; // MaxSize = 64, because this is the maximum needed size for an 64x64 empty grid (worst case scenario)
 

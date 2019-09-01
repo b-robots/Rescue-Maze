@@ -14,3 +14,4 @@ All external includes needed for every library Element
 #include <Servo.h>
 #include <cstdint>
 #include <SpiRAM.h>
+#include <functional>
