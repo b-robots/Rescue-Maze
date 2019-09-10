@@ -4,9 +4,6 @@ In this file is the private aArray-based queue
 
 #pragma once
 
-#include "RobotLibraryIncludes.h"
-#include "Helper_private.h"
-
 namespace JAFTD
 {
 	// Template class for an Array-based queue

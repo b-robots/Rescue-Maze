@@ -2,7 +2,6 @@
 This part of the Library is responsible for mapping the maze and finding the shortest paths.
 */
 
-#include "RobotLibraryIncludes.h"
 #include "MazeMapping_private.h"
 
 namespace JAFTD
@@ -181,7 +180,7 @@ namespace JAFTD
 			};
 
 			// Find the shortest known path from a to b
-			ReturnCode findShortestPath(MapCoordinate a, Direction* directions, uint8_t maxPathLength, bool(*goalCondition)(int) = equalsFive)
+			ReturnCode findShortestPath(MapCoordinate a, Direction* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell))
 			{
 				StaticQueue<MapCoordinate, 64> queue; // MaxSize = 64, because this is the maximum needed size for an 64x64 empty grid (worst case scenario)
 
@@ -202,7 +201,7 @@ namespace JAFTD
 				{
 					queue.dequeue(&v);
 
-					if (v == goal)
+					if (goalCondition(v, gridCellV))
 					{
 						// Go the whole way backwards...
 						while (v != a)

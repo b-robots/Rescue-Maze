@@ -20,18 +20,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\Dispenser.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\Helper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\MazeMapping.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\RobotLibrary.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Dispenser_private.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Dispenser_public.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\Helper_private.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\Helper_public.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\MazeMapping_public.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\ReturnCode_public.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\RobotLibraryIncludes.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\MazeMapping_private.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\StaticQueue_private.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue.h" />
   </ItemGroup>
 </Project>

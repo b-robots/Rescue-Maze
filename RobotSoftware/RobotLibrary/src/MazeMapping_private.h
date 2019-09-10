@@ -4,8 +4,6 @@ This private part of the Library is responsible for mapping the maze and finding
 
 #pragma once
 
-#include "RobotLibraryIncludes.h"
-#include "Helper_private.h"
 #include "StaticQueue_private.h"
 #include "MazeMapping_public.h"
 
@@ -21,6 +19,16 @@ namespace JAFTD
 	// Namespace for the MazeMapper
 	namespace MazeMapping
 	{
+		// Directions (can't be a enum class)
+		enum Direction : uint8_t
+		{
+			north = 1 << 0,
+			east = 1 << 1,
+			south = 1 << 2,
+			west = 1 << 3,
+			nowhere = 0
+		};
+
 		// Informations for one cell
 		typedef struct
 		{

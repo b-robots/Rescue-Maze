@@ -1,5 +1,5 @@
 /*
-All external includes needed for every library Element
+All external includes needed for most of the library elements
 */
 
 #pragma once
@@ -12,6 +12,4 @@ All external includes needed for every library Element
 #endif
 
 #include <Servo.h>
-#include <cstdint>
 #include <SpiRAM.h>
-#include <functional>

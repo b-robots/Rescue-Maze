@@ -1,10 +1,8 @@
 /*
-In this file are all public helper functions and public helper types (ReturnState, fastSin, fastCos...)
+The return code of every function in this library
 */
 
 #pragma once
-
-#include "RobotLibraryIncludes.h"
 
 namespace JAFTD
 {

@@ -9,15 +9,18 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx</Extensions>
     </Filter>
+    <Filter Include="Header Files\utility">
+      <UniqueIdentifier>{bf8d25df-7626-483f-b482-ec9378063c38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\utility">
+      <UniqueIdentifier>{b3646e9d-c098-4298-84b8-9cd6c30e4ccd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\RobotLibrary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\MazeMapping.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\Helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\Dispenser.cpp">
@@ -35,16 +38,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Dispenser_public.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\Helper_public.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\MazeMapping_public.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Dispenser_private.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\Helper_private.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\RobotLibraryIncludes.h">
@@ -53,8 +50,11 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\MazeMapping_private.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\StaticQueue_private.h">
+    <ClInclude Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\ResMaze19-20\RobotSoftware\RobotLibrary\src\ReturnCode_public.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\ResMaze19-20\RobotSoftware\RobotLibrary\src\utility\StaticQueue.h">
+      <Filter>Header Files\utility</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
