@@ -28,7 +28,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Dispenser_public.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\MazeMapping_public.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\ReturnCode_public.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\RobotLibraryIncludes.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\MazeMapping_private.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue.h" />
   </ItemGroup>

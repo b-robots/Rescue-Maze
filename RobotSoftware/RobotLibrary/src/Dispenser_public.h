@@ -4,6 +4,14 @@ This public part of the Library is responsible for dispensing the rescue package
 
 #pragma once
 
+#if defined(ARDUINO) && ARDUINO >= 100
+#include "arduino.h"
+#else
+#include "WProgram.h"
+#endif
+
+#include <stdint.h>
+
 namespace JAFTD
 {
 	namespace Dispenser
@@ -11,7 +19,7 @@ namespace JAFTD
 		// Settings for Dispenser
 		typedef struct
 		{
-
+			byte test;
 		} DispenserSettings;
 	}
 }

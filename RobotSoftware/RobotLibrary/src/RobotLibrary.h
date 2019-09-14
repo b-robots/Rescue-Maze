@@ -9,12 +9,6 @@
 
 #define ROBOT_LIB_VERSION "1.1" 
 
-#if defined(ARDUINO) && ARDUINO >= 100
-#include "arduino.h"
-#else
-#include "WProgram.h"
-#endif
-
 // All public header files of Library
 #include "ReturnCode_public.h"
 #include "MazeMapping_public.h"

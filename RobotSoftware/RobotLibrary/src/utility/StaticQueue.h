@@ -4,6 +4,9 @@ In this file is the private aArray-based queue
 
 #pragma once
 
+#include "ReturnCode_public.h"
+#include <stdint.h>
+
 namespace JAFTD
 {
 	// Template class for an Array-based queue

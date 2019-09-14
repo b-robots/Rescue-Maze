@@ -44,16 +44,13 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Dispenser_private.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\RobotLibraryIncludes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\MazeMapping_private.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\ResMaze19-20\RobotSoftware\RobotLibrary\src\ReturnCode_public.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\ReturnCode_public.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\ResMaze19-20\RobotSoftware\RobotLibrary\src\utility\StaticQueue.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue.h">
       <Filter>Header Files\utility</Filter>
     </ClInclude>
   </ItemGroup>
