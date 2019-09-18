@@ -10,8 +10,6 @@ This public part of the Library is responsible for dispensing the rescue package
 #include "WProgram.h"
 #endif
 
-#include <stdint.h>
-
 namespace JAFTD
 {
 	namespace Dispenser

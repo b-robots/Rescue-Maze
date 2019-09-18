@@ -4,12 +4,15 @@ This private part of the Library is responsible for mapping the maze and finding
 
 #pragma once
 
-#include "utility\StaticQueue.h"
 #include "ReturnCode_public.h"
 #include "MazeMapping_public.h"
+#include "utility/StaticQueue.h"
+
+#include <stdint.h>
+#include <SpiRAM.h>
 
 // To Do: Make some consts out of it!!
-// The maximum/minimum coordinates that can fit in the RAM
+// The maximum/minimum coordinates that can fit in the SRAM
 #define MAX_X 31	// 0b111111 - 0b100000
 #define MIN_X -32	// -(0b100000)
 #define MAX_Y 31	// 0b111111 - 0b100000

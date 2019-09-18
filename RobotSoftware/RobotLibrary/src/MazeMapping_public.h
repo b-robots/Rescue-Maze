@@ -10,8 +10,6 @@ This public part of the Library is responsible for mapping the maze and finding 
 #include "WProgram.h"
 #endif
 
-#include <stdint.h>
-
 namespace JAFTD
 {
 	// Namespace for the MazeMapper

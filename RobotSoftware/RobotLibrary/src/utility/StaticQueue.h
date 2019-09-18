@@ -1,5 +1,5 @@
 /*
-In this file is the private aArray-based queue
+In this file is the Array-based queue
 */
 
 #pragma once

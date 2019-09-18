@@ -10,12 +10,13 @@
 #define ROBOT_LIB_VERSION "1.1" 
 
 // All public header files of Library
+#include "Dispenser_public.h"
 #include "ReturnCode_public.h"
 #include "MazeMapping_public.h"
-#include "Dispenser_public.h"
+#include "utility/StaticQueue.h"
 
 // Namespace for robot (including sensors, maze solving algorithm, and so on...)
-// JAFTD = Just Ask For The Direction (proposal of name modification: WSIG = Where Should I Go?) 
+// JAFTD = Just Ask For The Direction
 namespace JAFTD
 {
 	typedef struct
