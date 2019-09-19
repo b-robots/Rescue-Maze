@@ -4,8 +4,8 @@ This private part of the Library is responsible for dispensing the rescue packag
 
 #pragma once
 
-#include "Dispenser_public.h"
-#include "ReturnCode_public.h"
+#include "implementation/Dispenser_public.h"
+#include "implementation/ReturnCode_public.h"
 
 #include <stdint.h>
 

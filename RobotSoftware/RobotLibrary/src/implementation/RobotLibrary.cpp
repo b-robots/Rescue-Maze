@@ -5,8 +5,8 @@
 */
 
 #include "RobotLibrary.h"
-#include "MazeMapping_private.h"
-#include "Dispenser_private.h"
+#include "implementation/MazeMapping_private.h"
+#include "implementation/Dispenser_private.h"
 
 namespace JAFTD
 {

@@ -4,8 +4,8 @@ This private part of the Library is responsible for mapping the maze and finding
 
 #pragma once
 
-#include "ReturnCode_public.h"
-#include "MazeMapping_public.h"
+#include "implementation/ReturnCode_public.h"
+#include "implementation/MazeMapping_public.h"
 #include "utility/StaticQueue.h"
 
 #include <stdint.h>

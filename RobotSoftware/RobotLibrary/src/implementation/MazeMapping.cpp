@@ -2,7 +2,7 @@
 This part of the Library is responsible for mapping the maze and finding the shortest paths.
 */
 
-#include "MazeMapping_private.h"
+#include "implementation/MazeMapping_private.h"
 
 namespace JAFTD
 {
