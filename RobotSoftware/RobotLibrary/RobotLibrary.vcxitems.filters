@@ -17,13 +17,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\RobotLibrary.cpp">
+    <ClCompile Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\RescueMaze20\RobotSoftware\RobotLibrary\src\implementation\Dispenser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\MazeMapping.cpp">
+    <ClCompile Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\RescueMaze20\RobotSoftware\RobotLibrary\src\implementation\MazeMapping.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\Dispenser.cpp">
+    <ClCompile Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\RescueMaze20\RobotSoftware\RobotLibrary\src\implementation\RobotLibrary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,23 +35,23 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\Dispenser_public.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\MazeMapping_public.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\Dispenser_private.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\MazeMapping_private.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\ReturnCode_public.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue.h">
       <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\RescueMaze20\RobotSoftware\RobotLibrary\src\implementation\Dispenser_private.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\RescueMaze20\RobotSoftware\RobotLibrary\src\implementation\Dispenser_public.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\RescueMaze20\RobotSoftware\RobotLibrary\src\implementation\MazeMapping_private.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\RescueMaze20\RobotSoftware\RobotLibrary\src\implementation\MazeMapping_public.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\RescueMaze20\RobotSoftware\RobotLibrary\src\implementation\ReturnCode_public.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

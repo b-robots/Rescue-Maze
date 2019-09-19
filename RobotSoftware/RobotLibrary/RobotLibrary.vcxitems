@@ -19,16 +19,16 @@
     <Text Include="$(MSBuildThisFileDirectory)src\RobotLibrary.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\Dispenser.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\MazeMapping.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\RobotLibrary.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\RobotLibrary.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\Dispenser_private.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\Dispenser_public.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\MazeMapping_public.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\ReturnCode_public.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\MazeMapping_private.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_private.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_public.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_public.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\ReturnCode_public.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_private.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue.h" />
   </ItemGroup>
 </Project>
