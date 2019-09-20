@@ -3,7 +3,7 @@
   <PropertyGroup Label="Globals">
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
     <HasSharedItems>true</HasSharedItems>
-    <ItemsProjectGuid>{a82fda54-43ad-49e1-86bb-c92d6c90f8ec}</ItemsProjectGuid>
+    <ItemsProjectGuid>{f3b70a52-4011-41fe-9dfb-bcfd4f585607}</ItemsProjectGuid>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -16,20 +16,19 @@
   <ItemGroup>
     <Text Include="$(MSBuildThisFileDirectory)readme.txt" />
     <Text Include="$(MSBuildThisFileDirectory)library.properties" />
-    <Text Include="$(MSBuildThisFileDirectory)src\JAFDLibrary.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <!-- <ClInclude Include="$(MSBuildThisFileDirectory)JAFDLibrary.h" /> -->
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_private.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_public.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_private.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_public.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\ReturnCode_public.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue.h" />
+    <Text Include="$(MSBuildThisFileDirectory)src\RobotLibrary.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\JAFDLibrary.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\RobotLibrary.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_private.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_public.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_public.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\ReturnCode_public.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_private.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue.h" />
   </ItemGroup>
 </Project>
