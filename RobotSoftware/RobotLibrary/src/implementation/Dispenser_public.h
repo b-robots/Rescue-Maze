@@ -17,7 +17,8 @@ namespace JAFTD
 		// Settings for Dispenser
 		typedef struct
 		{
-			byte test;
+			int anzahl;
+			byte pin1;
 		} DispenserSettings;
 	}
 }

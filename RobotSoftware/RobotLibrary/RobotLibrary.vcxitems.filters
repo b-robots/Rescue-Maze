@@ -23,14 +23,14 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\RescueMaze20\RobotSoftware\RobotLibrary\src\implementation\RobotLibrary.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser.cpp">
       <Filter>Source Files\implementation</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping.cpp">
       <Filter>Source Files\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\RobotLibrary.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

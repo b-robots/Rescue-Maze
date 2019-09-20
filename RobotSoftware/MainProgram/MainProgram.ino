@@ -9,18 +9,8 @@
 
 // The setup function runs once when you press reset or power the board
 void setup() {
-	pinMode(A0, OUTPUT);
-}
-
-void loop() {
-	digitalWrite(A0, HIGH);
-	delay(1000);
-	digitalWrite(A0, LOW);
-	delay(1000);
-}
-
-void setup_unused() {
-	/*// Robot Settings
+	/*
+	// Robot Settings
 	JAFTD::RobotSettings robotSettings;
 	robotSettings.mazeMapperSet.ramSSPin = 0;
 
@@ -29,15 +19,18 @@ void setup_unused() {
 	{
 		while (true);
 	}*/
+	Serial.begin(115200);
+	Serial.println("test");
 	pinMode(A0, OUTPUT);
 }
 
+
 // The loop function runs over and over again until power down or reset
-void loop_unused() {
+void loop() {
 	digitalWrite(A0, HIGH);
-	delay(1000);
+	delay(500);
 	digitalWrite(A0, LOW);
-	delay(1000);
+	delay(500);
 	/*// If robot is completely stuck, just do nothing.
 	if (JAFTD::robotLoop() == JAFTD::ReturnCode::fatalError)
 	{
