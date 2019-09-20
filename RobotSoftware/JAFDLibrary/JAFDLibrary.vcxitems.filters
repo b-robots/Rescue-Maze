@@ -9,36 +9,36 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx</Extensions>
     </Filter>
-    <Filter Include="Header Files\utility">
-      <UniqueIdentifier>{bf8d25df-7626-483f-b482-ec9378063c38}</UniqueIdentifier>
+    <Filter Include="Source Files\implementation">
+      <UniqueIdentifier>{c18c0c6b-fe9e-4e78-b68d-413a8cfd7b7d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\utility">
-      <UniqueIdentifier>{b3646e9d-c098-4298-84b8-9cd6c30e4ccd}</UniqueIdentifier>
+      <UniqueIdentifier>{9e129dbf-07a0-4548-bfd9-c3f4a205fe48}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\implementation">
-      <UniqueIdentifier>{f3daa5c0-75c5-4c92-8dc5-33b65e43713c}</UniqueIdentifier>
+      <UniqueIdentifier>{c5c6bf43-8a57-4462-b1b4-0c50a056d9df}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\implementation">
-      <UniqueIdentifier>{30a93e0c-6d7f-40f9-b507-57fc0cabfd31}</UniqueIdentifier>
+    <Filter Include="Header Files\utility">
+      <UniqueIdentifier>{4fed39c3-9f74-4ab4-af01-f9f0d77b81e4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\RescueMaze20\RobotSoftware\RobotLibrary\src\implementation\RobotLibrary.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <Text Include="$(MSBuildThisFileDirectory)readme.txt" />
+    <Text Include="$(MSBuildThisFileDirectory)library.properties" />
+    <Text Include="$(MSBuildThisFileDirectory)src\JAFDLibrary.h">
+      <Filter>Header Files</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser.cpp">
       <Filter>Source Files\implementation</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping.cpp">
       <Filter>Source Files\implementation</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="$(MSBuildThisFileDirectory)readme.txt" />
-    <Text Include="$(MSBuildThisFileDirectory)library.properties" />
-    <Text Include="$(MSBuildThisFileDirectory)src\RobotLibrary.h">
-      <Filter>Header Files</Filter>
-    </Text>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\JAFDLibrary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue.h">
