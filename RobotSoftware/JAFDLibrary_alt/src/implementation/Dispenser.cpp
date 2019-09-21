@@ -4,7 +4,7 @@ This part of the Library is responsible for dispensing the rescue packages.
 
 #pragma once
 
-#include "implementation/Dispenser_private.h"
+#include "Dispenser_private.h"
 
 namespace JAFTD
 {

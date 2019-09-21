@@ -2,9 +2,9 @@
 This part of the Library is responsible for mapping the maze and finding the shortest paths.
 */
 
-#include "implementation/MazeMapping_private.h"
+#include "MazeMapping_private.h"
 
-namespace JAFTD
+namespace JAFD
 {
 	namespace MazeMapping
 	{
@@ -14,8 +14,9 @@ namespace JAFTD
 			// SS Pin of RAM
 			byte ramSSPin;
 
+			// TODO: Rewrite the SPIRam Library, it causes a crash!!
 			// Class for handling the RAM
-			SpiRAM spiRam(0, 0);
+			//SpiRAM spiRam(0, 0);
 		}
 
 		// Home Position
@@ -33,7 +34,7 @@ namespace JAFTD
 		ReturnCode mazeMapperSetup(MazeMapperSet settings)
 		{
 			ramSSPin = settings.ramSSPin;
-			spiRam = SpiRAM(0, ramSSPin);
+			//spiRam = SpiRAM(0, ramSSPin);
 
 			return ReturnCode::ok;
 		}
@@ -53,7 +54,7 @@ namespace JAFTD
 			char bytes[2] = { (char)gridCell.cellConnections, (char)gridCell.cellState };
 
 			// Write data
-			spiRam.write_stream(address, bytes, 2);
+			//spiRam.write_stream(address, bytes, 2);
 
 			return ReturnCode::ok;
 		}
@@ -73,7 +74,7 @@ namespace JAFTD
 			char bytes[2];
 
 			// Read data
-			spiRam.write_stream(address, bytes, 2);
+			//spiRam.write_stream(address, bytes, 2);
 
 			// Return data
 			gridCell->cellConnections = bytes[0];
@@ -98,7 +99,7 @@ namespace JAFTD
 			char bytes[2] = { bfValue & 0b0000000011111111, bfValue >> 8 };
 
 			// Write data
-			spiRam.write_stream(address, bytes, 2);
+			//spiRam.write_stream(address, bytes, 2);
 
 			return ReturnCode::ok;
 		}
@@ -119,7 +120,7 @@ namespace JAFTD
 			char bytes[2];
 
 			// Read data
-			spiRam.write_stream(address, bytes, 4);
+			//spiRam.write_stream(address, bytes, 4);
 
 			// Return data
 			*bfValue = bytes[2] + bytes[3] << 8;
@@ -142,7 +143,7 @@ namespace JAFTD
 			char bytes[4] = { gridCell.cellConnections, gridCell.cellState, bfValue & 0b0000000011111111, bfValue >> 8 };
 
 			// Write data
-			spiRam.write_stream(address, bytes, 2);
+			//spiRam.write_stream(address, bytes, 2);
 
 			return ReturnCode::ok;
 		}
@@ -162,7 +163,7 @@ namespace JAFTD
 			char bytes[4];
 
 			// Read data
-			spiRam.write_stream(address, bytes, 4);
+			//spiRam.write_stream(address, bytes, 4);
 
 			// Return data
 			gridCell->cellConnections = bytes[0];

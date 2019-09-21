@@ -4,12 +4,11 @@ This private part of the Library is responsible for mapping the maze and finding
 
 #pragma once
 
-#include "implementation/ReturnCode_public.h"
-#include "implementation/MazeMapping_public.h"
-#include "utility/StaticQueue.h"
+#include "ReturnCode_public.h"
+#include "MazeMapping_public.h"
+#include "../utility/StaticQueue.h"
 
 #include <stdint.h>
-#include <SpiRAM.h>
 
 // To Do: Make some consts out of it!!
 // The maximum/minimum coordinates that can fit in the SRAM
@@ -18,7 +17,7 @@ This private part of the Library is responsible for mapping the maze and finding
 #define MAX_Y 31	// 0b111111 - 0b100000
 #define MIN_Y -32	// -(0b100000)
 
-namespace JAFTD
+namespace JAFD
 {
 	// Namespace for the MazeMapper
 	namespace MazeMapping
@@ -65,7 +64,7 @@ namespace JAFTD
 		namespace BFAlgorithm
 		{
 			// Find the shortest known path from a to b
-			ReturnCode findShortestPath(MapCoordinate a, MapCoordinate goal, Direction* directions, uint8_t maxPathLength);
+			ReturnCode findShortestPath(MapCoordinate a, Direction* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell));
 		}
 
 		// Setup the MazeMapper

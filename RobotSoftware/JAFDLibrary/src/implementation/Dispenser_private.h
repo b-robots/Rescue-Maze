@@ -4,12 +4,12 @@ This private part of the Library is responsible for dispensing the rescue packag
 
 #pragma once
 
-#include "implementation/Dispenser_public.h"
-#include "implementation/ReturnCode_public.h"
+#include "Dispenser_public.h"
+#include "ReturnCode_public.h"
 
 #include <stdint.h>
 
-namespace JAFTD
+namespace JAFD
 {
 	namespace Dispenser
 	{
