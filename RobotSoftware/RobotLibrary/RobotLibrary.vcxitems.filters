@@ -23,7 +23,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\RescueMaze20\RobotSoftware\RobotLibrary\src\implementation\RobotLibrary.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\RobotLibrary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser.cpp">
@@ -41,9 +41,6 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue.h">
-      <Filter>Header Files\utility</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_private.h">
       <Filter>Header Files\implementation</Filter>
     </ClInclude>
@@ -58,6 +55,9 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\ReturnCode_public.h">
       <Filter>Header Files\implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue.h">
+      <Filter>Header Files\utility</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

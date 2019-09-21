@@ -5,18 +5,18 @@
 */
 
 // RobotLibrary
-#include <RobotLibrary.h>
+#include <JAFDLibrary.h>
 
 // The setup function runs once when you press reset or power the board
 void setup() {
 	// Robot Settings
-	//JAFTD::RobotSettings robotSettings;
+	JAFTD::RobotSettings robotSettings;
 	//robotSettings.mazeMapperSet.ramSSPin = 0;
 	pinMode(A0, OUTPUT);
 	// If robot is completely stuck, just do nothing.
-	//if (robotSetup(robotSettings) == JAFTD::ReturnCode::fatalError)
+	if (robotSetup(robotSettings) == JAFTD::ReturnCode::fatalError)
 	{
-		//while (true);
+		while (true);
 	}
 }
 
@@ -28,8 +28,8 @@ void loop() {
 	delay(500);
 
 	// If robot is completely stuck, just do nothing.
-	//if (JAFTD::robotLoop() == JAFTD::ReturnCode::fatalError)
+	if (JAFTD::robotLoop() == JAFTD::ReturnCode::fatalError)
 	{
-		//while (true);
+		while (true);
 	}
 }

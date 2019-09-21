@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;s</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx</Extensions>
+    </Filter>
+    <Filter Include="Header Files\implementation">
+      <UniqueIdentifier>{a90083f4-3aa3-405b-8c1c-f168f4d77ba9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\utility">
+      <UniqueIdentifier>{cdb725f1-a51f-470b-baf9-c83fc88bb9fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\implementation">
+      <UniqueIdentifier>{3a6846af-8edd-484b-9de7-f4714f0b382f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="$(MSBuildThisFileDirectory)readme.txt" />
+    <Text Include="$(MSBuildThisFileDirectory)library.properties" />
+    <Text Include="$(MSBuildThisFileDirectory)src\JAFDLibrary.h">
+      <Filter>Header Files</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping.cpp">
+      <Filter>Source Files\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\JAFDLibrary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\ReturnCode_public.h">
+      <Filter>Header Files\implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_private.h">
+      <Filter>Header Files\implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_public.h">
+      <Filter>Header Files\implementation</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
