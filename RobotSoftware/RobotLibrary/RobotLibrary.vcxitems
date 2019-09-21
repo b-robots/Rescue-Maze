@@ -26,9 +26,9 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_private.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_public.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_private.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_public.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\ReturnCode_public.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_private.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue.h" />
   </ItemGroup>
 </Project>
