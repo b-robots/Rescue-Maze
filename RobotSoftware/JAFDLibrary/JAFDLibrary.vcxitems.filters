@@ -38,9 +38,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue.h">
-      <Filter>Header Files\utility</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_private.h">
       <Filter>Header Files\implementation</Filter>
     </ClInclude>
@@ -55,6 +52,12 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\ReturnCode_public.h">
       <Filter>Header Files\implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\SpiRam_private.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\RescueMaze20\RobotSoftware\JAFDLibrary\src\utility\StaticQueue_private.h">
+      <Filter>Header Files\utility</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

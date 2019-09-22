@@ -6,22 +6,24 @@ This private part of the Library is responsible for mapping the maze and finding
 
 #include "ReturnCode_public.h"
 #include "MazeMapping_public.h"
-#include "../utility/StaticQueue.h"
+#include "../utility/StaticQueue_private.h"
 
 #include <stdint.h>
-
-// To Do: Make some consts out of it!!
-// The maximum/minimum coordinates that can fit in the SRAM
-#define MAX_X 31	// 0b111111 - 0b100000
-#define MIN_X -32	// -(0b100000)
-#define MAX_Y 31	// 0b111111 - 0b100000
-#define MIN_Y -32	// -(0b100000)
 
 namespace JAFD
 {
 	// Namespace for the MazeMapper
 	namespace MazeMapping
 	{
+		// Home Position
+		extern const MapCoordinate homePosition;
+
+		// The maximum/minimum coordinates that can fit in the SRAM
+		extern const int8_t maxX;
+		extern const int8_t minX;
+		extern const int8_t maxY;
+		extern const int8_t minY;
+
 		// Directions (can't be a enum class)
 		enum Direction : uint8_t
 		{

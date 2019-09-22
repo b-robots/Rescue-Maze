@@ -22,6 +22,12 @@ namespace JAFD
 		// Home Position
 		const MapCoordinate homePosition = { 0, 0, 0 };
 
+		// Mmaximum/minimum coordinates that can fit in the SRAM
+		const int8_t maxX = 63;
+		const int8_t minX = -64;
+		const int8_t maxY = 63;
+		const int8_t minY = -64;
+
 		// Comparison operators for GridCell
 		inline bool operator==(const GridCell& lhs, const GridCell& rhs) { return (lhs.cellConnections == rhs.cellConnections && lhs.cellState == rhs.cellState); }
 		inline bool operator!=(const GridCell& lhs, const GridCell& rhs) { return !(lhs == rhs); }
@@ -43,15 +49,15 @@ namespace JAFD
 		ReturnCode setGridCell(GridCell gridCell, MapCoordinate coor)
 		{
 			// Memory address
-			uint16_t address;;
+			uint32_t address;;
 
 			// Calculate address
-			address = ((coor.x + 0b100000) & 0b00111111) << 2;	// Bit 3 - 8 = x-Axis / 0 = 0b100000
-			address += ((coor.y + 0b100000) & 0b00111111) << 8; // Bit 9 - 14 = y-Axis / 0 = 0b100000
-			address += ((coor.floor & 0b00000001) << 14);		// MSB (15.Bit) = floor
+			address = ((coor.x + 0b1000000) & 0b01111111) << 3;	// Bit 4 - 10 = x-Axis / 0 = 0b1000000
+			address += ((coor.y + 0b1000000) & 0b01111111) << 10; // Bit 11 - 17 = y-Axis / 0 = 0b1000000
+			address += ((coor.floor & 0b00000001) << 17);		// MSB (18.Bit) = floor
 
 			// Data as a byte array
-			char bytes[2] = { (char)gridCell.cellConnections, (char)gridCell.cellState };
+			uint8_t bytes[2] = { gridCell.cellConnections, gridCell.cellState };
 
 			// Write data
 			//spiRam.write_stream(address, bytes, 2);
@@ -63,15 +69,15 @@ namespace JAFD
 		ReturnCode getGridCell(GridCell* gridCell, MapCoordinate coor)
 		{
 			// Memory address
-			uint16_t address;;
+			uint32_t address;;
 
 			// Calculate address
-			address = ((coor.x + 0b100000) & 0b00111111) << 2;	// Bit 3 - 8 = x-Axis / 0 = 0b100000
-			address += ((coor.y + 0b100000) & 0b00111111) << 8; // Bit 9 - 14 = y-Axis / 0 = 0b100000
-			address += ((coor.floor & 0b00000001) << 14);		// MSB (15.Bit) = floor
+			address = ((coor.x + 0b1000000) & 0b01111111) << 3;	// Bit 4 - 10 = x-Axis / 0 = 0b1000000
+			address += ((coor.y + 0b1000000) & 0b01111111) << 10; // Bit 11 - 17 = y-Axis / 0 = 0b1000000
+			address += ((coor.floor & 0b00000001) << 17);		// MSB (18.Bit) = floor
 
 			// Data as a byte array
-			char bytes[2];
+			uint8_t bytes[2];
 
 			// Read data
 			//spiRam.write_stream(address, bytes, 2);
@@ -87,16 +93,16 @@ namespace JAFD
 		ReturnCode setGridCell(uint16_t bfValue, MapCoordinate coor)
 		{
 			// Memory address
-			uint16_t address;;
+			uint32_t address;;
 
 			// Calculate address
-			address = ((coor.x + 0b100000) & 0b00111111) << 2;	// Bit 3 - 8 = x-Axis / 0 = 0b100000
-			address += ((coor.y + 0b100000) & 0b00111111) << 8; // Bit 9 - 14 = y-Axis / 0 = 0b100000
-			address += ((coor.floor & 0b00000001) << 14);		// MSB (15.Bit) = floor
+			address = ((coor.x + 0b1000000) & 0b01111111) << 3;	// Bit 4 - 10 = x-Axis / 0 = 0b1000000
+			address += ((coor.y + 0b1000000) & 0b01111111) << 10; // Bit 11 - 17 = y-Axis / 0 = 0b1000000
+			address += ((coor.floor & 0b00000001) << 17);		// MSB (18.Bit) = floor
 			address += 2;										// Go to the solver value
 
 			// Data as a byte array
-			char bytes[2] = { bfValue & 0b0000000011111111, bfValue >> 8 };
+			uint8_t bytes[2] = { bfValue & 0b0000000011111111, bfValue >> 8 };
 
 			// Write data
 			//spiRam.write_stream(address, bytes, 2);
@@ -108,16 +114,16 @@ namespace JAFD
 		ReturnCode getGridCell(uint16_t* bfValue, MapCoordinate coor)
 		{
 			// Memory address
-			uint16_t address;;
+			uint32_t address;;
 
 			// Calculate address
-			address = ((coor.x + 0b100000) & 0b00111111) << 2;	// Bit 3 - 8 = x-Axis / 0 = 0b100000
-			address += ((coor.y + 0b100000) & 0b00111111) << 8; // Bit 9 - 14 = y-Axis / 0 = 0b100000
-			address += ((coor.floor & 0b00000001) << 14);		// MSB (15.Bit) = floor
+			address = ((coor.x + 0b1000000) & 0b01111111) << 3;	// Bit 4 - 10 = x-Axis / 0 = 0b1000000
+			address += ((coor.y + 0b1000000) & 0b01111111) << 10; // Bit 11 - 17 = y-Axis / 0 = 0b1000000
+			address += ((coor.floor & 0b00000001) << 17);		// MSB (18.Bit) = floor
 			address += 2;										// Go to the solver value
 
 			// Data as a byte array
-			char bytes[2];
+			uint8_t bytes[2];
 
 			// Read data
 			//spiRam.write_stream(address, bytes, 4);
@@ -132,18 +138,18 @@ namespace JAFD
 		ReturnCode setGridCell(GridCell gridCell, uint16_t bfValue, MapCoordinate coor)
 		{
 			// Memory address
-			uint16_t address;;
+			uint32_t address;;
 
 			// Calculate address
-			address = ((coor.x + 0b100000) & 0b00111111) << 2;	// Bit 3 - 8 = x-Axis / 0 = 0b100000
-			address += ((coor.y + 0b100000) & 0b00111111) << 8; // Bit 9 - 14 = y-Axis / 0 = 0b100000
-			address += ((coor.floor & 0b00000001) << 14);		// MSB (15.Bit) = floor
+			address = ((coor.x + 0b1000000) & 0b01111111) << 3;	// Bit 4 - 10 = x-Axis / 0 = 0b1000000
+			address += ((coor.y + 0b1000000) & 0b01111111) << 10; // Bit 11 - 17 = y-Axis / 0 = 0b1000000
+			address += ((coor.floor & 0b00000001) << 17);		// MSB (18.Bit) = floor
 
 			// Data as a byte array
-			char bytes[4] = { gridCell.cellConnections, gridCell.cellState, bfValue & 0b0000000011111111, bfValue >> 8 };
+			uint8_t bytes[4] = { gridCell.cellConnections, gridCell.cellState, bfValue & 0b0000000011111111, bfValue >> 8 };
 
 			// Write data
-			//spiRam.write_stream(address, bytes, 2);
+			//spiRam.write_stream(address, bytes, 4);
 
 			return ReturnCode::ok;
 		}
@@ -152,15 +158,15 @@ namespace JAFD
 		ReturnCode getGridCell(GridCell* gridCell, uint16_t* bfValue, MapCoordinate coor)
 		{
 			// Memory address
-			uint16_t address;;
+			uint32_t address;;
 
 			// Calculate address
-			address = ((coor.x + 0b100000) & 0b00111111) << 2;	// Bit 3 - 8 = x-Axis / 0 = 0b100000
-			address += ((coor.y + 0b100000) & 0b00111111) << 8; // Bit 9 - 14 = y-Axis / 0 = 0b100000
-			address += ((coor.floor & 0b00000001) << 14);		// MSB (15.Bit) = floor
+			address = ((coor.x + 0b1000000) & 0b01111111) << 3;	// Bit 4 - 10 = x-Axis / 0 = 0b1000000
+			address += ((coor.y + 0b1000000) & 0b01111111) << 10; // Bit 11 - 17 = y-Axis / 0 = 0b1000000
+			address += ((coor.floor & 0b00000001) << 17);		// MSB (18.Bit) = floor
 
 			// Data as a byte array
-			char bytes[4];
+			uint8_t bytes[4];
 
 			// Read data
 			//spiRam.write_stream(address, bytes, 4);
@@ -175,11 +181,6 @@ namespace JAFD
 
 		namespace BFAlgorithm
 		{
-			auto equalsFive = [](int a) noexcept -> bool
-			{
-				return a == 5;
-			};
-
 			// Find the shortest known path from a to b
 			ReturnCode findShortestPath(MapCoordinate a, Direction* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell))
 			{
@@ -211,7 +212,7 @@ namespace JAFD
 
 							foundWay = false;
 
-							if (v.y < MAX_Y && (gridCellV.cellConnections & Direction::north)) // Check the north
+							if (v.y < maxY && (gridCellV.cellConnections & Direction::north)) // Check the north
 							{
 								w = { v.x, v.y + 1, v.floor };
 								getGridCell(&gridCellW, &bfValueW, w);
@@ -223,7 +224,7 @@ namespace JAFD
 									foundWay = true;
 								}
 							}
-							else if (!foundWay && v.x < MAX_X && (gridCellV.cellConnections & Direction::east))	// Check the east
+							else if (!foundWay && v.x < maxX && (gridCellV.cellConnections & Direction::east))	// Check the east
 							{
 								w = { v.x + 1, v.y, v.floor };
 								getGridCell(&gridCellW, &bfValueW, w);
@@ -235,7 +236,7 @@ namespace JAFD
 									foundWay = true;
 								}
 							}
-							else if (!foundWay && v.y > MIN_Y && (gridCellV.cellConnections & Direction::south)) // Check the south
+							else if (!foundWay && v.y > minY && (gridCellV.cellConnections & Direction::south)) // Check the south
 							{
 								w = { v.x, v.y - 1, v.floor };
 								getGridCell(&gridCellW, &bfValueW, w);
@@ -247,7 +248,7 @@ namespace JAFD
 									foundWay = true;
 								}
 							}
-							else if (!foundWay && v.x > MIN_X && (gridCellV.cellConnections & Direction::west)) // Check the west
+							else if (!foundWay && v.x > minX && (gridCellV.cellConnections & Direction::west)) // Check the west
 							{
 								w = { v.x - 1, v.y, v.floor };
 								getGridCell(&gridCellW, &bfValueW, w);
@@ -272,7 +273,7 @@ namespace JAFD
 						if (distance > maxPathLength) return ReturnCode::error;
 
 						// Check the north
-						if (v.y < MAX_Y && (gridCellV.cellConnections & Direction::north))
+						if (v.y < maxY && (gridCellV.cellConnections & Direction::north))
 						{
 							w = { v.x, v.y + 1, v.floor };
 							getGridCell(&gridCellW, &bfValueW, w);
@@ -288,7 +289,7 @@ namespace JAFD
 						}
 
 						// Check the east
-						if (v.x < MAX_X && (gridCellV.cellConnections & Direction::east))
+						if (v.x < maxX && (gridCellV.cellConnections & Direction::east))
 						{
 							w = { v.x + 1, v.y, v.floor };
 							getGridCell(&gridCellW, &bfValueW, w);
@@ -304,7 +305,7 @@ namespace JAFD
 						}
 
 						// Check the south
-						if (v.y > MIN_Y && (gridCellV.cellConnections & Direction::south))
+						if (v.y > minY && (gridCellV.cellConnections & Direction::south))
 						{
 							w = { v.x, v.y - 1, v.floor };
 							getGridCell(&gridCellW, &bfValueW, w);
@@ -320,7 +321,7 @@ namespace JAFD
 						}
 
 						// Check the west
-						if (v.x > MIN_X && (gridCellV.cellConnections & Direction::west))
+						if (v.x > minX && (gridCellV.cellConnections & Direction::west))
 						{
 							w = { v.x - 1, v.y, v.floor };
 							getGridCell(&gridCellW, &bfValueW, w);
