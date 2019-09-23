@@ -15,15 +15,6 @@ namespace JAFD
 	// Namespace for the MazeMapper
 	namespace MazeMapping
 	{
-		// Home Position
-		extern const MapCoordinate homePosition;
-
-		// The maximum/minimum coordinates that can fit in the SRAM
-		extern const int8_t maxX;
-		extern const int8_t minX;
-		extern const int8_t maxY;
-		extern const int8_t minY;
-
 		// Directions (can't be a enum class)
 		enum Direction : uint8_t
 		{
@@ -61,6 +52,15 @@ namespace JAFD
 			int8_t y;
 			uint8_t floor;
 		} MapCoordinate;
+
+		// Home Position
+		extern const MapCoordinate homePosition;
+
+		// The maximum/minimum coordinates that can fit in the SRAM
+		extern const int8_t maxX;
+		extern const int8_t minX;
+		extern const int8_t maxY;
+		extern const int8_t minY;
 
 		// Namespace for the Breadth-First-Search-Algorithm to find the shortest Path
 		namespace BFAlgorithm
