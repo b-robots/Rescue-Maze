@@ -12,7 +12,7 @@ namespace JAFD
 		namespace
 		{
 			// SS Pin of RAM
-			byte ramSSPin;
+			uint8_t ramSSPin;
 
 			// TODO: Rewrite the SPIRam Library, it causes a crash!!
 			// Class for handling the RAM

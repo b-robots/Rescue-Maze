@@ -4,11 +4,7 @@ This public part of the Library is responsible for mapping the maze and finding 
 
 #pragma once
 
-#if defined(ARDUINO) && ARDUINO >= 100
-#include "arduino.h"
-#else
-#include "WProgram.h"
-#endif
+#include <stdint.h>
 
 namespace JAFD
 {
@@ -17,7 +13,7 @@ namespace JAFD
 	{
 		// Settings
 		typedef struct {
-			byte ramSSPin;
+			uint8_t ramSSPin;
 		} MazeMapperSet;
 	}
 }
