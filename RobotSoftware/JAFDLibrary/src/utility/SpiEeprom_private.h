@@ -17,7 +17,6 @@ This private file of the library is responsible for the access to the SPI EEPROM
 
 namespace JAFD
 {
-	// Namespace for the SPI EEPROM "25LC1024"
 	namespace SpiEeprom
 	{
 		enum class Instruction : uint8_t
@@ -35,7 +34,8 @@ namespace JAFD
 			dpd = 0b10111001 // Deep Power-Down mode
 		};
 
-		class SpiEeprom
+		// Class for the SPI EEPROM "25LC1024"
+		class Eeprom25LC1024
 		{
 		private:
 			PinMapping::PinInformation _ssPin;
@@ -47,7 +47,8 @@ namespace JAFD
 			static const uint8_t _pageSize = 256;
 
 		public:
-			SpiEeprom(uint8_t ssPin);
+			Eeprom25LC1024(uint8_t ssPin);
+			Eeprom25LC1024() : Eeprom25LC1024(2) {}
 
 			// Read and write functions
 			uint8_t readByte(uint32_t address);

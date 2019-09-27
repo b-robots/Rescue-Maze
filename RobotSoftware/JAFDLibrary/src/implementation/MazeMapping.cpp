@@ -3,6 +3,7 @@ This part of the Library is responsible for mapping the maze and finding the sho
 */
 
 #include "MazeMapping_private.h"
+#include "../utility/SpiEeprom_private.h"
 
 namespace JAFD
 {
@@ -12,21 +13,26 @@ namespace JAFD
 		namespace
 		{
 			// SS Pin of RAM
-			uint8_t ramSSPin;
+			uint8_t _ramSSPin;
 
-			// TODO: Rewrite the SPIRam Library, it causes a crash!!
-			// Class for handling the RAM
-			//SpiRAM spiRam(0, 0);
+			// Class for handling the EEPROM
+			SpiEeprom::Eeprom25LC1024 _spiEeprom;
 		}
 
 		// Home Position
-		const MapCoordinate homePosition = { 0, 0, 0 };
+		constexpr MapCoordinate homePosition = { 0, 0, 0 };
 
-		// Mmaximum/minimum coordinates that can fit in the SRAM
-		const int8_t maxX = 63;
-		const int8_t minX = -64;
-		const int8_t maxY = 63;
-		const int8_t minY = -64;
+		// Start-Address
+		constexpr uint32_t startAddress = 0;
+
+		// Usable size for the maze mapping
+		constexpr uint16_t usableSize = 64 * 1024;
+
+		// Maximum/minimum coordinates that can fit in the SRAM
+		constexpr int8_t maxX = 63;
+		constexpr int8_t minX = -64;
+		constexpr int8_t maxY = 63;
+		constexpr int8_t minY = -64;
 
 		// Comparison operators for GridCell
 		inline bool operator==(const GridCell& lhs, const GridCell& rhs) { return (lhs.cellConnections == rhs.cellConnections && lhs.cellState == rhs.cellState); }
@@ -39,8 +45,8 @@ namespace JAFD
 		// Setup the MazeMapper
 		ReturnCode mazeMapperSetup(MazeMapperSet settings)
 		{
-			ramSSPin = settings.ramSSPin;
-			//spiRam = SpiRAM(0, ramSSPin);
+			_ramSSPin = settings.ramSSPin;
+			_spiEeprom = SpiEeprom::Eeprom25LC1024(_ramSSPin);
 
 			return ReturnCode::ok;
 		}

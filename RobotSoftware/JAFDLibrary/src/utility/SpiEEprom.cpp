@@ -10,7 +10,7 @@ namespace JAFD
 {
 	namespace SpiEeprom
 	{
-		SpiEeprom::SpiEeprom(uint8_t ssPin) : _ssPin(PinMapping::MappedPins[ssPin])
+		Eeprom25LC1024::Eeprom25LC1024(uint8_t ssPin = 2) : _ssPin(PinMapping::MappedPins[ssPin])
 		{
 			PMC->PMC_PCER0 = 1 << _ssPin.portID;
 			_ssPin.port->PIO_PER = _ssPin.pin;
@@ -23,17 +23,17 @@ namespace JAFD
 			disable();
 		}
 
-		void SpiEeprom::enable()
+		void Eeprom25LC1024::enable()
 		{
 			_ssPin.port->PIO_CODR = _ssPin.pin;
 		}
 
-		void SpiEeprom::disable()
+		void Eeprom25LC1024::disable()
 		{
 			_ssPin.port->PIO_SODR = _ssPin.pin;
 		}
 
-		uint8_t SpiEeprom::readByte(uint32_t address)
+		uint8_t Eeprom25LC1024::readByte(uint32_t address)
 		{
 			enable();
 
@@ -50,7 +50,7 @@ namespace JAFD
 			return val;
 		}
 
-		void SpiEeprom::writeByte(uint32_t address, uint8_t byte)
+		void Eeprom25LC1024::writeByte(uint32_t address, uint8_t byte)
 		{
 			enable();
 
@@ -65,7 +65,7 @@ namespace JAFD
 			disable();
 		}
 
-		void SpiEeprom::readPage(uint8_t numPage, uint8_t* buffer)
+		void Eeprom25LC1024::readPage(uint8_t numPage, uint8_t* buffer)
 		{
 			enable();
 
@@ -85,7 +85,7 @@ namespace JAFD
 			disable();
 		}
 
-		void SpiEeprom::writePage(uint8_t numPage, uint8_t* buffer)
+		void Eeprom25LC1024::writePage(uint8_t numPage, uint8_t* buffer)
 		{
 			enable();
 
@@ -105,7 +105,7 @@ namespace JAFD
 			disable();
 		}
 
-		void SpiEeprom::readStream(uint32_t address, uint8_t* buffer, uint32_t length)
+		void Eeprom25LC1024::readStream(uint32_t address, uint8_t* buffer, uint32_t length)
 		{
 			enable();
 
@@ -136,7 +136,7 @@ namespace JAFD
 			}
 		}
 
-		void SpiEeprom::writeStream(uint32_t address, uint8_t* buffer, uint32_t length)
+		void Eeprom25LC1024::writeStream(uint32_t address, uint8_t* buffer, uint32_t length)
 		{
 			enable();
 

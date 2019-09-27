@@ -53,15 +53,6 @@ namespace JAFD
 			uint8_t floor;
 		} MapCoordinate;
 
-		// Home Position
-		extern const MapCoordinate homePosition;
-
-		// The maximum/minimum coordinates that can fit in the SRAM
-		extern const int8_t maxX;
-		extern const int8_t minX;
-		extern const int8_t maxY;
-		extern const int8_t minY;
-
 		// Namespace for the Breadth-First-Search-Algorithm to find the shortest Path
 		namespace BFAlgorithm
 		{
