@@ -10,17 +10,24 @@
       <Extensions>h;hh;hpp;hxx</Extensions>
     </Filter>
     <Filter Include="Header Files\utility">
-      <UniqueIdentifier>{bf8d25df-7626-483f-b482-ec9378063c38}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\utility">
-      <UniqueIdentifier>{b3646e9d-c098-4298-84b8-9cd6c30e4ccd}</UniqueIdentifier>
+      <UniqueIdentifier>{37b2169f-86a2-416a-952d-9760b52a4401}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\implementation">
-      <UniqueIdentifier>{f3daa5c0-75c5-4c92-8dc5-33b65e43713c}</UniqueIdentifier>
+      <UniqueIdentifier>{f5ffd324-c3b0-409a-ae00-47b21582690f}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\implementation">
-      <UniqueIdentifier>{30a93e0c-6d7f-40f9-b507-57fc0cabfd31}</UniqueIdentifier>
+      <UniqueIdentifier>{3a649a15-6001-4952-a91c-48487e761af8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\utility">
+      <UniqueIdentifier>{9e80d6f0-e2ff-4720-9a44-d9b36f2e99ae}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="$(MSBuildThisFileDirectory)readme.txt" />
+    <Text Include="$(MSBuildThisFileDirectory)library.properties" />
+    <Text Include="$(MSBuildThisFileDirectory)src\JAFDLibrary.h">
+      <Filter>Header Files</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser.cpp">
@@ -29,21 +36,14 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping.cpp">
       <Filter>Source Files\implementation</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\RobotLibrary.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\JAFDLibrary.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utility\SpiEEprom.cpp">
+      <Filter>Source Files\utility</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="$(MSBuildThisFileDirectory)readme.txt" />
-    <Text Include="$(MSBuildThisFileDirectory)library.properties" />
-    <Text Include="$(MSBuildThisFileDirectory)src\RobotLibrary.h">
-      <Filter>Header Files</Filter>
-    </Text>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue.h">
-      <Filter>Header Files\utility</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_private.h">
       <Filter>Header Files\implementation</Filter>
     </ClInclude>
@@ -58,6 +58,15 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\ReturnCode_public.h">
       <Filter>Header Files\implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\SpiEeprom_private.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue_private.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\RescueMaze20\RobotSoftware\JAFDLibrary\src\utility\DuePinMapping_private.h">
+      <Filter>Header Files\utility</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

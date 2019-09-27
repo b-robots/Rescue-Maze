@@ -4,36 +4,43 @@
  Author:	B.Robots
 */
 
+#if defined(ARDUINO) && ARDUINO >= 100
+#include "arduino.h"
+#else
+#include "WProgram.h"
+#endif
+
 // RobotLibrary
-#include <RobotLibrary.h>
+#include <JAFDLibrary.h>
+#include <utility/DuePinMapping_public.h>
 
 // The setup function runs once when you press reset or power the board
 void setup() {
-	/*
 	// Robot Settings
-	JAFTD::RobotSettings robotSettings;
-	robotSettings.mazeMapperSet.ramSSPin = 0;
+	JAFD::RobotSettings robotSettings;
+	robotSettings.mazeMapperSet.ramSSPin = A1;
+
+	PMC->PMC_PCER0 = 1 << JAFD::PinMapping::MappedPins[A0].portID;
+	JAFD::PinMapping::MappedPins[A0].port->PIO_PER = JAFD::PinMapping::MappedPins[A0].pin;
+	JAFD::PinMapping::MappedPins[A0].port->PIO_OER = JAFD::PinMapping::MappedPins[A0].pin;
 
 	// If robot is completely stuck, just do nothing.
-	if (robotSetup(robotSettings) == JAFTD::ReturnCode::fatalError)
+	if (robotSetup(robotSettings) == JAFD::ReturnCode::fatalError)
 	{
 		while (true);
-	}*/
-	Serial.begin(115200);
-	Serial.println("test");
-	pinMode(A0, OUTPUT);
+	}
 }
-
 
 // The loop function runs over and over again until power down or reset
 void loop() {
-	digitalWrite(A0, HIGH);
+	JAFD::PinMapping::MappedPins[A0].port->PIO_SODR = JAFD::PinMapping::MappedPins[A0].pin;
 	delay(500);
-	digitalWrite(A0, LOW);
+	JAFD::PinMapping::MappedPins[A0].port->PIO_CODR = JAFD::PinMapping::MappedPins[A0].pin;
 	delay(500);
-	/*// If robot is completely stuck, just do nothing.
-	if (JAFTD::robotLoop() == JAFTD::ReturnCode::fatalError)
+
+	// If robot is completely stuck, just do nothing.
+	if (JAFD::robotLoop() == JAFD::ReturnCode::fatalError)
 	{
 		while (true);
-	}*/
+	}
 }

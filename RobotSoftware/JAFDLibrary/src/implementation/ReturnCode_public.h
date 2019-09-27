@@ -6,7 +6,7 @@ The return code of every function in this library
 
 #include <stdint.h>
 
-namespace JAFTD
+namespace JAFD
 {
 	// Return codes of a function
 	enum class ReturnCode : uint8_t

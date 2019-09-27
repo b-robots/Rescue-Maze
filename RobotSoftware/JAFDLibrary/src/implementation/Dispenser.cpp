@@ -2,11 +2,9 @@
 This part of the Library is responsible for dispensing the rescue packages.
 */
 
-#pragma once
+#include "Dispenser_private.h"
 
-#include "implementation/Dispenser_private.h"
-
-namespace JAFTD
+namespace JAFD
 {
 	namespace Dispenser
 	{

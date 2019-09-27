@@ -1,13 +1,13 @@
 /*
-In this file is the Array-based queue
+This private file of the library is responsible for an Array-based Queue
 */
 
 #pragma once
 
-#include "implementation/ReturnCode_public.h"
+#include "../implementation/ReturnCode_public.h"
 #include <stdint.h>
 
-namespace JAFTD
+namespace JAFD
 {
 	// Template class for an Array-based queue
 	template <typename T, uint8_t maxSize>
