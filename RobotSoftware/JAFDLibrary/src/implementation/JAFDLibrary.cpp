@@ -16,6 +16,7 @@ namespace JAFD
 	ReturnCode robotSetup(RobotSettings robotSettings)
 	{
 		// Setup the SPI-Bus
+		SPI.begin();
 		SPI.beginTransaction(SPISettings(20e+6, MSBFIRST, SPI_MODE1));
 
 		// Setup of MazeMapper

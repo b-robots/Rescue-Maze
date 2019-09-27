@@ -65,7 +65,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue_private.h">
       <Filter>Header Files\utility</Filter>
     </ClInclude>
-    <ClInclude Include="F:\1-Patrick\Archiv\02 - HTL Bulme\B. Robots\RescueMaze\RescueMaze20\RobotSoftware\JAFDLibrary\src\utility\DuePinMapping_private.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\DuePinMapping_private.h">
       <Filter>Header Files\utility</Filter>
     </ClInclude>
   </ItemGroup>

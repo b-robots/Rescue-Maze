@@ -4,6 +4,10 @@ This private file of the library is responsible for the access to the SPI EEPROM
 
 #pragma once
 
+#if !defined(__SAM3X8E__)
+#error This Library can only be used with the Arduino Due / ATSam3x8e
+#endif
+
 #if defined(ARDUINO) && ARDUINO >= 100
 #include "arduino.h"
 #else
