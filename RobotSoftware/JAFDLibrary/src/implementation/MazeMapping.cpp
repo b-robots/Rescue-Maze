@@ -7,6 +7,7 @@ This part of the Library is responsible for mapping the maze and finding the sho
 #include "../utility/Math_private.h"
 #include <algorithm>
 
+
 namespace JAFD
 {
 	namespace MazeMapping
@@ -18,7 +19,7 @@ namespace JAFD
 			uint8_t _ramSSPin;
 
 			// Class for handling the EEPROM
-			SpiEeprom::Eeprom25LC1024 _spiEeprom(2);
+			SpiEeprom::Eeprom25LC1024 _spiEeprom;
 		}
 
 		// Home Position
@@ -44,6 +45,7 @@ namespace JAFD
 		inline bool operator==(const MapCoordinate& lhs, const MapCoordinate& rhs) { return (lhs.floor == rhs.floor && lhs.x == rhs.x && lhs.y == rhs.y); }
 		inline bool operator!=(const MapCoordinate& lhs, const MapCoordinate& rhs) { return !(lhs == rhs); }
 
+		
 		// Get the position of the Ramp
 		RampDirection getRampDirection(GridCell cell)
 		{
@@ -58,7 +60,7 @@ namespace JAFD
 
 			return ReturnCode::ok;
 		}
-
+		
 		// Set a grid cell in the RAM
 		ReturnCode setGridCell(GridCell gridCell, MapCoordinate coor)
 		{
@@ -74,7 +76,7 @@ namespace JAFD
 			uint8_t bytes[2] = { gridCell.cellConnections, gridCell.cellState };
 
 			// Write data
-			_spiEeprom.writeStream(address, bytes, 2);
+			//_spiEeprom.writeStream(address, bytes, 2);
 
 			return ReturnCode::ok;
 		}
@@ -94,7 +96,7 @@ namespace JAFD
 			uint8_t bytes[2];
 
 			// Read data
-			_spiEeprom.readStream(address, bytes, 2);
+			//_spiEeprom.readStream(address, bytes, 2);
 
 			// Return data
 			gridCell->cellConnections = bytes[0];
@@ -116,7 +118,7 @@ namespace JAFD
 			address += 2;								// Go to the solver value
 
 			// Write data
-			_spiEeprom.writeByte(address, (uint8_t)solverValue);
+			//_spiEeprom.writeByte(address, (uint8_t)solverValue);
 
 			return ReturnCode::ok;
 		}
@@ -137,7 +139,7 @@ namespace JAFD
 			uint8_t bytes[2];
 
 			// Read data
-			*solverValue = (BFAlgorithm::SolverValue)_spiEeprom.readByte(address);
+			//*solverValue = (BFAlgorithm::SolverValue)_spiEeprom.readByte(address);
 
 			return ReturnCode::ok;
 		}
@@ -157,7 +159,7 @@ namespace JAFD
 			uint8_t bytes[3] = { gridCell.cellConnections, gridCell.cellState, (uint8_t)solverValue };
 
 			// Write data
-			_spiEeprom.writeStream(address, bytes, 3);
+			//_spiEeprom.writeStream(address, bytes, 3);
 
 			return ReturnCode::ok;
 		}
@@ -177,7 +179,7 @@ namespace JAFD
 			uint8_t bytes[3];
 
 			// Read data
-			_spiEeprom.readStream(address, bytes, 3);
+			//_spiEeprom.readStream(address, bytes, 3);
 
 			// Return data
 			gridCell->cellConnections = bytes[0];
@@ -186,7 +188,7 @@ namespace JAFD
 
 			return ReturnCode::ok;
 		}
-
+		
 		namespace BFAlgorithm
 		{
 			// Clear all Solver-Values in the EEPROM
@@ -200,7 +202,7 @@ namespace JAFD
 					}
 				}
 			}
-
+			
 			// Find the shortest known path from a to b
 			ReturnCode findShortestPath(MapCoordinate start, Direction* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell))
 			{

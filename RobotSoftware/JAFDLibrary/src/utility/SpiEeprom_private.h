@@ -48,6 +48,7 @@ namespace JAFD
 
 		public:
 			Eeprom25LC1024(uint8_t ssPin);
+			Eeprom25LC1024();
 
 			// Read and write functions
 			uint8_t readByte(uint32_t address);

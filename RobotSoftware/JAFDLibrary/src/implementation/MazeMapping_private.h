@@ -10,6 +10,7 @@ This private part of the Library is responsible for mapping the maze and finding
 
 #include <stdint.h>
 
+
 namespace JAFD
 {
 	// Namespace for the MazeMapper
@@ -75,8 +76,6 @@ namespace JAFD
 			uint8_t floor;
 		} MapCoordinate;
 
-		RampDirection getRampDirection(GridCell cell);
-
 		// Namespace for the Breadth-First-Search-Algorithm to find the shortest Path
 		namespace BFAlgorithm
 		{
@@ -88,17 +87,20 @@ namespace JAFD
 				south = 0b10,
 				west = 0b11
 			};
-
+			
 			// Clear all Solver-Values in the EEPROM
 			void clearSolverValues(uint8_t floor);
 
 			// Find the shortest known path from a to b
 			ReturnCode findShortestPath(MapCoordinate a, Direction* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell));
 		}
+		
+		// Get the direction of the Ramp
+		RampDirection getRampDirection(GridCell cell);
 
 		// Setup the MazeMapper
 		ReturnCode mazeMapperSetup(MazeMapperSet settings);
-
+		
 		// Set a grid cell in the RAM
 		ReturnCode setGridCell(GridCell gridCell, MapCoordinate coor);
 		ReturnCode setGridCell(BFAlgorithm::SolverValue solverValue, MapCoordinate coor);

@@ -17,7 +17,10 @@
 void setup() {
 	// Robot Settings
 	JAFD::RobotSettings robotSettings;
-	robotSettings.mazeMapperSet.ramSSPin = A1;
+	//robotSettings.mazeMapperSet.ramSSPin = A1;
+
+	Serial.begin(115200);
+	Serial.println("Hallo");
 
 	// If robot is completely stuck, just do nothing.
 	if (robotSetup(robotSettings) == JAFD::ReturnCode::fatalError)

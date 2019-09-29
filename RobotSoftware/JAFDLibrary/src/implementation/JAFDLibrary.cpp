@@ -20,7 +20,7 @@ namespace JAFD
 		SPI.beginTransaction(SPISettings(20e+6, MSBFIRST, SPI_MODE1));
 
 		// Setup of MazeMapper
-		MazeMapping::mazeMapperSetup(robotSettings.mazeMapperSet);
+		//MazeMapping::mazeMapperSetup(robotSettings.mazeMapperSet);
 
 		// Setup of Dispenser
 		Dispenser::dispenserSetup(robotSettings.dispenserSet);
