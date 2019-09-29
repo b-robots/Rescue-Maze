@@ -7,6 +7,10 @@
 
 #pragma once
 
+#if !defined(__SAM3X8E__)
+#error This Library can only be used with the Arduino Due / ATSam3x8e
+#endif
+
 #define ROBOT_LIB_VERSION "1.1" 
 
 // All public header files of Library

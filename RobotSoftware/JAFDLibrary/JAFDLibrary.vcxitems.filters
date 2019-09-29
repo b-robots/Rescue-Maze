@@ -68,5 +68,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\DuePinMapping_private.h">
       <Filter>Header Files\utility</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\Math_private.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
