@@ -17,7 +17,7 @@ This private file of the library is responsible for the access to the SPI EEPROM
 
 namespace JAFD
 {
-	namespace SpiEeprom
+	namespace
 	{
 		enum class Instruction : uint8_t
 		{
@@ -33,30 +33,30 @@ namespace JAFD
 			rdid = 0b10101011, // Release from Deep power-down and read electronic signature
 			dpd = 0b10111001 // Deep Power-Down mode
 		};
-
-		// Class for the SPI EEPROM "25LC1024"
-		class Eeprom25LC1024
-		{
-		private:
-			PinMapping::PinInformation _ssPin;
-
-			// Helping functions
-			void enable();
-			void disable();
-
-			static const uint8_t _pageSize = 256;
-
-		public:
-			Eeprom25LC1024(uint8_t ssPin);
-			Eeprom25LC1024();
-
-			// Read and write functions
-			uint8_t readByte(uint32_t address);
-			void writeByte(uint32_t address, uint8_t byte);
-			void readPage(uint8_t numPage, uint8_t* buffer);
-			void writePage(uint8_t numPage, uint8_t* buffer);
-			void readStream(uint32_t address, uint8_t* buffer, uint32_t length);
-			void writeStream(uint32_t address, uint8_t* buffer, uint32_t length);
-		};
 	}
+
+	// Class for the SPI EEPROM "25LC1024"
+	class SpiEeprom
+	{
+	private:
+		PinMapping::PinInformation _ssPin;
+
+		// Helping functions
+		void enable();
+		void disable();
+
+		static const uint8_t _pageSize = 256;
+
+	public:
+		// Init
+		void init(uint8_t ssPin);
+
+		// Read and write functions
+		uint8_t readByte(uint32_t address);
+		void writeByte(uint32_t address, uint8_t byte);
+		void readPage(uint8_t numPage, uint8_t* buffer);
+		void writePage(uint8_t numPage, uint8_t* buffer);
+		void readStream(uint32_t address, uint8_t* buffer, uint32_t length);
+		void writeStream(uint32_t address, uint8_t* buffer, uint32_t length);
+	};
 }

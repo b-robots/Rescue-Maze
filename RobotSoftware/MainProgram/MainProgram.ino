@@ -12,12 +12,13 @@
 
 // RobotLibrary
 #include <JAFDLibrary.h>
+#include <implementation/MazeMapping_private.h>
 
 // The setup function runs once when you press reset or power the board
 void setup() {
 	// Robot Settings
 	JAFD::RobotSettings robotSettings;
-	//robotSettings.mazeMapperSet.ramSSPin = A1;
+	robotSettings.mazeMapperSet.ramSSPin = A1;
 
 	Serial.begin(115200);
 	Serial.println("Hallo");
@@ -28,7 +29,13 @@ void setup() {
 		while (true);
 	}
 
-	// Test the speed of clearing all Solver Values
+	// Test the speed of setting 1000 GridCells
+	auto a = micros();
+	for (int i = 0; i < 1000; i++)
+	{
+		JAFD::MazeMapping::setGridCell({ i, JAFD::MazeMapping::CellState::checkpoint }, { JAFD::MazeMapping::SolverState::east, 10 }, { 0, 0, 0 });
+	}
+	auto time = micros() - a;
 }
 
 // The loop function runs over and over again until power down or reset

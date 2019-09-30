@@ -45,6 +45,18 @@ namespace JAFD
 			west = 0b11
 		};
 
+		// Value for the BFS - Algorithm
+		// 1.Bit: Already discovered?
+		// 2. & 3. Bit: shortest path direction
+		enum class SolverState : uint8_t
+		{
+			discovered = 1 << 0,
+			north = 0b00 << 1,
+			east = 0b01 << 1,
+			south = 0b10 << 1,
+			west = 0b11 << 1,
+		};
+
 		// Informations for one cell
 		typedef struct
 		{
@@ -65,8 +77,20 @@ namespace JAFD
 			// 3.Bit: Checkpoint?
 			// 4.Bit: Black Tile?
 			// 5.Bit: Ramp?
-			uint8_t cellState;
+			CellState cellState;
 		} GridCell;
+
+		// Value for the BFS Algorithm
+		typedef struct
+		{
+			// Information for the BFS Algorithm
+			// 1.Bit: Already discovered?
+			// 2. & 3. Bit: shortest path direction
+			SolverState solverState;
+
+			// Currrent ID
+			uint8_t id;
+		}BFSValue;
 
 		// Coordinate on the map
 		typedef struct
@@ -79,36 +103,21 @@ namespace JAFD
 		// Namespace for the Breadth-First-Search-Algorithm to find the shortest Path
 		namespace BFAlgorithm
 		{
-			enum class SolverValue : uint8_t
-			{
-				discovered = 1 << 7,
-				north = 0b00,
-				east = 0b01,
-				south = 0b10,
-				west = 0b11
-			};
-			
-			// Clear all Solver-Values in the EEPROM
-			void clearSolverValues(uint8_t floor);
-
 			// Find the shortest known path from a to b
 			ReturnCode findShortestPath(MapCoordinate a, Direction* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell));
 		}
-		
-		// Get the direction of the Ramp
-		RampDirection getRampDirection(GridCell cell);
 
 		// Setup the MazeMapper
 		ReturnCode mazeMapperSetup(MazeMapperSet settings);
 		
 		// Set a grid cell in the RAM
-		ReturnCode setGridCell(GridCell gridCell, MapCoordinate coor);
-		ReturnCode setGridCell(BFAlgorithm::SolverValue solverValue, MapCoordinate coor);
-		ReturnCode setGridCell(GridCell gridCell, BFAlgorithm::SolverValue bfValue, MapCoordinate coor);
+		void setGridCell(GridCell gridCell, MapCoordinate coor);
+		void setGridCell(BFSValue bfsValue, MapCoordinate coor);
+		void setGridCell(GridCell gridCell, BFSValue bfsValue, MapCoordinate coor);
 
 		// Read a grid cell from the RAM
-		ReturnCode getGridCell(GridCell* gridCell, MapCoordinate coor);
-		ReturnCode getGridCell(BFAlgorithm::SolverValue* bfValue, MapCoordinate coor);
-		ReturnCode getGridCell(GridCell* gridCell, BFAlgorithm::SolverValue* bfValue, MapCoordinate coor);
+		void getGridCell(GridCell* gridCell, MapCoordinate coor);
+		void getGridCell(BFSValue* bfsValue, MapCoordinate coor);
+		void getGridCell(GridCell* gridCell, BFSValue* bfsValue, MapCoordinate coor);
 	}
 }
