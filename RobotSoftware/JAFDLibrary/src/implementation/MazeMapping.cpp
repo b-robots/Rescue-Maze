@@ -34,10 +34,6 @@ namespace JAFD
 		constexpr int8_t maxY = 31;
 		constexpr int8_t minY = -32;
 
-		// Comparison operators for GridCell
-		inline bool operator==(const GridCell& lhs, const GridCell& rhs) { return (lhs.cellConnections == rhs.cellConnections && lhs.cellState == rhs.cellState); }
-		inline bool operator!=(const GridCell& lhs, const GridCell& rhs) { return !(lhs == rhs); }
-
 		// Comparison operators for MapCoordinate
 		inline bool operator==(const MapCoordinate& lhs, const MapCoordinate& rhs) { return (lhs.floor == rhs.floor && lhs.x == rhs.x && lhs.y == rhs.y); }
 		inline bool operator!=(const MapCoordinate& lhs, const MapCoordinate& rhs) { return !(lhs == rhs); }
@@ -62,7 +58,7 @@ namespace JAFD
 			address += ((coor.floor & 0x1) << 15);		// MSB (16.Bit) = floor
 
 			// Data as a byte array
-			uint8_t bytes[2] = { gridCell.cellConnections, (uint8_t)gridCell.cellState };
+			uint8_t bytes[2] = { gridCell.cellConnections, gridCell.cellState };
 
 			// Write data
 			_spiEeprom.writeStream(address, bytes, 2);
@@ -87,7 +83,7 @@ namespace JAFD
 
 			// Return data
 			gridCell->cellConnections = bytes[0];
-			gridCell->cellState = (CellState)bytes[1];
+			gridCell->cellState = bytes[1];
 		}
 
 		// Set a grid cell in the RAM (only informations for the BF Algorithm)
@@ -103,7 +99,7 @@ namespace JAFD
 			address += 2;								// Go to the solver value
 
 			// Data as a byte array
-			uint8_t bytes[2] = { (uint8_t)bfsValue.solverState, bfsValue.id };
+			uint8_t bytes[2] = { bfsValue.solverState, bfsValue.id };
 
 			// Write data
 			_spiEeprom.writeStream(address, bytes, 2);
@@ -127,7 +123,7 @@ namespace JAFD
 			// Read data
 			_spiEeprom.readStream(address, bytes, 2);
 
-			bfsValue->solverState = (SolverState)bytes[0];
+			bfsValue->solverState = bytes[0];
 			bfsValue->id = bytes[1];
 		}
 
@@ -143,7 +139,7 @@ namespace JAFD
 			address += ((coor.floor & 0x1) << 15);		// MSB (16.Bit) = floor
 
 			// Data as a byte array
-			uint8_t bytes[4] = { gridCell.cellConnections, (uint8_t)gridCell.cellState, (uint8_t)bfsValue.solverState, bfsValue.id };
+			uint8_t bytes[4] = { gridCell.cellConnections, gridCell.cellState, bfsValue.solverState, bfsValue.id };
 
 			// Write data
 			_spiEeprom.writeStream(address, bytes, 4);
@@ -168,15 +164,15 @@ namespace JAFD
 
 			// Return data
 			gridCell->cellConnections = bytes[0];
-			gridCell->cellState = (CellState)bytes[1];
-			bfsValue->solverState = (SolverState)bytes[2];
+			gridCell->cellState = bytes[1];
+			bfsValue->solverState = bytes[2];
 			bfsValue->id = bytes[3];
 		}
 		
 		namespace BFAlgorithm
 		{
 			// Find the shortest known path from a to b
-			ReturnCode findShortestPath(MapCoordinate start, Direction* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell))
+			ReturnCode findShortestPath(MapCoordinate start, uint8_t* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell))
 			{
 				static uint8_t currentID = 0;
 
@@ -194,7 +190,7 @@ namespace JAFD
 
 				currentID += 1; // Change ID every time
 
-				setGridCell({ SolverState::discovered , currentID }, start);
+				setGridCell(BFSValue){ SolverState::discovered, currentID }, start);
 
 				if (queue.enqueue(start) != ReturnCode::ok)
 				{

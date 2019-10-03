@@ -16,46 +16,51 @@ namespace JAFD
 	// Namespace for the MazeMapper
 	namespace MazeMapping
 	{
-		// Directions
-		enum class Direction : uint8_t
+		// Cell Connections
+		namespace CellConnections
 		{
-			north = 1 << 0,
-			east = 1 << 1,
-			south = 1 << 2,
-			west = 1 << 3,
-			nowhere = 0
-		};
+			constexpr uint8_t directionMask = 0xf;
+			constexpr uint8_t rampMask = 0x10;
+		}
+
+		// Directions
+		namespace Direction
+		{
+			constexpr uint8_t north = 1 << 0;
+			constexpr uint8_t east = 1 << 1;
+			constexpr uint8_t south = 1 << 2;
+			constexpr uint8_t west = 1 << 3;
+			constexpr uint8_t nowhere = 0;
+		}
+
+		// Ramp Direction
+		namespace RampDirection
+		{
+			constexpr uint8_t north = 0b00 << 4;
+			constexpr uint8_t east = 0b01 << 4;
+			constexpr uint8_t south = 0b11 << 4;
+			constexpr uint8_t west = 0b11 << 4;
+		}
 
 		// Possible states of a cell
-		enum class CellState : uint8_t
+		namespace CellState
 		{
-			visited = 1 << 0,
-			victim = 1 << 1,
-			checkpoint = 1 << 2,
-			blackTile = 1 << 3,
-			ramp = 1 << 3
-		};
-
-		// Direction of ramp
-		enum class RampDirection : uint8_t
-		{
-			north = 0b00,
-			east = 0b01,
-			south = 0b11,
-			west = 0b11
-		};
+			constexpr uint8_t visited = 1 << 0;
+			constexpr uint8_t victim = 1 << 1;
+			constexpr uint8_t checkpoint = 1 << 2;
+			constexpr uint8_t blackTile = 1 << 3;
+			constexpr uint8_t ramp = 1 << 3;
+		}
 
 		// Value for the BFS - Algorithm
-		// 1.Bit: Already discovered?
-		// 2. & 3. Bit: shortest path direction
-		enum class SolverState : uint8_t
+		namespace SolverState
 		{
-			discovered = 1 << 0,
-			north = 0b00 << 1,
-			east = 0b01 << 1,
-			south = 0b10 << 1,
-			west = 0b11 << 1,
-		};
+			constexpr uint8_t discovered = 1 << 0;
+			constexpr uint8_t north = 0b00 << 1;
+			constexpr uint8_t east = 0b01 << 1;
+			constexpr uint8_t south = 0b10 << 1;
+			constexpr uint8_t west = 0b11 << 1;
+		}
 
 		// Informations for one cell
 		typedef struct
@@ -77,7 +82,7 @@ namespace JAFD
 			// 3.Bit: Checkpoint?
 			// 4.Bit: Black Tile?
 			// 5.Bit: Ramp?
-			CellState cellState;
+			uint8_t cellState;
 		} GridCell;
 
 		// Value for the BFS Algorithm
@@ -86,7 +91,7 @@ namespace JAFD
 			// Information for the BFS Algorithm
 			// 1.Bit: Already discovered?
 			// 2. & 3. Bit: shortest path direction
-			SolverState solverState;
+			uint8_t solverState;
 
 			// Currrent ID
 			uint8_t id;
@@ -104,7 +109,7 @@ namespace JAFD
 		namespace BFAlgorithm
 		{
 			// Find the shortest known path from a to b
-			ReturnCode findShortestPath(MapCoordinate a, Direction* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell));
+			ReturnCode findShortestPath(MapCoordinate a, uint8_t* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell));
 		}
 
 		// Setup the MazeMapper
