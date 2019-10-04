@@ -45,6 +45,12 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\JAFDLibrary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_private.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\tester.ET-LS114-32\source\repos\Rescue-Maze-2020\RobotSoftware\JAFDLibrary\src\implementation\MotorShield.cpp">
+      <Filter>Source Files\implementation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_private.h">
@@ -72,6 +78,12 @@
       <Filter>Header Files\implementation</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_public.h">
+      <Filter>Header Files\implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\tester.ET-LS114-32\source\repos\Rescue-Maze-2020\RobotSoftware\JAFDLibrary\src\implementation\MotorShield_private.h">
+      <Filter>Header Files\implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\tester.ET-LS114-32\source\repos\Rescue-Maze-2020\RobotSoftware\JAFDLibrary\src\implementation\MotorShield_public.h">
       <Filter>Header Files\implementation</Filter>
     </ClInclude>
   </ItemGroup>

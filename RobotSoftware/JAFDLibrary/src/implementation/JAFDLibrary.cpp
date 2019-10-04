@@ -7,6 +7,7 @@
 #include "../JAFDLibrary.h"
 #include "MazeMapping_private.h"
 #include "Dispenser_private.h"
+#include "MotorShield_private.h"
 
 #include <SPI.h>
 

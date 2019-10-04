@@ -17,6 +17,7 @@
 #include "implementation/Dispenser_public.h"
 #include "implementation/ReturnCode_public.h"
 #include "implementation/MazeMapping_public.h"
+#include "implementation/MotorShield_public.h"
 
 // Namespace for robot (including sensors, maze solving algorithm, and so on...)
 // JAFD = Just Ask For Direction
