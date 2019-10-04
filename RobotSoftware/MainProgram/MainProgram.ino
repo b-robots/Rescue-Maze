@@ -28,14 +28,6 @@ void setup() {
 	{
 		while (true);
 	}
-
-	// Test the speed of setting 1000 GridCells
-	auto a = micros();
-	for (int i = 0; i < 1000; i++)
-	{
-		JAFD::MazeMapping::setGridCell({ i, JAFD::MazeMapping::CellState::checkpoint }, { JAFD::MazeMapping::SolverState::east, 10 }, { 0, 0, 0 });
-	}
-	auto time = micros() - a;
 }
 
 // The loop function runs over and over again until power down or reset
