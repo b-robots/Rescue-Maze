@@ -12,16 +12,12 @@
 
 // RobotLibrary
 #include <JAFDLibrary.h>
-#include <implementation/MazeMapping_private.h>
 
 // The setup function runs once when you press reset or power the board
 void setup() {
 	// Robot Settings
 	JAFD::RobotSettings robotSettings;
 	robotSettings.mazeMapperSet.ramSSPin = A1;
-
-	Serial.begin(115200);
-	Serial.println("Hallo");
 
 	// If robot is completely stuck, just do nothing.
 	if (robotSetup(robotSettings) == JAFD::ReturnCode::fatalError)
