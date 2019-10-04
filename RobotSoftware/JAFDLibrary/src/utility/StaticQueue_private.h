@@ -1,5 +1,5 @@
 /*
-In this file is the Array-based queue
+This private file of the library is responsible for an Array-based Queue
 */
 
 #pragma once

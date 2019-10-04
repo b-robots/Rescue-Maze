@@ -3,6 +3,10 @@ This part of the Library is responsible for mapping the maze and finding the sho
 */
 
 #include "MazeMapping_private.h"
+#include "../utility/SpiEeprom_private.h"
+#include "../utility/Math_private.h"
+#include <algorithm>
+
 
 namespace JAFD
 {
@@ -11,20 +15,24 @@ namespace JAFD
 		// Anonymous namespace = private variables & methods
 		namespace
 		{
-			// SS Pin of RAM
-			byte ramSSPin;
-
-			// TODO: Rewrite the SPIRam Library, it causes a crash!!
-			// Class for handling the RAM
-			//SpiRAM spiRam(0, 0);
+			// Class for handling the EEPROM
+			SpiEeprom _spiEeprom;
 		}
 
 		// Home Position
-		const MapCoordinate homePosition = { 0, 0, 0 };
+		constexpr MapCoordinate homePosition = { 0, 0, 0 };
 
-		// Comparison operators for GridCell
-		inline bool operator==(const GridCell& lhs, const GridCell& rhs) { return (lhs.cellConnections == rhs.cellConnections && lhs.cellState == rhs.cellState); }
-		inline bool operator!=(const GridCell& lhs, const GridCell& rhs) { return !(lhs == rhs); }
+		// Start-Address
+		constexpr uint32_t startAddress = 0;
+
+		// Usable size for the maze mapping
+		constexpr uint16_t usableSize = 64 * 1024;
+
+		// Maximum/minimum coordinates that can fit in the SRAM
+		constexpr int8_t maxX = 31;
+		constexpr int8_t minX = -32;
+		constexpr int8_t maxY = 31;
+		constexpr int8_t minY = -32;
 
 		// Comparison operators for MapCoordinate
 		inline bool operator==(const MapCoordinate& lhs, const MapCoordinate& rhs) { return (lhs.floor == rhs.floor && lhs.x == rhs.x && lhs.y == rhs.y); }
@@ -33,310 +41,324 @@ namespace JAFD
 		// Setup the MazeMapper
 		ReturnCode mazeMapperSetup(MazeMapperSet settings)
 		{
-			ramSSPin = settings.ramSSPin;
-			//spiRam = SpiRAM(0, ramSSPin);
+			_spiEeprom.init(settings.ramSSPin);
 
 			return ReturnCode::ok;
 		}
-
+		
 		// Set a grid cell in the RAM
-		ReturnCode setGridCell(GridCell gridCell, MapCoordinate coor)
+		void setGridCell(GridCell gridCell, MapCoordinate coor)
 		{
 			// Memory address
-			uint16_t address;;
+			uint32_t address;
 
 			// Calculate address
-			address = ((coor.x + 0b100000) & 0b00111111) << 2;	// Bit 3 - 8 = x-Axis / 0 = 0b100000
-			address += ((coor.y + 0b100000) & 0b00111111) << 8; // Bit 9 - 14 = y-Axis / 0 = 0b100000
-			address += ((coor.floor & 0b00000001) << 14);		// MSB (15.Bit) = floor
+			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
+			address += ((coor.y + 0x20) & 0x3f) << 9;	// Bit 10 - 15 = y-Axis / 0 = 0x20
+			address += ((coor.floor & 0x1) << 15);		// MSB (16.Bit) = floor
 
 			// Data as a byte array
-			char bytes[2] = { (char)gridCell.cellConnections, (char)gridCell.cellState };
+			uint8_t bytes[2] = { gridCell.cellConnections, gridCell.cellState };
 
 			// Write data
-			//spiRam.write_stream(address, bytes, 2);
-
-			return ReturnCode::ok;
+			_spiEeprom.writeStream(address, bytes, 2);
 		}
 
 		// Read a grid cell from the RAM
-		ReturnCode getGridCell(GridCell* gridCell, MapCoordinate coor)
+		void getGridCell(GridCell* gridCell, MapCoordinate coor)
 		{
 			// Memory address
-			uint16_t address;;
+			uint32_t address;
 
 			// Calculate address
-			address = ((coor.x + 0b100000) & 0b00111111) << 2;	// Bit 3 - 8 = x-Axis / 0 = 0b100000
-			address += ((coor.y + 0b100000) & 0b00111111) << 8; // Bit 9 - 14 = y-Axis / 0 = 0b100000
-			address += ((coor.floor & 0b00000001) << 14);		// MSB (15.Bit) = floor
+			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
+			address += ((coor.y + 0x20) & 0x3f) << 9;	// Bit 10 - 15 = y-Axis / 0 = 0x20
+			address += ((coor.floor & 0x1) << 15);		// MSB (16.Bit) = floor
 
 			// Data as a byte array
-			char bytes[2];
+			uint8_t bytes[2];
 
 			// Read data
-			//spiRam.write_stream(address, bytes, 2);
+			_spiEeprom.readStream(address, bytes, 2);
 
 			// Return data
 			gridCell->cellConnections = bytes[0];
 			gridCell->cellState = bytes[1];
-
-			return ReturnCode::ok;
 		}
 
 		// Set a grid cell in the RAM (only informations for the BF Algorithm)
-		ReturnCode setGridCell(uint16_t bfValue, MapCoordinate coor)
+		void setGridCell(uint8_t bfsValue, MapCoordinate coor)
 		{
 			// Memory address
-			uint16_t address;;
-
+			uint32_t address;
+			
 			// Calculate address
-			address = ((coor.x + 0b100000) & 0b00111111) << 2;	// Bit 3 - 8 = x-Axis / 0 = 0b100000
-			address += ((coor.y + 0b100000) & 0b00111111) << 8; // Bit 9 - 14 = y-Axis / 0 = 0b100000
-			address += ((coor.floor & 0b00000001) << 14);		// MSB (15.Bit) = floor
-			address += 2;										// Go to the solver value
-
-			// Data as a byte array
-			char bytes[2] = { bfValue & 0b0000000011111111, bfValue >> 8 };
+			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
+			address += ((coor.y + 0x20) & 0x3f) << 9;	// Bit 10 - 15 = y-Axis / 0 = 0x20
+			address += ((coor.floor & 0x1) << 15);		// MSB (16.Bit) = floor
+			address += 2;								// Go to the solver value
 
 			// Write data
-			//spiRam.write_stream(address, bytes, 2);
-
-			return ReturnCode::ok;
+			_spiEeprom.writeByte(address, bfsValue);
 		}
 
 		// Read a grid cell from the RAM (only informations for the BF Algorithm)
-		ReturnCode getGridCell(uint16_t* bfValue, MapCoordinate coor)
+		void getGridCell(uint8_t* bfsValue, MapCoordinate coor)
 		{
 			// Memory address
-			uint16_t address;;
+			uint32_t address;
 
 			// Calculate address
-			address = ((coor.x + 0b100000) & 0b00111111) << 2;	// Bit 3 - 8 = x-Axis / 0 = 0b100000
-			address += ((coor.y + 0b100000) & 0b00111111) << 8; // Bit 9 - 14 = y-Axis / 0 = 0b100000
-			address += ((coor.floor & 0b00000001) << 14);		// MSB (15.Bit) = floor
-			address += 2;										// Go to the solver value
+			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
+			address += ((coor.y + 0x20) & 0x3f) << 9;	// Bit 10 - 15 = y-Axis / 0 = 0x20
+			address += ((coor.floor & 0x1) << 15);		// MSB (16.Bit) = floor
+			address += 2;								// Go to the solver value
 
 			// Data as a byte array
-			char bytes[2];
+			uint8_t bytes[2];
 
 			// Read data
-			//spiRam.write_stream(address, bytes, 4);
-
-			// Return data
-			*bfValue = bytes[2] + bytes[3] << 8;
-
-			return ReturnCode::ok;
+			*bfsValue = _spiEeprom.readByte(address);
 		}
 
 		// Set a grid cell in the RAM (including informations for the BF Algorithm)
-		ReturnCode setGridCell(GridCell gridCell, uint16_t bfValue, MapCoordinate coor)
+		void setGridCell(GridCell gridCell, uint8_t bfsValue, MapCoordinate coor)
 		{
 			// Memory address
-			uint16_t address;;
+			uint32_t address;
 
 			// Calculate address
-			address = ((coor.x + 0b100000) & 0b00111111) << 2;	// Bit 3 - 8 = x-Axis / 0 = 0b100000
-			address += ((coor.y + 0b100000) & 0b00111111) << 8; // Bit 9 - 14 = y-Axis / 0 = 0b100000
-			address += ((coor.floor & 0b00000001) << 14);		// MSB (15.Bit) = floor
+			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
+			address += ((coor.y + 0x20) & 0x3f) << 9;	// Bit 10 - 15 = y-Axis / 0 = 0x20
+			address += ((coor.floor & 0x1) << 15);		// MSB (16.Bit) = floor
 
 			// Data as a byte array
-			char bytes[4] = { gridCell.cellConnections, gridCell.cellState, bfValue & 0b0000000011111111, bfValue >> 8 };
+			uint8_t bytes[3] = { gridCell.cellConnections, gridCell.cellState, bfsValue };
 
 			// Write data
-			//spiRam.write_stream(address, bytes, 2);
-
-			return ReturnCode::ok;
+			_spiEeprom.writeStream(address, bytes, 3);
 		}
 
 		// Read a grid cell from the RAM (includeing informations for the BF Algorithm)
-		ReturnCode getGridCell(GridCell* gridCell, uint16_t* bfValue, MapCoordinate coor)
+		void getGridCell(GridCell* gridCell, uint8_t* bfsValue, MapCoordinate coor)
 		{
 			// Memory address
-			uint16_t address;;
+			uint32_t address;
 
 			// Calculate address
-			address = ((coor.x + 0b100000) & 0b00111111) << 2;	// Bit 3 - 8 = x-Axis / 0 = 0b100000
-			address += ((coor.y + 0b100000) & 0b00111111) << 8; // Bit 9 - 14 = y-Axis / 0 = 0b100000
-			address += ((coor.floor & 0b00000001) << 14);		// MSB (15.Bit) = floor
+			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
+			address += ((coor.y + 0x20) & 0x3f) << 9;	// Bit 10 - 15 = y-Axis / 0 = 0x20
+			address += ((coor.floor & 0x1) << 15);		// MSB (16.Bit) = floor
 
 			// Data as a byte array
-			char bytes[4];
+			uint8_t bytes[3];
 
 			// Read data
-			//spiRam.write_stream(address, bytes, 4);
+			_spiEeprom.readStream(address, bytes, 3);
 
 			// Return data
 			gridCell->cellConnections = bytes[0];
 			gridCell->cellState = bytes[1];
-			*bfValue = bytes[2] + bytes[3] << 8;
-
-			return ReturnCode::ok;
+			*bfsValue = bytes[2];
+		}
+		
+		// Reset all BFS Values
+		void resetBFSValues(uint8_t floor)
+		{
+			for (int8_t x = minX; x <= maxX; x++)
+			{
+				for (int8_t y = minY; y <= maxY; y++)
+				{
+					setGridCell(0, { x, y, floor });
+				}
+			}
 		}
 
 		namespace BFAlgorithm
 		{
-			auto equalsFive = [](int a) noexcept -> bool
-			{
-				return a == 5;
-			};
-
 			// Find the shortest known path from a to b
-			ReturnCode findShortestPath(MapCoordinate a, Direction* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell))
+			ReturnCode findShortestPath(MapCoordinate start, uint8_t* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell))
 			{
-				StaticQueue<MapCoordinate, 64> queue; // MaxSize = 64, because this is the maximum needed size for an 64x64 empty grid (worst case scenario)
+				static uint8_t lowerFloorID = 0;
+				static uint8_t upperFloorID = 0;
+				const uint8_t currentID = (start.floor == 0) ? lowerFloorID++ : upperFloorID++;
+
+				StaticQueue<MapCoordinate, 64> queue; // MaxSize = 64, because this is enough for a normal labyrinth (4*63 would be maximum)
 
 				GridCell gridCellV;
-				uint16_t bfValueV;
-				GridCell gridCellW;
-				uint16_t bfValueW;
-				MapCoordinate v;
-				MapCoordinate w;
-				uint8_t distance = 0;
-				Direction shortestDirection;
-				bool foundWay;
+				uint8_t bfsValueV;
+				MapCoordinate coorV;
 
-				setGridCell(1 << 15, a); // 1<<15 means discovered (and the first 15 Bits are zero, thsi means it is the start node)
-				queue.enqueue(a);
+				GridCell gridCellW;
+				uint8_t bfsValueW;
+				MapCoordinate coorW;
+
+				uint8_t distance = 0;
+
+				setGridCell(SolverState::discovered, start);
+
+				if (queue.enqueue(start) != ReturnCode::ok)
+				{
+					resetBFSValues(start.floor);
+					return ReturnCode::error;
+				}
 
 				while (!queue.isEmpty())
 				{
-					queue.dequeue(&v);
+					if (queue.dequeue(&coorV) != ReturnCode::ok)
+					{
+						resetBFSValues(start.floor);
+						return ReturnCode::error;
+					}
 
-					if (goalCondition(v, gridCellV))
+					if (goalCondition(coorV, gridCellV))
 					{
 						// Go the whole way backwards...
-						while (v != a)
+						while (coorV != start)
 						{
-							getGridCell(&gridCellV, &bfValueV, v);
+							getGridCell(&bfsValueV, coorV);
 
-							foundWay = false;
-
-							if (v.y < MAX_Y && (gridCellV.cellConnections & Direction::north)) // Check the north
+							switch (bfsValueV & ~SolverState::discovered)
 							{
-								w = { v.x, v.y + 1, v.floor };
-								getGridCell(&gridCellW, &bfValueW, w);
+							case SolverState::north:
+								directions[distance++] = Direction::south; // Set the opposite direction
+								coorV = { coorV.x, coorV.y + 1, coorV.floor };
+								break;
 
-								if ((bfValueW & ~(1 << 15)) == --distance)
-								{
-									// The north is the shortest path!
-									directions[distance] == Direction::south; // From the other direction it's the south
-									foundWay = true;
-								}
+							case SolverState::east:
+								directions[distance++] = Direction::west; // Set the opposite direction
+								coorV = { coorV.x + 1, coorV.y, coorV.floor };
+								break;
+
+							case SolverState::south:
+								directions[distance++] = Direction::north; // Set the opposite direction
+								coorV = { coorV.x, coorV.y - 1, coorV.floor };
+								break;
+
+							case SolverState::west:
+								directions[distance++] = Direction::east; // Set the opposite direction
+								coorV = { coorV.x - 1, coorV.y, coorV.floor };
+								break;
+
+							default:
+								resetBFSValues(start.floor);
+								return ReturnCode::error;
 							}
-							else if (!foundWay && v.x < MAX_X && (gridCellV.cellConnections & Direction::east))	// Check the east
-							{
-								w = { v.x + 1, v.y, v.floor };
-								getGridCell(&gridCellW, &bfValueW, w);
 
-								if ((bfValueW & ~(1 << 15)) == --distance)
-								{
-									// The north is the shortest path!
-									directions[distance] == Direction::west; // From the other direction it's the west
-									foundWay = true;
-								}
-							}
-							else if (!foundWay && v.y > MIN_Y && (gridCellV.cellConnections & Direction::south)) // Check the south
+							if (distance > maxPathLength)
 							{
-								w = { v.x, v.y - 1, v.floor };
-								getGridCell(&gridCellW, &bfValueW, w);
-
-								if ((bfValueW & ~(1 << 15)) == --distance)
-								{
-									// The north is the shortest path!
-									directions[distance] == Direction::north; // From the other direction it's the north
-									foundWay = true;
-								}
-							}
-							else if (!foundWay && v.x > MIN_X && (gridCellV.cellConnections & Direction::west)) // Check the west
-							{
-								w = { v.x - 1, v.y, v.floor };
-								getGridCell(&gridCellW, &bfValueW, w);
-
-								if ((bfValueW & ~(1 << 15)) == --distance)
-								{
-									// The north is the shortest path!
-									directions[distance] == Direction::east; // From the other direction it's the east
-									foundWay = true;
-								}
+								resetBFSValues(start.floor);
+								return ReturnCode::aborted;
 							}
 						}
+
+						std::reverse(directions, directions + distance - 1);
 
 						return ReturnCode::ok;
 					}
 					else
 					{
-						getGridCell(&gridCellV, v);
-
-						distance++;
-
-						if (distance > maxPathLength) return ReturnCode::error;
+						getGridCell(&gridCellV, coorV);
 
 						// Check the north
-						if (v.y < MAX_Y && (gridCellV.cellConnections & Direction::north))
+						if (coorV.y < maxY && (gridCellV.cellConnections & Direction::north))
 						{
-							w = { v.x, v.y + 1, v.floor };
-							getGridCell(&gridCellW, &bfValueW, w);
+							coorW = { coorV.x, coorV.y + 1, coorV.floor };
+							getGridCell(&gridCellW, &bfsValueW, coorW);
 
-							if (!(bfValueW >> 15))
+							if (!(gridCellV.cellState & CellState::blackTile))
 							{
-								bfValueW = 1 << 15 + distance;
+								if (!(bfsValueW & SolverState::discovered))
+								{
+									bfsValueW = SolverState::discovered | SolverState::south; // Set discovered-bit, store the shortest path back and store the ID
 
-								queue.enqueue(w);
 
-								setGridCell(bfValueW, w);
+									if (queue.enqueue(coorW) != ReturnCode::ok)
+									{
+										resetBFSValues(start.floor);
+										return ReturnCode::error;
+									}
+
+									setGridCell(bfsValueW, coorW);
+								}
 							}
 						}
 
 						// Check the east
-						if (v.x < MAX_X && (gridCellV.cellConnections & Direction::east))
+						if (coorV.x < maxX && (gridCellV.cellConnections & Direction::east))
 						{
-							w = { v.x + 1, v.y, v.floor };
-							getGridCell(&gridCellW, &bfValueW, w);
+							coorW = { coorV.x + 1, coorV.y, coorV.floor };
+							getGridCell(&gridCellW, &bfsValueW, coorW);
 
-							if (!(bfValueW >> 15))
+							if (!(gridCellV.cellState & CellState::blackTile))
 							{
-								bfValueW = 1 << 15 + distance;
+								if (!(bfsValueW & SolverState::discovered))
+								{
+									bfsValueW = SolverState::discovered | SolverState::west; // Set discovered-bit, store the shortest path back and store the ID
 
-								queue.enqueue(w);
 
-								setGridCell(bfValueW, w);
+									if (queue.enqueue(coorW) != ReturnCode::ok)
+									{
+										resetBFSValues(start.floor);
+										return ReturnCode::error;
+									}
+
+									setGridCell(bfsValueW, coorW);
+								}
 							}
 						}
 
 						// Check the south
-						if (v.y > MIN_Y && (gridCellV.cellConnections & Direction::south))
+						if (coorV.y > minY && (gridCellV.cellConnections & Direction::south))
 						{
-							w = { v.x, v.y - 1, v.floor };
-							getGridCell(&gridCellW, &bfValueW, w);
+							coorW = { coorV.x, coorV.y - 1, coorV.floor };
+							getGridCell(&gridCellW, &bfsValueW, coorW);
 
-							if (!(bfValueW >> 15))
+							if (!(gridCellV.cellState & CellState::blackTile))
 							{
-								bfValueW = 1 << 15 + distance;
+								if (!(bfsValueW & SolverState::discovered))
+								{
+									bfsValueW =  SolverState::discovered | SolverState::north; // Set discovered-bit, store the shortest path back and store the ID
 
-								queue.enqueue(w);
 
-								setGridCell(bfValueW, w);
+									if (queue.enqueue(coorW) != ReturnCode::ok)
+									{
+										resetBFSValues(start.floor);
+										return ReturnCode::error;
+									}
+
+									setGridCell(bfsValueW, coorW);
+								}
 							}
 						}
 
 						// Check the west
-						if (v.x > MIN_X && (gridCellV.cellConnections & Direction::west))
+						if (coorV.x > minX && (gridCellV.cellConnections & Direction::west))
 						{
-							w = { v.x - 1, v.y, v.floor };
-							getGridCell(&gridCellW, &bfValueW, w);
+							coorW = { coorV.x - 1, coorV.y, coorV.floor };
+							getGridCell(&gridCellW, &bfsValueW, coorW);
 
-							if (!(bfValueW >> 15))
+							if (!(gridCellV.cellState & CellState::blackTile))
 							{
-								bfValueW = 1 << 15 + distance;
+								if (!(bfsValueW & SolverState::discovered))
+								{
+									bfsValueW = SolverState::discovered | SolverState::east; // Set discovered-bit, store the shortest path back and store the ID
 
-								queue.enqueue(w);
 
-								setGridCell(bfValueW, w);
+									if (queue.enqueue(coorW) != ReturnCode::ok)
+									{
+										resetBFSValues(start.floor);
+										return ReturnCode::error;
+									}
+
+									setGridCell(bfsValueW, coorW);
+								}
 							}
 						}
 					}
 				}
 
+				resetBFSValues(start.floor);
 				return ReturnCode::error;
 			}
 		}

@@ -6,31 +6,61 @@ This private part of the Library is responsible for mapping the maze and finding
 
 #include "ReturnCode_public.h"
 #include "MazeMapping_public.h"
-#include "../utility/StaticQueue.h"
+#include "../utility/StaticQueue_private.h"
 
 #include <stdint.h>
 
-// To Do: Make some consts out of it!!
-// The maximum/minimum coordinates that can fit in the SRAM
-#define MAX_X 31	// 0b111111 - 0b100000
-#define MIN_X -32	// -(0b100000)
-#define MAX_Y 31	// 0b111111 - 0b100000
-#define MIN_Y -32	// -(0b100000)
 
 namespace JAFD
 {
 	// Namespace for the MazeMapper
 	namespace MazeMapping
 	{
-		// Directions (can't be a enum class)
-		enum Direction : uint8_t
+		// Cell Connections
+		namespace CellConnections
 		{
-			north = 1 << 0,
-			east = 1 << 1,
-			south = 1 << 2,
-			west = 1 << 3,
-			nowhere = 0
-		};
+			constexpr uint8_t directionMask = 0xf;
+			constexpr uint8_t rampMask = 0x10;
+		}
+
+		// Directions
+		namespace Direction
+		{
+			constexpr uint8_t north = 1 << 0;
+			constexpr uint8_t east = 1 << 1;
+			constexpr uint8_t south = 1 << 2;
+			constexpr uint8_t west = 1 << 3;
+			constexpr uint8_t nowhere = 0;
+		}
+
+		// Ramp Direction
+		namespace RampDirection
+		{
+			constexpr uint8_t north = 0b00 << 4;
+			constexpr uint8_t east = 0b01 << 4;
+			constexpr uint8_t south = 0b11 << 4;
+			constexpr uint8_t west = 0b11 << 4;
+		}
+
+		// Possible states of a cell
+		namespace CellState
+		{
+			constexpr uint8_t visited = 1 << 0;
+			constexpr uint8_t victim = 1 << 1;
+			constexpr uint8_t checkpoint = 1 << 2;
+			constexpr uint8_t blackTile = 1 << 3;
+			constexpr uint8_t ramp = 1 << 3;
+		}
+
+		// Value for the BFS - Algorithm
+		namespace SolverState
+		{
+			constexpr uint8_t discovered = 1 << 0;
+			constexpr uint8_t north = 0b00 << 1;
+			constexpr uint8_t east = 0b01 << 1;
+			constexpr uint8_t south = 0b10 << 1;
+			constexpr uint8_t west = 0b11 << 1;
+		}
 
 		// Informations for one cell
 		typedef struct
@@ -41,14 +71,17 @@ namespace JAFD
 			// 2.Bit: Entrance East
 			// 3.Bit: Entrance South
 			// 4.Bit: Entrance West
-			// 5.Bit: Is there a ramp?
-			// 6. & 7.Bit: 00 = Ramp North; 01 = Ramp East; 10 = Ramp South; 11 = Ramp West
-			// 8.Bit: Unused
+			// 5. & 6.Bit: 00 = Ramp North; 01 = Ramp East; 10 = Ramp South; 11 = Ramp West
+			// 7. & 8.Bit: Unused
 			uint8_t cellConnections;
 
 			// Information about Speed Bumps, Victims, Checkpoints...
 			// From right to left:
 			// 1.Bit: Is this Cell already visited?
+			// 2.Bit: Victim already detected?
+			// 3.Bit: Checkpoint?
+			// 4.Bit: Black Tile?
+			// 5.Bit: Ramp?
 			uint8_t cellState;
 		} GridCell;
 
@@ -64,20 +97,23 @@ namespace JAFD
 		namespace BFAlgorithm
 		{
 			// Find the shortest known path from a to b
-			ReturnCode findShortestPath(MapCoordinate a, Direction* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell));
+			ReturnCode findShortestPath(MapCoordinate start, uint8_t* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell));
 		}
 
 		// Setup the MazeMapper
 		ReturnCode mazeMapperSetup(MazeMapperSet settings);
-
+		
 		// Set a grid cell in the RAM
-		ReturnCode setGridCell(GridCell gridCell, MapCoordinate coor);
-		ReturnCode setGridCell(uint16_t bfValue, MapCoordinate coor);
-		ReturnCode setGridCell(GridCell gridCell, uint16_t bfValue, MapCoordinate coor);
+		void setGridCell(GridCell gridCell, MapCoordinate coor);
+		void setGridCell(uint8_t bfsValue, MapCoordinate coor);
+		void setGridCell(GridCell gridCell, uint8_t bfsValue, MapCoordinate coor);
 
 		// Read a grid cell from the RAM
-		ReturnCode getGridCell(GridCell* gridCell, MapCoordinate coor);
-		ReturnCode getGridCell(uint16_t* bfValue, MapCoordinate coor);
-		ReturnCode getGridCell(GridCell* gridCell, uint16_t* bfValue, MapCoordinate coor);
+		void getGridCell(GridCell* gridCell, MapCoordinate coor);
+		void getGridCell(uint8_t* bfsValue, MapCoordinate coor);
+		void getGridCell(GridCell* gridCell, uint8_t* bfsValue, MapCoordinate coor);
+
+		// Reset all BFS Values
+		void resetBFSValues(uint8_t floor);
 	}
 }

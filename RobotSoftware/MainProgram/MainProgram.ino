@@ -4,15 +4,25 @@
  Author:	B.Robots
 */
 
+#if defined(ARDUINO) && ARDUINO >= 100
+#include "arduino.h"
+#else
+#include "WProgram.h"
+#endif
+
 // RobotLibrary
 #include <JAFDLibrary.h>
+#include <implementation/MazeMapping_private.h>
 
 // The setup function runs once when you press reset or power the board
 void setup() {
 	// Robot Settings
 	JAFD::RobotSettings robotSettings;
-	//robotSettings.mazeMapperSet.ramSSPin = 0;
-	pinMode(A0, OUTPUT);
+	robotSettings.mazeMapperSet.ramSSPin = A1;
+
+	Serial.begin(115200);
+	Serial.println("Hallo");
+
 	// If robot is completely stuck, just do nothing.
 	if (robotSetup(robotSettings) == JAFD::ReturnCode::fatalError)
 	{
@@ -22,11 +32,6 @@ void setup() {
 
 // The loop function runs over and over again until power down or reset
 void loop() {
-	digitalWrite(A0, HIGH);
-	delay(500);
-	digitalWrite(A0, LOW);
-	delay(500);
-
 	// If robot is completely stuck, just do nothing.
 	if (JAFD::robotLoop() == JAFD::ReturnCode::fatalError)
 	{
