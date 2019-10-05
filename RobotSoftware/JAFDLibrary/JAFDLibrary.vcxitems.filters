@@ -18,6 +18,9 @@
     <Filter Include="Source Files\implementation">
       <UniqueIdentifier>{3a649a15-6001-4952-a91c-48487e761af8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\utility">
+      <UniqueIdentifier>{9e80d6f0-e2ff-4720-9a44-d9b36f2e99ae}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="$(MSBuildThisFileDirectory)readme.txt" />
@@ -30,6 +33,12 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser.cpp">
       <Filter>Source Files\implementation</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\JAFDLibrary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utility\SpiEEprom.cpp">
+      <Filter>Source Files\utility</Filter>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping.cpp">
       <Filter>Source Files\implementation</Filter>
     </ClCompile>
@@ -38,22 +47,31 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue.h">
-      <Filter>Header Files\utility</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_private.h">
       <Filter>Header Files\implementation</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_public.h">
       <Filter>Header Files\implementation</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\ReturnCode_public.h">
+      <Filter>Header Files\implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\SpiEeprom_private.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue_private.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\DuePinMapping_private.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\Math_private.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_private.h">
       <Filter>Header Files\implementation</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_public.h">
-      <Filter>Header Files\implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\ReturnCode_public.h">
       <Filter>Header Files\implementation</Filter>
     </ClInclude>
   </ItemGroup>

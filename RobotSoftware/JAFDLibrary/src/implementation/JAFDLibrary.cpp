@@ -8,16 +8,28 @@
 #include "MazeMapping_private.h"
 #include "Dispenser_private.h"
 
+#include <SPI.h>
+
 namespace JAFD
 {
 	// Just for testing...
 	ReturnCode robotSetup(RobotSettings robotSettings)
 	{
+		// Setup the SPI-Bus
+		SPI.begin();
+		SPI.beginTransaction(SPISettings(20e+6, MSBFIRST, SPI_MODE1));
+
 		// Setup of MazeMapper
-		MazeMapping::mazeMapperSetup(robotSettings.mazeMapperSet);
+		if (MazeMapping::mazeMapperSetup(robotSettings.mazeMapperSet) != ReturnCode::ok)
+		{
+			return ReturnCode::fatalError;
+		}
 
 		// Setup of Dispenser
-		Dispenser::dispenserSetup(robotSettings.dispenserSet);
+		if (Dispenser::dispenserSetup(robotSettings.dispenserSet) != ReturnCode::ok)
+		{
+			return ReturnCode::fatalError;
+		}
 
 		return ReturnCode::ok;
 	}

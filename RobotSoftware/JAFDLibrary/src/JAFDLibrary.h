@@ -7,13 +7,16 @@
 
 #pragma once
 
+#if !defined(__SAM3X8E__)
+#error This Library can only be used with the Arduino Due / ATSam3x8e
+#endif
+
 #define ROBOT_LIB_VERSION "1.1" 
 
 // All public header files of Library
 #include "implementation/Dispenser_public.h"
 #include "implementation/ReturnCode_public.h"
 #include "implementation/MazeMapping_public.h"
-#include "utility/StaticQueue.h"
 
 // Namespace for robot (including sensors, maze solving algorithm, and so on...)
 // JAFD = Just Ask For Direction

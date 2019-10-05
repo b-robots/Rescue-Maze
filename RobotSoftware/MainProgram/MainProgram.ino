@@ -4,6 +4,12 @@
  Author:	B.Robots
 */
 
+#if defined(ARDUINO) && ARDUINO >= 100
+#include "arduino.h"
+#else
+#include "WProgram.h"
+#endif
+
 // RobotLibrary
 #include <JAFDLibrary.h>
 
@@ -11,8 +17,8 @@
 void setup() {
 	// Robot Settings
 	JAFD::RobotSettings robotSettings;
-	//robotSettings.mazeMapperSet.ramSSPin = 0;
-	pinMode(A0, OUTPUT);
+	robotSettings.mazeMapperSet.ramSSPin = A1;
+
 	// If robot is completely stuck, just do nothing.
 	if (robotSetup(robotSettings) == JAFD::ReturnCode::fatalError)
 	{
@@ -22,11 +28,6 @@ void setup() {
 
 // The loop function runs over and over again until power down or reset
 void loop() {
-	digitalWrite(A0, HIGH);
-	delay(500);
-	digitalWrite(A0, LOW);
-	delay(500);
-
 	// If robot is completely stuck, just do nothing.
 	if (JAFD::robotLoop() == JAFD::ReturnCode::fatalError)
 	{
