@@ -37,7 +37,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\JAFDLibrary.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_private.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\utility\SpiEEprom.cpp" />
   </ItemGroup>
 </Project>
