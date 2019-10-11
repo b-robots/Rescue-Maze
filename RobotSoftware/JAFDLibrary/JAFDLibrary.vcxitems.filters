@@ -11,14 +11,14 @@
     <Filter Include="Header Files\implementation">
       <UniqueIdentifier>{f5ffd324-c3b0-409a-ae00-47b21582690f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Source Files">
+    <Filter Include="Source Files">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;s</Extensions>
     </Filter>
-    <Filter Include="Header Files\Source Files\implementation">
+    <Filter Include="Source Files\implementation">
       <UniqueIdentifier>{3a649a15-6001-4952-a91c-48487e761af8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Source Files\utility">
+    <Filter Include="Source Files\utility">
       <UniqueIdentifier>{9e80d6f0-e2ff-4720-9a44-d9b36f2e99ae}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -31,22 +31,22 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser.cpp">
-      <Filter>Header Files\Source Files\implementation</Filter>
+      <Filter>Source Files\implementation</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\JAFDLibrary.cpp">
-      <Filter>Header Files\Source Files</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\utility\SpiEEprom.cpp">
-      <Filter>Header Files\Source Files\utility</Filter>
+      <Filter>Source Files\utility</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping.cpp">
-      <Filter>Header Files\Source Files\implementation</Filter>
+      <Filter>Source Files\implementation</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\JAFDLibrary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MotorControl.cpp">
-      <Filter>Header Files\Source Files\implementation</Filter>
+      <Filter>Source Files\implementation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
