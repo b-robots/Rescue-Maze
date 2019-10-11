@@ -1,87 +1,28 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx</Extensions>
-    </Filter>
-    <Filter Include="Header Files\utility">
-      <UniqueIdentifier>{37b2169f-86a2-416a-952d-9760b52a4401}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\implementation">
-      <UniqueIdentifier>{f5ffd324-c3b0-409a-ae00-47b21582690f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;s</Extensions>
-    </Filter>
-    <Filter Include="Header Files\Source Files\implementation">
-      <UniqueIdentifier>{3a649a15-6001-4952-a91c-48487e761af8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Source Files\utility">
-      <UniqueIdentifier>{9e80d6f0-e2ff-4720-9a44-d9b36f2e99ae}</UniqueIdentifier>
-    </Filter>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MotorControl.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\JAFDLibrary.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utility\SpiEEprom.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MotorControl_private.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MotorControl_public.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_private.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_public.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_private.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_public.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\ReturnCode_public.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\DuePinMapping_private.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\Math_private.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\SpiEeprom_private.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue_private.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="$(MSBuildThisFileDirectory)readme.txt" />
     <Text Include="$(MSBuildThisFileDirectory)library.properties" />
-    <Text Include="$(MSBuildThisFileDirectory)src\JAFDLibrary.h">
-      <Filter>Header Files</Filter>
-    </Text>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser.cpp">
-      <Filter>Header Files\Source Files\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\JAFDLibrary.cpp">
-      <Filter>Header Files\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\utility\SpiEEprom.cpp">
-      <Filter>Header Files\Source Files\utility</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping.cpp">
-      <Filter>Header Files\Source Files\implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\JAFDLibrary.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MotorControl.cpp">
-      <Filter>Header Files\Source Files\implementation</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_private.h">
-      <Filter>Header Files\implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_public.h">
-      <Filter>Header Files\implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\ReturnCode_public.h">
-      <Filter>Header Files\implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\SpiEeprom_private.h">
-      <Filter>Header Files\utility</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue_private.h">
-      <Filter>Header Files\utility</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\Math_private.h">
-      <Filter>Header Files\utility</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_private.h">
-      <Filter>Header Files\implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_public.h">
-      <Filter>Header Files\implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MotorControl_private.h">
-      <Filter>Header Files\implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MotorControl_public.h">
-      <Filter>Header Files\implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\DuePinMapping_private.h">
-      <Filter>Header Files\utility</Filter>
-    </ClInclude>
+    <Text Include="$(MSBuildThisFileDirectory)src\JAFDLibrary.h" />
   </ItemGroup>
 </Project>
