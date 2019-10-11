@@ -20,8 +20,8 @@ namespace JAFD
 		// PWM Channels
 		enum class PWMChannel : uint8_t
 		{
-			noPWM,
-			ch0,
+			noPWM = (uint8_t)-1,
+			ch0 = 0,
 			ch1,
 			ch2,
 			ch3,
@@ -34,8 +34,8 @@ namespace JAFD
 		// ADC Channels
 		enum class ADCChannel : uint8_t
 		{
-			noADC,
-			ch0,
+			noADC = (uint8_t)-1,
+			ch0 = 0,
 			ch1,
 			ch2,
 			ch3,
@@ -56,8 +56,8 @@ namespace JAFD
 		// DAC Channels
 		enum class DACChannel : uint8_t
 		{
-			noDAC,
-			ch0,
+			noDAC = (uint8_t)-1,
+			ch0 = 0,
 			ch1
 		};
 
@@ -378,6 +378,11 @@ namespace JAFD
 			return MappedPins[pin].pinPeripherals == PinPeripherals::tc;
 		}
 
+		constexpr uint8_t getPWMChannel(uint8_t pin)
+		{
+			return static_cast<uint8_t>(MappedPins[pin].pwmChannel);
+		}
+
 		constexpr bool toABPeripheral(uint8_t pin)
 		{/*
 			switch (MappedPins[pin].pinPeripherals)
@@ -385,7 +390,7 @@ namespace JAFD
 			case PinPeripherals::dac:
 				break;
 			default:*/
-				return false;
+				return true;
 			//}
 		}
 	}
