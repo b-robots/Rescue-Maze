@@ -3,17 +3,19 @@ This private file of the library is responsible for the access to the SPI EEPROM
 */
 
 #include "SpiEeprom_private.h"
+#include "DuePinMapping_private.h"
+
 #include <SPI.h>
 
 namespace JAFD
 {
 	void SpiEeprom::init(uint8_t ssPin)
 	{
-		_ssPin = PinMapping::MappedPins[ssPin];
+		_ssPin = ssPin;
 
-		PMC->PMC_PCER0 = 1 << _ssPin.portID;
-		_ssPin.port->PIO_PER = _ssPin.pin;
-		_ssPin.port->PIO_OER = _ssPin.pin;
+		PMC->PMC_PCER0 = PinMapping::MappedPins[_ssPin].portID;
+		PinMapping::MappedPins[_ssPin].port->PIO_PER = PinMapping::MappedPins[_ssPin].pin;
+		PinMapping::MappedPins[_ssPin].port->PIO_OER = PinMapping::MappedPins[_ssPin].pin;
 
 		enable();
 
@@ -24,12 +26,12 @@ namespace JAFD
 
 	void SpiEeprom::enable()
 	{
-		_ssPin.port->PIO_CODR = _ssPin.pin;
+		PinMapping::MappedPins[_ssPin].port->PIO_CODR = PinMapping::MappedPins[_ssPin].pin;
 	}
 
 	void SpiEeprom::disable()
 	{
-		_ssPin.port->PIO_SODR = _ssPin.pin;
+		PinMapping::MappedPins[_ssPin].port->PIO_SODR = PinMapping::MappedPins[_ssPin].pin;
 	}
 
 	uint8_t SpiEeprom::readByte(uint32_t address)

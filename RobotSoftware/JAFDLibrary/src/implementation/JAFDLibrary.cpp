@@ -7,7 +7,7 @@
 #include "../JAFDLibrary.h"
 #include "MazeMapping_private.h"
 #include "Dispenser_private.h"
-#include "MotorShield_private.h"
+#include "MotorControl_private.h"
 
 #include <SPI.h>
 
@@ -28,6 +28,12 @@ namespace JAFD
 
 		// Setup of Dispenser
 		if (Dispenser::dispenserSetup(robotSettings.dispenserSet) != ReturnCode::ok)
+		{
+			return ReturnCode::fatalError;
+		}
+
+		// Setup of Dispenser
+		if (MotorControl::motorControlSetup(robotSettings.motorControlSet) != ReturnCode::ok)
 		{
 			return ReturnCode::fatalError;
 		}
