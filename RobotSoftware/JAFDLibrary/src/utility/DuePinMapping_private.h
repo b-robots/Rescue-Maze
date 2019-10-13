@@ -1,4 +1,5 @@
-﻿/*
+﻿
+/*
 This private file of the library is responsible for the access to the SPI EEPROM
 */
 
@@ -19,8 +20,8 @@ namespace JAFD
 		// PWM Channels
 		enum class PWMChannel : uint8_t
 		{
-			noPWM,
-			ch0,
+			noPWM = (uint8_t)-1,
+			ch0 = 0,
 			ch1,
 			ch2,
 			ch3,
@@ -33,8 +34,8 @@ namespace JAFD
 		// ADC Channels
 		enum class ADCChannel : uint8_t
 		{
-			noADC,
-			ch0,
+			noADC = (uint8_t)-1,
+			ch0 = 0,
 			ch1,
 			ch2,
 			ch3,
@@ -55,8 +56,8 @@ namespace JAFD
 		// DAC Channels
 		enum class DACChannel : uint8_t
 		{
-			noDAC,
-			ch0,
+			noDAC = (uint8_t)-1,
+			ch0 = 0,
 			ch1
 		};
 
@@ -103,162 +104,81 @@ namespace JAFD
 			}
 
 			constexpr PinPeripherals pinDesToPinPeripherals(PinDescription pinDes)
-			{/*
-				if (pinDes.ulPinAttribute & PIN_ATTR_PWM)
-				{
-					return PinPeripherals::pwm;
-				}
+			{
+				return	(pinDes.ulPinAttribute & PIN_ATTR_PWM) ? PinPeripherals::pwm :
+						((pinDes.ulPinAttribute & PIN_ATTR_TIMER) ? PinPeripherals::tc :
+						((pinDes.ulPinAttribute & PIN_ATTR_ANALOG) ? 
+							((pinDes.ulAnalogChannel == DA0 || pinDes.ulAnalogChannel == DA1) ? PinPeripherals::dac : PinPeripherals::adc) :
+						(PinPeripherals::onlyPio)));
 
-				if (pinDes.ulPinAttribute & PIN_ATTR_TIMER)
-				{
-					return PinPeripherals::tc;
-				}
-
-				if (pinDes.ulPinAttribute & PIN_ATTR_ANALOG)
-				{
-					if (pinDes.ulAnalogChannel == DA0 || pinDes.ulAnalogChannel == DA1)
-					{
-						return PinPeripherals::dac;
-					}
-					else
-					{
-						return PinPeripherals::adc;
-					}
-				}
-				*/
-				return PinPeripherals::onlyPio;
 			}
 
 			constexpr PWMChannel pinDesToPWMCh(PinDescription pinDes)
-			{/*
-				switch (pinDes.ulPWMChannel)
-				{
-				case NOT_ON_PWM:
-					return PWMChannel::noPWM;
-				case PWM_CH0:
-					return PWMChannel::ch0;
-				case PWM_CH1:
-					return PWMChannel::ch1;
-				case PWM_CH2:
-					return PWMChannel::ch2;
-				case PWM_CH3:
-					return PWMChannel::ch3;
-				case PWM_CH4:
-					return PWMChannel::ch4;
-				case PWM_CH5:
-					return PWMChannel::ch5;
-				case PWM_CH6:
-					return PWMChannel::ch6;
-				case PWM_CH7:
-					return PWMChannel::ch7;
-				default:*/
-					return PWMChannel::noPWM;
-				//}
+			{
+				return	(pinDes.ulPWMChannel == NOT_ON_PWM) ? PWMChannel::noPWM :
+						((pinDes.ulPWMChannel == PWM_CH0) ? PWMChannel::ch0 :
+						((pinDes.ulPWMChannel == PWM_CH1) ? PWMChannel::ch1 :
+						((pinDes.ulPWMChannel == PWM_CH2) ? PWMChannel::ch2 :
+						((pinDes.ulPWMChannel == PWM_CH3) ? PWMChannel::ch3 :
+						((pinDes.ulPWMChannel == PWM_CH4) ? PWMChannel::ch4 :
+						((pinDes.ulPWMChannel == PWM_CH5) ? PWMChannel::ch5 :
+						((pinDes.ulPWMChannel == PWM_CH6) ? PWMChannel::ch6 :
+						((pinDes.ulPWMChannel == PWM_CH7) ? PWMChannel::ch7 :
+						(PWMChannel::noPWM)))))))));
 			}
 
 			constexpr ADCChannel pinDesToADCCh(PinDescription pinDes)
-			{/*
-				switch (pinDes.ulADCChannelNumber)
-				{
-				case NO_ADC:
-					return ADCChannel::noADC;
-				case ADC0:
-					return ADCChannel::ch0;
-				case ADC1:
-					return ADCChannel::ch1;
-				case ADC2:
-					return ADCChannel::ch2;
-				case ADC3:
-					return ADCChannel::ch3;
-				case ADC4:
-					return ADCChannel::ch4;
-				case ADC5:
-					return ADCChannel::ch5;
-				case ADC6:
-					return ADCChannel::ch6;
-				case ADC7:
-					return ADCChannel::ch7;
-				case ADC8:
-					return ADCChannel::ch8;
-				case ADC9:
-					return ADCChannel::ch9;
-				case ADC10:
-					return ADCChannel::ch10;
-				case ADC11:
-					return ADCChannel::ch11;
-				case ADC12:
-					return ADCChannel::ch12;
-				case ADC13:
-					return ADCChannel::ch13;
-				case ADC14:
-					return ADCChannel::ch14;
-				case ADC15:
-					return ADCChannel::ch15;
-				default:*/
-					return ADCChannel::noADC;
-				//}
+			{
+				return	(pinDes.ulADCChannelNumber == NO_ADC) ? ADCChannel::noADC :
+						((pinDes.ulADCChannelNumber == ADC0) ? ADCChannel::ch0 :
+						((pinDes.ulADCChannelNumber == ADC1) ? ADCChannel::ch1 :
+						((pinDes.ulADCChannelNumber == ADC2) ? ADCChannel::ch2 :
+						((pinDes.ulADCChannelNumber == ADC3) ? ADCChannel::ch3 :
+						((pinDes.ulADCChannelNumber == ADC4) ? ADCChannel::ch4 :
+						((pinDes.ulADCChannelNumber == ADC5) ? ADCChannel::ch5 :
+						((pinDes.ulADCChannelNumber == ADC6) ? ADCChannel::ch6 :
+						((pinDes.ulADCChannelNumber == ADC7) ? ADCChannel::ch7 :
+						((pinDes.ulADCChannelNumber == ADC8) ? ADCChannel::ch8 :
+						((pinDes.ulADCChannelNumber == ADC9) ? ADCChannel::ch9 :
+						((pinDes.ulADCChannelNumber == ADC10) ? ADCChannel::ch10 :
+						((pinDes.ulADCChannelNumber == ADC11) ? ADCChannel::ch11 :
+						((pinDes.ulADCChannelNumber == ADC12) ? ADCChannel::ch12 :
+						((pinDes.ulADCChannelNumber == ADC13) ? ADCChannel::ch13 :
+						((pinDes.ulADCChannelNumber == ADC14) ? ADCChannel::ch14 :
+						((pinDes.ulADCChannelNumber == ADC15) ? ADCChannel::ch15 :
+						(ADCChannel::noADC)))))))))))))))));
 			}
 
 			constexpr DACChannel pinDesToDACCh(PinDescription pinDes)
-			{/*
-				switch (pinDes.ulADCChannelNumber)
-				{
-				case NO_ADC:
-					return DACChannel::noDAC;
-				case DA0:
-					return DACChannel::ch0;
-				case DA1:
-					return DACChannel::ch1;
-				default:*/
-					return DACChannel::noDAC;
-				//}
+			{
+				return	(pinDes.ulADCChannelNumber == NO_ADC) ? DACChannel::noDAC :
+						((pinDes.ulADCChannelNumber == DA0) ? DACChannel::ch0 :
+						((pinDes.ulADCChannelNumber == DA1) ? DACChannel::ch1 :
+						(DACChannel::noDAC)));
 			}
 
 			constexpr TCChannel pinDesToTCCh(PinDescription pinDes)
-			{/*
-				switch (pinDes.ulTCChannel)
-				{
-				case NOT_ON_TIMER:
-					return TCChannel::noTC;
-				case TC0_CHA0:
-					return TCChannel::tc0ChA0;
-				case TC0_CHB0:
-					return TCChannel::tc0ChB0;
-				case TC0_CHA1:
-					return TCChannel::tc0ChA1;
-				case TC0_CHB1:
-					return TCChannel::tc0ChB1;
-				case TC0_CHA2:
-					return TCChannel::tc0ChA2;
-				case TC0_CHB2:
-					return TCChannel::tc0ChB2;
-				case TC1_CHA3:
-					return TCChannel::tc1ChA3;
-				case TC1_CHB3:
-					return TCChannel::tc1ChB3;
-				case TC1_CHA4:
-					return TCChannel::tc1ChA4;
-				case TC1_CHB4:
-					return TCChannel::tc1ChB4;
-				case TC1_CHA5:
-					return TCChannel::tc1ChA5;
-				case TC1_CHB5:
-					return TCChannel::tc1ChB5;
-				case TC2_CHA6:
-					return TCChannel::tc2ChA6;
-				case TC2_CHB6:
-					return TCChannel::tc2ChB6;
-				case TC2_CHA7:
-					return TCChannel::tc2ChA7;
-				case TC2_CHB7:
-					return TCChannel::tc2ChB7;
-				case TC2_CHA8:
-					return TCChannel::tc2ChA8;
-				case TC2_CHB8:
-					return TCChannel::tc2ChB8;
-				default:*/
-					return TCChannel::noTC;
-				//}
+			{
+				return	(pinDes.ulTCChannel == NOT_ON_TIMER) ? TCChannel::noTC :
+						((pinDes.ulTCChannel == TC0_CHA0) ? TCChannel::tc0ChA0 :
+						((pinDes.ulTCChannel == TC0_CHB0) ? TCChannel::tc0ChB0 :
+						((pinDes.ulTCChannel == TC0_CHA1) ? TCChannel::tc0ChA1 :
+						((pinDes.ulTCChannel == TC0_CHB1) ? TCChannel::tc0ChB1 :
+						((pinDes.ulTCChannel == TC0_CHA2) ? TCChannel::tc0ChA2 :
+						((pinDes.ulTCChannel == TC0_CHB2) ? TCChannel::tc0ChB2 :
+						((pinDes.ulTCChannel == TC1_CHA3) ? TCChannel::tc1ChA3 :
+						((pinDes.ulTCChannel == TC1_CHB3) ? TCChannel::tc1ChB3 :
+						((pinDes.ulTCChannel == TC1_CHA4) ? TCChannel::tc1ChA4 :
+						((pinDes.ulTCChannel == TC1_CHB4) ? TCChannel::tc1ChB4 :
+						((pinDes.ulTCChannel == TC1_CHA5) ? TCChannel::tc1ChA5 :
+						((pinDes.ulTCChannel == TC1_CHB5) ? TCChannel::tc1ChB5 :
+						((pinDes.ulTCChannel == TC2_CHA6) ? TCChannel::tc2ChA6 :
+						((pinDes.ulTCChannel == TC2_CHB6) ? TCChannel::tc2ChB6 :
+						((pinDes.ulTCChannel == TC2_CHA7) ? TCChannel::tc2ChA7 :
+						((pinDes.ulTCChannel == TC2_CHB7) ? TCChannel::tc2ChB7 :
+						((pinDes.ulTCChannel == TC2_CHA8) ? TCChannel::tc2ChA8 :
+						((pinDes.ulTCChannel == TC2_CHB8) ? TCChannel::tc2ChB8 :
+						(TCChannel::noTC)))))))))))))))))));
 			}
 		}
 
@@ -458,6 +378,11 @@ namespace JAFD
 			return MappedPins[pin].pinPeripherals == PinPeripherals::tc;
 		}
 
+		constexpr uint8_t getPWMChannel(uint8_t pin)
+		{
+			return static_cast<uint8_t>(MappedPins[pin].pwmChannel);
+		}
+
 		constexpr bool toABPeripheral(uint8_t pin)
 		{/*
 			switch (MappedPins[pin].pinPeripherals)
@@ -465,7 +390,7 @@ namespace JAFD
 			case PinPeripherals::dac:
 				break;
 			default:*/
-				return false;
+				return true;
 			//}
 		}
 	}
