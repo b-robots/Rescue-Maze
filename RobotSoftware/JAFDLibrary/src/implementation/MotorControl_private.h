@@ -4,14 +4,14 @@ This part of the Library is responsible for driving the motors.
 
 #pragma once
 
-#include "MotorShield_public.h"
+#include "MotorControl_public.h"
 #include "ReturnCode_public.h"
 
 namespace JAFD
 {
-	namespace MotorShield
+	namespace MotorControl
 	{
 		// Setup the Motor-Shield
-		ReturnCode motorShieldSetup(MotorShieldSettings settings);
+		ReturnCode motorControlSetup(MotorControlSettings settings);
 	}
 }

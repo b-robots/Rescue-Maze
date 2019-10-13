@@ -13,7 +13,7 @@ namespace JAFD
 	{
 		// Settings
 		typedef struct {
-			uint8_t ramSSPin;
+			uint8_t ramSSPin; // Slave Select Pin of EEPROM
 		} MazeMapperSet;
 	}
 }

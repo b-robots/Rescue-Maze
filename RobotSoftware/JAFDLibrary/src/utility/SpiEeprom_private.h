@@ -13,8 +13,6 @@ This private file of the library is responsible for the access to the SPI EEPROM
 #include <SPI.h>
 #include <stdint.h>
 
-#include "../utility/DuePinMapping_private.h"
-
 namespace JAFD
 {
 	namespace
@@ -39,7 +37,7 @@ namespace JAFD
 	class SpiEeprom
 	{
 	private:
-		PinMapping::PinInformation _ssPin;
+		uint8_t _ssPin;
 
 		// Helping functions
 		void enable();
