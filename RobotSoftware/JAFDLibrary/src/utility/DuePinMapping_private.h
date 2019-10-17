@@ -384,14 +384,11 @@ namespace JAFD
 		}
 
 		constexpr bool toABPeripheral(uint8_t pin)
-		{/*
-			switch (MappedPins[pin].pinPeripherals)
-			{
-			case PinPeripherals::dac:
-				break;
-			default:*/
-				return true;
-			//}
+		{
+			return	(MappedPins[pin].ulADCChannelNumber == NO_ADC) ? DACChannel::noDAC :
+					((pinDes.ulADCChannelNumber == DA0) ? DACChannel::ch0 :
+					((pinDes.ulADCChannelNumber == DA1) ? DACChannel::ch1 :
+					(DACChannel::noDAC)));
 		}
 	}
 }
