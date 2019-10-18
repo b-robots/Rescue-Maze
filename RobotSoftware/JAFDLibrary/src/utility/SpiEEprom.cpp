@@ -11,9 +11,11 @@ namespace JAFD
 {
 	void SpiEeprom::init(uint8_t ssPin)
 	{
+		Serial.println("in");
+
 		_ssPin = ssPin;
 
-		PMC->PMC_PCER0 = PinMapping::MappedPins[_ssPin].portID;
+		PMC->PMC_PCER0 = 1 <<  PinMapping::MappedPins[_ssPin].portID;
 		PinMapping::MappedPins[_ssPin].port->PIO_PER = PinMapping::MappedPins[_ssPin].pin;
 		PinMapping::MappedPins[_ssPin].port->PIO_OER = PinMapping::MappedPins[_ssPin].pin;
 
@@ -26,11 +28,13 @@ namespace JAFD
 
 	void SpiEeprom::enable()
 	{
+		//Serial.println("en");
 		PinMapping::MappedPins[_ssPin].port->PIO_CODR = PinMapping::MappedPins[_ssPin].pin;
 	}
 
 	void SpiEeprom::disable()
 	{
+		//Serial.println("dis");
 		PinMapping::MappedPins[_ssPin].port->PIO_SODR = PinMapping::MappedPins[_ssPin].pin;
 	}
 
@@ -53,6 +57,8 @@ namespace JAFD
 
 	void SpiEeprom::writeByte(uint32_t address, uint8_t byte)
 	{
+		Serial.println("wr");
+
 		enable();
 
 		SPI.transfer((uint8_t)Instruction::write);

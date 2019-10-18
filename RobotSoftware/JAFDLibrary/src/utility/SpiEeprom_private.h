@@ -39,13 +39,14 @@ namespace JAFD
 	private:
 		uint8_t _ssPin;
 
-		// Helping functions
-		void enable();
-		void disable();
+
 
 		static const uint8_t _pageSize = 256;
 
 	public:
+		// Helping functions
+		void enable();
+		void disable();
 		// Init
 		void init(uint8_t ssPin);
 

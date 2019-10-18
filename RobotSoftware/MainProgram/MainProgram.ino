@@ -39,9 +39,15 @@ void setup() {
 	}
 
 	JAFD::SpiEeprom eeprom;
-	eeprom.init(A1);
+	eeprom.init(A0);
 	eeprom.writeByte(0, 65);
-	Serial.println(eeprom.readByte(0));
+	//Serial.println(eeprom.readByte(0));
+
+	for (; true; )
+	{
+		eeprom.enable();
+		eeprom.disable();
+	}
 }
 
 // The loop function runs over and over again until power down or reset

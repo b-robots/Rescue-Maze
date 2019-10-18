@@ -18,7 +18,7 @@ namespace JAFD
 	{
 		// Setup the SPI-Bus
 		SPI.begin();
-		SPI.beginTransaction(SPISettings(20e+6, MSBFIRST, SPI_MODE1));
+		SPI.beginTransaction(SPISettings(10e+6, MSBFIRST, SPI_MODE1));
 
 		// Setup of MazeMapper
 		if (MazeMapping::mazeMapperSetup(robotSettings.mazeMapperSet) != ReturnCode::ok)
