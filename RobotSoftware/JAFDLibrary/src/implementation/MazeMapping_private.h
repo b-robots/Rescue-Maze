@@ -93,6 +93,21 @@ namespace JAFD
 			uint8_t floor;
 		} MapCoordinate;
 
+		// Home Position
+		constexpr MapCoordinate homePosition = { 0, 0, 0 };
+
+		// Start-Address
+		constexpr uint32_t startAddress = 0;
+
+		// Usable size for the maze mapping
+		constexpr uint16_t usableSize = 64 * 1024;
+
+		// Maximum/minimum coordinates that can fit in the SRAM
+		constexpr int8_t maxX = 31;
+		constexpr int8_t minX = -32;
+		constexpr int8_t maxY = 31;
+		constexpr int8_t minY = -32;
+
 		// Namespace for the Breadth-First-Search-Algorithm to find the shortest Path
 		namespace BFAlgorithm
 		{

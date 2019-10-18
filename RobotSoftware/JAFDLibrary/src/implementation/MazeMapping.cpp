@@ -19,21 +19,6 @@ namespace JAFD
 			SpiEeprom _spiEeprom;
 		}
 
-		// Home Position
-		constexpr MapCoordinate homePosition = { 0, 0, 0 };
-
-		// Start-Address
-		constexpr uint32_t startAddress = 0;
-
-		// Usable size for the maze mapping
-		constexpr uint16_t usableSize = 64 * 1024;
-
-		// Maximum/minimum coordinates that can fit in the SRAM
-		constexpr int8_t maxX = 31;
-		constexpr int8_t minX = -32;
-		constexpr int8_t maxY = 31;
-		constexpr int8_t minY = -32;
-
 		// Comparison operators for MapCoordinate
 		inline bool operator==(const MapCoordinate& lhs, const MapCoordinate& rhs) { return (lhs.floor == rhs.floor && lhs.x == rhs.x && lhs.y == rhs.y); }
 		inline bool operator!=(const MapCoordinate& lhs, const MapCoordinate& rhs) { return !(lhs == rhs); }

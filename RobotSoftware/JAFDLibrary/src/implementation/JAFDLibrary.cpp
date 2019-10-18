@@ -32,7 +32,7 @@ namespace JAFD
 			return ReturnCode::fatalError;
 		}
 
-		// Setup of Dispenser
+		// Setup of Motor Control
 		if (MotorControl::motorControlSetup(robotSettings.motorControlSet) != ReturnCode::ok)
 		{
 			return ReturnCode::fatalError;

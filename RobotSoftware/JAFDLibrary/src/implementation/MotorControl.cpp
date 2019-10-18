@@ -29,18 +29,18 @@ namespace JAFD
 
 		ReturnCode motorControlSetup(MotorControlSettings settings)
 		{
-			// Check if PWM Pins and ADC Pins are correct
-			if (!PinMapping::hasPWM(_m1PWM) || !PinMapping::hasPWM(_m2PWM) || !PinMapping::hasADC(_m1Fb) || !PinMapping::hasADC(_m2Fb))
-			{
-				return ReturnCode::fatalError;
-			}
-
 			_m1PWM = settings.m1PWM;
 			_m2PWM = settings.m2PWM;
 			_m1Dir = settings.m1Dir;
 			_m2Dir = settings.m2Dir;
 			_m1Fb = settings.m1Fb;
 			_m2Fb = settings.m2Fb;
+
+			// Check if PWM Pins and ADC Pins are correct
+			if (!PinMapping::hasPWM(_m1PWM) || !PinMapping::hasPWM(_m2PWM) || !PinMapping::hasADC(_m1Fb) || !PinMapping::hasADC(_m2Fb))
+			{
+				return ReturnCode::fatalError;
+			}
 
 			// Set the pin modes for Dir - Pins
 			PMC->PMC_PCER0 = 1 << PinMapping::MappedPins[_m1Dir].portID | 1 << PinMapping::MappedPins[_m2Dir].portID;
@@ -90,6 +90,8 @@ namespace JAFD
 			{
 				PinMapping::MappedPins[_m2PWM].port->PIO_ABSR &= ~PinMapping::MappedPins[_m2PWM].pin;
 			}
+
+			return ReturnCode::ok;
 		}
 	}
 }

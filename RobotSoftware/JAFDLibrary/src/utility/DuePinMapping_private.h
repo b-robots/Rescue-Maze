@@ -11,8 +11,6 @@ This private file of the library is responsible for the access to the SPI EEPROM
 #include "WProgram.h"
 #endif
 
-#include "Math_private.h"
-
 namespace JAFD
 {
 	namespace PinMapping
@@ -20,7 +18,6 @@ namespace JAFD
 		// PWM Channels
 		enum class PWMChannel : uint8_t
 		{
-			noPWM = (uint8_t)-1,
 			ch0 = 0,
 			ch1,
 			ch2,
@@ -28,13 +25,13 @@ namespace JAFD
 			ch4,
 			ch5,
 			ch6,
-			ch7
+			ch7,
+			noPWM
 		};
 
 		// ADC Channels
 		enum class ADCChannel : uint8_t
 		{
-			noADC = (uint8_t)-1,
 			ch0 = 0,
 			ch1,
 			ch2,
@@ -51,21 +48,21 @@ namespace JAFD
 			ch13,
 			ch14,
 			ch15,
+			noADC
 		};
 
 		// DAC Channels
 		enum class DACChannel : uint8_t
 		{
-			noDAC = (uint8_t)-1,
 			ch0 = 0,
-			ch1
+			ch1,
+			noDAC
 		};
 
 		// TC Channels
 		enum class TCChannel : uint8_t
 		{
-			noTC,
-			tc0ChA0,
+			tc0ChA0 = 0,
 			tc0ChB0,
 			tc0ChA1,
 			tc0ChB1,
@@ -82,7 +79,8 @@ namespace JAFD
 			tc2ChA7,
 			tc2ChB7,
 			tc2ChA8,
-			tc2ChB8
+			tc2ChB8,
+			noTC
 		};
 
 		// Available Peripherals
@@ -100,7 +98,8 @@ namespace JAFD
 			// Functions for converting from Arduinos PinDescription to my PinInformation
 			constexpr uint8_t pinDesToPortID(PinDescription pinDes)
 			{
-				return Math::log2(pinDes.ulPeripheralId);
+				return	(pinDes.ulPeripheralId >= 11 && pinDes.ulPeripheralId <= 16) ?
+						static_cast<uint8_t>(pinDes.ulPeripheralId) : 0;
 			}
 
 			constexpr PinPeripherals pinDesToPinPeripherals(PinDescription pinDes)
@@ -225,8 +224,8 @@ namespace JAFD
 			// 0 .. 53 - Digital pins
 			// ----------------------
 			// 0/1 - UART (Serial)
-			PinDescription {PIOA, PIO_PA8A_URXD,     ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT,  PIN_ATTR_DIGITAL,                 NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // URXD
-			PinDescription {PIOA, PIO_PA9A_UTXD,     ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT,  PIN_ATTR_DIGITAL,                 NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // UTXD
+			PinDescription {PIOA, PIO_PA8A_URXD,     ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT,  (PIN_ATTR_DIGITAL | PIN_ATTR_PWM),	NO_ADC, NO_ADC, PWM_CH0,	NOT_ON_TIMER }, // URXD
+			PinDescription {PIOA, PIO_PA9A_UTXD,     ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT,  (PIN_ATTR_DIGITAL | PIN_ATTR_PWM),	NO_ADC, NO_ADC, PWM_CH3,	NOT_ON_TIMER }, // UTXD
 			
 			// 2
 			PinDescription {PIOB, PIO_PB25B_TIOA0,   ID_PIOB, PIO_PERIPH_B, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_TIMER), NO_ADC, NO_ADC, NOT_ON_PWM,  TC0_CHA0     }, // TIOA0
@@ -252,16 +251,16 @@ namespace JAFD
 			PinDescription {PIOD, PIO_PD5B_RXD3,     ID_PIOD, PIO_PERIPH_B, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // RXD3
 			
 			// 16/17 - USART1 (Serial2)
-			PinDescription {PIOA, PIO_PA13A_TXD1,    ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // TXD1
-			PinDescription {PIOA, PIO_PA12A_RXD1,    ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // RXD1
+			PinDescription {PIOA, PIO_PA13A_TXD1,    ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), NO_ADC, NO_ADC, PWM_CH2,  	 NOT_ON_TIMER }, // TXD1
+			PinDescription {PIOA, PIO_PA12A_RXD1,    ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), NO_ADC, NO_ADC, PWM_CH1,	 NOT_ON_TIMER }, // RXD1
 			
 			// 18/19 - USART0 (Serial1)
 			PinDescription {PIOA, PIO_PA11A_TXD0,    ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // TXD0
 			PinDescription {PIOA, PIO_PA10A_RXD0,    ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // RXD0
 			
 			// 20/21 - TWI1
-			PinDescription {PIOB, PIO_PB12A_TWD1,    ID_PIOB, PIO_PERIPH_A, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // TWD1 - SDA0
-			PinDescription {PIOB, PIO_PB13A_TWCK1,   ID_PIOB, PIO_PERIPH_A, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // TWCK1 - SCL0
+			PinDescription {PIOB, PIO_PB12A_TWD1,    ID_PIOB, PIO_PERIPH_A, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), NO_ADC, NO_ADC, PWM_CH0,	 NOT_ON_TIMER }, // TWD1 - SDA0
+			PinDescription {PIOB, PIO_PB13A_TWCK1,   ID_PIOB, PIO_PERIPH_A, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), NO_ADC, NO_ADC, PWM_CH1,     NOT_ON_TIMER }, // TWCK1 - SCL0
 			
 			// 22
 			PinDescription {PIOB, PIO_PB26,          ID_PIOB, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 22
@@ -282,22 +281,22 @@ namespace JAFD
 			PinDescription {PIOC, PIO_PC1,           ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 33
 			
 			// 34
-			PinDescription {PIOC, PIO_PC2,           ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 34
-			PinDescription {PIOC, PIO_PC3,           ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 35
-			PinDescription {PIOC, PIO_PC4,           ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 36
-			PinDescription {PIOC, PIO_PC5,           ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 37
+			PinDescription {PIOC, PIO_PC2,           ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), NO_ADC, NO_ADC, PWM_CH0,  	 NOT_ON_TIMER }, // PIN 34
+			PinDescription {PIOC, PIO_PC3,           ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), NO_ADC, NO_ADC, PWM_CH0,     NOT_ON_TIMER }, // PIN 35
+			PinDescription {PIOC, PIO_PC4,           ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), NO_ADC, NO_ADC, PWM_CH1,  	 NOT_ON_TIMER }, // PIN 36
+			PinDescription {PIOC, PIO_PC5,           ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), NO_ADC, NO_ADC, PWM_CH1,     NOT_ON_TIMER }, // PIN 37
 			
 			// 38
-			PinDescription {PIOC, PIO_PC6,           ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 38
-			PinDescription {PIOC, PIO_PC7,           ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 39
-			PinDescription {PIOC, PIO_PC8,           ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 40
-			PinDescription {PIOC, PIO_PC9,           ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 41
+			PinDescription {PIOC, PIO_PC6,           ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), NO_ADC, NO_ADC, PWM_CH2,  	 NOT_ON_TIMER }, // PIN 38
+			PinDescription {PIOC, PIO_PC7,           ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), NO_ADC, NO_ADC, PWM_CH2,  	 NOT_ON_TIMER }, // PIN 39
+			PinDescription {PIOC, PIO_PC8,           ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), NO_ADC, NO_ADC, PWM_CH3,	 NOT_ON_TIMER }, // PIN 40
+			PinDescription {PIOC, PIO_PC9,           ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), NO_ADC, NO_ADC, PWM_CH3,  	 NOT_ON_TIMER }, // PIN 41
 			
 			// 42
-			PinDescription {PIOA, PIO_PA19,          ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 42
-			PinDescription {PIOA, PIO_PA20,          ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 43
-			PinDescription {PIOC, PIO_PC19,          ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 44
-			PinDescription {PIOC, PIO_PC18,          ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 45
+			PinDescription {PIOA, PIO_PA19,          ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), NO_ADC, NO_ADC, PWM_CH1,     NOT_ON_TIMER }, // PIN 42
+			PinDescription {PIOA, PIO_PA20,          ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), NO_ADC, NO_ADC, PWM_CH2,  	 NOT_ON_TIMER }, // PIN 43
+			PinDescription {PIOC, PIO_PC19,          ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), NO_ADC, NO_ADC, PWM_CH5,  	 NOT_ON_TIMER }, // PIN 44
+			PinDescription {PIOC, PIO_PC18,          ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), NO_ADC, NO_ADC, PWM_CH6,  	 NOT_ON_TIMER }, // PIN 45
 			
 			// 46
 			PinDescription {PIOC, PIO_PC17,          ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 46
@@ -309,7 +308,7 @@ namespace JAFD
 			PinDescription {PIOC, PIO_PC13,          ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 50
 			PinDescription {PIOC, PIO_PC12,          ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 51
 			PinDescription {PIOB, PIO_PB21,          ID_PIOB, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 52
-			PinDescription {PIOB, PIO_PB14,          ID_PIOB, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PIN 53
+			PinDescription {PIOB, PIO_PB14,          ID_PIOB, PIO_OUTPUT_0, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), NO_ADC, NO_ADC, PWM_CH2,     NOT_ON_TIMER }, // PIN 53
 			
 			
 			// 54 .. 65 - Analog pins
@@ -324,18 +323,18 @@ namespace JAFD
 			PinDescription {PIOA, PIO_PA3X1_AD1,     ID_PIOA, PIO_INPUT,    PIO_DEFAULT, PIN_ATTR_ANALOG,                   ADC6,   ADC1,   NOT_ON_PWM,  TC0_CHB1     }, // AD6
 			PinDescription {PIOA, PIO_PA2X1_AD0,     ID_PIOA, PIO_INPUT,    PIO_DEFAULT, PIN_ATTR_ANALOG,                   ADC7,   ADC0,   NOT_ON_PWM,  TC0_CHA1     }, // AD7
 			// 62
-			PinDescription {PIOB, PIO_PB17X1_AD10,   ID_PIOB, PIO_INPUT,    PIO_DEFAULT, PIN_ATTR_ANALOG,                   ADC8,   ADC10,  NOT_ON_PWM,  NOT_ON_TIMER }, // AD8
-			PinDescription {PIOB, PIO_PB18X1_AD11,   ID_PIOB, PIO_INPUT,    PIO_DEFAULT, PIN_ATTR_ANALOG,                   ADC9,   ADC11,  NOT_ON_PWM,  NOT_ON_TIMER }, // AD9
-			PinDescription {PIOB, PIO_PB19X1_AD12,   ID_PIOB, PIO_INPUT,    PIO_DEFAULT, PIN_ATTR_ANALOG,                   ADC10,  ADC12,  NOT_ON_PWM,  NOT_ON_TIMER }, // AD10
+			PinDescription {PIOB, PIO_PB17X1_AD10,   ID_PIOB, PIO_INPUT,    PIO_DEFAULT, PIN_ATTR_ANALOG,					ADC8,   ADC10,  NOT_ON_PWM,  NOT_ON_TIMER }, // AD8
+			PinDescription {PIOB, PIO_PB18X1_AD11,   ID_PIOB, PIO_INPUT,    PIO_DEFAULT, PIN_ATTR_ANALOG,					ADC9,   ADC11,  NOT_ON_PWM,  NOT_ON_TIMER }, // AD9
+			PinDescription {PIOB, PIO_PB19X1_AD12,   ID_PIOB, PIO_INPUT,    PIO_DEFAULT, PIN_ATTR_ANALOG,					ADC10,  ADC12,  NOT_ON_PWM,	 NOT_ON_TIMER }, // AD10
 			PinDescription {PIOB, PIO_PB20X1_AD13,   ID_PIOB, PIO_INPUT,    PIO_DEFAULT, PIN_ATTR_ANALOG,                   ADC11,  ADC13,  NOT_ON_PWM,  NOT_ON_TIMER }, // AD11
 			
 			// 66/67 - DAC0/DAC1
-			PinDescription {PIOB, PIO_PB15X1_DAC0,   ID_PIOB, PIO_INPUT,    PIO_DEFAULT, PIN_ATTR_ANALOG,                   ADC12,  DA0,    NOT_ON_PWM,  NOT_ON_TIMER }, // DAC0
-			PinDescription {PIOB, PIO_PB16X1_DAC1,   ID_PIOB, PIO_INPUT,    PIO_DEFAULT, PIN_ATTR_ANALOG,                   ADC13,  DA1,    NOT_ON_PWM,  NOT_ON_TIMER }, // DAC1
+			PinDescription {PIOB, PIO_PB15X1_DAC0,   ID_PIOB, PIO_INPUT,    PIO_DEFAULT, PIN_ATTR_ANALOG,					ADC12,  DA0,    NOT_ON_PWM,  NOT_ON_TIMER }, // DAC0
+			PinDescription {PIOB, PIO_PB16X1_DAC1,   ID_PIOB, PIO_INPUT,    PIO_DEFAULT, PIN_ATTR_ANALOG,					ADC13,  DA1,    NOT_ON_PWM,  NOT_ON_TIMER }, // DAC1
 			
 			// 68/69 - CANRX0/CANTX0
 			PinDescription {PIOA, PIO_PA1A_CANRX0,   ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  ADC14,  NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // CANRX
-			PinDescription {PIOA, PIO_PA0A_CANTX0,   ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  ADC15,  NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // CANTX
+			PinDescription {PIOA, PIO_PA0A_CANTX0,   ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), ADC15,  NO_ADC, PWM_CH3,	 NOT_ON_TIMER }, // CANTX
 			
 			// 70/71 - TWI0
 			PinDescription {PIOA, PIO_PA17A_TWD0,    ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // TWD0 - SDA1
@@ -343,7 +342,7 @@ namespace JAFD
 			
 			// 72/73 - LEDs
 			PinDescription {PIOC, PIO_PC30,          ID_PIOC, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // LED AMBER RXL
-			PinDescription {PIOA, PIO_PA21,          ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // LED AMBER TXL
+			PinDescription {PIOA, PIO_PA21,          ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT, (PIN_ATTR_DIGITAL | PIN_ATTR_PWM), NO_ADC, NO_ADC, PWM_CH0,  	 NOT_ON_TIMER }, // LED AMBER TXL
 			
 			// 74/75/76 - SPI
 			PinDescription {PIOA, PIO_PA25A_SPI0_MISO,ID_PIOA,PIO_PERIPH_A, PIO_DEFAULT, PIN_ATTR_DIGITAL,                  NO_ADC, NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // MISO
@@ -382,13 +381,26 @@ namespace JAFD
 		{
 			return static_cast<uint8_t>(MappedPins[pin].pwmChannel);
 		}
-
+		
+		constexpr uint8_t getTCChannel(uint8_t pin)
+		{
+			return static_cast<uint8_t>(MappedPins[pin].tcChannel) / 6;
+		}
+		
 		constexpr bool toABPeripheral(uint8_t pin)
 		{
-			return	(MappedPins[pin].ulADCChannelNumber == NO_ADC) ? DACChannel::noDAC :
-					((pinDes.ulADCChannelNumber == DA0) ? DACChannel::ch0 :
-					((pinDes.ulADCChannelNumber == DA1) ? DACChannel::ch1 :
-					(DACChannel::noDAC)));
+			return	(hasPWM(pin)) ?
+						true :
+					((hasTC(pin)) ? 
+						(getTCChannel(pin) == 2 ||
+						(getTCChannel(pin) == 0 && MappedPins[pin].port == PIOB) ||
+						(MappedPins[pin].pin == PIO_PB0 ||
+						MappedPins[pin].pin == PIO_PB2 ||
+						MappedPins[pin].pin == PIO_PB4 ||
+						MappedPins[pin].pin == PIO_PB1 ||
+						MappedPins[pin].pin == PIO_PB3 || 
+						MappedPins[pin].pin == PIO_PB5)) :
+					false);
 		}
 	}
 }
