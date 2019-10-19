@@ -39,6 +39,7 @@ namespace JAFD
 	private:
 		uint8_t _ssPin;
 		static constexpr uint8_t _pageSize = 256;
+		static constexpr uint8_t _sectorSize = 32000;
 
 		// Helping functions
 		void enable();
@@ -55,5 +56,10 @@ namespace JAFD
 		void writePage(uint8_t numPage, uint8_t* buffer);
 		void readStream(uint32_t address, uint8_t* buffer, uint32_t length);
 		void writeStream(uint32_t address, uint8_t* buffer, uint32_t length);
+
+		// Erase functions
+		void erasePage(uint8_t numPage);
+		void eraseSector(uint8_t numSector);
+		void eraseChip();
 	};
 }

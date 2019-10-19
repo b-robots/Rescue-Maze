@@ -36,7 +36,7 @@ namespace JAFD
 		{
 			// Memory address
 			uint32_t address;
-
+			
 			// Calculate address
 			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
 			address += ((coor.y + 0x20) & 0x3f) << 9;	// Bit 10 - 15 = y-Axis / 0 = 0x20
@@ -146,21 +146,21 @@ namespace JAFD
 			gridCell->cellState = bytes[1];
 			*bfsValue = bytes[2];
 		}
-		
-		// Reset all BFS Values
-		void resetBFSValues(uint8_t floor)
-		{
-			for (int8_t x = minX; x <= maxX; x++)
-			{
-				for (int8_t y = minY; y <= maxY; y++)
-				{
-					setGridCell(0, { x, y, floor });
-				}
-			}
-		}
 
 		namespace BFAlgorithm
 		{
+			// Reset all BFS Values in this floor
+			void resetBFSValues(uint8_t floor)
+			{
+				for (int8_t x = minX; x <= maxX; x++)
+				{
+					for (int8_t y = minY; y <= maxY; y++)
+					{
+						setGridCell(0, { x, y, floor });
+					}
+				}
+			}
+
 			// Find the shortest known path from a to b
 			ReturnCode findShortestPath(MapCoordinate start, uint8_t* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell))
 			{
@@ -251,21 +251,17 @@ namespace JAFD
 							coorW = { coorV.x, coorV.y + 1, coorV.floor };
 							getGridCell(&gridCellW, &bfsValueW, coorW);
 
-							if (!(gridCellV.cellState & CellState::blackTile))
+							if (!(bfsValueW & SolverState::discovered) && !(gridCellW.cellState & CellState::blackTile))
 							{
-								if (!(bfsValueW & SolverState::discovered))
+								bfsValueW = SolverState::discovered | SolverState::south; // Set discovered-bit, store the shortest path back
+
+								if (queue.enqueue(coorW) != ReturnCode::ok)
 								{
-									bfsValueW = SolverState::discovered | SolverState::south; // Set discovered-bit, store the shortest path back and store the ID
-
-
-									if (queue.enqueue(coorW) != ReturnCode::ok)
-									{
-										resetBFSValues(start.floor);
-										return ReturnCode::error;
-									}
-
-									setGridCell(bfsValueW, coorW);
+									resetBFSValues(start.floor);
+									return ReturnCode::error;
 								}
+
+								setGridCell(bfsValueW, coorW);
 							}
 						}
 
@@ -275,21 +271,17 @@ namespace JAFD
 							coorW = { coorV.x + 1, coorV.y, coorV.floor };
 							getGridCell(&gridCellW, &bfsValueW, coorW);
 
-							if (!(gridCellV.cellState & CellState::blackTile))
+							if (!(bfsValueW & SolverState::discovered) && !(gridCellW.cellState & CellState::blackTile))
 							{
-								if (!(bfsValueW & SolverState::discovered))
+								bfsValueW = SolverState::discovered | SolverState::west; // Set discovered-bit, store the shortest path back
+
+								if (queue.enqueue(coorW) != ReturnCode::ok)
 								{
-									bfsValueW = SolverState::discovered | SolverState::west; // Set discovered-bit, store the shortest path back and store the ID
-
-
-									if (queue.enqueue(coorW) != ReturnCode::ok)
-									{
-										resetBFSValues(start.floor);
-										return ReturnCode::error;
-									}
-
-									setGridCell(bfsValueW, coorW);
+									resetBFSValues(start.floor);
+									return ReturnCode::error;
 								}
+
+								setGridCell(bfsValueW, coorW);
 							}
 						}
 
@@ -298,22 +290,18 @@ namespace JAFD
 						{
 							coorW = { coorV.x, coorV.y - 1, coorV.floor };
 							getGridCell(&gridCellW, &bfsValueW, coorW);
-
-							if (!(gridCellV.cellState & CellState::blackTile))
+							
+							if (!(bfsValueW & SolverState::discovered) && !(gridCellW.cellState & CellState::blackTile))
 							{
-								if (!(bfsValueW & SolverState::discovered))
+								bfsValueW = SolverState::discovered | SolverState::north; // Set discovered-bit, store the shortest path back
+
+								if (queue.enqueue(coorW) != ReturnCode::ok)
 								{
-									bfsValueW =  SolverState::discovered | SolverState::north; // Set discovered-bit, store the shortest path back and store the ID
-
-
-									if (queue.enqueue(coorW) != ReturnCode::ok)
-									{
-										resetBFSValues(start.floor);
-										return ReturnCode::error;
-									}
-
-									setGridCell(bfsValueW, coorW);
+									resetBFSValues(start.floor);
+									return ReturnCode::error;
 								}
+
+								setGridCell(bfsValueW, coorW);
 							}
 						}
 
@@ -323,21 +311,17 @@ namespace JAFD
 							coorW = { coorV.x - 1, coorV.y, coorV.floor };
 							getGridCell(&gridCellW, &bfsValueW, coorW);
 
-							if (!(gridCellV.cellState & CellState::blackTile))
+							if (!(bfsValueW & SolverState::discovered) && !(gridCellW.cellState & CellState::blackTile))
 							{
-								if (!(bfsValueW & SolverState::discovered))
+								bfsValueW = SolverState::discovered | SolverState::east; // Set discovered-bit, store the shortest path back
+
+								if (queue.enqueue(coorW) != ReturnCode::ok)
 								{
-									bfsValueW = SolverState::discovered | SolverState::east; // Set discovered-bit, store the shortest path back and store the ID
-
-
-									if (queue.enqueue(coorW) != ReturnCode::ok)
-									{
-										resetBFSValues(start.floor);
-										return ReturnCode::error;
-									}
-
-									setGridCell(bfsValueW, coorW);
+									resetBFSValues(start.floor);
+									return ReturnCode::error;
 								}
+
+								setGridCell(bfsValueW, coorW);
 							}
 						}
 					}

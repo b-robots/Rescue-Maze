@@ -13,7 +13,9 @@
 // RobotLibrary
 #include <JAFDLibrary.h>
 
-#include <utility/SpiEeprom_private.h>
+#include <implementation/MazeMapping_private.h>
+
+using namespace JAFD::MazeMapping;
 
 // The setup function runs once when you press reset or power the board
 void setup() {
@@ -37,11 +39,24 @@ void setup() {
 	{
 		while (true);
 	}
-	
-	JAFD::SpiEeprom eeprom;
-	eeprom.init(A0);
-	eeprom.writeByte(0, 42);
-	Serial.println(eeprom.readByte(0));
+
+	// TODO: Improve read/write Stream
+	// Test write / read of Maze Mapping
+	// Create test maze
+	setGridCell({ 0b1111, CellState::visited | CellState::checkpoint }, homePosition);
+	setGridCell({ 0b1101, CellState::visited | CellState::checkpoint }, { homePosition.x + 1, homePosition.y, 0 });
+	setGridCell({ 0b1100, CellState::visited | CellState::checkpoint }, { homePosition.x + 1, homePosition.y + 1, 0 });
+	setGridCell({ 0b1110, CellState::visited | CellState::checkpoint }, { homePosition.x, homePosition.y + 1, 0 });
+	setGridCell({ 0b0110, CellState::visited | CellState::checkpoint }, { homePosition.x - 1, homePosition.y + 1, 0 });
+	setGridCell({ 0b0111, CellState::visited | CellState::checkpoint }, { homePosition.x - 1, homePosition.y, 0 });
+	setGridCell({ 0b0011, CellState::visited | CellState::checkpoint }, { homePosition.x - 1, homePosition.y - 1, 0 });
+	setGridCell({ 0b1011, CellState::visited | CellState::checkpoint }, { homePosition.x, homePosition.y - 1, 0 });
+	setGridCell({ 0b1001, CellState::visited | CellState::checkpoint }, { homePosition.x + 1, homePosition.y - 1, 0 });
+
+
+	GridCell val;
+	getGridCell(&val, homePosition);
+	Serial.println(val);
 }
 
 // The loop function runs over and over again until power down or reset

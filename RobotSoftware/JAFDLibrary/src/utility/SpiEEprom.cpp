@@ -27,6 +27,9 @@ namespace JAFD
 	void SpiEeprom::disable()
 	{
 		PinMapping::MappedPins[_ssPin].port->PIO_SODR = PinMapping::MappedPins[_ssPin].pin;
+
+		// Wait a little bit, so the chip recognizes the SS - Pin Change
+		delayMicroseconds(1);
 	}
 
 	uint8_t SpiEeprom::readByte(uint32_t address)
@@ -138,22 +141,7 @@ namespace JAFD
 
 		for (uint16_t i = 0; i < length; i++)
 		{
-			*buffer++ = SPI.transfer(0x00);
-
-			if (++address % 256 == 0)
-			{
-				disable();
-
-				for (volatile uint8_t d = 0; d < 4; d++);
-
-				enable();
-
-				SPI.transfer((uint8_t)Instruction::read);
-
-				SPI.transfer((uint8_t)(address >> 16));
-				SPI.transfer((uint8_t)(address >> 8));
-				SPI.transfer((uint8_t)(address));
-			}
+			*(buffer++) = SPI.transfer(0x00);
 		}
 
 		disable();
@@ -175,12 +163,12 @@ namespace JAFD
 		SPI.transfer((uint8_t)(address >> 8));
 		SPI.transfer((uint8_t)(address));
 
-		for (uint16_t i = 0; i < length; i++)
+		for (uint32_t i = 0; i < length; i++)
 		{
-			SPI.transfer(*buffer++);
+			SPI.transfer(*(buffer++));
 
 			// If Page-Overflow instantiate new write cycle
-			if (++address % 256 == 0)
+			if (++address % _pageSize == 0)
 			{
 				// Wait for end of write
 				enable();
@@ -203,5 +191,78 @@ namespace JAFD
 
 		disable();
 	}
-	
+
+	void SpiEeprom::erasePage(uint8_t numPage)
+	{
+		// Set Write Enable Bit
+		enable();
+		SPI.transfer((uint8_t)Instruction::wren);
+		disable();
+
+		// Erase Page
+		enable();
+
+		SPI.transfer((uint8_t)Instruction::pe);
+
+		uint32_t address = numPage * _pageSize;
+
+
+		SPI.transfer((uint8_t)(address >> 16));
+		SPI.transfer((uint8_t)(address >> 8));
+		SPI.transfer((uint8_t)(address));
+
+		disable();
+
+		// Wait for end of write
+		enable();
+		while (SPI.transfer((uint8_t)Instruction::rdsr) & 1);
+		disable();
+	}
+
+	void SpiEeprom::eraseSector(uint8_t numSector)
+	{
+		// Set Write Enable Bit
+		enable();
+		SPI.transfer((uint8_t)Instruction::wren);
+		disable();
+
+		// Erase Page
+		enable();
+
+		SPI.transfer((uint8_t)Instruction::se);
+
+		uint32_t address = numSector * _sectorSize;
+
+
+		SPI.transfer((uint8_t)(address >> 16));
+		SPI.transfer((uint8_t)(address >> 8));
+		SPI.transfer((uint8_t)(address));
+
+		disable();
+
+		// Wait for end of write
+		enable();
+		while (SPI.transfer((uint8_t)Instruction::rdsr) & 1);
+		disable();
+	}
+
+	void SpiEeprom::eraseChip()
+	{
+		// Set Write Enable Bit
+		enable();
+		SPI.transfer((uint8_t)Instruction::wren);
+		disable();
+
+		// Erase Page
+		enable();
+
+		SPI.transfer((uint8_t)Instruction::ce);
+
+		disable();
+
+		// Wait for end of write
+		enable();
+		while (SPI.transfer((uint8_t)Instruction::rdsr) & 1);
+		disable();
+	}
 }

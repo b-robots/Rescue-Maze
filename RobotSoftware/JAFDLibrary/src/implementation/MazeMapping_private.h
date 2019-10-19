@@ -45,7 +45,7 @@ namespace JAFD
 		// Possible states of a cell
 		namespace CellState
 		{
-			constexpr uint8_t visited = 1 << 0;
+			constexpr uint8_t visited = 0 << 0;
 			constexpr uint8_t victim = 1 << 1;
 			constexpr uint8_t checkpoint = 1 << 2;
 			constexpr uint8_t blackTile = 1 << 3;
@@ -77,7 +77,7 @@ namespace JAFD
 
 			// Information about Speed Bumps, Victims, Checkpoints...
 			// From right to left:
-			// 1.Bit: Is this Cell already visited?
+			// 1.Bit: Is this Cell already visited? Attention: This Bit is inverted
 			// 2.Bit: Victim already detected?
 			// 3.Bit: Checkpoint?
 			// 4.Bit: Black Tile?
@@ -111,6 +111,9 @@ namespace JAFD
 		// Namespace for the Breadth-First-Search-Algorithm to find the shortest Path
 		namespace BFAlgorithm
 		{
+			// Reset all BFS Values in this floor
+			void resetBFSValues(uint8_t floor);
+
 			// Find the shortest known path from a to b
 			ReturnCode findShortestPath(MapCoordinate start, uint8_t* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell));
 		}
@@ -127,8 +130,5 @@ namespace JAFD
 		void getGridCell(GridCell* gridCell, MapCoordinate coor);
 		void getGridCell(uint8_t* bfsValue, MapCoordinate coor);
 		void getGridCell(GridCell* gridCell, uint8_t* bfsValue, MapCoordinate coor);
-
-		// Reset all BFS Values
-		void resetBFSValues(uint8_t floor);
 	}
 }
