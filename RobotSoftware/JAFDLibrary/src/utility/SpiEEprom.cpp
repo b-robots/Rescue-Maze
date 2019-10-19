@@ -11,35 +11,27 @@ namespace JAFD
 {
 	void SpiEeprom::init(uint8_t ssPin)
 	{
-		Serial.println("in");
-
+		// Setup SS Pin
 		_ssPin = ssPin;
 
 		PMC->PMC_PCER0 = 1 <<  PinMapping::MappedPins[_ssPin].portID;
 		PinMapping::MappedPins[_ssPin].port->PIO_PER = PinMapping::MappedPins[_ssPin].pin;
 		PinMapping::MappedPins[_ssPin].port->PIO_OER = PinMapping::MappedPins[_ssPin].pin;
-
-		enable();
-
-		SPI.transfer((uint8_t)Instruction::wren);
-
-		disable();
 	}
 
 	void SpiEeprom::enable()
 	{
-		//Serial.println("en");
 		PinMapping::MappedPins[_ssPin].port->PIO_CODR = PinMapping::MappedPins[_ssPin].pin;
 	}
 
 	void SpiEeprom::disable()
 	{
-		//Serial.println("dis");
 		PinMapping::MappedPins[_ssPin].port->PIO_SODR = PinMapping::MappedPins[_ssPin].pin;
 	}
 
 	uint8_t SpiEeprom::readByte(uint32_t address)
 	{
+		// Read Data
 		enable();
 
 		SPI.transfer((uint8_t)Instruction::read);
@@ -57,8 +49,12 @@ namespace JAFD
 
 	void SpiEeprom::writeByte(uint32_t address, uint8_t byte)
 	{
-		Serial.println("wr");
+		// Set Write Enable Bit
+		enable();
+		SPI.transfer((uint8_t)Instruction::wren);
+		disable();
 
+		// Write Data
 		enable();
 
 		SPI.transfer((uint8_t)Instruction::write);
@@ -70,10 +66,16 @@ namespace JAFD
 		SPI.transfer(byte);
 
 		disable();
+
+		// Wait for end of write
+		enable();
+		while (SPI.transfer((uint8_t)Instruction::rdsr) & 1);
+		disable();
 	}
 
 	void SpiEeprom::readPage(uint8_t numPage, uint8_t* buffer)
 	{
+		// Read Data
 		enable();
 
 		SPI.transfer((uint8_t)Instruction::read);
@@ -94,6 +96,12 @@ namespace JAFD
 
 	void SpiEeprom::writePage(uint8_t numPage, uint8_t* buffer)
 	{
+		// Set Write Enable Bit
+		enable();
+		SPI.transfer((uint8_t)Instruction::wren);
+		disable();
+
+		// Write Data
 		enable();
 
 		SPI.transfer((uint8_t)Instruction::write);
@@ -110,10 +118,16 @@ namespace JAFD
 		}
 
 		disable();
+
+		// Wait for end of write
+		enable();
+		while (SPI.transfer((uint8_t)Instruction::rdsr & 1));
+		disable();
 	}
 
 	void SpiEeprom::readStream(uint32_t address, uint8_t* buffer, uint32_t length)
 	{
+		// Read Data
 		enable();
 
 		SPI.transfer((uint8_t)Instruction::read);
@@ -147,6 +161,12 @@ namespace JAFD
 
 	void SpiEeprom::writeStream(uint32_t address, uint8_t* buffer, uint32_t length)
 	{
+		// Set Write Enable Bit
+		enable();
+		SPI.transfer((uint8_t)Instruction::wren);
+		disable();
+
+		// Write Data
 		enable();
 
 		SPI.transfer((uint8_t)Instruction::write);
@@ -159,12 +179,18 @@ namespace JAFD
 		{
 			SPI.transfer(*buffer++);
 
+			// If Page-Overflow instantiate new write cycle
 			if (++address % 256 == 0)
 			{
+				// Wait for end of write
+				enable();
+				while (SPI.transfer((uint8_t)Instruction::rdsr & 1));
+
+				// Set Write Enable Bit
+				SPI.transfer((uint8_t)Instruction::wren);
 				disable();
 
-				for (volatile uint8_t d = 0; d < 4; d++);
-
+				// Write address
 				enable();
 
 				SPI.transfer((uint8_t)Instruction::read);
