@@ -45,7 +45,7 @@ namespace JAFD
 		// Possible states of a cell
 		namespace CellState
 		{
-			constexpr uint8_t visited = 0 << 0;
+			constexpr uint8_t visited = 1 << 0;
 			constexpr uint8_t victim = 1 << 1;
 			constexpr uint8_t checkpoint = 1 << 2;
 			constexpr uint8_t blackTile = 1 << 3;
@@ -77,7 +77,7 @@ namespace JAFD
 
 			// Information about Speed Bumps, Victims, Checkpoints...
 			// From right to left:
-			// 1.Bit: Is this Cell already visited? Attention: This Bit is inverted
+			// 1.Bit: Is this Cell already visited?
 			// 2.Bit: Victim already detected?
 			// 3.Bit: Checkpoint?
 			// 4.Bit: Black Tile?
@@ -93,11 +93,12 @@ namespace JAFD
 			uint8_t floor;
 		} MapCoordinate;
 
+		// Comparison operators for MapCoordinate
+		inline bool operator==(const MapCoordinate& lhs, const MapCoordinate& rhs) { return (lhs.floor == rhs.floor && lhs.x == rhs.x && lhs.y == rhs.y); }
+		inline bool operator!=(const MapCoordinate& lhs, const MapCoordinate& rhs) { return !(lhs == rhs); }
+
 		// Home Position
 		constexpr MapCoordinate homePosition = { 0, 0, 0 };
-
-		// Start-Address
-		constexpr uint32_t startAddress = 0;
 
 		// Usable size for the maze mapping
 		constexpr uint16_t usableSize = 64 * 1024;
@@ -130,5 +131,8 @@ namespace JAFD
 		void getGridCell(GridCell* gridCell, MapCoordinate coor);
 		void getGridCell(uint8_t* bfsValue, MapCoordinate coor);
 		void getGridCell(GridCell* gridCell, uint8_t* bfsValue, MapCoordinate coor);
+
+		// Reset complete Map
+		void resetMap();
 	}
 }

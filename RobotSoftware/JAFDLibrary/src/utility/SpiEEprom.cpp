@@ -27,9 +27,6 @@ namespace JAFD
 	void SpiEeprom::disable()
 	{
 		PinMapping::MappedPins[_ssPin].port->PIO_SODR = PinMapping::MappedPins[_ssPin].pin;
-
-		// Wait a little bit, so the chip recognizes the SS - Pin Change
-		delayMicroseconds(1);
 	}
 
 	uint8_t SpiEeprom::readByte(uint32_t address)
@@ -43,7 +40,7 @@ namespace JAFD
 		SPI.transfer((uint8_t)(address >> 8));
 		SPI.transfer((uint8_t)(address));
 
-		auto val = SPI.transfer(0x00);
+		auto val = ~SPI.transfer(0x00);
 
 		disable();
 
@@ -66,13 +63,16 @@ namespace JAFD
 		SPI.transfer((uint8_t)(address >> 8));
 		SPI.transfer((uint8_t)(address));
 
-		SPI.transfer(byte);
+		SPI.transfer(~byte);
 
 		disable();
 
 		// Wait for end of write
 		enable();
-		while (SPI.transfer((uint8_t)Instruction::rdsr) & 1);
+		do
+		{
+			SPI.transfer((uint8_t)Instruction::rdsr);
+		} while (SPI.transfer(0xff) & 1);
 		disable();
 	}
 
@@ -83,15 +83,15 @@ namespace JAFD
 
 		SPI.transfer((uint8_t)Instruction::read);
 
-		uint32_t address = numPage * _pageSize;
+		uint32_t address = numPage * pageSize;
 
 		SPI.transfer((uint8_t)(address >> 16));
 		SPI.transfer((uint8_t)(address >> 8));
 		SPI.transfer((uint8_t)(address));
 
-		for (uint8_t i = 0; i < _pageSize; i++)
+		for (uint8_t i = 0; i < pageSize; i++)
 		{
-			*buffer++ = SPI.transfer(0x00);
+			*(buffer++) = ~SPI.transfer(0x00);
 		}
 
 		disable();
@@ -109,22 +109,25 @@ namespace JAFD
 
 		SPI.transfer((uint8_t)Instruction::write);
 
-		uint32_t address = numPage * _pageSize;
+		uint32_t address = numPage * pageSize;
 
 		SPI.transfer((uint8_t)(address >> 16));
 		SPI.transfer((uint8_t)(address >> 8));
 		SPI.transfer((uint8_t)(address));
 
-		for (uint8_t i = 0; i < _pageSize; i++)
+		for (uint8_t i = 0; i < pageSize; i++)
 		{
-			SPI.transfer(*buffer++);
+			SPI.transfer(~(*(buffer++)));
 		}
 
 		disable();
 
 		// Wait for end of write
 		enable();
-		while (SPI.transfer((uint8_t)Instruction::rdsr & 1));
+		do
+		{
+			SPI.transfer((uint8_t)Instruction::rdsr);
+		} while (SPI.transfer(0xff) & 1);
 		disable();
 	}
 
@@ -141,7 +144,7 @@ namespace JAFD
 
 		for (uint16_t i = 0; i < length; i++)
 		{
-			*(buffer++) = SPI.transfer(0x00);
+			*(buffer++) = ~SPI.transfer(0x00);
 		}
 
 		disable();
@@ -165,14 +168,17 @@ namespace JAFD
 
 		for (uint32_t i = 0; i < length; i++)
 		{
-			SPI.transfer(*(buffer++));
+			SPI.transfer(~(*(buffer++)));
 
-			// If Page-Overflow instantiate new write cycle
-			if (++address % _pageSize == 0)
+			// If Page-Overflow initiate new write cycle
+			if (++address % pageSize == 0)
 			{
 				// Wait for end of write
 				enable();
-				while (SPI.transfer((uint8_t)Instruction::rdsr & 1));
+				do
+				{
+					SPI.transfer((uint8_t)Instruction::rdsr);
+				} while (SPI.transfer(0xff) & 1);
 
 				// Set Write Enable Bit
 				SPI.transfer((uint8_t)Instruction::wren);
@@ -190,6 +196,14 @@ namespace JAFD
 		}
 
 		disable();
+
+		// Wait for end of write
+		enable();
+		do
+		{
+			SPI.transfer((uint8_t)Instruction::rdsr);
+		} while (SPI.transfer(0xff) & 1);
+		disable();
 	}
 
 	void SpiEeprom::erasePage(uint8_t numPage)
@@ -204,7 +218,7 @@ namespace JAFD
 
 		SPI.transfer((uint8_t)Instruction::pe);
 
-		uint32_t address = numPage * _pageSize;
+		uint32_t address = numPage * pageSize;
 
 
 		SPI.transfer((uint8_t)(address >> 16));
@@ -215,7 +229,10 @@ namespace JAFD
 
 		// Wait for end of write
 		enable();
-		while (SPI.transfer((uint8_t)Instruction::rdsr) & 1);
+		do
+		{
+			SPI.transfer((uint8_t)Instruction::rdsr);
+		} while (SPI.transfer(0xff) & 1);
 		disable();
 	}
 
@@ -231,7 +248,7 @@ namespace JAFD
 
 		SPI.transfer((uint8_t)Instruction::se);
 
-		uint32_t address = numSector * _sectorSize;
+		uint32_t address = numSector * sectorSize;
 
 
 		SPI.transfer((uint8_t)(address >> 16));
@@ -242,7 +259,10 @@ namespace JAFD
 
 		// Wait for end of write
 		enable();
-		while (SPI.transfer((uint8_t)Instruction::rdsr) & 1);
+		do
+		{
+			SPI.transfer((uint8_t)Instruction::rdsr);
+		} while (SPI.transfer(0xff) & 1);
 		disable();
 	}
 
@@ -262,7 +282,10 @@ namespace JAFD
 
 		// Wait for end of write
 		enable();
-		while (SPI.transfer((uint8_t)Instruction::rdsr) & 1);
+		do
+		{
+			SPI.transfer((uint8_t)Instruction::rdsr);
+		} while (SPI.transfer(0xff) & 1);
 		disable();
 	}
 }

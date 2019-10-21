@@ -19,10 +19,6 @@ namespace JAFD
 			SpiEeprom _spiEeprom;
 		}
 
-		// Comparison operators for MapCoordinate
-		inline bool operator==(const MapCoordinate& lhs, const MapCoordinate& rhs) { return (lhs.floor == rhs.floor && lhs.x == rhs.x && lhs.y == rhs.y); }
-		inline bool operator!=(const MapCoordinate& lhs, const MapCoordinate& rhs) { return !(lhs == rhs); }
-
 		// Setup the MazeMapper
 		ReturnCode mazeMapperSetup(MazeMapperSet settings)
 		{
@@ -147,6 +143,14 @@ namespace JAFD
 			*bfsValue = bytes[2];
 		}
 
+		void resetMap()
+		{
+			for (uint8_t i = 0; i < usableSize / SpiEeprom::pageSize; i++)
+			{
+				_spiEeprom.erasePage(i);
+			}
+		}
+
 		namespace BFAlgorithm
 		{
 			// Reset all BFS Values in this floor
@@ -156,7 +160,7 @@ namespace JAFD
 				{
 					for (int8_t y = minY; y <= maxY; y++)
 					{
-						setGridCell(0, { x, y, floor });
+						//setGridCell(0, { x, y, floor });
 					}
 				}
 			}
@@ -185,6 +189,7 @@ namespace JAFD
 				if (queue.enqueue(start) != ReturnCode::ok)
 				{
 					resetBFSValues(start.floor);
+					Serial.println("a");
 					return ReturnCode::error;
 				}
 
@@ -193,52 +198,63 @@ namespace JAFD
 					if (queue.dequeue(&coorV) != ReturnCode::ok)
 					{
 						resetBFSValues(start.floor);
+						Serial.println("b");
 						return ReturnCode::error;
 					}
 
 					if (goalCondition(coorV, gridCellV))
 					{
+						Serial.println("found");
 						// Go the whole way backwards...
 						while (coorV != start)
 						{
+							Serial.println("x");
 							getGridCell(&bfsValueV, coorV);
 
 							switch (bfsValueV & ~SolverState::discovered)
 							{
 							case SolverState::north:
-								directions[distance++] = Direction::south; // Set the opposite direction
+								directions[distance] = Direction::south; // Set the opposite direction
 								coorV = { coorV.x, coorV.y + 1, coorV.floor };
 								break;
 
 							case SolverState::east:
-								directions[distance++] = Direction::west; // Set the opposite direction
+								directions[distance] = Direction::west; // Set the opposite direction
 								coorV = { coorV.x + 1, coorV.y, coorV.floor };
 								break;
 
 							case SolverState::south:
-								directions[distance++] = Direction::north; // Set the opposite direction
+								directions[distance] = Direction::north; // Set the opposite direction
 								coorV = { coorV.x, coorV.y - 1, coorV.floor };
 								break;
 
 							case SolverState::west:
-								directions[distance++] = Direction::east; // Set the opposite direction
+								directions[distance] = Direction::east; // Set the opposite direction
 								coorV = { coorV.x - 1, coorV.y, coorV.floor };
 								break;
 
 							default:
 								resetBFSValues(start.floor);
+								Serial.println("c");
 								return ReturnCode::error;
 							}
+
+							distance++;
 
 							if (distance > maxPathLength)
 							{
 								resetBFSValues(start.floor);
+								Serial.println("d");
 								return ReturnCode::aborted;
 							}
 						}
 
-						std::reverse(directions, directions + distance - 1);
+						if (distance > 0)
+						{
+							std::reverse(directions, directions + distance - 1);
+						}
 
+						Serial.println("e");
 						return ReturnCode::ok;
 					}
 					else
@@ -258,6 +274,7 @@ namespace JAFD
 								if (queue.enqueue(coorW) != ReturnCode::ok)
 								{
 									resetBFSValues(start.floor);
+									Serial.println("g");
 									return ReturnCode::error;
 								}
 
@@ -278,6 +295,7 @@ namespace JAFD
 								if (queue.enqueue(coorW) != ReturnCode::ok)
 								{
 									resetBFSValues(start.floor);
+									Serial.println("h");
 									return ReturnCode::error;
 								}
 
@@ -298,6 +316,7 @@ namespace JAFD
 								if (queue.enqueue(coorW) != ReturnCode::ok)
 								{
 									resetBFSValues(start.floor);
+									Serial.println("i");
 									return ReturnCode::error;
 								}
 
@@ -318,6 +337,7 @@ namespace JAFD
 								if (queue.enqueue(coorW) != ReturnCode::ok)
 								{
 									resetBFSValues(start.floor);
+									Serial.println("j");
 									return ReturnCode::error;
 								}
 
@@ -328,6 +348,7 @@ namespace JAFD
 				}
 
 				resetBFSValues(start.floor);
+				Serial.println("f");
 				return ReturnCode::error;
 			}
 		}

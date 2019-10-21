@@ -40,23 +40,45 @@ void setup() {
 		while (true);
 	}
 
-	// TODO: Improve read/write Stream
-	// Test write / read of Maze Mapping
+	// Maze Mapping
 	// Create test maze
-	setGridCell({ 0b1111, CellState::visited | CellState::checkpoint }, homePosition);
-	setGridCell({ 0b1101, CellState::visited | CellState::checkpoint }, { homePosition.x + 1, homePosition.y, 0 });
-	setGridCell({ 0b1100, CellState::visited | CellState::checkpoint }, { homePosition.x + 1, homePosition.y + 1, 0 });
-	setGridCell({ 0b1110, CellState::visited | CellState::checkpoint }, { homePosition.x, homePosition.y + 1, 0 });
-	setGridCell({ 0b0110, CellState::visited | CellState::checkpoint }, { homePosition.x - 1, homePosition.y + 1, 0 });
-	setGridCell({ 0b0111, CellState::visited | CellState::checkpoint }, { homePosition.x - 1, homePosition.y, 0 });
-	setGridCell({ 0b0011, CellState::visited | CellState::checkpoint }, { homePosition.x - 1, homePosition.y - 1, 0 });
-	setGridCell({ 0b1011, CellState::visited | CellState::checkpoint }, { homePosition.x, homePosition.y - 1, 0 });
-	setGridCell({ 0b1001, CellState::visited | CellState::checkpoint }, { homePosition.x + 1, homePosition.y - 1, 0 });
+	resetMap(); // Doesnt work!!
+	
+	// First row
+	setGridCell({ 0b0110, CellState::visited }, { -2, 2, 0 });
+	setGridCell({ 0b1110, CellState::visited }, { -1, 2, 0 });
+	setGridCell({ 0b1010, CellState::visited }, { 0, 2, 0 });
+	setGridCell({ 0b1100, CellState::visited }, { 1, 2, 0 });
+	setGridCell({ 0b0, 0 }, { 2, 2, 0 });
+	
+	// Second row
+	setGridCell({ 0b0101, CellState::visited }, { -2, 1, 0 });
+	setGridCell({ 0b0101, CellState::visited }, { -1, 1, 0 });
+	setGridCell({ 0b0100, CellState::visited }, { 0, 1, 0 });
+	setGridCell({ 0b0011, CellState::visited }, { 1, 1, 0 });
+	setGridCell({ 0b1100, CellState::visited | CellState::blackTile }, { 2, 1, 0 });
 
+	// Third row
+	setGridCell({ 0b0111, CellState::visited }, { -2, 0, 0 });
+	setGridCell({ 0b1011, CellState::visited }, { -1, 0, 0 });
+	setGridCell({ 0b1111, CellState::visited | CellState::checkpoint }, { 0, 0, 0 });
+	setGridCell({ 0b1010, CellState::visited }, { 1, 0, 0 });
+	setGridCell({ 0b1001, CellState::visited }, { 2, 0, 0 });
 
-	GridCell val;
-	getGridCell(&val, homePosition);
-	Serial.println(val);
+	// Fourth row
+	setGridCell({ 0b0011, CellState::visited }, { -2, 0, 0 });
+	setGridCell({ 0b1000, CellState::visited }, { -1, 0, 0 });
+	setGridCell({ 0b0011, CellState::visited }, { 0, 0, 0 });
+	setGridCell({ 0b1000, CellState::visited }, { 1, 0, 0 });
+
+	uint8_t directions[64] = { 0 };
+
+	Serial.println((uint8_t)BFAlgorithm::findShortestPath({ 1, 2, 0 }, directions, 64, [](MapCoordinate coor, GridCell cell) -> bool {return true; }));
+
+	for (int i = 0; i < 5; i++)
+	{
+		Serial.println(directions[i], BIN);
+	}
 }
 
 // The loop function runs over and over again until power down or reset

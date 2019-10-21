@@ -34,18 +34,21 @@ namespace JAFD
 	}
 
 	// Class for the SPI EEPROM "25LC1024"
+	// The written data is stored inverted in the EEPROM -> default value is '0'
 	class SpiEeprom
 	{
 	private:
 		uint8_t _ssPin;
-		static constexpr uint8_t _pageSize = 256;
-		static constexpr uint8_t _sectorSize = 32000;
 
 		// Helping functions
 		void enable();
 		void disable();
 
 	public:
+		// Devise specific constants
+		static constexpr uint8_t pageSize = 256;
+		static constexpr uint8_t sectorSize = 32000;
+
 		// Init
 		void init(uint8_t ssPin);
 
