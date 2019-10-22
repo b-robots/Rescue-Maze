@@ -24,7 +24,7 @@ void setup() {
 
 	// Robot Settings
 	JAFD::RobotSettings robotSettings;
-	robotSettings.mazeMapperSet.ramSSPin = A1;
+	robotSettings.spiEepromSet.ssPin = A1;
 
 	robotSettings.motorControlSet.m1Dir = A11;
 	robotSettings.motorControlSet.m1Fb = DAC1;

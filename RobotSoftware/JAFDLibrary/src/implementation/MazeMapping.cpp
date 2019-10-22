@@ -3,8 +3,7 @@ This part of the Library is responsible for mapping the maze and finding the sho
 */
 
 #include "MazeMapping_private.h"
-#include "../utility/SpiEeprom_private.h"
-#include "../utility/Math_private.h"
+#include "SpiEeprom_private.h"
 #include <algorithm>
 
 
@@ -12,18 +11,9 @@ namespace JAFD
 {
 	namespace MazeMapping
 	{
-		// Anonymous namespace = private variables & methods
-		namespace
-		{
-			// Class for handling the EEPROM
-			SpiEeprom _spiEeprom;
-		}
-
 		// Setup the MazeMapper
 		ReturnCode mazeMapperSetup(MazeMapperSet settings)
 		{
-			_spiEeprom.init(settings.ramSSPin);
-
 			return ReturnCode::ok;
 		}
 		
@@ -42,7 +32,7 @@ namespace JAFD
 			uint8_t bytes[2] = { gridCell.cellConnections, gridCell.cellState };
 
 			// Write data
-			_spiEeprom.writeStream(address, bytes, 2);
+			SpiEeprom::writeStream(address, bytes, 2);
 		}
 
 		// Read a grid cell from the RAM
@@ -60,7 +50,7 @@ namespace JAFD
 			uint8_t bytes[2];
 
 			// Read data
-			_spiEeprom.readStream(address, bytes, 2);
+			SpiEeprom::readStream(address, bytes, 2);
 
 			// Return data
 			gridCell->cellConnections = bytes[0];
@@ -80,7 +70,7 @@ namespace JAFD
 			address += 2;								// Go to the solver value
 
 			// Write data
-			_spiEeprom.writeByte(address, bfsValue);
+			SpiEeprom::writeByte(address, bfsValue);
 		}
 
 		// Read a grid cell from the RAM (only informations for the BF Algorithm)
@@ -99,7 +89,7 @@ namespace JAFD
 			uint8_t bytes[2];
 
 			// Read data
-			*bfsValue = _spiEeprom.readByte(address);
+			*bfsValue = SpiEeprom::readByte(address);
 		}
 
 		// Set a grid cell in the RAM (including informations for the BF Algorithm)
@@ -117,7 +107,7 @@ namespace JAFD
 			uint8_t bytes[3] = { gridCell.cellConnections, gridCell.cellState, bfsValue };
 
 			// Write data
-			_spiEeprom.writeStream(address, bytes, 3);
+			SpiEeprom::writeStream(address, bytes, 3);
 		}
 
 		// Read a grid cell from the RAM (includeing informations for the BF Algorithm)
@@ -135,7 +125,7 @@ namespace JAFD
 			uint8_t bytes[3];
 
 			// Read data
-			_spiEeprom.readStream(address, bytes, 3);
+			SpiEeprom::readStream(address, bytes, 3);
 
 			// Return data
 			gridCell->cellConnections = bytes[0];
@@ -147,7 +137,7 @@ namespace JAFD
 		{
 			for (uint8_t i = 0; i < usableSize / SpiEeprom::pageSize; i++)
 			{
-				_spiEeprom.erasePage(i);
+				SpiEeprom::erasePage(i);
 			}
 		}
 

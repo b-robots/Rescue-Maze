@@ -18,6 +18,7 @@
 #include "implementation/ReturnCode_public.h"
 #include "implementation/MazeMapping_public.h"
 #include "implementation/MotorControl_public.h"
+#include "implementation/SpiEeprom_public.h"
 
 // Namespace for robot (including sensors, maze solving algorithm, and so on...)
 // JAFD = Just Ask For Direction
@@ -28,6 +29,7 @@ namespace JAFD
 		Dispenser::DispenserSettings dispenserSet;
 		MazeMapping::MazeMapperSet mazeMapperSet;
 		MotorControl::MotorControlSettings motorControlSet;
+		SpiEeprom::SpiEepromSet spiEepromSet;
 	} RobotSettings;
 
 	// Setup & Loop for the Robot

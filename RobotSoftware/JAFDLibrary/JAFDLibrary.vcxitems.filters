@@ -36,9 +36,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\JAFDLibrary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\utility\SpiEEprom.cpp">
-      <Filter>Source Files\utility</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping.cpp">
       <Filter>Source Files\implementation</Filter>
     </ClCompile>
@@ -46,6 +43,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MotorControl.cpp">
+      <Filter>Source Files\implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\SpiEEprom.cpp">
       <Filter>Source Files\implementation</Filter>
     </ClCompile>
   </ItemGroup>
@@ -58,9 +58,6 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\ReturnCode_public.h">
       <Filter>Header Files\implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\SpiEeprom_private.h">
-      <Filter>Header Files\utility</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue_private.h">
       <Filter>Header Files\utility</Filter>
@@ -82,6 +79,12 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\DuePinMapping_private.h">
       <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\SpiEeprom_private.h">
+      <Filter>Header Files\implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\SpiEeprom_public.h">
+      <Filter>Header Files\implementation</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
