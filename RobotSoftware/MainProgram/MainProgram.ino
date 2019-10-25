@@ -67,25 +67,18 @@ void setup() {
 	setGridCell({ 0b1001, CellState::visited }, { 2, 0, 0 });
 
 	// Fourth row
-	setGridCell({ 0b0011, CellState::visited }, { -2, 0, 0 });
-	setGridCell({ 0b1000, CellState::visited }, { -1, 0, 0 });
-	setGridCell({ 0b0011, CellState::visited }, { 0, 0, 0 });
-	setGridCell({ 0b1000, CellState::visited }, { 1, 0, 0 });
-
-	GridCell a;
-
-	getGridCell(&a, { 2, 1, 0 });
-
-	Serial.println(a.cellState, BIN);
-	Serial.println(a.cellConnections, BIN);
+	setGridCell({ 0b0011, CellState::visited }, { -2, -1, 0 });
+	setGridCell({ 0b1010, CellState::visited }, { -1, -1, 0 });
+	setGridCell({ 0b0011, CellState::visited }, { 0, -1, 0 });
+	setGridCell({ 0b1000, CellState::visited }, { 1, -1, 0 });
 
 	uint8_t directions[64] = { 0 };
 
-	//Serial.println((uint8_t)BFAlgorithm::findShortestPath({ 1, 2, 0 }, directions, 64, [](MapCoordinate coor, GridCell cell) -> bool {return true; }));
+	BFAlgorithm::findShortestPath({ -1, 0, 0 }, directions, 64, [](MapCoordinate coor, GridCell cell) -> bool {return cell.cellState & CellState::checkpoint; });
 
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; directions[i] != 0; i++)
 	{
-		//Serial.println(directions[i], BIN);
+		Serial.println(directions[i], BIN);
 	}
 }
 

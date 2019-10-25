@@ -100,7 +100,7 @@ namespace JAFD
 			disable();
 		}
 
-		void readPage(uint8_t numPage, uint8_t* buffer)
+		void readPage(uint16_t numPage, uint8_t* buffer)
 		{
 			// Read Data
 			enable();
@@ -121,7 +121,7 @@ namespace JAFD
 			disable();
 		}
 
-		void writePage(uint8_t numPage, uint8_t* buffer)
+		void writePage(uint16_t numPage, uint8_t* buffer)
 		{
 			// Set Write Enable Bit
 			enable();

@@ -144,13 +144,14 @@ namespace JAFD
 		namespace BFAlgorithm
 		{
 			// Reset all BFS Values in this floor
+			// Attention: TOW SLOW!!!
 			void resetBFSValues(uint8_t floor)
 			{
 				for (int8_t x = minX; x <= maxX; x++)
 				{
 					for (int8_t y = minY; y <= maxY; y++)
 					{
-						//setGridCell(0, { x, y, floor });
+						setGridCell(0, { x, y, floor });
 					}
 				}
 			}
@@ -179,7 +180,6 @@ namespace JAFD
 				if (queue.enqueue(start) != ReturnCode::ok)
 				{
 					resetBFSValues(start.floor);
-					Serial.println("a");
 					return ReturnCode::error;
 				}
 
@@ -188,17 +188,16 @@ namespace JAFD
 					if (queue.dequeue(&coorV) != ReturnCode::ok)
 					{
 						resetBFSValues(start.floor);
-						Serial.println("b");
 						return ReturnCode::error;
 					}
 
+					getGridCell(&gridCellV, coorV);
+
 					if (goalCondition(coorV, gridCellV))
 					{
-						Serial.println("found");
 						// Go the whole way backwards...
 						while (coorV != start)
 						{
-							Serial.println("x");
 							getGridCell(&bfsValueV, coorV);
 
 							switch (bfsValueV & ~SolverState::discovered)
@@ -225,7 +224,6 @@ namespace JAFD
 
 							default:
 								resetBFSValues(start.floor);
-								Serial.println("c");
 								return ReturnCode::error;
 							}
 
@@ -234,7 +232,6 @@ namespace JAFD
 							if (distance > maxPathLength)
 							{
 								resetBFSValues(start.floor);
-								Serial.println("d");
 								return ReturnCode::aborted;
 							}
 						}
@@ -244,13 +241,10 @@ namespace JAFD
 							std::reverse(directions, directions + distance - 1);
 						}
 
-						Serial.println("e");
 						return ReturnCode::ok;
 					}
 					else
 					{
-						getGridCell(&gridCellV, coorV);
-
 						// Check the north
 						if (coorV.y < maxY && (gridCellV.cellConnections & Direction::north))
 						{
@@ -264,7 +258,6 @@ namespace JAFD
 								if (queue.enqueue(coorW) != ReturnCode::ok)
 								{
 									resetBFSValues(start.floor);
-									Serial.println("g");
 									return ReturnCode::error;
 								}
 
@@ -285,7 +278,6 @@ namespace JAFD
 								if (queue.enqueue(coorW) != ReturnCode::ok)
 								{
 									resetBFSValues(start.floor);
-									Serial.println("h");
 									return ReturnCode::error;
 								}
 
@@ -306,7 +298,6 @@ namespace JAFD
 								if (queue.enqueue(coorW) != ReturnCode::ok)
 								{
 									resetBFSValues(start.floor);
-									Serial.println("i");
 									return ReturnCode::error;
 								}
 
@@ -327,7 +318,6 @@ namespace JAFD
 								if (queue.enqueue(coorW) != ReturnCode::ok)
 								{
 									resetBFSValues(start.floor);
-									Serial.println("j");
 									return ReturnCode::error;
 								}
 
@@ -338,7 +328,6 @@ namespace JAFD
 				}
 
 				resetBFSValues(start.floor);
-				Serial.println("f");
 				return ReturnCode::error;
 			}
 		}

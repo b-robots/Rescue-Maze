@@ -36,13 +36,13 @@ namespace JAFD
 		// Read and write functions
 		uint8_t readByte(uint32_t address);
 		void writeByte(uint32_t address, uint8_t byte);
-		void readPage(uint8_t numPage, uint8_t* buffer);
-		void writePage(uint8_t numPage, uint8_t* buffer);
+		void readPage(uint16_t numPage, uint8_t* buffer);
+		void writePage(uint16_t numPage, uint8_t* buffer);
 		void readStream(uint32_t address, uint8_t* buffer, uint32_t length);
 		void writeStream(uint32_t address, uint8_t* buffer, uint32_t length);
 
 		// Erase functions
-		void erasePage(uint8_t numPage);
+		void erasePage(uint16_t numPage);
 		void eraseSector(uint8_t numSector);
 		void eraseChip();
 	}

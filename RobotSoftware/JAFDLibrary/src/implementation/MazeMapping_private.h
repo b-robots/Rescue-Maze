@@ -49,7 +49,7 @@ namespace JAFD
 			constexpr uint8_t victim = 1 << 1;
 			constexpr uint8_t checkpoint = 1 << 2;
 			constexpr uint8_t blackTile = 1 << 3;
-			constexpr uint8_t ramp = 1 << 3;
+			constexpr uint8_t ramp = 1 << 4;
 			constexpr uint8_t none = 0;
 		}
 
