@@ -13,10 +13,11 @@
 // RobotLibrary
 #include <JAFDLibrary.h>
 
-#include <implementation/SpiEeprom_private.h>
+#include <implementation/MotorControl_private.h>
 #include <implementation/MazeMapping_private.h>
 
 using namespace JAFD::MazeMapping;
+using namespace JAFD::MotorControl;
 
 // The setup function runs once when you press reset or power the board
 void setup() {
@@ -40,7 +41,7 @@ void setup() {
 	{
 		while (true);
 	}
-
+	/*
 	// Maze Mapping
 	// Create test maze
 	resetMap();
@@ -80,6 +81,7 @@ void setup() {
 	{
 		Serial.println(directions[i], BIN);
 	}
+	*/
 }
 
 // The loop function runs over and over again until power down or reset
@@ -89,4 +91,6 @@ void loop() {
 	{
 		while (true);
 	}
+
+	setSpeed(1, (sin(millis() / 2000.0f) + 1.0f) / 2.0f * 0.8f + 0.2f);
 }
