@@ -50,6 +50,7 @@ namespace JAFD
 			constexpr uint8_t checkpoint = 1 << 2;
 			constexpr uint8_t blackTile = 1 << 3;
 			constexpr uint8_t ramp = 1 << 3;
+			constexpr uint8_t none = 0;
 		}
 
 		// Value for the BFS - Algorithm
@@ -101,7 +102,7 @@ namespace JAFD
 		constexpr MapCoordinate homePosition = { 0, 0, 0 };
 
 		// Usable size for the maze mapping
-		constexpr uint16_t usableSize = 64 * 1024;
+		constexpr uint32_t usableSize = 64 * 1024;
 
 		// Maximum/minimum coordinates that can fit in the SRAM
 		constexpr int8_t maxX = 31;

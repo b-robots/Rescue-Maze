@@ -13,6 +13,7 @@
 // RobotLibrary
 #include <JAFDLibrary.h>
 
+#include <implementation/SpiEeprom_private.h>
 #include <implementation/MazeMapping_private.h>
 
 using namespace JAFD::MazeMapping;
@@ -42,15 +43,15 @@ void setup() {
 
 	// Maze Mapping
 	// Create test maze
-	resetMap(); // Doesnt work!!
+	resetMap();
 	
 	// First row
 	setGridCell({ 0b0110, CellState::visited }, { -2, 2, 0 });
 	setGridCell({ 0b1110, CellState::visited }, { -1, 2, 0 });
 	setGridCell({ 0b1010, CellState::visited }, { 0, 2, 0 });
 	setGridCell({ 0b1100, CellState::visited }, { 1, 2, 0 });
-	setGridCell({ 0b0, 0 }, { 2, 2, 0 });
-	
+	setGridCell({ 0b0000, CellState::none }, { 2, 2, 0 });
+
 	// Second row
 	setGridCell({ 0b0101, CellState::visited }, { -2, 1, 0 });
 	setGridCell({ 0b0101, CellState::visited }, { -1, 1, 0 });
@@ -71,13 +72,20 @@ void setup() {
 	setGridCell({ 0b0011, CellState::visited }, { 0, 0, 0 });
 	setGridCell({ 0b1000, CellState::visited }, { 1, 0, 0 });
 
+	GridCell a;
+
+	getGridCell(&a, { 2, 1, 0 });
+
+	Serial.println(a.cellState, BIN);
+	Serial.println(a.cellConnections, BIN);
+
 	uint8_t directions[64] = { 0 };
 
-	Serial.println((uint8_t)BFAlgorithm::findShortestPath({ 1, 2, 0 }, directions, 64, [](MapCoordinate coor, GridCell cell) -> bool {return true; }));
+	//Serial.println((uint8_t)BFAlgorithm::findShortestPath({ 1, 2, 0 }, directions, 64, [](MapCoordinate coor, GridCell cell) -> bool {return true; }));
 
 	for (int i = 0; i < 5; i++)
 	{
-		Serial.println(directions[i], BIN);
+		//Serial.println(directions[i], BIN);
 	}
 }
 

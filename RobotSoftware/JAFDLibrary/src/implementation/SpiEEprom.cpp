@@ -3,7 +3,7 @@ This private file of the library is responsible for the access to the SPI EEPROM
 */
 
 #include "SpiEeprom_private.h"
-#include "DuePinMapping_private.h"
+#include "../utility/DuePinMapping_private.h"
 
 #include <SPI.h>
 
@@ -39,6 +39,8 @@ namespace JAFD
 			PMC->PMC_PCER0 = 1 << PinMapping::MappedPins[_ssPin].portID;
 			PinMapping::MappedPins[_ssPin].port->PIO_PER = PinMapping::MappedPins[_ssPin].pin;
 			PinMapping::MappedPins[_ssPin].port->PIO_OER = PinMapping::MappedPins[_ssPin].pin;
+
+			return ReturnCode::ok;
 		}
 
 		void enable()
@@ -228,7 +230,7 @@ namespace JAFD
 			disable();
 		}
 
-		void erasePage(uint8_t numPage)
+		void erasePage(uint16_t numPage)
 		{
 			// Set Write Enable Bit
 			enable();

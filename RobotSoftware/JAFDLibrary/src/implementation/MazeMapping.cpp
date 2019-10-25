@@ -135,7 +135,7 @@ namespace JAFD
 
 		void resetMap()
 		{
-			for (uint8_t i = 0; i < usableSize / SpiEeprom::pageSize; i++)
+			for (uint16_t i = 0; i < usableSize / SpiEeprom::pageSize; i++)
 			{
 				SpiEeprom::erasePage(i);
 			}

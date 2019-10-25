@@ -27,8 +27,8 @@ namespace JAFD
 		void disable();
 
 		// Devise specific constants
-		static constexpr uint8_t pageSize = 256;
-		static constexpr uint8_t sectorSize = 32000;
+		constexpr uint16_t pageSize = 256;
+		constexpr uint16_t sectorSize = 32000;
 
 		// Init
 		ReturnCode spiEepromSetup(SpiEepromSet set);
