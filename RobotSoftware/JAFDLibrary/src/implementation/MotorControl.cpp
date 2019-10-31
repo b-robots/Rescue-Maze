@@ -63,12 +63,12 @@ namespace JAFD
 			PWM->PWM_CH_NUM[m1PWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
 			PWM->PWM_CH_NUM[m1PWMCh].PWM_CPRD = 4200;
 			PWM->PWM_ENA = 1 << m1PWMCh;
-			PWM->PWM_CH_NUM[m1PWMCh].PWM_CDTY = (PWM->PWM_CH_NUM[m1PWMCh].PWM_CPRD * 0.7f);
+			PWM->PWM_CH_NUM[m1PWMCh].PWM_CDTY = 0;
 
 			PWM->PWM_CH_NUM[m2PWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
 			PWM->PWM_CH_NUM[m2PWMCh].PWM_CPRD = 4200;
 			PWM->PWM_ENA = 1 << m2PWMCh;
-			PWM->PWM_CH_NUM[m2PWMCh].PWM_CDTY = (PWM->PWM_CH_NUM[m2PWMCh].PWM_CPRD * 0.7f);
+			PWM->PWM_CH_NUM[m2PWMCh].PWM_CDTY = 0;
 
 			PinMapping::MappedPins[_m1PWM].port->PIO_PDR = PinMapping::MappedPins[_m1PWM].pin;
 			PinMapping::MappedPins[_m2PWM].port->PIO_PDR = PinMapping::MappedPins[_m2PWM].pin;
@@ -92,6 +92,23 @@ namespace JAFD
 			}
 
 			return ReturnCode::ok;
+		}
+
+		void setSpeed(uint8_t motor, float speed)
+		{
+			if (motor == 1)
+			{
+				const uint8_t pwmCh = PinMapping::getPWMChannel(_m1PWM);
+
+				PWM->PWM_CH_NUM[pwmCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[pwmCh].PWM_CPRD * abs(speed));
+			}
+			else
+			{
+				const uint8_t pwmCh = PinMapping::getPWMChannel(_m2PWM);
+				PWM->PWM_CH_NUM[pwmCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[pwmCh].PWM_CPRD * abs(speed));
+			}
+
+			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 		}
 	}
 }
