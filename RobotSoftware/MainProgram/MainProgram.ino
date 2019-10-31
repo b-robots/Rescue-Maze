@@ -92,5 +92,5 @@ void loop() {
 		while (true);
 	}
 
-	setSpeed(1, (sin(millis() / 2000.0f) + 1.0f) / 2.0f * 0.8f + 0.2f);
+	setSpeed(1, sin(millis() / 1000.0f));
 }
