@@ -26,14 +26,14 @@ void setup() {
 
 	// Robot Settings
 	JAFD::RobotSettings robotSettings;
-	robotSettings.spiEepromSet.ssPin = A1;
+	robotSettings.spiEepromSet.ssPin = 10;
 
 	robotSettings.motorControlSet.m1Dir = A11;
-	robotSettings.motorControlSet.m1Fb = DAC1;
+	robotSettings.motorControlSet.m1Fb = A0;
 	robotSettings.motorControlSet.m1PWM = 34;
 
 	robotSettings.motorControlSet.m2Dir = A10;
-	robotSettings.motorControlSet.m2Fb = DAC0;
+	robotSettings.motorControlSet.m2Fb = A1;
 	robotSettings.motorControlSet.m2PWM = 36;
 
 	// If robot is completely stuck, just do nothing.
@@ -93,4 +93,7 @@ void loop() {
 	}
 
 	setSpeed(1, sin(millis() / 1000.0f));
+	Serial.println(analogRead(A0));
+	//getCurrent(1);
+	//Serial.println(getCurrent(1));
 }

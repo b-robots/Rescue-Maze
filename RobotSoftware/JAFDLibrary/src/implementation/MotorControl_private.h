@@ -14,7 +14,10 @@ namespace JAFD
 		// Setup the Motor-Shield
 		ReturnCode motorControlSetup(MotorControlSettings settings);
 
-		// Set motor speed / just pfusch
+		// Set motor speed
 		void setSpeed(uint8_t motor, float speed);
+
+		// Get the current
+		float getCurrent(uint8_t motor);
 	}
 }

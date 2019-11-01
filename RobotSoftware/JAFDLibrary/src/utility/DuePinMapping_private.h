@@ -381,6 +381,11 @@ namespace JAFD
 		{
 			return static_cast<uint8_t>(MappedPins[pin].pwmChannel);
 		}
+
+		constexpr uint8_t getADCChannel(uint8_t pin)
+		{
+			return static_cast<uint8_t>(MappedPins[pin].adcChannel);
+		}
 		
 		constexpr uint8_t getTCChannel(uint8_t pin)
 		{

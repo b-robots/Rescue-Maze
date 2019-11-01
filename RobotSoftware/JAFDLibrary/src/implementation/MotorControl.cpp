@@ -58,16 +58,17 @@ namespace JAFD
 			const uint8_t m2PWMCh = PinMapping::getPWMChannel(_m2PWM);
 
 			PMC->PMC_PCER1 = PMC_PCER1_PID36;
+
 			PWM->PWM_CLK = PWM_CLK_PREA(0) | PWM_CLK_DIVA(1);
+
+			PWM->PWM_ENA = 1 << m1PWMCh | 1 << m2PWMCh;
 
 			PWM->PWM_CH_NUM[m1PWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
 			PWM->PWM_CH_NUM[m1PWMCh].PWM_CPRD = 4200;
-			PWM->PWM_ENA = 1 << m1PWMCh;
 			PWM->PWM_CH_NUM[m1PWMCh].PWM_CDTY = 0;
 
 			PWM->PWM_CH_NUM[m2PWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
 			PWM->PWM_CH_NUM[m2PWMCh].PWM_CPRD = 4200;
-			PWM->PWM_ENA = 1 << m2PWMCh;
 			PWM->PWM_CH_NUM[m2PWMCh].PWM_CDTY = 0;
 
 			PinMapping::MappedPins[_m1PWM].port->PIO_PDR = PinMapping::MappedPins[_m1PWM].pin;
@@ -90,6 +91,16 @@ namespace JAFD
 			{
 				PinMapping::MappedPins[_m2PWM].port->PIO_ABSR &= ~PinMapping::MappedPins[_m2PWM].pin;
 			}
+
+			// Setup ADC
+			const uint8_t m1ADCCh = PinMapping::getADCChannel(_m1Fb);
+			const uint8_t m2ADCCh = PinMapping::getADCChannel(_m2Fb);
+
+			PMC->PMC_PCER1 = PMC_PCER1_PID37;
+
+			ADC->ADC_MR = ADC_MR_LOWRES_BITS_10 | ADC_MR_PRESCAL(0) | ADC_MR_STARTUP_SUT0 | ADC_MR_SETTLING_AST3 | ADC_MR_TRACKTIM(0) | ADC_MR_TRANSFER(1);
+
+			ADC->ADC_CHER = 1 << m1ADCCh | 1 << m2ADCCh;
 
 			return ReturnCode::ok;
 		}
@@ -130,6 +141,28 @@ namespace JAFD
 			// Set PWM Value
 			PWM->PWM_CH_NUM[pwmCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[pwmCh].PWM_CPRD * abs(speed));
 			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
+		}
+
+		float getCurrent(uint8_t motor)
+		{
+			const uint8_t m1ADCCh = PinMapping::getADCChannel(_m1Fb);
+			const uint8_t m2ADCCh = PinMapping::getADCChannel(_m2Fb);
+
+			// Start conversion
+			ADC->ADC_CR = ADC_CR_START;
+			
+			// Wait for end of conversion
+			while (!(ADC->ADC_ISR & ADC_ISR_DRDY));
+
+			if (motor == 1)
+			{
+				Serial.println(ADC->ADC_CDR[m1ADCCh]);
+				return ((float)ADC->ADC_CDR[m1ADCCh] / (float)(1 << 10 - 1) * 3.3f * 525.0f);
+			}
+			else
+			{
+				return ((float)ADC->ADC_CDR[m2ADCCh] / (float)(1 << 10 - 1) * 3.3f * 525.0f);
+			}
 		}
 	}
 }
