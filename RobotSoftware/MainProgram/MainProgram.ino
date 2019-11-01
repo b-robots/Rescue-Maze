@@ -29,7 +29,7 @@ void setup() {
 	robotSettings.spiEepromSet.ssPin = 10;
 
 	robotSettings.motorControlSet.m1Dir = A11;
-	robotSettings.motorControlSet.m1Fb = A0;
+	robotSettings.motorControlSet.m1Fb = A4;
 	robotSettings.motorControlSet.m1PWM = 34;
 
 	robotSettings.motorControlSet.m2Dir = A10;
@@ -82,6 +82,10 @@ void setup() {
 		Serial.println(directions[i], BIN);
 	}
 	*/
+
+	setSpeed(1, 0.3f);
+
+	delay(500);
 }
 
 // The loop function runs over and over again until power down or reset
@@ -92,8 +96,10 @@ void loop() {
 		while (true);
 	}
 
-	setSpeed(1, sin(millis() / 1000.0f));
-	Serial.println(analogRead(A0));
-	//getCurrent(1);
-	//Serial.println(getCurrent(1));
+	delay(100);
+
+	if (getCurrent(1) > 1000)
+	{
+		Serial.println("Oh No!");
+	}
 }

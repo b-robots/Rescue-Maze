@@ -60,7 +60,6 @@ namespace JAFD
 			PMC->PMC_PCER1 = PMC_PCER1_PID36;
 
 			PWM->PWM_CLK = PWM_CLK_PREA(0) | PWM_CLK_DIVA(1);
-
 			PWM->PWM_ENA = 1 << m1PWMCh | 1 << m2PWMCh;
 
 			PWM->PWM_CH_NUM[m1PWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
@@ -92,14 +91,14 @@ namespace JAFD
 				PinMapping::MappedPins[_m2PWM].port->PIO_ABSR &= ~PinMapping::MappedPins[_m2PWM].pin;
 			}
 
-			// Setup ADC
+			// Setup ADC (Freerunning mode / 21MHz)
 			const uint8_t m1ADCCh = PinMapping::getADCChannel(_m1Fb);
 			const uint8_t m2ADCCh = PinMapping::getADCChannel(_m2Fb);
 
 			PMC->PMC_PCER1 = PMC_PCER1_PID37;
 
-			ADC->ADC_MR = ADC_MR_LOWRES_BITS_10 | ADC_MR_PRESCAL(0) | ADC_MR_STARTUP_SUT0 | ADC_MR_SETTLING_AST3 | ADC_MR_TRACKTIM(0) | ADC_MR_TRANSFER(1);
-
+			ADC->ADC_MR = ADC_MR_FREERUN_ON | ADC_MR_PRESCAL(3) | ADC_MR_STARTUP_SUT896 | ADC_MR_SETTLING_AST5 | ADC_MR_TRACKTIM(0) | ADC_MR_TRANSFER(1);
+			ADC->ADC_CGR = ADC_CGR_GAIN0(0b11);
 			ADC->ADC_CHER = 1 << m1ADCCh | 1 << m2ADCCh;
 
 			return ReturnCode::ok;
@@ -148,21 +147,25 @@ namespace JAFD
 			const uint8_t m1ADCCh = PinMapping::getADCChannel(_m1Fb);
 			const uint8_t m2ADCCh = PinMapping::getADCChannel(_m2Fb);
 
-			// Start conversion
-			ADC->ADC_CR = ADC_CR_START;
-			
-			// Wait for end of conversion
-			while (!(ADC->ADC_ISR & ADC_ISR_DRDY));
+			float result = 0.0f;
 
-			if (motor == 1)
+			// Sample 4 values and return average
+			for (uint8_t i = 0; i < 4; i++)
 			{
-				Serial.println(ADC->ADC_CDR[m1ADCCh]);
-				return ((float)ADC->ADC_CDR[m1ADCCh] / (float)(1 << 10 - 1) * 3.3f * 525.0f);
+				// Wait for end of conversion
+				while (!(ADC->ADC_ISR & ADC_ISR_DRDY));
+
+				if (motor == 1)
+				{
+					result += (float)ADC->ADC_CDR[m1ADCCh] * 3.3f * 1904.7619f / 4.0f / (float)(1 << 12 - 1);
+				}
+				else
+				{
+					result += (float)ADC->ADC_CDR[m2ADCCh] * 3.3f * 1904.7619f / 4.0f / (float)(1 << 12 - 1);
+				}
 			}
-			else
-			{
-				return ((float)ADC->ADC_CDR[m2ADCCh] / (float)(1 << 10 - 1) * 3.3f * 525.0f);
-			}
+
+			return result / 4.0f;
 		}
 	}
 }
