@@ -28,13 +28,13 @@ void setup() {
 	JAFD::RobotSettings robotSettings;
 	robotSettings.spiEepromSet.ssPin = 10;
 
-	robotSettings.motorControlSet.m1Dir = A11;
-	robotSettings.motorControlSet.m1Fb = A4;
-	robotSettings.motorControlSet.m1PWM = 34;
+	robotSettings.motorControlSet.mLDir = A11;
+	robotSettings.motorControlSet.mLFb = A4;
+	robotSettings.motorControlSet.mLPWM = 34;
 
-	robotSettings.motorControlSet.m2Dir = A10;
-	robotSettings.motorControlSet.m2Fb = A1;
-	robotSettings.motorControlSet.m2PWM = 36;
+	robotSettings.motorControlSet.mRDir = A10;
+	robotSettings.motorControlSet.mRFb = A1;
+	robotSettings.motorControlSet.mRPWM = 36;
 
 	// If robot is completely stuck, just do nothing.
 	if (robotSetup(robotSettings) == JAFD::ReturnCode::fatalError)
@@ -83,7 +83,7 @@ void setup() {
 	}
 	*/
 
-	setSpeed(1, 0.3f);
+	setSpeed(Motor::left, 0.3f);
 
 	delay(500);
 }
@@ -98,7 +98,7 @@ void loop() {
 
 	delay(100);
 
-	if (getCurrent(1) > 1000)
+	if (getCurrent(Motor::left) > 1000)
 	{
 		Serial.println("Oh No!");
 	}

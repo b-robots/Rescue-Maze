@@ -17,123 +17,123 @@ namespace JAFD
 	{
 		namespace
 		{
-			uint8_t _m1PWM; // PWM pin motor 1
-			uint8_t _m2PWM; // PWM pin motor 2
+			uint8_t _mLPWM; // PWM pin motor 1
+			uint8_t _mRPWM; // PWM pin motor 2
 
-			uint8_t _m1Dir; // Direction pin motor 1
-			uint8_t _m2Dir; // Direction pin motor 2
+			uint8_t _mLDir; // Direction pin motor 1
+			uint8_t _mRDir; // Direction pin motor 2
 
-			uint8_t _m1Fb; // Current sense output motor 1
-			uint8_t _m2Fb; // Current sense output motor 2
+			uint8_t _mLFb; // Current sense output motor 1
+			uint8_t _mRFb; // Current sense output motor 2
 		}
 
 		ReturnCode motorControlSetup(MotorControlSettings settings)
 		{
-			_m1PWM = settings.m1PWM;
-			_m2PWM = settings.m2PWM;
-			_m1Dir = settings.m1Dir;
-			_m2Dir = settings.m2Dir;
-			_m1Fb = settings.m1Fb;
-			_m2Fb = settings.m2Fb;
+			_mLPWM = settings.mLPWM;
+			_mRPWM = settings.mRPWM;
+			_mLDir = settings.mLDir;
+			_mRDir = settings.mRDir;
+			_mLFb = settings.mLFb;
+			_mRFb = settings.mRFb;
 
 			// Check if PWM Pins and ADC Pins are correct
-			if (!PinMapping::hasPWM(_m1PWM) || !PinMapping::hasPWM(_m2PWM) || !PinMapping::hasADC(_m1Fb) || !PinMapping::hasADC(_m2Fb))
+			if (!PinMapping::hasPWM(_mLPWM) || !PinMapping::hasPWM(_mRPWM) || !PinMapping::hasADC(_mLFb) || !PinMapping::hasADC(_mRFb))
 			{
 				return ReturnCode::fatalError;
 			}
 
 			// Set the pin modes for Dir - Pins
-			PMC->PMC_PCER0 = 1 << PinMapping::MappedPins[_m1Dir].portID | 1 << PinMapping::MappedPins[_m2Dir].portID;
+			PMC->PMC_PCER0 = 1 << PinMapping::MappedPins[_mLDir].portID | 1 << PinMapping::MappedPins[_mRDir].portID;
 			
-			PinMapping::MappedPins[_m1Dir].port->PIO_PER = PinMapping::MappedPins[_m1Dir].pin;
-			PinMapping::MappedPins[_m1Dir].port->PIO_OER = PinMapping::MappedPins[_m1Dir].pin;
-			PinMapping::MappedPins[_m1Dir].port->PIO_CODR = PinMapping::MappedPins[_m1Dir].pin;
+			PinMapping::MappedPins[_mLDir].port->PIO_PER = PinMapping::MappedPins[_mLDir].pin;
+			PinMapping::MappedPins[_mLDir].port->PIO_OER = PinMapping::MappedPins[_mLDir].pin;
+			PinMapping::MappedPins[_mLDir].port->PIO_CODR = PinMapping::MappedPins[_mLDir].pin;
 			
-			PinMapping::MappedPins[_m2Dir].port->PIO_PER = PinMapping::MappedPins[_m2Dir].pin;
-			PinMapping::MappedPins[_m2Dir].port->PIO_OER = PinMapping::MappedPins[_m2Dir].pin;
-			PinMapping::MappedPins[_m2Dir].port->PIO_CODR = PinMapping::MappedPins[_m2Dir].pin;
+			PinMapping::MappedPins[_mRDir].port->PIO_PER = PinMapping::MappedPins[_mRDir].pin;
+			PinMapping::MappedPins[_mRDir].port->PIO_OER = PinMapping::MappedPins[_mRDir].pin;
+			PinMapping::MappedPins[_mRDir].port->PIO_CODR = PinMapping::MappedPins[_mRDir].pin;
 
 			// Setup PWM - Controller (20kHz)
-			const uint8_t m1PWMCh = PinMapping::getPWMChannel(_m1PWM);
-			const uint8_t m2PWMCh = PinMapping::getPWMChannel(_m2PWM);
+			const uint8_t mLPWMCh = PinMapping::getPWMChannel(_mLPWM);
+			const uint8_t mRPWMCh = PinMapping::getPWMChannel(_mRPWM);
 
 			PMC->PMC_PCER1 = PMC_PCER1_PID36;
 
 			PWM->PWM_CLK = PWM_CLK_PREA(0) | PWM_CLK_DIVA(1);
-			PWM->PWM_ENA = 1 << m1PWMCh | 1 << m2PWMCh;
+			PWM->PWM_ENA = 1 << mLPWMCh | 1 << mRPWMCh;
 
-			PWM->PWM_CH_NUM[m1PWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
-			PWM->PWM_CH_NUM[m1PWMCh].PWM_CPRD = 4200;
-			PWM->PWM_CH_NUM[m1PWMCh].PWM_CDTY = 0;
+			PWM->PWM_CH_NUM[mLPWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
+			PWM->PWM_CH_NUM[mLPWMCh].PWM_CPRD = 4200;
+			PWM->PWM_CH_NUM[mLPWMCh].PWM_CDTY = 0;
 
-			PWM->PWM_CH_NUM[m2PWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
-			PWM->PWM_CH_NUM[m2PWMCh].PWM_CPRD = 4200;
-			PWM->PWM_CH_NUM[m2PWMCh].PWM_CDTY = 0;
+			PWM->PWM_CH_NUM[mRPWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
+			PWM->PWM_CH_NUM[mRPWMCh].PWM_CPRD = 4200;
+			PWM->PWM_CH_NUM[mRPWMCh].PWM_CDTY = 0;
 
-			PinMapping::MappedPins[_m1PWM].port->PIO_PDR = PinMapping::MappedPins[_m1PWM].pin;
-			PinMapping::MappedPins[_m2PWM].port->PIO_PDR = PinMapping::MappedPins[_m2PWM].pin;
+			PinMapping::MappedPins[_mLPWM].port->PIO_PDR = PinMapping::MappedPins[_mLPWM].pin;
+			PinMapping::MappedPins[_mRPWM].port->PIO_PDR = PinMapping::MappedPins[_mRPWM].pin;
 
-			if (PinMapping::toABPeripheral(_m1PWM))
+			if (PinMapping::toABPeripheral(_mLPWM))
 			{
-				PinMapping::MappedPins[_m1PWM].port->PIO_ABSR |= PinMapping::MappedPins[_m1PWM].pin;
+				PinMapping::MappedPins[_mLPWM].port->PIO_ABSR |= PinMapping::MappedPins[_mLPWM].pin;
 			}
 			else
 			{
-				PinMapping::MappedPins[_m1PWM].port->PIO_ABSR &= ~PinMapping::MappedPins[_m1PWM].pin;
+				PinMapping::MappedPins[_mLPWM].port->PIO_ABSR &= ~PinMapping::MappedPins[_mLPWM].pin;
 			}
 
-			if (PinMapping::toABPeripheral(_m2PWM))
+			if (PinMapping::toABPeripheral(_mRPWM))
 			{
-				PinMapping::MappedPins[_m2PWM].port->PIO_ABSR |= PinMapping::MappedPins[_m2PWM].pin;
+				PinMapping::MappedPins[_mRPWM].port->PIO_ABSR |= PinMapping::MappedPins[_mRPWM].pin;
 			}
 			else
 			{
-				PinMapping::MappedPins[_m2PWM].port->PIO_ABSR &= ~PinMapping::MappedPins[_m2PWM].pin;
+				PinMapping::MappedPins[_mRPWM].port->PIO_ABSR &= ~PinMapping::MappedPins[_mRPWM].pin;
 			}
 
 			// Setup ADC (Freerunning mode / 21MHz)
-			const uint8_t m1ADCCh = PinMapping::getADCChannel(_m1Fb);
-			const uint8_t m2ADCCh = PinMapping::getADCChannel(_m2Fb);
+			const uint8_t mLADCCh = PinMapping::getADCChannel(_mLFb);
+			const uint8_t mRADCCh = PinMapping::getADCChannel(_mRFb);
 
 			PMC->PMC_PCER1 = PMC_PCER1_PID37;
 
 			ADC->ADC_MR = ADC_MR_FREERUN_ON | ADC_MR_PRESCAL(3) | ADC_MR_STARTUP_SUT896 | ADC_MR_SETTLING_AST5 | ADC_MR_TRACKTIM(0) | ADC_MR_TRANSFER(1);
 			ADC->ADC_CGR = ADC_CGR_GAIN0(0b11);
-			ADC->ADC_CHER = 1 << m1ADCCh | 1 << m2ADCCh;
+			ADC->ADC_CHER = 1 << mLADCCh | 1 << mRADCCh;
 
 			return ReturnCode::ok;
 		}
 
-		void setSpeed(uint8_t motor, float speed)
+		void setSpeed(Motor motor, float speed)
 		{
 			static uint8_t pwmCh;
 
-			if (motor == 1)
+			if (motor == Motor::left)
 			{
-				pwmCh = PinMapping::getPWMChannel(_m1PWM);
+				pwmCh = PinMapping::getPWMChannel(_mLPWM);
 
 				// Set Dir Pin
 				if (speed > 0)
 				{
-					PinMapping::MappedPins[_m1Dir].port->PIO_CODR = PinMapping::MappedPins[_m1Dir].pin;
+					PinMapping::MappedPins[_mLDir].port->PIO_CODR = PinMapping::MappedPins[_mLDir].pin;
 				}
 				else
 				{
-					PinMapping::MappedPins[_m1Dir].port->PIO_SODR = PinMapping::MappedPins[_m1Dir].pin;
+					PinMapping::MappedPins[_mLDir].port->PIO_SODR = PinMapping::MappedPins[_mLDir].pin;
 				}
 			}
 			else
 			{
-				pwmCh = PinMapping::getPWMChannel(_m2PWM);
+				pwmCh = PinMapping::getPWMChannel(_mRPWM);
 
 				// Set Dir Pin
 				if (speed > 0)
 				{
-					PinMapping::MappedPins[_m2Dir].port->PIO_CODR = PinMapping::MappedPins[_m2Dir].pin;
+					PinMapping::MappedPins[_mRDir].port->PIO_CODR = PinMapping::MappedPins[_mRDir].pin;
 				}
 				else
 				{
-					PinMapping::MappedPins[_m2Dir].port->PIO_SODR = PinMapping::MappedPins[_m2Dir].pin;
+					PinMapping::MappedPins[_mRDir].port->PIO_SODR = PinMapping::MappedPins[_mRDir].pin;
 				}
 			}
 
@@ -142,10 +142,10 @@ namespace JAFD
 			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 		}
 
-		float getCurrent(uint8_t motor)
+		float getCurrent(Motor motor)
 		{
-			const uint8_t m1ADCCh = PinMapping::getADCChannel(_m1Fb);
-			const uint8_t m2ADCCh = PinMapping::getADCChannel(_m2Fb);
+			const uint8_t mLADCCh = PinMapping::getADCChannel(_mLFb);
+			const uint8_t mRADCCh = PinMapping::getADCChannel(_mRFb);
 
 			float result = 0.0f;
 
@@ -155,13 +155,13 @@ namespace JAFD
 				// Wait for end of conversion
 				while (!(ADC->ADC_ISR & ADC_ISR_DRDY));
 
-				if (motor == 1)
+				if (motor == Motor::left)
 				{
-					result += (float)ADC->ADC_CDR[m1ADCCh] * 3.3f * 1904.7619f / 4.0f / (float)(1 << 12 - 1);
+					result += (float)ADC->ADC_CDR[mLADCCh] * 3.3f * 1904.7619f / 4.0f / (float)(1 << 12 - 1);
 				}
 				else
 				{
-					result += (float)ADC->ADC_CDR[m2ADCCh] * 3.3f * 1904.7619f / 4.0f / (float)(1 << 12 - 1);
+					result += (float)ADC->ADC_CDR[mRADCCh] * 3.3f * 1904.7619f / 4.0f / (float)(1 << 12 - 1);
 				}
 			}
 

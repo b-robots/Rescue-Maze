@@ -11,13 +11,19 @@ namespace JAFD
 {
 	namespace MotorControl
 	{
+		enum class Motor : uint8_t
+		{
+			left,
+			right
+		};
+
 		// Setup the Motor-Shield
 		ReturnCode motorControlSetup(MotorControlSettings settings);
 
 		// Set motor speed
-		void setSpeed(uint8_t motor, float speed);
+		void setSpeed(Motor motor, float speed);
 
 		// Get the current
-		float getCurrent(uint8_t motor);
+		float getCurrent(Motor motor);
 	}
 }

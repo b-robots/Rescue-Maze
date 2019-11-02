@@ -12,14 +12,14 @@ namespace JAFD
 		// Settings for Motor-Shield
 		typedef struct
 		{
-			uint8_t m1PWM; // PWM pin motor 1
-			uint8_t m2PWM; // PWM pin motor 2
+			uint8_t mLPWM; // PWM pin left motor
+			uint8_t mRPWM; // PWM pin right motor
 
-			uint8_t m1Dir; // Direction pin motor 1
-			uint8_t m2Dir; // Direction pin motor 2
+			uint8_t mLDir; // Direction pin left motor
+			uint8_t mRDir; // Direction pin right motor
 
-			uint8_t m1Fb; // Current sense output motor 1
-			uint8_t m2Fb; // Current sense output motor 2
+			uint8_t mLFb; // Current feedback output left motor
+			uint8_t mRFb; // Current feedback output right motor
 		} MotorControlSettings;
 	}
 }
