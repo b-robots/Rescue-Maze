@@ -49,7 +49,8 @@ namespace JAFD
 			constexpr uint8_t victim = 1 << 1;
 			constexpr uint8_t checkpoint = 1 << 2;
 			constexpr uint8_t blackTile = 1 << 3;
-			constexpr uint8_t ramp = 1 << 3;
+			constexpr uint8_t ramp = 1 << 4;
+			constexpr uint8_t none = 0;
 		}
 
 		// Value for the BFS - Algorithm
@@ -93,9 +94,28 @@ namespace JAFD
 			uint8_t floor;
 		} MapCoordinate;
 
+		// Comparison operators for MapCoordinate
+		inline bool operator==(const MapCoordinate& lhs, const MapCoordinate& rhs) { return (lhs.floor == rhs.floor && lhs.x == rhs.x && lhs.y == rhs.y); }
+		inline bool operator!=(const MapCoordinate& lhs, const MapCoordinate& rhs) { return !(lhs == rhs); }
+
+		// Home Position
+		constexpr MapCoordinate homePosition = { 0, 0, 0 };
+
+		// Usable size for the maze mapping
+		constexpr uint32_t usableSize = 64 * 1024;
+
+		// Maximum/minimum coordinates that can fit in the SRAM
+		constexpr int8_t maxX = 31;
+		constexpr int8_t minX = -32;
+		constexpr int8_t maxY = 31;
+		constexpr int8_t minY = -32;
+
 		// Namespace for the Breadth-First-Search-Algorithm to find the shortest Path
 		namespace BFAlgorithm
 		{
+			// Reset all BFS Values in this floor
+			void resetBFSValues(uint8_t floor);
+
 			// Find the shortest known path from a to b
 			ReturnCode findShortestPath(MapCoordinate start, uint8_t* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell));
 		}
@@ -113,7 +133,7 @@ namespace JAFD
 		void getGridCell(uint8_t* bfsValue, MapCoordinate coor);
 		void getGridCell(GridCell* gridCell, uint8_t* bfsValue, MapCoordinate coor);
 
-		// Reset all BFS Values
-		void resetBFSValues(uint8_t floor);
+		// Reset complete Map
+		void resetMap();
 	}
 }

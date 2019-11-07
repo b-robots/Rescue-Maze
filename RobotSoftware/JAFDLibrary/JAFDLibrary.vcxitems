@@ -20,20 +20,24 @@
   </ItemGroup>
   <ItemGroup>
     <!-- <ClInclude Include="$(MSBuildThisFileDirectory)JAFDLibrary.h" /> -->
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MotorControl_private.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MotorControl_public.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_private.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_public.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_private.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_public.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\ReturnCode_public.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\SpiEeprom_public.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\DuePinMapping_private.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\Math_private.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\SpiEeprom_private.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\SpiEeprom_private.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\utility\StaticQueue_private.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MotorControl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\JAFDLibrary.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\utility\SpiEEprom.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\SpiEEprom.cpp" />
   </ItemGroup>
 </Project>
