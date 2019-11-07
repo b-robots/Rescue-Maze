@@ -17,24 +17,24 @@ namespace JAFD
 	{
 		namespace
 		{
-			uint8_t _mLPWM; // PWM pin motor 1
-			uint8_t _mRPWM; // PWM pin motor 2
+			constexpr uint8_t _mLPWM = 34; // PWM pin motor 1
+			constexpr uint8_t _mRPWM = 36; // PWM pin motor 2
 
-			uint8_t _mLDir; // Direction pin motor 1
-			uint8_t _mRDir; // Direction pin motor 2
+			constexpr uint8_t _mLDir = A11; // Direction pin motor 1
+			constexpr uint8_t _mRDir = A10; // Direction pin motor 2
 
-			uint8_t _mLFb; // Current sense output motor 1
-			uint8_t _mRFb; // Current sense output motor 2
+			constexpr uint8_t _mLFb = A4; // Current sense output motor 1
+			constexpr uint8_t _mRFb = A1; // Current sense output motor 2
 		}
 
 		ReturnCode motorControlSetup(MotorControlSettings settings)
-		{
+		{/*
 			_mLPWM = settings.mLPWM;
 			_mRPWM = settings.mRPWM;
 			_mLDir = settings.mLDir;
 			_mRDir = settings.mRDir;
 			_mLFb = settings.mLFb;
-			_mRFb = settings.mRFb;
+			_mRFb = settings.mRFb;*/
 
 			// Check if PWM Pins and ADC Pins are correct
 			if (!PinMapping::hasPWM(_mLPWM) || !PinMapping::hasPWM(_mRPWM) || !PinMapping::hasADC(_mLFb) || !PinMapping::hasADC(_mRFb))

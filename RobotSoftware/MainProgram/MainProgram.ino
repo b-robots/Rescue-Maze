@@ -96,10 +96,15 @@ void loop() {
 		while (true);
 	}
 
-	delay(100);
+	auto a = micros();
 
-	if (getCurrent(Motor::left) > 1000)
+	for (uint8_t i = 0; i < 100; i++)
 	{
-		Serial.println("Oh No!");
+		setSpeed(Motor::left, 0.3f);
+		volatile auto x = getCurrent(Motor::left);
 	}
+
+	Serial.println(micros() - a);
+
+	delay(100);
 }
