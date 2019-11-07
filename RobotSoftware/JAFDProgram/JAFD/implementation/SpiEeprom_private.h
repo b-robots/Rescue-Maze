@@ -14,7 +14,6 @@ This private file of the library is responsible for the access to the SPI EEPROM
 #include <stdint.h>
 
 #include "ReturnCode_public.h"
-#include "SpiEeprom_public.h"
 
 namespace JAFD
 {
@@ -31,7 +30,7 @@ namespace JAFD
 		constexpr uint16_t sectorSize = 32000;
 
 		// Init
-		ReturnCode spiEepromSetup(SpiEepromSet set);
+		ReturnCode spiEepromSetup();
 
 		// Read and write functions
 		uint8_t readByte(uint32_t address);

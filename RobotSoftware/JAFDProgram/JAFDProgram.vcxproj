@@ -119,18 +119,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="JAFD\implementation\Dispenser_private.h" />
-    <ClInclude Include="JAFD\implementation\Dispenser_public.h" />
     <ClInclude Include="JAFD\implementation\MazeMapping_private.h" />
-    <ClInclude Include="JAFD\implementation\MazeMapping_public.h" />
     <ClInclude Include="JAFD\implementation\MotorControl_private.h" />
-    <ClInclude Include="JAFD\implementation\MotorControl_public.h" />
     <ClInclude Include="JAFD\implementation\ReturnCode_public.h" />
     <ClInclude Include="JAFD\implementation\SpiEeprom_private.h" />
-    <ClInclude Include="JAFD\implementation\SpiEeprom_public.h" />
     <ClInclude Include="JAFD\JAFD.h" />
     <ClInclude Include="JAFD\utility\DuePinMapping_private.h" />
     <ClInclude Include="JAFD\utility\Math_private.h" />
     <ClInclude Include="JAFD\utility\StaticQueue_private.h" />
+    <ClInclude Include="JAFDSettings.h" />
     <ClInclude Include="__vm\.JAFDProgram.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>

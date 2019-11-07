@@ -8,6 +8,7 @@ This part of the Library is responsible for driving the motors.
 #include "WProgram.h"
 #endif
 
+#include "../../JAFDSettings.h"
 #include "MotorControl_private.h"
 #include "../utility/DuePinMapping_private.h"
 
@@ -17,25 +18,18 @@ namespace JAFD
 	{
 		namespace
 		{
-			constexpr uint8_t _mLPWM = 34; // PWM pin motor 1
-			constexpr uint8_t _mRPWM = 36; // PWM pin motor 2
+			constexpr uint8_t _mLPWM = JAFDSettings::MotorControl::Left::pwmPin;	// PWM pin motor 1
+			constexpr uint8_t _mRPWM = JAFDSettings::MotorControl::Right::pwmPin;	// PWM pin motor 2
 
-			constexpr uint8_t _mLDir = A11; // Direction pin motor 1
-			constexpr uint8_t _mRDir = A10; // Direction pin motor 2
+			constexpr uint8_t _mLDir = JAFDSettings::MotorControl::Left::dirPin;	// Direction pin motor 1
+			constexpr uint8_t _mRDir = JAFDSettings::MotorControl::Right::dirPin;	// Direction pin motor 2
 
-			constexpr uint8_t _mLFb = A4; // Current sense output motor 1
-			constexpr uint8_t _mRFb = A1; // Current sense output motor 2
+			constexpr uint8_t _mLFb = JAFDSettings::MotorControl::Left::fbPin;		// Current sense output motor 1
+			constexpr uint8_t _mRFb = JAFDSettings::MotorControl::Right::fbPin;		// Current sense output motor 2
 		}
 
-		ReturnCode motorControlSetup(MotorControlSettings settings)
-		{/*
-			_mLPWM = settings.mLPWM;
-			_mRPWM = settings.mRPWM;
-			_mLDir = settings.mLDir;
-			_mRDir = settings.mRDir;
-			_mLFb = settings.mLFb;
-			_mRFb = settings.mRFb;*/
-
+		ReturnCode motorControlSetup()
+		{
 			// Check if PWM Pins and ADC Pins are correct
 			if (!PinMapping::hasPWM(_mLPWM) || !PinMapping::hasPWM(_mRPWM) || !PinMapping::hasADC(_mLFb) || !PinMapping::hasADC(_mRFb))
 			{

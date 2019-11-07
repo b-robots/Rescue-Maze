@@ -2,6 +2,7 @@
 This private file of the library is responsible for the access to the SPI EEPROM
 */
 
+#include "../../JAFDSettings.h"
 #include "SpiEeprom_private.h"
 #include "../utility/DuePinMapping_private.h"
 
@@ -28,14 +29,11 @@ namespace JAFD
 				dpd = 0b10111001 // Deep Power-Down mode
 			};
 
-			uint8_t _ssPin;
+			constexpr uint8_t _ssPin = JAFDSettings::SpiEeprom::ssPin;	// Slave-Select Pin
 		}
 
-		ReturnCode spiEepromSetup(SpiEepromSet set)
+		ReturnCode spiEepromSetup()
 		{
-			// Setup SS Pin
-			_ssPin = set.ssPin;
-
 			PMC->PMC_PCER0 = 1 << PinMapping::MappedPins[_ssPin].portID;
 			PinMapping::MappedPins[_ssPin].port->PIO_PER = PinMapping::MappedPins[_ssPin].pin;
 			PinMapping::MappedPins[_ssPin].port->PIO_OER = PinMapping::MappedPins[_ssPin].pin;

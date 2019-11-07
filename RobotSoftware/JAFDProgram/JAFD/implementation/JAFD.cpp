@@ -15,32 +15,32 @@
 namespace JAFD
 {
 	// Just for testing...
-	ReturnCode robotSetup(RobotSettings robotSettings)
+	ReturnCode robotSetup()
 	{
 		// Setup the SPI-Bus
 		SPI.begin();
 		SPI.beginTransaction(SPISettings(10e+6, MSBFIRST, SPI_MODE0));
 
 		// Setup of MazeMapper
-		if (MazeMapping::mazeMapperSetup(robotSettings.mazeMapperSet) != ReturnCode::ok)
+		if (MazeMapping::mazeMapperSetup() != ReturnCode::ok)
 		{
 			return ReturnCode::fatalError;
 		}
 
 		// Setup of Dispenser
-		if (Dispenser::dispenserSetup(robotSettings.dispenserSet) != ReturnCode::ok)
+		if (Dispenser::dispenserSetup() != ReturnCode::ok)
 		{
 			return ReturnCode::fatalError;
 		}
 
 		// Setup of Motor Control
-		if (MotorControl::motorControlSetup(robotSettings.motorControlSet) != ReturnCode::ok)
+		if (MotorControl::motorControlSetup() != ReturnCode::ok)
 		{
 			return ReturnCode::fatalError;
 		}
 
 		// Setup of SPI EEPROM
-		if (SpiEeprom::spiEepromSetup(robotSettings.spiEepromSet) != ReturnCode::ok)
+		if (SpiEeprom::spiEepromSetup() != ReturnCode::ok)
 		{
 			return ReturnCode::fatalError;
 		}

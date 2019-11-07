@@ -5,7 +5,6 @@ This private part of the Library is responsible for mapping the maze and finding
 #pragma once
 
 #include "ReturnCode_public.h"
-#include "MazeMapping_public.h"
 #include "../utility/StaticQueue_private.h"
 
 #include <stdint.h>
@@ -121,7 +120,7 @@ namespace JAFD
 		}
 
 		// Setup the MazeMapper
-		ReturnCode mazeMapperSetup(MazeMapperSet settings);
+		ReturnCode mazeMapperSetup();
 		
 		// Set a grid cell in the RAM
 		void setGridCell(GridCell gridCell, MapCoordinate coor);

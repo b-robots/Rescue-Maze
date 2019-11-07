@@ -22,20 +22,8 @@ void setup() {
 	// For testing
 	Serial.begin(115200);
 
-	// Robot Settings
-	JAFD::RobotSettings robotSettings;
-	robotSettings.spiEepromSet.ssPin = 10;
-
-	robotSettings.motorControlSet.mLDir = A11;
-	robotSettings.motorControlSet.mLFb = A4;
-	robotSettings.motorControlSet.mLPWM = 34;
-
-	robotSettings.motorControlSet.mRDir = A10;
-	robotSettings.motorControlSet.mRFb = A1;
-	robotSettings.motorControlSet.mRPWM = 36;
-
 	// If robot is completely stuck, just do nothing.
-	if (robotSetup(robotSettings) == JAFD::ReturnCode::fatalError)
+	if (JAFD::robotSetup() == JAFD::ReturnCode::fatalError)
 	{
 		while (true);
 	}

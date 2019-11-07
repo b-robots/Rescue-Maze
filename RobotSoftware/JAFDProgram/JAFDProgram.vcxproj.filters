@@ -25,22 +25,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.JAFDProgram.vsarduino.h" />
-    <ClInclude Include="JAFD\implementation\Dispenser_public.h">
-      <Filter>implementation\public</Filter>
-    </ClInclude>
     <ClInclude Include="JAFD\JAFD.h">
       <Filter>implementation\public</Filter>
     </ClInclude>
-    <ClInclude Include="JAFD\implementation\MazeMapping_public.h">
-      <Filter>implementation\public</Filter>
-    </ClInclude>
-    <ClInclude Include="JAFD\implementation\MotorControl_public.h">
-      <Filter>implementation\public</Filter>
-    </ClInclude>
     <ClInclude Include="JAFD\implementation\ReturnCode_public.h">
-      <Filter>implementation\public</Filter>
-    </ClInclude>
-    <ClInclude Include="JAFD\implementation\SpiEeprom_public.h">
       <Filter>implementation\public</Filter>
     </ClInclude>
     <ClInclude Include="JAFD\implementation\Dispenser_private.h">
@@ -64,6 +52,7 @@
     <ClInclude Include="JAFD\utility\StaticQueue_private.h">
       <Filter>utility\private</Filter>
     </ClInclude>
+    <ClInclude Include="JAFDSettings.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="JAFD\implementation\Dispenser.cpp">
