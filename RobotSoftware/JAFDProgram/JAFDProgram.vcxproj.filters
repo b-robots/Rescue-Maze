@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Misc Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>xml;json;txt;rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="implementation">
       <UniqueIdentifier>{6d684dd5-cb90-4798-aa79-7a0fc5896fe4}</UniqueIdentifier>
     </Filter>
@@ -26,66 +22,63 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="JAFDProgram.ino" />
-    <None Include="src\arduino folders read me.txt">
-      <Filter>Misc Files</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\implementation\Dispenser_public.h">
-      <Filter>implementation\public</Filter>
-    </ClInclude>
-    <ClInclude Include="src\implementation\MazeMapping_public.h">
-      <Filter>implementation\public</Filter>
-    </ClInclude>
-    <ClInclude Include="src\implementation\MotorControl_public.h">
-      <Filter>implementation\public</Filter>
-    </ClInclude>
-    <ClInclude Include="src\implementation\ReturnCode_public.h">
-      <Filter>implementation\public</Filter>
-    </ClInclude>
-    <ClInclude Include="src\implementation\SpiEeprom_public.h">
-      <Filter>implementation\public</Filter>
-    </ClInclude>
-    <ClInclude Include="src\implementation\Dispenser_private.h">
-      <Filter>implementation\private</Filter>
-    </ClInclude>
-    <ClInclude Include="src\implementation\MazeMapping_private.h">
-      <Filter>implementation\private</Filter>
-    </ClInclude>
-    <ClInclude Include="src\implementation\MotorControl_private.h">
-      <Filter>implementation\private</Filter>
-    </ClInclude>
-    <ClInclude Include="src\implementation\SpiEeprom_private.h">
-      <Filter>implementation\private</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utility\DuePinMapping_private.h">
-      <Filter>utility\private</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utility\Math_private.h">
-      <Filter>utility\private</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utility\StaticQueue_private.h">
-      <Filter>utility\private</Filter>
-    </ClInclude>
-    <ClInclude Include="src\JAFD.h">
-      <Filter>implementation\public</Filter>
-    </ClInclude>
     <ClInclude Include="__vm\.JAFDProgram.vsarduino.h" />
+    <ClInclude Include="JAFD\implementation\Dispenser_public.h">
+      <Filter>implementation\public</Filter>
+    </ClInclude>
+    <ClInclude Include="JAFD\JAFD.h">
+      <Filter>implementation\public</Filter>
+    </ClInclude>
+    <ClInclude Include="JAFD\implementation\MazeMapping_public.h">
+      <Filter>implementation\public</Filter>
+    </ClInclude>
+    <ClInclude Include="JAFD\implementation\MotorControl_public.h">
+      <Filter>implementation\public</Filter>
+    </ClInclude>
+    <ClInclude Include="JAFD\implementation\ReturnCode_public.h">
+      <Filter>implementation\public</Filter>
+    </ClInclude>
+    <ClInclude Include="JAFD\implementation\SpiEeprom_public.h">
+      <Filter>implementation\public</Filter>
+    </ClInclude>
+    <ClInclude Include="JAFD\implementation\Dispenser_private.h">
+      <Filter>implementation\private</Filter>
+    </ClInclude>
+    <ClInclude Include="JAFD\implementation\MazeMapping_private.h">
+      <Filter>implementation\private</Filter>
+    </ClInclude>
+    <ClInclude Include="JAFD\implementation\MotorControl_private.h">
+      <Filter>implementation\private</Filter>
+    </ClInclude>
+    <ClInclude Include="JAFD\implementation\SpiEeprom_private.h">
+      <Filter>implementation\private</Filter>
+    </ClInclude>
+    <ClInclude Include="JAFD\utility\DuePinMapping_private.h">
+      <Filter>utility\private</Filter>
+    </ClInclude>
+    <ClInclude Include="JAFD\utility\Math_private.h">
+      <Filter>utility\private</Filter>
+    </ClInclude>
+    <ClInclude Include="JAFD\utility\StaticQueue_private.h">
+      <Filter>utility\private</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\implementation\Dispenser.cpp">
+    <ClCompile Include="JAFD\implementation\Dispenser.cpp">
       <Filter>implementation\private</Filter>
     </ClCompile>
-    <ClCompile Include="src\implementation\JAFD.cpp">
+    <ClCompile Include="JAFD\implementation\JAFD.cpp">
       <Filter>implementation\private</Filter>
     </ClCompile>
-    <ClCompile Include="src\implementation\MazeMapping.cpp">
+    <ClCompile Include="JAFD\implementation\MazeMapping.cpp">
       <Filter>implementation\private</Filter>
     </ClCompile>
-    <ClCompile Include="src\implementation\MotorControl.cpp">
+    <ClCompile Include="JAFD\implementation\MotorControl.cpp">
       <Filter>implementation\private</Filter>
     </ClCompile>
-    <ClCompile Include="src\implementation\SpiEEprom.cpp">
+    <ClCompile Include="JAFD\implementation\SpiEEprom.cpp">
       <Filter>implementation\private</Filter>
     </ClCompile>
   </ItemGroup>

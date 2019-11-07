@@ -11,9 +11,9 @@
 #endif
 
 // RobotLibrary
-#include "src/JAFD.h"
-#include "src/implementation/MotorControl_private.h"
-#include "src/implementation/MazeMapping_private.h"
+#include "JAFD/JAFD.h"
+#include "JAFD/implementation/MotorControl_private.h"
+#include "JAFD/implementation/MazeMapping_private.h"
 using namespace JAFD::MazeMapping;
 using namespace JAFD::MotorControl;
 

@@ -118,31 +118,27 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\arduino folders read me.txt">
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\implementation\Dispenser_private.h" />
-    <ClInclude Include="src\implementation\Dispenser_public.h" />
-    <ClInclude Include="src\implementation\MazeMapping_private.h" />
-    <ClInclude Include="src\implementation\MazeMapping_public.h" />
-    <ClInclude Include="src\implementation\MotorControl_private.h" />
-    <ClInclude Include="src\implementation\MotorControl_public.h" />
-    <ClInclude Include="src\implementation\ReturnCode_public.h" />
-    <ClInclude Include="src\implementation\SpiEeprom_private.h" />
-    <ClInclude Include="src\implementation\SpiEeprom_public.h" />
-    <ClInclude Include="src\JAFD.h" />
-    <ClInclude Include="src\utility\DuePinMapping_private.h" />
-    <ClInclude Include="src\utility\Math_private.h" />
-    <ClInclude Include="src\utility\StaticQueue_private.h" />
+    <ClInclude Include="JAFD\implementation\Dispenser_private.h" />
+    <ClInclude Include="JAFD\implementation\Dispenser_public.h" />
+    <ClInclude Include="JAFD\implementation\MazeMapping_private.h" />
+    <ClInclude Include="JAFD\implementation\MazeMapping_public.h" />
+    <ClInclude Include="JAFD\implementation\MotorControl_private.h" />
+    <ClInclude Include="JAFD\implementation\MotorControl_public.h" />
+    <ClInclude Include="JAFD\implementation\ReturnCode_public.h" />
+    <ClInclude Include="JAFD\implementation\SpiEeprom_private.h" />
+    <ClInclude Include="JAFD\implementation\SpiEeprom_public.h" />
+    <ClInclude Include="JAFD\JAFD.h" />
+    <ClInclude Include="JAFD\utility\DuePinMapping_private.h" />
+    <ClInclude Include="JAFD\utility\Math_private.h" />
+    <ClInclude Include="JAFD\utility\StaticQueue_private.h" />
     <ClInclude Include="__vm\.JAFDProgram.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\implementation\Dispenser.cpp" />
-    <ClCompile Include="src\implementation\JAFD.cpp" />
-    <ClCompile Include="src\implementation\MazeMapping.cpp" />
-    <ClCompile Include="src\implementation\MotorControl.cpp" />
-    <ClCompile Include="src\implementation\SpiEEprom.cpp" />
+    <ClCompile Include="JAFD\implementation\Dispenser.cpp" />
+    <ClCompile Include="JAFD\implementation\JAFD.cpp" />
+    <ClCompile Include="JAFD\implementation\MazeMapping.cpp" />
+    <ClCompile Include="JAFD\implementation\MotorControl.cpp" />
+    <ClCompile Include="JAFD\implementation\SpiEEprom.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
