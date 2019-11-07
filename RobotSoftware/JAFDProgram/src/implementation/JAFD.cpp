@@ -4,7 +4,7 @@
  Author:	B.Robots
 */
 
-#include "../JAFDLibrary.h"
+#include "../JAFD.h"
 #include "MazeMapping_private.h"
 #include "Dispenser_private.h"
 #include "MotorControl_private.h"

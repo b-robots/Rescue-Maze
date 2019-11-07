@@ -3,24 +3,18 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.168
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MainProgram", "MainProgram\MainProgram.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "JAFDLibrary", "JAFDLibrary\JAFDLibrary.vcxitems", "{A134603C-587E-49AD-851B-89D58D170778}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "JAFDProgram", "JAFDProgram\JAFDProgram.vcxproj", "{E0345477-9F90-42E0-B2FD-DB6FC99C757D}"
 EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		JAFDLibrary\JAFDLibrary.vcxitems*{a134603c-587e-49ad-851b-89d58d170778}*SharedItemsImports = 9
-		JAFDLibrary\JAFDLibrary.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.ActiveCfg = Debug|Win32
-		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.Build.0 = Debug|Win32
-		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.ActiveCfg = Release|Win32
-		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.Build.0 = Release|Win32
+		{E0345477-9F90-42E0-B2FD-DB6FC99C757D}.Debug|x86.ActiveCfg = Debug|Win32
+		{E0345477-9F90-42E0-B2FD-DB6FC99C757D}.Debug|x86.Build.0 = Debug|Win32
+		{E0345477-9F90-42E0-B2FD-DB6FC99C757D}.Release|x86.ActiveCfg = Release|Win32
+		{E0345477-9F90-42E0-B2FD-DB6FC99C757D}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

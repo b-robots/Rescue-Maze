@@ -11,11 +11,9 @@
 #endif
 
 // RobotLibrary
-#include <JAFDLibrary.h>
-
-#include <implementation/MotorControl_private.h>
-#include <implementation/MazeMapping_private.h>
-
+#include "src/JAFD.h"
+#include "src/implementation/MotorControl_private.h"
+#include "src/implementation/MazeMapping_private.h"
 using namespace JAFD::MazeMapping;
 using namespace JAFD::MotorControl;
 
@@ -45,7 +43,7 @@ void setup() {
 	// Maze Mapping
 	// Create test maze
 	resetMap();
-	
+
 	// First row
 	setGridCell({ 0b0110, CellState::visited }, { -2, 2, 0 });
 	setGridCell({ 0b1110, CellState::visited }, { -1, 2, 0 });
