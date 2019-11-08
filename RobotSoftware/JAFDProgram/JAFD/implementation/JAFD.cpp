@@ -21,6 +21,8 @@ namespace JAFD
 		SPI.begin();
 		SPI.beginTransaction(SPISettings(10e+6, MSBFIRST, SPI_MODE0));
 
+		PMC->PMC_PCER0 = 1 << ID_PIOA | 1 << ID_PIOB | 1 << ID_PIOC | 1 << ID_PIOD;
+
 		// Setup of MazeMapper
 		if (MazeMapping::mazeMapperSetup() != ReturnCode::ok)
 		{

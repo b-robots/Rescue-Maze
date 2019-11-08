@@ -5,6 +5,7 @@ This part of the Library is responsible for driving the motors.
 #pragma once
 
 #include "ReturnCode_public.h"
+#include "Interrupts_private.h"
 
 namespace JAFD
 {
@@ -18,6 +19,9 @@ namespace JAFD
 
 		// Setup the Motor-Shield
 		ReturnCode motorControlSetup();
+
+		// Interrupthandler for Encoder
+		void encoderInterrupt(Interrupts::InterruptSource source, uint32_t isr);
 
 		// Set motor speed
 		void setSpeed(Motor motor, float speed);

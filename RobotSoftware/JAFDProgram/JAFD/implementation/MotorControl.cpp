@@ -10,6 +10,7 @@ This part of the Library is responsible for driving the motors.
 
 #include "../../JAFDSettings.h"
 #include "MotorControl_private.h"
+#include "Interrupts_private.h"
 #include "../utility/DuePinMapping_private.h"
 
 namespace JAFD
@@ -18,14 +19,23 @@ namespace JAFD
 	{
 		namespace
 		{
-			constexpr uint8_t _mLPWM = JAFDSettings::MotorControl::Left::pwmPin;	// PWM pin motor 1
-			constexpr uint8_t _mRPWM = JAFDSettings::MotorControl::Right::pwmPin;	// PWM pin motor 2
+			constexpr uint8_t _mLPWM = JAFDSettings::MotorControl::Left::pwmPin;	// PWM pin left motor
+			constexpr uint8_t _mRPWM = JAFDSettings::MotorControl::Right::pwmPin;	// PWM pin right motor
 
-			constexpr uint8_t _mLDir = JAFDSettings::MotorControl::Left::dirPin;	// Direction pin motor 1
-			constexpr uint8_t _mRDir = JAFDSettings::MotorControl::Right::dirPin;	// Direction pin motor 2
+			constexpr uint8_t _mLDir = JAFDSettings::MotorControl::Left::dirPin;	// Direction pin left motor
+			constexpr uint8_t _mRDir = JAFDSettings::MotorControl::Right::dirPin;	// Direction pin right motor
 
-			constexpr uint8_t _mLFb = JAFDSettings::MotorControl::Left::fbPin;		// Current sense output motor 1
-			constexpr uint8_t _mRFb = JAFDSettings::MotorControl::Right::fbPin;		// Current sense output motor 2
+			constexpr uint8_t _mLFb = JAFDSettings::MotorControl::Left::fbPin;		// Current sense output left motor
+			constexpr uint8_t _mRFb = JAFDSettings::MotorControl::Right::fbPin;		// Current sense output right motor
+			
+			constexpr uint8_t _mLEncA = JAFDSettings::MotorControl::Left::encA;		// Encoder Pin A left motor
+			constexpr uint8_t _mLEncB = JAFDSettings::MotorControl::Left::encB;		// Encoder Pin B left motor
+
+			constexpr uint8_t _mREncA = JAFDSettings::MotorControl::Right::encA;	// Encoder Pin A right motor
+			constexpr uint8_t _mREncB = JAFDSettings::MotorControl::Right::encB;	// Encoder Pin B right motor
+		
+			volatile int32_t _mLEncCnt = 0;
+			volatile int32_t _mREncCnt = 0;
 		}
 
 		ReturnCode motorControlSetup()
@@ -36,16 +46,44 @@ namespace JAFD
 				return ReturnCode::fatalError;
 			}
 
-			// Set the pin modes for Dir - Pins
-			PMC->PMC_PCER0 = 1 << PinMapping::MappedPins[_mLDir].portID | 1 << PinMapping::MappedPins[_mRDir].portID;
-			
+			// Set the pin modes for Dir - Pins / Encoder - Pins
+			// Left Dir
 			PinMapping::MappedPins[_mLDir].port->PIO_PER = PinMapping::MappedPins[_mLDir].pin;
 			PinMapping::MappedPins[_mLDir].port->PIO_OER = PinMapping::MappedPins[_mLDir].pin;
 			PinMapping::MappedPins[_mLDir].port->PIO_CODR = PinMapping::MappedPins[_mLDir].pin;
 			
+			// Right Dir
 			PinMapping::MappedPins[_mRDir].port->PIO_PER = PinMapping::MappedPins[_mRDir].pin;
 			PinMapping::MappedPins[_mRDir].port->PIO_OER = PinMapping::MappedPins[_mRDir].pin;
 			PinMapping::MappedPins[_mRDir].port->PIO_CODR = PinMapping::MappedPins[_mRDir].pin;
+
+			// Left Encoder A
+			PinMapping::MappedPins[_mLEncA].port->PIO_PER = PinMapping::MappedPins[_mLEncA].pin;
+			PinMapping::MappedPins[_mLEncA].port->PIO_ODR = PinMapping::MappedPins[_mLEncA].pin;
+			PinMapping::MappedPins[_mLEncA].port->PIO_PUER = PinMapping::MappedPins[_mLEncA].pin;
+			PinMapping::MappedPins[_mLEncA].port->PIO_IER = PinMapping::MappedPins[_mLEncA].pin;
+			PinMapping::MappedPins[_mLEncA].port->PIO_AIMER = PinMapping::MappedPins[_mLEncA].pin;
+			PinMapping::MappedPins[_mLEncA].port->PIO_ESR = PinMapping::MappedPins[_mLEncA].pin;
+			PinMapping::MappedPins[_mLEncA].port->PIO_REHLSR = PinMapping::MappedPins[_mLEncA].pin;
+			
+			// Left Encoder B
+			PinMapping::MappedPins[_mLEncB].port->PIO_PER = PinMapping::MappedPins[_mLEncB].pin;
+			PinMapping::MappedPins[_mLEncB].port->PIO_ODR = PinMapping::MappedPins[_mLEncB].pin;
+			PinMapping::MappedPins[_mLEncB].port->PIO_PUER = PinMapping::MappedPins[_mLEncB].pin;
+
+			// Right Encoder A
+			PinMapping::MappedPins[_mREncA].port->PIO_PER = PinMapping::MappedPins[_mREncA].pin;
+			PinMapping::MappedPins[_mREncA].port->PIO_ODR = PinMapping::MappedPins[_mREncA].pin;
+			PinMapping::MappedPins[_mREncA].port->PIO_PUER = PinMapping::MappedPins[_mREncA].pin;
+			PinMapping::MappedPins[_mREncA].port->PIO_IER = PinMapping::MappedPins[_mREncA].pin;
+			PinMapping::MappedPins[_mREncA].port->PIO_AIMER = PinMapping::MappedPins[_mREncA].pin;
+			PinMapping::MappedPins[_mREncA].port->PIO_ESR = PinMapping::MappedPins[_mREncA].pin;
+			PinMapping::MappedPins[_mREncA].port->PIO_REHLSR = PinMapping::MappedPins[_mREncA].pin;
+
+			// Right Encoder B
+			PinMapping::MappedPins[_mREncB].port->PIO_PER = PinMapping::MappedPins[_mREncB].pin;
+			PinMapping::MappedPins[_mREncB].port->PIO_ODR = PinMapping::MappedPins[_mREncB].pin;
+			PinMapping::MappedPins[_mREncB].port->PIO_PUER = PinMapping::MappedPins[_mREncB].pin;
 
 			// Setup PWM - Controller (20kHz)
 			const uint8_t mLPWMCh = PinMapping::getPWMChannel(_mLPWM);
@@ -95,7 +133,60 @@ namespace JAFD
 			ADC->ADC_CGR = ADC_CGR_GAIN0(0b11);
 			ADC->ADC_CHER = 1 << mLADCCh | 1 << mRADCCh;
 
+			// Enable interrupts for rotary encoder pins
+			NVIC_EnableIRQ(static_cast<IRQn_Type>(PinMapping::MappedPins[_mLEncA].portID));
+			NVIC_EnableIRQ(static_cast<IRQn_Type>(PinMapping::MappedPins[_mLEncB].portID));
+			
+			NVIC_EnableIRQ(static_cast<IRQn_Type>(PinMapping::MappedPins[_mREncA].portID));
+			NVIC_EnableIRQ(static_cast<IRQn_Type>(PinMapping::MappedPins[_mREncB].portID));
+
+			// Set priority
+			NVIC_SetPriority(static_cast<IRQn_Type>(PinMapping::MappedPins[_mLEncA].portID), 5);
+			NVIC_SetPriority(static_cast<IRQn_Type>(PinMapping::MappedPins[_mLEncB].portID), 5);
+
+			NVIC_SetPriority(static_cast<IRQn_Type>(PinMapping::MappedPins[_mREncA].portID), 5);
+			NVIC_SetPriority(static_cast<IRQn_Type>(PinMapping::MappedPins[_mREncB].portID), 5);
+
 			return ReturnCode::ok;
+		}
+
+		float getDistance(Motor motor)
+		{
+			if (motor == Motor::left)
+			{
+				return _mLEncCnt / 341.2f * 
+			}
+			else
+			{
+
+			}
+		}
+
+		void encoderInterrupt(Interrupts::InterruptSource source, uint32_t isr)
+		{
+			if (PinMapping::MappedPins[_mLEncA].portID == static_cast<uint8_t>(source) && (isr & PinMapping::MappedPins[_mLEncA].pin))
+			{
+				if (PinMapping::MappedPins[_mLEncB].port->PIO_PDSR & PinMapping::MappedPins[_mLEncB].pin)
+				{
+					_mLEncCnt++;
+				}
+				else
+				{
+					_mLEncCnt--;
+				}
+			}
+
+			if (PinMapping::MappedPins[_mREncA].portID == static_cast<uint8_t>(source) && (isr & PinMapping::MappedPins[_mREncA].pin))
+			{
+				if (PinMapping::MappedPins[_mREncB].port->PIO_PDSR & PinMapping::MappedPins[_mREncB].pin)
+				{
+					_mREncCnt++;
+				}
+				else
+				{
+					_mREncCnt--;
+				}
+			}
 		}
 
 		void setSpeed(Motor motor, float speed)
@@ -138,6 +229,7 @@ namespace JAFD
 
 		float getCurrent(Motor motor)
 		{
+			Serial.println(_mLEncCnt);
 			const uint8_t mLADCCh = PinMapping::getADCChannel(_mLFb);
 			const uint8_t mRADCCh = PinMapping::getADCChannel(_mRFb);
 

@@ -27,6 +27,7 @@ void setup() {
 	{
 		while (true);
 	}
+
 	/*
 	// Maze Mapping
 	// Create test maze
@@ -68,9 +69,7 @@ void setup() {
 		Serial.println(directions[i], BIN);
 	}
 	*/
-
-	setSpeed(Motor::left, 0.3f);
-
+	setSpeed(Motor::left, -0.3f);
 	delay(500);
 }
 
@@ -84,13 +83,13 @@ void loop() {
 
 	auto a = micros();
 
-	for (uint8_t i = 0; i < 100; i++)
+	//for (uint8_t i = 0; i < 100; i++)
 	{
-		setSpeed(Motor::left, 0.3f);
+		//setSpeed(Motor::left, 1.0f);
 		volatile auto x = getCurrent(Motor::left);
 	}
 
-	Serial.println(micros() - a);
+	//Serial.println(micros() - a);
 
 	delay(100);
 }
