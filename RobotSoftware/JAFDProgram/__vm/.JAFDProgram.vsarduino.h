@@ -15,7 +15,7 @@
 #define _VSARDUINO_H_
 #define _VMDEBUG 1
 #define F_CPU 84000000L
-#define ARDUINO 10807
+#define ARDUINO 10809
 #define ARDUINO_SAM_DUE
 #define ARDUINO_ARCH_SAM
 #define __SAM3X8E__
@@ -235,6 +235,6 @@ __attribute__((always_inline)) static __INLINE void __set_PRIMASK(uint32_t priMa
 }
 
 
-#include "MainProgram.ino"
+#include "JAFDProgram.ino"
 #endif
 #endif
