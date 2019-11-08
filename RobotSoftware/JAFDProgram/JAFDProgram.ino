@@ -69,7 +69,7 @@ void setup() {
 	}
 	*/
 
-	setSpeed(Motor::left, 0.3f);
+	setSpeed(Motor::left, 1.0f);
 
 	delay(500);
 }
@@ -86,11 +86,11 @@ void loop() {
 
 	for (uint8_t i = 0; i < 100; i++)
 	{
-		setSpeed(Motor::left, 0.3f);
-		volatile auto x = getCurrent(Motor::left);
+		setSpeed(Motor::left, 1.0f);
+		Serial.println(getCurrent(Motor::left));
 	}
 
-	Serial.println(micros() - a);
+	//Serial.println(micros() - a);
 
-	delay(100);
+	delay(500);
 }
