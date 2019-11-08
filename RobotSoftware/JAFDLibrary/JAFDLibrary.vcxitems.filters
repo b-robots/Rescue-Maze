@@ -45,6 +45,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\JAFDLibrary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\implementation\MazeMapping_private.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\implementation\Dispenser_private.h">
