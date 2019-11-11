@@ -53,6 +53,12 @@
       <Filter>utility\private</Filter>
     </ClInclude>
     <ClInclude Include="JAFDSettings.h" />
+    <ClInclude Include="JAFD\implementation\Bno055_private.h">
+      <Filter>implementation\private</Filter>
+    </ClInclude>
+    <ClInclude Include="JAFD\implementation\Interrupts_private.h">
+      <Filter>implementation\private</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="JAFD\implementation\Dispenser.cpp">
@@ -68,6 +74,12 @@
       <Filter>implementation\private</Filter>
     </ClCompile>
     <ClCompile Include="JAFD\implementation\SpiEEprom.cpp">
+      <Filter>implementation\private</Filter>
+    </ClCompile>
+    <ClCompile Include="JAFD\implementation\Bno055.cpp">
+      <Filter>implementation\private</Filter>
+    </ClCompile>
+    <ClCompile Include="JAFD\implementation\Interrupts.cpp">
       <Filter>implementation\private</Filter>
     </ClCompile>
   </ItemGroup>
