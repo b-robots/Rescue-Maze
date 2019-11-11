@@ -24,7 +24,6 @@
     <None Include="JAFDProgram.ino" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="__vm\.JAFDProgram.vsarduino.h" />
     <ClInclude Include="JAFD\JAFD.h">
       <Filter>implementation\public</Filter>
     </ClInclude>
@@ -59,6 +58,7 @@
     <ClInclude Include="JAFD\implementation\Interrupts_private.h">
       <Filter>implementation\private</Filter>
     </ClInclude>
+    <ClInclude Include="__vm\.JAFDProgram.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="JAFD\implementation\Dispenser.cpp">
