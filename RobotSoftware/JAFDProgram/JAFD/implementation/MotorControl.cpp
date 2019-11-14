@@ -154,7 +154,7 @@ namespace JAFD
 		{
 			if (motor == Motor::left)
 			{
-				return _mLEncCnt / 341.2f * 
+				//return _mLEncCnt / 341.2f * 
 			}
 			else
 			{
