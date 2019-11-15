@@ -46,44 +46,72 @@ namespace JAFD
 				return ReturnCode::fatalError;
 			}
 
+			// Constexpr for pin and ports
+			constexpr Pio* mLDirPort = PinMapping::MappedPins[_mLDir].port;
+			constexpr Pio* mRDirPort = PinMapping::MappedPins[_mRDir].port;
+			constexpr uint32_t mLDirPin = PinMapping::MappedPins[_mLDir].pin;
+			constexpr uint32_t mRDirPin = PinMapping::MappedPins[_mRDir].pin;
+
+			constexpr Pio* mLEncAPort = PinMapping::MappedPins[_mLEncA].port;
+			constexpr Pio* mREncAPort = PinMapping::MappedPins[_mLEncA].port;
+			constexpr uint32_t mLEncAPin = PinMapping::MappedPins[_mLEncA].pin;
+			constexpr uint32_t mREncAPin = PinMapping::MappedPins[_mLEncA].pin;
+
+			constexpr Pio* mLEncBPort = PinMapping::MappedPins[_mLEncB].port;
+			constexpr Pio* mREncBPort = PinMapping::MappedPins[_mLEncB].port;
+			constexpr uint32_t mLEncBPin = PinMapping::MappedPins[_mLEncB].pin;
+			constexpr uint32_t mREncBPin = PinMapping::MappedPins[_mLEncB].pin;
+
 			// Set the pin modes for Dir - Pins / Encoder - Pins
 			// Left Dir
-			PinMapping::MappedPins[_mLDir].port->PIO_PER = PinMapping::MappedPins[_mLDir].pin;
-			PinMapping::MappedPins[_mLDir].port->PIO_OER = PinMapping::MappedPins[_mLDir].pin;
-			PinMapping::MappedPins[_mLDir].port->PIO_CODR = PinMapping::MappedPins[_mLDir].pin;
+			mLDirPort->PIO_PER = mLDirPin;
+			mLDirPort->PIO_OER = mLDirPin;
+			mLDirPort->PIO_CODR = mLDirPin;
 			
 			// Right Dir
-			PinMapping::MappedPins[_mRDir].port->PIO_PER = PinMapping::MappedPins[_mRDir].pin;
-			PinMapping::MappedPins[_mRDir].port->PIO_OER = PinMapping::MappedPins[_mRDir].pin;
-			PinMapping::MappedPins[_mRDir].port->PIO_CODR = PinMapping::MappedPins[_mRDir].pin;
+			mRDirPort->PIO_PER = mRDirPin;
+			mRDirPort->PIO_OER = mRDirPin;
+			mRDirPort->PIO_CODR = mRDirPin;
 
 			// Left Encoder A
-			PinMapping::MappedPins[_mLEncA].port->PIO_PER = PinMapping::MappedPins[_mLEncA].pin;
-			PinMapping::MappedPins[_mLEncA].port->PIO_ODR = PinMapping::MappedPins[_mLEncA].pin;
-			PinMapping::MappedPins[_mLEncA].port->PIO_PUER = PinMapping::MappedPins[_mLEncA].pin;
-			PinMapping::MappedPins[_mLEncA].port->PIO_IER = PinMapping::MappedPins[_mLEncA].pin;
-			PinMapping::MappedPins[_mLEncA].port->PIO_AIMER = PinMapping::MappedPins[_mLEncA].pin;
-			PinMapping::MappedPins[_mLEncA].port->PIO_ESR = PinMapping::MappedPins[_mLEncA].pin;
-			PinMapping::MappedPins[_mLEncA].port->PIO_REHLSR = PinMapping::MappedPins[_mLEncA].pin;
-			
+			mLEncAPort->PIO_PER = mLEncAPin;
+			mLEncAPort->PIO_ODR = mLEncAPin;
+			mLEncAPort->PIO_PUER = mLEncAPin;
+			mLEncAPort->PIO_IER = mLEncAPin;
+			mLEncAPort->PIO_AIMER = mLEncAPin;
+			mLEncAPort->PIO_ESR = mLEncAPin;
+			mLEncAPort->PIO_REHLSR = mLEncAPin;
+			mLEncAPort->PIO_DIFSR = mLEncAPin;
+			mLEncAPort->PIO_SCDR = PIO_SCDR_DIV(10);
+			mLEncAPort->PIO_IFER = mLEncAPin;
+
 			// Left Encoder B
-			PinMapping::MappedPins[_mLEncB].port->PIO_PER = PinMapping::MappedPins[_mLEncB].pin;
-			PinMapping::MappedPins[_mLEncB].port->PIO_ODR = PinMapping::MappedPins[_mLEncB].pin;
-			PinMapping::MappedPins[_mLEncB].port->PIO_PUER = PinMapping::MappedPins[_mLEncB].pin;
+			mLEncBPort->PIO_PER = mLEncBPin;
+			mLEncBPort->PIO_ODR = mLEncBPin;
+			mLEncBPort->PIO_PUER = mLEncBPin;
+			mLEncBPort->PIO_DIFSR = mLEncBPin;
+			mLEncBPort->PIO_SCDR = PIO_SCDR_DIV(10);
+			mLEncBPort->PIO_IFER = mLEncBPin;
 
 			// Right Encoder A
-			PinMapping::MappedPins[_mREncA].port->PIO_PER = PinMapping::MappedPins[_mREncA].pin;
-			PinMapping::MappedPins[_mREncA].port->PIO_ODR = PinMapping::MappedPins[_mREncA].pin;
-			PinMapping::MappedPins[_mREncA].port->PIO_PUER = PinMapping::MappedPins[_mREncA].pin;
-			PinMapping::MappedPins[_mREncA].port->PIO_IER = PinMapping::MappedPins[_mREncA].pin;
-			PinMapping::MappedPins[_mREncA].port->PIO_AIMER = PinMapping::MappedPins[_mREncA].pin;
-			PinMapping::MappedPins[_mREncA].port->PIO_ESR = PinMapping::MappedPins[_mREncA].pin;
-			PinMapping::MappedPins[_mREncA].port->PIO_REHLSR = PinMapping::MappedPins[_mREncA].pin;
+			mREncAPort->PIO_PER = mREncAPin;
+			mREncAPort->PIO_ODR = mREncAPin;
+			mREncAPort->PIO_PUER = mREncAPin;
+			mREncAPort->PIO_IER = mREncAPin;
+			mREncAPort->PIO_AIMER = mREncAPin;
+			mREncAPort->PIO_ESR = mREncAPin;
+			mREncAPort->PIO_REHLSR = mREncAPin;
+			mREncAPort->PIO_DIFSR = mREncAPin;
+			mREncAPort->PIO_SCDR = PIO_SCDR_DIV(10);
+			mREncAPort->PIO_IFER = mREncAPin;
 
 			// Right Encoder B
-			PinMapping::MappedPins[_mREncB].port->PIO_PER = PinMapping::MappedPins[_mREncB].pin;
-			PinMapping::MappedPins[_mREncB].port->PIO_ODR = PinMapping::MappedPins[_mREncB].pin;
-			PinMapping::MappedPins[_mREncB].port->PIO_PUER = PinMapping::MappedPins[_mREncB].pin;
+			mREncBPort->PIO_PER = mREncBPin;
+			mREncBPort->PIO_ODR = mREncBPin;
+			mREncBPort->PIO_PUER = mREncBPin;
+			mREncBPort->PIO_DIFSR = mREncBPin;
+			mREncBPort->PIO_SCDR = PIO_SCDR_DIV(10);
+			mREncBPort->PIO_IFER = mREncBPin;
 
 			// Setup PWM - Controller (20kHz)
 			const uint8_t mLPWMCh = PinMapping::getPWMChannel(_mLPWM);
@@ -154,11 +182,11 @@ namespace JAFD
 		{
 			if (motor == Motor::left)
 			{
-				//return _mLEncCnt / 341.2f * 
+				return _mLEncCnt / (11.0f * 34.02f);
 			}
 			else
 			{
-
+				return _mREncCnt / (11.0f * 34.02f);
 			}
 		}
 
@@ -235,8 +263,8 @@ namespace JAFD
 
 			float result = 0.0f;
 
-			// Sample 4 values and return average
-			for (uint8_t i = 0; i < 4; i++)
+			// Sample 10 values and return average
+			for (uint8_t i = 0; i < 10; i++)
 			{
 				// Wait for end of conversion
 				while (!(ADC->ADC_ISR & ADC_ISR_DRDY));
@@ -251,7 +279,7 @@ namespace JAFD
 				}
 			}
 
-			return result / 4.0f;
+			return result / 10.0f;
 		}
 	}
 }

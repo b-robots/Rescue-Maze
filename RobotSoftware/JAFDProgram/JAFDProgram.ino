@@ -69,77 +69,7 @@ void setup() {
 	}
 	*/
 
-	//setSpeed(Motor::left, 1.0f);
-
-	auto a = micros();
-
-	for (uint8_t i = 0; i < 100; i++)
-	{
-		PIOA->PIO_ABSR = 0b10;
-		PIOB->PIO_CODR = 0b10;
-		PIOC->PIO_PER = 0b10;
-		PIOD->PIO_PUER = 0b10;
-	}
-
-	auto b = micros();
-
-	Serial.print("Makro: ");
-	Serial.print(b - a);
-	Serial.print(", Constexpr Variable: ");
-
-	constexpr auto pioa = PIOA;
-	constexpr auto piob = PIOB;
-	constexpr auto pioc = PIOC;
-	constexpr auto piod = PIOD;
-
-	a = micros();
-
-	for (uint8_t i = 0; i < 100; i++)
-	{
-		pioa->PIO_ABSR = 0b10;
-		piob->PIO_CODR = 0b10;
-		pioc->PIO_PER = 0b10;
-		piod->PIO_PUER = 0b10;
-	}
-
-	b = micros();
-
-	Serial.print(b - a);
-	Serial.print(", Runtime reinterpret_cast from direct address: ");
-
-	a = micros();
-
-	for (uint8_t i = 0; i < 100; i++)
-	{
-		reinterpret_cast<Pio*>(0x400E0E00U)->PIO_ABSR = 0b10;
-		reinterpret_cast<Pio*>(0x400E1000U)->PIO_CODR = 0b10;
-		reinterpret_cast<Pio*>(0x400E1200U)->PIO_PER = 0b10;
-		reinterpret_cast<Pio*>(0x400E1400U)->PIO_PUER = 0b10;
-	}
-
-	b = micros();
-
-	Serial.print(b - a);
-	Serial.print(", Runtime reinterpret_cast from constexpr address: ");
-
-	constexpr uintptr_t pioaAdr = 0x400E0E00U;
-	constexpr uintptr_t piobAdr = 0x400E1000U;
-	constexpr uintptr_t piocAdr = 0x400E1200U;
-	constexpr uintptr_t piodAdr = 0x400E1400U;
-
-	a = micros();
-
-	for (uint8_t i = 0; i < 100; i++)
-	{
-		reinterpret_cast<Pio*>(pioaAdr)->PIO_ABSR = 0b10;
-		reinterpret_cast<Pio*>(piobAdr)->PIO_CODR = 0b10;
-		reinterpret_cast<Pio*>(piocAdr)->PIO_PER = 0b10;
-		reinterpret_cast<Pio*>(piodAdr)->PIO_PUER = 0b10;
-	}
-
-	b = micros();
-
-	Serial.println(b - a);
+	setSpeed(Motor::left, 0.7f);
 }
 
 // The loop function runs over and over again until power down or reset
@@ -150,14 +80,7 @@ void loop() {
 		while (true);
 	}
 
+	Serial.println(getDistance(Motor::left));
 
-	/*
-	for (uint8_t i = 0; i < 100; i++)
-	{
-		setSpeed(Motor::left, 1.0f);
-		Serial.println(getCurrent(Motor::left));
-	}
-	*/
-
-	delay(2000);
+	delay(500);
 }

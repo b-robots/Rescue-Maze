@@ -20,6 +20,9 @@ namespace JAFD
 		// Setup the Motor-Shield
 		ReturnCode motorControlSetup();
 
+		// Get distance measured by encoder
+		float getDistance(Motor motor);
+
 		// Interrupthandler for Encoder
 		void encoderInterrupt(Interrupts::InterruptSource source, uint32_t isr);
 
