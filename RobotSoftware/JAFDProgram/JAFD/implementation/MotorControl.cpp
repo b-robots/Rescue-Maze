@@ -82,7 +82,7 @@ namespace JAFD
 			mLEncAPort->PIO_ESR = mLEncAPin;
 			mLEncAPort->PIO_REHLSR = mLEncAPin;
 			mLEncAPort->PIO_DIFSR = mLEncAPin;
-			mLEncAPort->PIO_SCDR = PIO_SCDR_DIV(10);
+			mLEncAPort->PIO_SCDR = PIO_SCDR_DIV(0);
 			mLEncAPort->PIO_IFER = mLEncAPin;
 
 			// Left Encoder B
@@ -90,7 +90,7 @@ namespace JAFD
 			mLEncBPort->PIO_ODR = mLEncBPin;
 			mLEncBPort->PIO_PUER = mLEncBPin;
 			mLEncBPort->PIO_DIFSR = mLEncBPin;
-			mLEncBPort->PIO_SCDR = PIO_SCDR_DIV(10);
+			mLEncBPort->PIO_SCDR = PIO_SCDR_DIV(0);
 			mLEncBPort->PIO_IFER = mLEncBPin;
 
 			// Right Encoder A
@@ -102,7 +102,7 @@ namespace JAFD
 			mREncAPort->PIO_ESR = mREncAPin;
 			mREncAPort->PIO_REHLSR = mREncAPin;
 			mREncAPort->PIO_DIFSR = mREncAPin;
-			mREncAPort->PIO_SCDR = PIO_SCDR_DIV(10);
+			mREncAPort->PIO_SCDR = PIO_SCDR_DIV(0);
 			mREncAPort->PIO_IFER = mREncAPin;
 
 			// Right Encoder B
@@ -110,7 +110,7 @@ namespace JAFD
 			mREncBPort->PIO_ODR = mREncBPin;
 			mREncBPort->PIO_PUER = mREncBPin;
 			mREncBPort->PIO_DIFSR = mREncBPin;
-			mREncBPort->PIO_SCDR = PIO_SCDR_DIV(10);
+			mREncBPort->PIO_SCDR = PIO_SCDR_DIV(0);
 			mREncBPort->PIO_IFER = mREncBPin;
 
 			// Setup PWM - Controller (20kHz)
@@ -182,11 +182,11 @@ namespace JAFD
 		{
 			if (motor == Motor::left)
 			{
-				return _mLEncCnt / (11.0f * 34.02f);
+				return _mLEncCnt / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI;
 			}
 			else
 			{
-				return _mREncCnt / (11.0f * 34.02f);
+				return _mREncCnt / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI;
 			}
 		}
 

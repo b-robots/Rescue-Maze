@@ -38,6 +38,11 @@ namespace JAFDSettings
 		}
 	}
 
+	namespace Mechanics
+	{
+		constexpr float wheelDiameter = 8.0f;
+	}
+
 	namespace Dispenser
 	{
 

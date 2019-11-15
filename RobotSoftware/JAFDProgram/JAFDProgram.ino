@@ -69,7 +69,7 @@ void setup() {
 	}
 	*/
 
-	setSpeed(Motor::left, 0.7f);
+	setSpeed(Motor::left, 0.2f);
 }
 
 // The loop function runs over and over again until power down or reset
