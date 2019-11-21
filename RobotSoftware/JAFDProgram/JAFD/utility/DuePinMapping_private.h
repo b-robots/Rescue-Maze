@@ -93,9 +93,10 @@ namespace JAFD
 			onlyPio
 		};
 
-		namespace
+		// Informations about one Pin on the SAM3x8e
+		class PinInformation
 		{
-			// Functions for converting from Arduinos PinDescription to my PinInformation
+		private:
 			constexpr uint8_t pinDesToPortID(PinDescription pinDes)
 			{
 				return	(pinDes.ulPeripheralId >= 11 && pinDes.ulPeripheralId <= 16) ?
@@ -106,7 +107,7 @@ namespace JAFD
 			{
 				return	(pinDes.ulPinAttribute & PIN_ATTR_PWM) ? PinPeripherals::pwm :
 						((pinDes.ulPinAttribute & PIN_ATTR_TIMER) ? PinPeripherals::tc :
-						((pinDes.ulPinAttribute & PIN_ATTR_ANALOG) ? 
+						((pinDes.ulPinAttribute & PIN_ATTR_ANALOG) ?
 							((pinDes.ulAnalogChannel == DA0 || pinDes.ulAnalogChannel == DA1) ? PinPeripherals::dac : PinPeripherals::adc) :
 						(PinPeripherals::onlyPio)));
 
@@ -179,11 +180,8 @@ namespace JAFD
 						((pinDes.ulTCChannel == TC2_CHB8) ? TCChannel::tc2ChB8 :
 						(TCChannel::noTC)))))))))))))))))));
 			}
-		}
 
-		// Informations about one Pin on the SAM3x8e
-		typedef struct PinInformation
-		{
+		public:
 			const uint32_t pin;
 			Pio * const port;
 			const uint8_t portID;
@@ -219,7 +217,7 @@ namespace JAFD
 		};
 		
 		// Copied Arduino pin mapping and use constructor of own struct to convert
-		constexpr PinInformation MappedPins[] = 
+		constexpr PinDescription MappedPins[] =
 		{
 			// 0 .. 53 - Digital pins
 			// ----------------------

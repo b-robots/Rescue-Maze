@@ -19,6 +19,7 @@ namespace JAFD
 	{
 		namespace
 		{
+			constexpr PinMapping::PinInformation x = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::pwmPin];
 			constexpr uint8_t _mLPWM = JAFDSettings::MotorControl::Left::pwmPin;	// PWM pin left motor
 			constexpr uint8_t _mRPWM = JAFDSettings::MotorControl::Right::pwmPin;	// PWM pin right motor
 
@@ -34,8 +35,11 @@ namespace JAFD
 			constexpr uint8_t _mREncA = JAFDSettings::MotorControl::Right::encA;	// Encoder Pin A right motor
 			constexpr uint8_t _mREncB = JAFDSettings::MotorControl::Right::encB;	// Encoder Pin B right motor
 		
-			volatile int32_t _mLEncCnt = 0;
-			volatile int32_t _mREncCnt = 0;
+			volatile int32_t _mLEncCnt = 0;		// Encoder count left motor
+			volatile int32_t _mREncCnt = 0;		// Encoder count right motor
+
+			volatile float _mLSpeed = 0.0f;		// Speed left motor (cm/s)
+			volatile float _mRSpeed = 0.0f;		// Speed right motor (cm/s)
 		}
 
 		ReturnCode motorControlSetup()
@@ -161,21 +165,38 @@ namespace JAFD
 			ADC->ADC_CGR = ADC_CGR_GAIN0(0b11);
 			ADC->ADC_CHER = 1 << mLADCCh | 1 << mRADCCh;
 
-			// Enable interrupts for rotary encoder pins
+			// Setup interrupts for rotary encoder pins
 			NVIC_EnableIRQ(static_cast<IRQn_Type>(PinMapping::MappedPins[_mLEncA].portID));
-			NVIC_EnableIRQ(static_cast<IRQn_Type>(PinMapping::MappedPins[_mLEncB].portID));
-			
 			NVIC_EnableIRQ(static_cast<IRQn_Type>(PinMapping::MappedPins[_mREncA].portID));
-			NVIC_EnableIRQ(static_cast<IRQn_Type>(PinMapping::MappedPins[_mREncB].portID));
 
-			// Set priority
 			NVIC_SetPriority(static_cast<IRQn_Type>(PinMapping::MappedPins[_mLEncA].portID), 5);
-			NVIC_SetPriority(static_cast<IRQn_Type>(PinMapping::MappedPins[_mLEncB].portID), 5);
-
 			NVIC_SetPriority(static_cast<IRQn_Type>(PinMapping::MappedPins[_mREncA].portID), 5);
-			NVIC_SetPriority(static_cast<IRQn_Type>(PinMapping::MappedPins[_mREncB].portID), 5);
+
+			// Setup TC for an interrupt every 100ms -> 10Hz (MCK / 128 / 65625) for motor speed calculation
+			// Use TC2 - Channel 6
+			PMC->PMC_PCER0 = PMC_PCER0_PID29;
+
+			NVIC_EnableIRQ(TC2_IRQn);
+			NVIC_SetPriority(TC2_IRQn, 6);
+
+			TC2->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;
+			TC2->TC_CHANNEL[0].TC_RC = 65625;
+			
+			TC2->TC_CHANNEL[0].TC_CCR = TC_CCR_SWTRG;
 
 			return ReturnCode::ok;
+		}
+
+		void inline calcMotorSpeed()
+		{
+			static int32_t lastLeftCnt = 0;
+			static int32_t lastRightCnt = 0;
+
+			_mLSpeed = (lastLeftCnt - _mLEncCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI;
+			_mRSpeed = (lastRightCnt - _mREncCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI;
+
+			lastLeftCnt = _mLEncCnt;
+			lastRightCnt = _mREncCnt;
 		}
 
 		float getDistance(Motor motor)
