@@ -28,7 +28,6 @@ void setup() {
 		while (true);
 	}
 
-	setSpeed(Motor::left, 0.5f);
 }
 
 // The loop function runs over and over again until power down or reset
@@ -39,5 +38,10 @@ void loop() {
 		while (true);
 	}
 
-	delay(500);
+	setSpeed(Motor::left, 0.5f);
+	setSpeed(Motor::right, 0.5f);
+	delay(1000);
+	setSpeed(Motor::left, -0.5f);
+	setSpeed(Motor::right, -0.5f);
+	delay(1000);
 }

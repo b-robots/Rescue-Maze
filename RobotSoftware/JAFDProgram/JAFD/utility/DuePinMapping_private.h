@@ -11,6 +11,8 @@ This private file of the library is responsible for the access to the SPI EEPROM
 #include "WProgram.h"
 #endif
 
+#include <stdint.h>
+
 namespace JAFD
 {
 	namespace PinMapping
@@ -93,96 +95,95 @@ namespace JAFD
 			onlyPio
 		};
 
+		constexpr uint8_t pinDesToPortID(PinDescription pinDes)
+		{
+			return	(pinDes.ulPeripheralId >= 11 && pinDes.ulPeripheralId <= 16) ?
+					static_cast<uint8_t>(pinDes.ulPeripheralId) : 0;
+		}
+
+		constexpr PinPeripherals pinDesToPinPeripherals(PinDescription pinDes)
+		{
+			return	(pinDes.ulPinAttribute & PIN_ATTR_PWM) ? PinPeripherals::pwm :
+					((pinDes.ulPinAttribute & PIN_ATTR_TIMER) ? PinPeripherals::tc :
+					((pinDes.ulPinAttribute & PIN_ATTR_ANALOG) ?
+						((pinDes.ulAnalogChannel == DA0 || pinDes.ulAnalogChannel == DA1) ? PinPeripherals::dac : PinPeripherals::adc) :
+					(PinPeripherals::onlyPio)));
+
+		}
+
+		constexpr PWMChannel pinDesToPWMCh(PinDescription pinDes)
+		{
+			return	(pinDes.ulPWMChannel == NOT_ON_PWM) ? PWMChannel::noPWM :
+					((pinDes.ulPWMChannel == PWM_CH0) ? PWMChannel::ch0 :
+					((pinDes.ulPWMChannel == PWM_CH1) ? PWMChannel::ch1 :
+					((pinDes.ulPWMChannel == PWM_CH2) ? PWMChannel::ch2 :
+					((pinDes.ulPWMChannel == PWM_CH3) ? PWMChannel::ch3 :
+					((pinDes.ulPWMChannel == PWM_CH4) ? PWMChannel::ch4 :
+					((pinDes.ulPWMChannel == PWM_CH5) ? PWMChannel::ch5 :
+					((pinDes.ulPWMChannel == PWM_CH6) ? PWMChannel::ch6 :
+					((pinDes.ulPWMChannel == PWM_CH7) ? PWMChannel::ch7 :
+					(PWMChannel::noPWM)))))))));
+		}
+
+		constexpr ADCChannel pinDesToADCCh(PinDescription pinDes)
+		{
+			return	(pinDes.ulADCChannelNumber == NO_ADC) ? ADCChannel::noADC :
+					((pinDes.ulADCChannelNumber == ADC0) ? ADCChannel::ch0 :
+					((pinDes.ulADCChannelNumber == ADC1) ? ADCChannel::ch1 :
+					((pinDes.ulADCChannelNumber == ADC2) ? ADCChannel::ch2 :
+					((pinDes.ulADCChannelNumber == ADC3) ? ADCChannel::ch3 :
+					((pinDes.ulADCChannelNumber == ADC4) ? ADCChannel::ch4 :
+					((pinDes.ulADCChannelNumber == ADC5) ? ADCChannel::ch5 :
+					((pinDes.ulADCChannelNumber == ADC6) ? ADCChannel::ch6 :
+					((pinDes.ulADCChannelNumber == ADC7) ? ADCChannel::ch7 :
+					((pinDes.ulADCChannelNumber == ADC8) ? ADCChannel::ch8 :
+					((pinDes.ulADCChannelNumber == ADC9) ? ADCChannel::ch9 :
+					((pinDes.ulADCChannelNumber == ADC10) ? ADCChannel::ch10 :
+					((pinDes.ulADCChannelNumber == ADC11) ? ADCChannel::ch11 :
+					((pinDes.ulADCChannelNumber == ADC12) ? ADCChannel::ch12 :
+					((pinDes.ulADCChannelNumber == ADC13) ? ADCChannel::ch13 :
+					((pinDes.ulADCChannelNumber == ADC14) ? ADCChannel::ch14 :
+					((pinDes.ulADCChannelNumber == ADC15) ? ADCChannel::ch15 :
+					(ADCChannel::noADC)))))))))))))))));
+		}
+
+		constexpr DACChannel pinDesToDACCh(PinDescription pinDes)
+		{
+			return	(pinDes.ulADCChannelNumber == NO_ADC) ? DACChannel::noDAC :
+					((pinDes.ulADCChannelNumber == DA0) ? DACChannel::ch0 :
+					((pinDes.ulADCChannelNumber == DA1) ? DACChannel::ch1 :
+					(DACChannel::noDAC)));
+		}
+
+		constexpr TCChannel pinDesToTCCh(PinDescription pinDes)
+		{
+			return	(pinDes.ulTCChannel == NOT_ON_TIMER) ? TCChannel::noTC :
+					((pinDes.ulTCChannel == TC0_CHA0) ? TCChannel::tc0ChA0 :
+					((pinDes.ulTCChannel == TC0_CHB0) ? TCChannel::tc0ChB0 :
+					((pinDes.ulTCChannel == TC0_CHA1) ? TCChannel::tc0ChA1 :
+					((pinDes.ulTCChannel == TC0_CHB1) ? TCChannel::tc0ChB1 :
+					((pinDes.ulTCChannel == TC0_CHA2) ? TCChannel::tc0ChA2 :
+					((pinDes.ulTCChannel == TC0_CHB2) ? TCChannel::tc0ChB2 :
+					((pinDes.ulTCChannel == TC1_CHA3) ? TCChannel::tc1ChA3 :
+					((pinDes.ulTCChannel == TC1_CHB3) ? TCChannel::tc1ChB3 :
+					((pinDes.ulTCChannel == TC1_CHA4) ? TCChannel::tc1ChA4 :
+					((pinDes.ulTCChannel == TC1_CHB4) ? TCChannel::tc1ChB4 :
+					((pinDes.ulTCChannel == TC1_CHA5) ? TCChannel::tc1ChA5 :
+					((pinDes.ulTCChannel == TC1_CHB5) ? TCChannel::tc1ChB5 :
+					((pinDes.ulTCChannel == TC2_CHA6) ? TCChannel::tc2ChA6 :
+					((pinDes.ulTCChannel == TC2_CHB6) ? TCChannel::tc2ChB6 :
+					((pinDes.ulTCChannel == TC2_CHA7) ? TCChannel::tc2ChA7 :
+					((pinDes.ulTCChannel == TC2_CHB7) ? TCChannel::tc2ChB7 :
+					((pinDes.ulTCChannel == TC2_CHA8) ? TCChannel::tc2ChA8 :
+					((pinDes.ulTCChannel == TC2_CHB8) ? TCChannel::tc2ChB8 :
+					(TCChannel::noTC)))))))))))))))))));
+		}
+
 		// Informations about one Pin on the SAM3x8e
 		class PinInformation
 		{
-		private:
-			constexpr uint8_t pinDesToPortID(PinDescription pinDes)
-			{
-				return	(pinDes.ulPeripheralId >= 11 && pinDes.ulPeripheralId <= 16) ?
-						static_cast<uint8_t>(pinDes.ulPeripheralId) : 0;
-			}
-
-			constexpr PinPeripherals pinDesToPinPeripherals(PinDescription pinDes)
-			{
-				return	(pinDes.ulPinAttribute & PIN_ATTR_PWM) ? PinPeripherals::pwm :
-						((pinDes.ulPinAttribute & PIN_ATTR_TIMER) ? PinPeripherals::tc :
-						((pinDes.ulPinAttribute & PIN_ATTR_ANALOG) ?
-							((pinDes.ulAnalogChannel == DA0 || pinDes.ulAnalogChannel == DA1) ? PinPeripherals::dac : PinPeripherals::adc) :
-						(PinPeripherals::onlyPio)));
-
-			}
-
-			constexpr PWMChannel pinDesToPWMCh(PinDescription pinDes)
-			{
-				return	(pinDes.ulPWMChannel == NOT_ON_PWM) ? PWMChannel::noPWM :
-						((pinDes.ulPWMChannel == PWM_CH0) ? PWMChannel::ch0 :
-						((pinDes.ulPWMChannel == PWM_CH1) ? PWMChannel::ch1 :
-						((pinDes.ulPWMChannel == PWM_CH2) ? PWMChannel::ch2 :
-						((pinDes.ulPWMChannel == PWM_CH3) ? PWMChannel::ch3 :
-						((pinDes.ulPWMChannel == PWM_CH4) ? PWMChannel::ch4 :
-						((pinDes.ulPWMChannel == PWM_CH5) ? PWMChannel::ch5 :
-						((pinDes.ulPWMChannel == PWM_CH6) ? PWMChannel::ch6 :
-						((pinDes.ulPWMChannel == PWM_CH7) ? PWMChannel::ch7 :
-						(PWMChannel::noPWM)))))))));
-			}
-
-			constexpr ADCChannel pinDesToADCCh(PinDescription pinDes)
-			{
-				return	(pinDes.ulADCChannelNumber == NO_ADC) ? ADCChannel::noADC :
-						((pinDes.ulADCChannelNumber == ADC0) ? ADCChannel::ch0 :
-						((pinDes.ulADCChannelNumber == ADC1) ? ADCChannel::ch1 :
-						((pinDes.ulADCChannelNumber == ADC2) ? ADCChannel::ch2 :
-						((pinDes.ulADCChannelNumber == ADC3) ? ADCChannel::ch3 :
-						((pinDes.ulADCChannelNumber == ADC4) ? ADCChannel::ch4 :
-						((pinDes.ulADCChannelNumber == ADC5) ? ADCChannel::ch5 :
-						((pinDes.ulADCChannelNumber == ADC6) ? ADCChannel::ch6 :
-						((pinDes.ulADCChannelNumber == ADC7) ? ADCChannel::ch7 :
-						((pinDes.ulADCChannelNumber == ADC8) ? ADCChannel::ch8 :
-						((pinDes.ulADCChannelNumber == ADC9) ? ADCChannel::ch9 :
-						((pinDes.ulADCChannelNumber == ADC10) ? ADCChannel::ch10 :
-						((pinDes.ulADCChannelNumber == ADC11) ? ADCChannel::ch11 :
-						((pinDes.ulADCChannelNumber == ADC12) ? ADCChannel::ch12 :
-						((pinDes.ulADCChannelNumber == ADC13) ? ADCChannel::ch13 :
-						((pinDes.ulADCChannelNumber == ADC14) ? ADCChannel::ch14 :
-						((pinDes.ulADCChannelNumber == ADC15) ? ADCChannel::ch15 :
-						(ADCChannel::noADC)))))))))))))))));
-			}
-
-			constexpr DACChannel pinDesToDACCh(PinDescription pinDes)
-			{
-				return	(pinDes.ulADCChannelNumber == NO_ADC) ? DACChannel::noDAC :
-						((pinDes.ulADCChannelNumber == DA0) ? DACChannel::ch0 :
-						((pinDes.ulADCChannelNumber == DA1) ? DACChannel::ch1 :
-						(DACChannel::noDAC)));
-			}
-
-			constexpr TCChannel pinDesToTCCh(PinDescription pinDes)
-			{
-				return	(pinDes.ulTCChannel == NOT_ON_TIMER) ? TCChannel::noTC :
-						((pinDes.ulTCChannel == TC0_CHA0) ? TCChannel::tc0ChA0 :
-						((pinDes.ulTCChannel == TC0_CHB0) ? TCChannel::tc0ChB0 :
-						((pinDes.ulTCChannel == TC0_CHA1) ? TCChannel::tc0ChA1 :
-						((pinDes.ulTCChannel == TC0_CHB1) ? TCChannel::tc0ChB1 :
-						((pinDes.ulTCChannel == TC0_CHA2) ? TCChannel::tc0ChA2 :
-						((pinDes.ulTCChannel == TC0_CHB2) ? TCChannel::tc0ChB2 :
-						((pinDes.ulTCChannel == TC1_CHA3) ? TCChannel::tc1ChA3 :
-						((pinDes.ulTCChannel == TC1_CHB3) ? TCChannel::tc1ChB3 :
-						((pinDes.ulTCChannel == TC1_CHA4) ? TCChannel::tc1ChA4 :
-						((pinDes.ulTCChannel == TC1_CHB4) ? TCChannel::tc1ChB4 :
-						((pinDes.ulTCChannel == TC1_CHA5) ? TCChannel::tc1ChA5 :
-						((pinDes.ulTCChannel == TC1_CHB5) ? TCChannel::tc1ChB5 :
-						((pinDes.ulTCChannel == TC2_CHA6) ? TCChannel::tc2ChA6 :
-						((pinDes.ulTCChannel == TC2_CHB6) ? TCChannel::tc2ChB6 :
-						((pinDes.ulTCChannel == TC2_CHA7) ? TCChannel::tc2ChA7 :
-						((pinDes.ulTCChannel == TC2_CHB7) ? TCChannel::tc2ChB7 :
-						((pinDes.ulTCChannel == TC2_CHA8) ? TCChannel::tc2ChA8 :
-						((pinDes.ulTCChannel == TC2_CHB8) ? TCChannel::tc2ChB8 :
-						(TCChannel::noTC)))))))))))))))))));
-			}
-
 		public:
-			const uint32_t pin;
+			const unsigned int pin;
 			Pio * const port;
 			const uint8_t portID;
 			const PinPeripherals pinPeripherals;
@@ -204,8 +205,8 @@ namespace JAFD
 			{}
 
 			// Normal constructor
-			constexpr PinInformation(uint32_t _pin, Pio * _port, uint8_t _portID, PinPeripherals _pinPeripherals, PWMChannel _pwmChannel, ADCChannel _adcChannel, DACChannel _dacChannel, TCChannel _tcChannel) :
-				pin(_pin),
+			constexpr PinInformation(unsigned int _pin, Pio * _port, uint8_t _portID, PinPeripherals _pinPeripherals, PWMChannel _pwmChannel, ADCChannel _adcChannel, DACChannel _dacChannel, TCChannel _tcChannel) :
+				pin(0),
 				port(_port),
 				portID(_portID),
 				pinPeripherals(_pinPeripherals),
@@ -216,8 +217,12 @@ namespace JAFD
 			{}
 		};
 		
+		//constexpr PinDescription a = PinDescription{ PIOA, PIO_PA8A_URXD,     ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT,  (PIN_ATTR_DIGITAL | PIN_ATTR_PWM),	NO_ADC, NO_ADC, PWM_CH0,	NOT_ON_TIMER };
+
+		constexpr PinInformation a = PinInformation( 0, PIOA, 0, PinPeripherals::onlyPio, PWMChannel::noPWM, ADCChannel::noADC, DACChannel::noDAC, TCChannel::noTC);
+
 		// Copied Arduino pin mapping and use constructor of own struct to convert
-		constexpr PinDescription MappedPins[] =
+		constexpr PinInformation MappedPins[] =
 		{
 			// 0 .. 53 - Digital pins
 			// ----------------------

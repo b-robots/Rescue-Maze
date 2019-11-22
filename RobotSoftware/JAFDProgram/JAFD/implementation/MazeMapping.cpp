@@ -21,7 +21,7 @@ namespace JAFD
 		void setGridCell(GridCell gridCell, MapCoordinate coor)
 		{
 			// Memory address
-			uint32_t address;
+			unsigned int address;
 			
 			// Calculate address
 			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
@@ -39,7 +39,7 @@ namespace JAFD
 		void getGridCell(GridCell* gridCell, MapCoordinate coor)
 		{
 			// Memory address
-			uint32_t address;
+			unsigned int address;
 
 			// Calculate address
 			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
@@ -61,7 +61,7 @@ namespace JAFD
 		void setGridCell(uint8_t bfsValue, MapCoordinate coor)
 		{
 			// Memory address
-			uint32_t address;
+			unsigned int address;
 			
 			// Calculate address
 			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
@@ -77,7 +77,7 @@ namespace JAFD
 		void getGridCell(uint8_t* bfsValue, MapCoordinate coor)
 		{
 			// Memory address
-			uint32_t address;
+			unsigned int address;
 
 			// Calculate address
 			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
@@ -96,7 +96,7 @@ namespace JAFD
 		void setGridCell(GridCell gridCell, uint8_t bfsValue, MapCoordinate coor)
 		{
 			// Memory address
-			uint32_t address;
+			unsigned int address;
 
 			// Calculate address
 			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
@@ -114,7 +114,7 @@ namespace JAFD
 		void getGridCell(GridCell* gridCell, uint8_t* bfsValue, MapCoordinate coor)
 		{
 			// Memory address
-			uint32_t address;
+			unsigned int address;
 
 			// Calculate address
 			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20

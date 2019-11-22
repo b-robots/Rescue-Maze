@@ -51,7 +51,7 @@ namespace JAFD
 			PinMapping::MappedPins[_ssPin].port->PIO_SODR = PinMapping::MappedPins[_ssPin].pin;
 		}
 
-		uint8_t readByte(uint32_t address)
+		uint8_t readByte(unsigned int address)
 		{
 			// Read Data
 			enable();
@@ -69,7 +69,7 @@ namespace JAFD
 			return val;
 		}
 
-		void writeByte(uint32_t address, uint8_t byte)
+		void writeByte(unsigned int address, uint8_t byte)
 		{
 			// Set Write Enable Bit
 			enable();
@@ -105,7 +105,7 @@ namespace JAFD
 
 			SPI.transfer((uint8_t)Instruction::read);
 
-			uint32_t address = numPage * pageSize;
+			unsigned int address = numPage * pageSize;
 
 			SPI.transfer((uint8_t)(address >> 16));
 			SPI.transfer((uint8_t)(address >> 8));
@@ -131,7 +131,7 @@ namespace JAFD
 
 			SPI.transfer((uint8_t)Instruction::write);
 
-			uint32_t address = numPage * pageSize;
+			unsigned int address = numPage * pageSize;
 
 			SPI.transfer((uint8_t)(address >> 16));
 			SPI.transfer((uint8_t)(address >> 8));
@@ -153,7 +153,7 @@ namespace JAFD
 			disable();
 		}
 
-		void readStream(uint32_t address, uint8_t* buffer, uint32_t length)
+		void readStream(unsigned int address, uint8_t* buffer, unsigned int length)
 		{
 			// Read Data
 			enable();
@@ -172,7 +172,7 @@ namespace JAFD
 			disable();
 		}
 
-		void writeStream(uint32_t address, uint8_t* buffer, uint32_t length)
+		void writeStream(unsigned int address, uint8_t* buffer, unsigned int length)
 		{
 			// Set Write Enable Bit
 			enable();
@@ -188,7 +188,7 @@ namespace JAFD
 			SPI.transfer((uint8_t)(address >> 8));
 			SPI.transfer((uint8_t)(address));
 
-			for (uint32_t i = 0; i < length; i++)
+			for (unsigned int i = 0; i < length; i++)
 			{
 				SPI.transfer(~(*(buffer++)));
 
@@ -240,7 +240,7 @@ namespace JAFD
 
 			SPI.transfer((uint8_t)Instruction::pe);
 
-			uint32_t address = numPage * pageSize;
+			unsigned int address = numPage * pageSize;
 
 
 			SPI.transfer((uint8_t)(address >> 16));
@@ -270,7 +270,7 @@ namespace JAFD
 
 			SPI.transfer((uint8_t)Instruction::se);
 
-			uint32_t address = numSector * sectorSize;
+			unsigned int address = numSector * sectorSize;
 
 
 			SPI.transfer((uint8_t)(address >> 16));

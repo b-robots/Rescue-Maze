@@ -19,7 +19,6 @@ namespace JAFD
 	{
 		namespace
 		{
-			constexpr PinMapping::PinInformation x = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::pwmPin];
 			constexpr uint8_t _mLPWM = JAFDSettings::MotorControl::Left::pwmPin;	// PWM pin left motor
 			constexpr uint8_t _mRPWM = JAFDSettings::MotorControl::Right::pwmPin;	// PWM pin right motor
 
@@ -35,8 +34,8 @@ namespace JAFD
 			constexpr uint8_t _mREncA = JAFDSettings::MotorControl::Right::encA;	// Encoder Pin A right motor
 			constexpr uint8_t _mREncB = JAFDSettings::MotorControl::Right::encB;	// Encoder Pin B right motor
 		
-			volatile int32_t _mLEncCnt = 0;		// Encoder count left motor
-			volatile int32_t _mREncCnt = 0;		// Encoder count right motor
+			volatile int _mLEncCnt = 0;		// Encoder count left motor
+			volatile int _mREncCnt = 0;		// Encoder count right motor
 
 			volatile float _mLSpeed = 0.0f;		// Speed left motor (cm/s)
 			volatile float _mRSpeed = 0.0f;		// Speed right motor (cm/s)
@@ -53,18 +52,18 @@ namespace JAFD
 			// Constexpr for pin and ports
 			constexpr Pio* mLDirPort = PinMapping::MappedPins[_mLDir].port;
 			constexpr Pio* mRDirPort = PinMapping::MappedPins[_mRDir].port;
-			constexpr uint32_t mLDirPin = PinMapping::MappedPins[_mLDir].pin;
-			constexpr uint32_t mRDirPin = PinMapping::MappedPins[_mRDir].pin;
+			constexpr unsigned int mLDirPin = PinMapping::MappedPins[_mLDir].pin;
+			constexpr unsigned int mRDirPin = PinMapping::MappedPins[_mRDir].pin;
 
 			constexpr Pio* mLEncAPort = PinMapping::MappedPins[_mLEncA].port;
 			constexpr Pio* mREncAPort = PinMapping::MappedPins[_mLEncA].port;
-			constexpr uint32_t mLEncAPin = PinMapping::MappedPins[_mLEncA].pin;
-			constexpr uint32_t mREncAPin = PinMapping::MappedPins[_mLEncA].pin;
+			constexpr unsigned int mLEncAPin = PinMapping::MappedPins[_mLEncA].pin;
+			constexpr unsigned int mREncAPin = PinMapping::MappedPins[_mLEncA].pin;
 
 			constexpr Pio* mLEncBPort = PinMapping::MappedPins[_mLEncB].port;
 			constexpr Pio* mREncBPort = PinMapping::MappedPins[_mLEncB].port;
-			constexpr uint32_t mLEncBPin = PinMapping::MappedPins[_mLEncB].pin;
-			constexpr uint32_t mREncBPin = PinMapping::MappedPins[_mLEncB].pin;
+			constexpr unsigned int mLEncBPin = PinMapping::MappedPins[_mLEncB].pin;
+			constexpr unsigned int mREncBPin = PinMapping::MappedPins[_mLEncB].pin;
 
 			// Set the pin modes for Dir - Pins / Encoder - Pins
 			// Left Dir
@@ -189,8 +188,8 @@ namespace JAFD
 
 		void inline calcMotorSpeed()
 		{
-			static int32_t lastLeftCnt = 0;
-			static int32_t lastRightCnt = 0;
+			static int lastLeftCnt = 0;
+			static int lastRightCnt = 0;
 
 			_mLSpeed = (lastLeftCnt - _mLEncCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI;
 			_mRSpeed = (lastRightCnt - _mREncCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI;
@@ -211,7 +210,7 @@ namespace JAFD
 			}
 		}
 
-		void encoderInterrupt(Interrupts::InterruptSource source, uint32_t isr)
+		void encoderInterrupt(Interrupts::InterruptSource source, unsigned int isr)
 		{
 			if (PinMapping::MappedPins[_mLEncA].portID == static_cast<uint8_t>(source) && (isr & PinMapping::MappedPins[_mLEncA].pin))
 			{
