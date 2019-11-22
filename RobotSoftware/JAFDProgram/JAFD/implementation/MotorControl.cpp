@@ -170,7 +170,7 @@ namespace JAFD
 			return ReturnCode::ok;
 		}
 
-		void inline calcMotorSpeed()
+		void calcMotorSpeed()
 		{
 			static int32_t lastLeftCnt = 0;
 			static int32_t lastRightCnt = 0;

@@ -23,6 +23,9 @@ namespace JAFD
 		// Get distance measured by encoder
 		float getDistance(Motor motor);
 
+		// Interrupthandler for speed calculation
+		void calcMotorSpeed();
+
 		// Interrupthandler for Encoder
 		void encoderInterrupt(Interrupts::InterruptSource source, uint32_t isr);
 
