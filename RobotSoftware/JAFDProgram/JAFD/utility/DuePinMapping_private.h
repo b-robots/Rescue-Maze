@@ -183,7 +183,7 @@ namespace JAFD
 		class PinInformation
 		{
 		public:
-			const unsigned int pin;
+			const uint32_t pin;
 			Pio * const port;
 			const uint8_t portID;
 			const PinPeripherals pinPeripherals;
@@ -205,8 +205,8 @@ namespace JAFD
 			{}
 
 			// Normal constructor
-			constexpr PinInformation(unsigned int _pin, Pio * _port, uint8_t _portID, PinPeripherals _pinPeripherals, PWMChannel _pwmChannel, ADCChannel _adcChannel, DACChannel _dacChannel, TCChannel _tcChannel) :
-				pin(0),
+			constexpr PinInformation(uint32_t _pin, Pio * _port, uint8_t _portID, PinPeripherals _pinPeripherals, PWMChannel _pwmChannel, ADCChannel _adcChannel, DACChannel _dacChannel, TCChannel _tcChannel) :
+				pin(pin),
 				port(_port),
 				portID(_portID),
 				pinPeripherals(_pinPeripherals),
@@ -216,10 +216,6 @@ namespace JAFD
 				tcChannel(_tcChannel)
 			{}
 		};
-		
-		//constexpr PinDescription a = PinDescription{ PIOA, PIO_PA8A_URXD,     ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT,  (PIN_ATTR_DIGITAL | PIN_ATTR_PWM),	NO_ADC, NO_ADC, PWM_CH0,	NOT_ON_TIMER };
-
-		constexpr PinInformation a = PinInformation( 0, PIOA, 0, PinPeripherals::onlyPio, PWMChannel::noPWM, ADCChannel::noADC, DACChannel::noDAC, TCChannel::noTC);
 
 		// Copied Arduino pin mapping and use constructor of own struct to convert
 		constexpr PinInformation MappedPins[] =

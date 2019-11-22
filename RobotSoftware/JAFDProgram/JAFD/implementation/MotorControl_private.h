@@ -24,7 +24,7 @@ namespace JAFD
 		float getDistance(Motor motor);
 
 		// Interrupthandler for Encoder
-		void encoderInterrupt(Interrupts::InterruptSource source, unsigned int isr);
+		void encoderInterrupt(Interrupts::InterruptSource source, uint32_t isr);
 
 		// Set motor speed
 		void setSpeed(Motor motor, float speed);

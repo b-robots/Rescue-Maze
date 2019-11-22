@@ -101,7 +101,7 @@ namespace JAFD
 		constexpr MapCoordinate homePosition = { 0, 0, 0 };
 
 		// Usable size for the maze mapping
-		constexpr unsigned int usableSize = 64 * 1024;
+		constexpr uint32_t usableSize = 64 * 1024;
 
 		// Maximum/minimum coordinates that can fit in the SRAM
 		constexpr int8_t maxX = 31;
