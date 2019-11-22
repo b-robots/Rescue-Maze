@@ -356,54 +356,54 @@ namespace JAFD
 		};
 
 		// Helping functions
-		constexpr bool hasPWM(uint8_t pin)
+		constexpr bool hasPWM(PinInformation pin)
 		{
-			return MappedPins[pin].pinPeripherals == PinPeripherals::pwm;
+			return pin.pinPeripherals == PinPeripherals::pwm;
 		}
 
-		constexpr bool hasADC(uint8_t pin)
+		constexpr bool hasADC(PinInformation pin)
 		{
-			return MappedPins[pin].pinPeripherals == PinPeripherals::adc;
+			return pin.pinPeripherals == PinPeripherals::adc;
 		}
 
-		constexpr bool hasDAC(uint8_t pin)
+		constexpr bool hasDAC(PinInformation pin)
 		{
-			return MappedPins[pin].pinPeripherals == PinPeripherals::dac;
+			return pin.pinPeripherals == PinPeripherals::dac;
 		}
 
-		constexpr bool hasTC(uint8_t pin)
+		constexpr bool hasTC(PinInformation pin)
 		{
-			return MappedPins[pin].pinPeripherals == PinPeripherals::tc;
+			return pin.pinPeripherals == PinPeripherals::tc;
 		}
 
-		constexpr uint8_t getPWMChannel(uint8_t pin)
+		constexpr uint8_t getPWMChannel(PinInformation pin)
 		{
-			return static_cast<uint8_t>(MappedPins[pin].pwmChannel);
+			return static_cast<uint8_t>(pin.pwmChannel);
 		}
 
-		constexpr uint8_t getADCChannel(uint8_t pin)
+		constexpr uint8_t getADCChannel(PinInformation pin)
 		{
-			return static_cast<uint8_t>(MappedPins[pin].adcChannel);
+			return static_cast<uint8_t>(pin.adcChannel);
 		}
 		
-		constexpr uint8_t getTCChannel(uint8_t pin)
+		constexpr uint8_t getTCChannel(PinInformation pin)
 		{
-			return static_cast<uint8_t>(MappedPins[pin].tcChannel) / 6;
+			return static_cast<uint8_t>(pin.tcChannel) / 6;
 		}
 		
-		constexpr bool toABPeripheral(uint8_t pin)
+		constexpr bool toABPeripheral(PinInformation pin)
 		{
 			return	(hasPWM(pin)) ?
 						true :
 					((hasTC(pin)) ? 
 						(getTCChannel(pin) == 2 ||
-						(getTCChannel(pin) == 0 && MappedPins[pin].port == PIOB) ||
-						(MappedPins[pin].pin == PIO_PB0 ||
-						MappedPins[pin].pin == PIO_PB2 ||
-						MappedPins[pin].pin == PIO_PB4 ||
-						MappedPins[pin].pin == PIO_PB1 ||
-						MappedPins[pin].pin == PIO_PB3 || 
-						MappedPins[pin].pin == PIO_PB5)) :
+						(getTCChannel(pin) == 0 && pin.port == PIOB) ||
+						(pin.pin == PIO_PB0 ||
+						pin.pin == PIO_PB2 ||
+						pin.pin == PIO_PB4 ||
+						pin.pin == PIO_PB1 ||
+						pin.pin == PIO_PB3 || 
+						pin.pin == PIO_PB5)) :
 					false);
 		}
 	}

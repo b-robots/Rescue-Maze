@@ -29,26 +29,25 @@ namespace JAFD
 				dpd = 0b10111001 // Deep Power-Down mode
 			};
 
-			constexpr uint8_t _ssPin = JAFDSettings::SpiEeprom::ssPin;	// Slave-Select Pin
+			constexpr auto _ssPin = PinMapping::MappedPins[JAFDSettings::SpiEeprom::ssPin];		// Slave-Select Pin
 		}
 
 		ReturnCode spiEepromSetup()
 		{
-			PMC->PMC_PCER0 = 1 << PinMapping::MappedPins[_ssPin].portID;
-			PinMapping::MappedPins[_ssPin].port->PIO_PER = PinMapping::MappedPins[_ssPin].pin;
-			PinMapping::MappedPins[_ssPin].port->PIO_OER = PinMapping::MappedPins[_ssPin].pin;
+			_ssPin.port->PIO_PER = _ssPin.pin;
+			_ssPin.port->PIO_OER = _ssPin.pin;
 
 			return ReturnCode::ok;
 		}
 
 		void enable()
 		{
-			PinMapping::MappedPins[_ssPin].port->PIO_CODR = PinMapping::MappedPins[_ssPin].pin;
+			_ssPin.port->PIO_CODR = _ssPin.pin;
 		}
 
 		void disable()
 		{
-			PinMapping::MappedPins[_ssPin].port->PIO_SODR = PinMapping::MappedPins[_ssPin].pin;
+			_ssPin.port->PIO_SODR = _ssPin.pin;
 		}
 
 		uint8_t readByte(uint32_t address)

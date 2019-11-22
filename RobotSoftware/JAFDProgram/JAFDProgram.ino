@@ -27,6 +27,7 @@ void setup() {
 	{
 		while (true);
 	}
+
 	setSpeed(Motor::left, 0.5f);
 	setSpeed(Motor::right, 0.5f);
 }
