@@ -206,7 +206,7 @@ namespace JAFD
 
 			// Normal constructor
 			constexpr PinInformation(uint32_t _pin, Pio * _port, uint8_t _portID, PinPeripherals _pinPeripherals, PWMChannel _pwmChannel, ADCChannel _adcChannel, DACChannel _dacChannel, TCChannel _tcChannel) :
-				pin(pin),
+				pin(_pin),
 				port(_port),
 				portID(_portID),
 				pinPeripherals(_pinPeripherals),

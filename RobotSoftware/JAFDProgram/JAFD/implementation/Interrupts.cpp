@@ -31,17 +31,10 @@ void PIOD_Handler()
 	JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioD, PIOD->PIO_ISR);
 }
 
-void TC0_Handler()
+void TC6_Handler()
 {
-
-}
-
-void TC1_Handler()
-{
-
-}
-
-void TC2_Handler()
-{
-	JAFD::MotorControl::calcMotorSpeed();
+	if (TC2->TC_CHANNEL[0].TC_SR & TC_SR_COVFS)
+	{
+		JAFD::MotorControl::calcMotorSpeed();
+	}
 }

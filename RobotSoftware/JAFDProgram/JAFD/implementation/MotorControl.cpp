@@ -100,6 +100,14 @@ namespace JAFD
 			_mREncB.port->PIO_SCDR = PIO_SCDR_DIV(0);
 			_mREncB.port->PIO_IFER = _mREncB.pin;
 
+			// Setup interrupts for rotary encoder pins
+			// ISR Priority = 5
+			NVIC_EnableIRQ(static_cast<IRQn_Type>(_mLEncA.portID));
+			NVIC_EnableIRQ(static_cast<IRQn_Type>(_mREncA.portID));
+
+			NVIC_SetPriority(static_cast<IRQn_Type>(_mLEncA.portID), 5);
+			NVIC_SetPriority(static_cast<IRQn_Type>(_mREncA.portID), 5);
+
 			// Setup PWM - Controller (20kHz)
 			const uint8_t mLPWMCh = PinMapping::getPWMChannel(_mLPWM);
 			const uint8_t mRPWMCh = PinMapping::getPWMChannel(_mRPWM);
@@ -119,6 +127,8 @@ namespace JAFD
 
 			_mLPWM.port->PIO_PDR = _mLPWM.pin;
 			_mRPWM.port->PIO_PDR = _mRPWM.pin;
+			//uint32_t;
+			//static_assert(PinMapping::toABPeripheral(_mLPWM), "");
 
 			if (PinMapping::toABPeripheral(_mLPWM))
 			{
@@ -148,38 +158,47 @@ namespace JAFD
 			ADC->ADC_CGR = ADC_CGR_GAIN0(0b11);
 			ADC->ADC_CHER = 1 << mLADCCh | 1 << mRADCCh;
 
-			// Setup interrupts for rotary encoder pins
-			NVIC_EnableIRQ(static_cast<IRQn_Type>(_mLEncA.portID));
-			NVIC_EnableIRQ(static_cast<IRQn_Type>(_mREncA.portID));
-
-			NVIC_SetPriority(static_cast<IRQn_Type>(_mLEncA.portID), 5);
-			NVIC_SetPriority(static_cast<IRQn_Type>(_mREncA.portID), 5);
-
 			// Setup TC for an interrupt every 100ms -> 10Hz (MCK / 128 / 65625) for motor speed calculation
 			// Use TC2 - Channel 6
+			// ISR Priority = 6
 			PMC->PMC_PCER0 = PMC_PCER0_PID29;
-
-			NVIC_EnableIRQ(TC2_IRQn);
-			NVIC_SetPriority(TC2_IRQn, 6);
 
 			TC2->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;
 			TC2->TC_CHANNEL[0].TC_RC = 65625;
 			
 			TC2->TC_CHANNEL[0].TC_CCR = TC_CCR_SWTRG;
 
+			TC2->TC_CHANNEL[0].TC_IER = TC_IER_COVFS;
+			TC2->TC_CHANNEL[0].TC_IDR = ~TC_IDR_COVFS;
+
+			NVIC_EnableIRQ(TC2_IRQn);
+			NVIC_SetPriority(TC2_IRQn, 6);
+
 			return ReturnCode::ok;
 		}
 
 		void calcMotorSpeed()
 		{
-			static int32_t lastLeftCnt = 0;
-			static int32_t lastRightCnt = 0;
+			volatile static int32_t lastLeftCnt = 0;
+			volatile static int32_t lastRightCnt = 0;
 
-			_mLSpeed = (lastLeftCnt - _mLEncCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI;
-			_mRSpeed = (lastRightCnt - _mREncCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI;
+			_mLSpeed = (lastLeftCnt - _mLEncCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * 10.0f;
+			_mRSpeed = (lastRightCnt - _mREncCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * 10.0f;
 
 			lastLeftCnt = _mLEncCnt;
 			lastRightCnt = _mREncCnt;
+		}
+
+		float getVelocity(Motor motor)
+		{
+			if (motor == Motor::left)
+			{
+				return _mLSpeed;
+			}
+			else
+			{
+				return _mRSpeed;
+			}
 		}
 
 		float getDistance(Motor motor)
