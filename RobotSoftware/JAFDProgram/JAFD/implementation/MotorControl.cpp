@@ -101,12 +101,12 @@ namespace JAFD
 			_mREncB.port->PIO_IFER = _mREncB.pin;
 
 			// Setup interrupts for rotary encoder pins
-			// ISR Priority = 5
+			// ISR Priority = 4
 			NVIC_EnableIRQ(static_cast<IRQn_Type>(_mLEncA.portID));
 			NVIC_EnableIRQ(static_cast<IRQn_Type>(_mREncA.portID));
 
-			NVIC_SetPriority(static_cast<IRQn_Type>(_mLEncA.portID), 5);
-			NVIC_SetPriority(static_cast<IRQn_Type>(_mREncA.portID), 5);
+			NVIC_SetPriority(static_cast<IRQn_Type>(_mLEncA.portID), 4);
+			NVIC_SetPriority(static_cast<IRQn_Type>(_mREncA.portID), 4);
 
 			// Setup PWM - Controller (20kHz)
 			const uint8_t mLPWMCh = PinMapping::getPWMChannel(_mLPWM);
@@ -127,8 +127,6 @@ namespace JAFD
 
 			_mLPWM.port->PIO_PDR = _mLPWM.pin;
 			_mRPWM.port->PIO_PDR = _mRPWM.pin;
-			//uint32_t;
-			//static_assert(PinMapping::toABPeripheral(_mLPWM), "");
 
 			if (PinMapping::toABPeripheral(_mLPWM))
 			{
@@ -157,22 +155,6 @@ namespace JAFD
 			ADC->ADC_MR = ADC_MR_FREERUN_ON | ADC_MR_PRESCAL(3) | ADC_MR_STARTUP_SUT896 | ADC_MR_SETTLING_AST5 | ADC_MR_TRACKTIM(0) | ADC_MR_TRANSFER(1);
 			ADC->ADC_CGR = ADC_CGR_GAIN0(0b11);
 			ADC->ADC_CHER = 1 << mLADCCh | 1 << mRADCCh;
-
-			// Setup TC for an interrupt every 100ms -> 10Hz (MCK / 128 / 65625) for motor speed calculation
-			// Use TC2 - Channel 6
-			// ISR Priority = 6
-			PMC->PMC_PCER0 = PMC_PCER0_PID29;
-
-			TC2->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;
-			TC2->TC_CHANNEL[0].TC_RC = 65625;
-			
-			TC2->TC_CHANNEL[0].TC_CCR = TC_CCR_SWTRG;
-
-			TC2->TC_CHANNEL[0].TC_IER = TC_IER_COVFS;
-			TC2->TC_CHANNEL[0].TC_IDR = ~TC_IDR_COVFS;
-
-			NVIC_EnableIRQ(TC2_IRQn);
-			NVIC_SetPriority(TC2_IRQn, 6);
 
 			return ReturnCode::ok;
 		}

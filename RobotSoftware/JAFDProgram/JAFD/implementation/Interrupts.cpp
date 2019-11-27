@@ -31,10 +31,33 @@ void PIOD_Handler()
 	JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioD, PIOD->PIO_ISR);
 }
 
-void TC6_Handler()
+// TC0 - TC2 are reserved for Arduino Framework
+
+// 1kHz 
+void TC3_Handler()
 {
-	if (TC2->TC_CHANNEL[0].TC_SR & TC_SR_COVFS)
+
+}
+
+// 100Hz / 10Hz / 1Hz
+void TC4_Handler()
+{
+	static uint8_t i = 0;
+
+	i++;
+
+	// 100Hz:
+
+	if (i % 10 == 0)
 	{
+		// 10Hz:
 		JAFD::MotorControl::calcMotorSpeed();
+
+		if (i % 100 == 0)
+		{
+			i = 0;
+
+			// 1Hz:
+		}
 	}
 }

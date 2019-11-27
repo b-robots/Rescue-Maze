@@ -44,9 +44,7 @@ typedef unsigned char byte;
 extern "C" void __cxa_pure_virtual() {;}
 
 #define __INTPTR_TYPE__ long
-#define __UINTPTR_TYPE__ unsigned long
 #define __INT32_TYPE__ long
-#define __UINT32_TYPE__ unsigned long
 #define _Pragma(x) pragma
 
 
