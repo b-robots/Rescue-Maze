@@ -23,6 +23,9 @@ namespace JAFD
 		// Get distance measured by encoder
 		float getDistance(Motor motor);
 
+		// Get measured velocity
+		float getVelocity(Motor motor);
+
 		// Interrupthandler for speed calculation
 		void calcMotorSpeed();
 

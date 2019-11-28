@@ -36,7 +36,7 @@ void PIOD_Handler()
 // 1kHz 
 void TC3_Handler()
 {
-
+	TC1->TC_CHANNEL[0].TC_SR;
 }
 
 // 100Hz / 10Hz / 1Hz
@@ -44,8 +44,9 @@ void TC4_Handler()
 {
 	static uint8_t i = 0;
 
-	i++;
+	TC1->TC_CHANNEL[1].TC_SR;
 
+	i++;
 	// 100Hz:
 
 	if (i % 10 == 0)

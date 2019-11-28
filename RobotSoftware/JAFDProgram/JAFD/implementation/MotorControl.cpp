@@ -100,6 +100,10 @@ namespace JAFD
 			_mREncB.port->PIO_SCDR = PIO_SCDR_DIV(0);
 			_mREncB.port->PIO_IFER = _mREncB.pin;
 
+			// Discard first interrupt
+			_mREncA.port->PIO_ISR;
+			_mLEncA.port->PIO_ISR;
+
 			// Setup interrupts for rotary encoder pins
 			// ISR Priority = 4
 			NVIC_EnableIRQ(static_cast<IRQn_Type>(_mLEncA.portID));
@@ -161,11 +165,11 @@ namespace JAFD
 
 		void calcMotorSpeed()
 		{
-			volatile static int32_t lastLeftCnt = 0;
-			volatile static int32_t lastRightCnt = 0;
+			static int32_t lastLeftCnt = 0;
+			static int32_t lastRightCnt = 0;
 
-			_mLSpeed = (lastLeftCnt - _mLEncCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * 10.0f;
-			_mRSpeed = (lastRightCnt - _mREncCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * 10.0f;
+			_mLSpeed = (_mLEncCnt - lastLeftCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * 10.0f;
+			_mRSpeed = (_mREncCnt - lastRightCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * 10.0f;
 
 			lastLeftCnt = _mLEncCnt;
 			lastRightCnt = _mREncCnt;
@@ -224,7 +228,7 @@ namespace JAFD
 
 		void setSpeed(Motor motor, float speed)
 		{
-			static uint8_t pwmCh;
+			uint8_t pwmCh;
 
 			if (motor == Motor::left)
 			{

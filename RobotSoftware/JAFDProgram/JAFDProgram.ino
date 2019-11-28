@@ -14,6 +14,8 @@
 #include "JAFD/JAFD.h"
 #include "JAFD/implementation/MotorControl_private.h"
 #include "JAFD/implementation/MazeMapping_private.h"
+#include "JAFD/implementation/Interrupts_private.h"
+
 using namespace JAFD::MazeMapping;
 using namespace JAFD::MotorControl;
 
@@ -28,7 +30,7 @@ void setup() {
 		while (true);
 	}
 
-	setSpeed(Motor::left, 0.5f);
+	setSpeed(Motor::left, 1.0f);
 	setSpeed(Motor::right, 0.5f);
 }
 
@@ -39,4 +41,10 @@ void loop() {
 	{
 		while (true);
 	}
+
+	delay(500);
+
+	Serial.print(getVelocity(Motor::left));
+	Serial.print(", ");
+	Serial.println(getDistance(Motor::left));
 }
