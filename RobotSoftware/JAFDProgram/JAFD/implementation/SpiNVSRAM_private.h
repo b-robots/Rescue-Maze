@@ -1,5 +1,5 @@
 /*
-This private file of the library is responsible for the access to the SPI EEPROM
+This private file of the library is responsible for the access to the SPI NVSRAM
 */
 
 #pragma once
@@ -17,9 +17,8 @@ This private file of the library is responsible for the access to the SPI EEPROM
 
 namespace JAFD
 {
-	// Namespace for the SPI EEPROM "25LC1024"
-	// The written data is stored inverted in the EEPROM -> default value is '0'
-	namespace SpiEeprom
+	// Namespace for the SPI NVSRAM "23LCV1024"
+	namespace SpiNVSRAM
 	{
 		// Helping functions
 		void enable();
@@ -27,10 +26,9 @@ namespace JAFD
 
 		// Devise specific constants
 		constexpr uint16_t pageSize = 256;
-		constexpr uint16_t sectorSize = 32000;
 
 		// Init
-		ReturnCode spiEepromSetup();
+		ReturnCode spiNvsramSetup();
 
 		// Read and write functions
 		uint8_t readByte(uint32_t address);
@@ -39,10 +37,5 @@ namespace JAFD
 		void writePage(uint16_t numPage, uint8_t* buffer);
 		void readStream(uint32_t address, uint8_t* buffer, uint32_t length);
 		void writeStream(uint32_t address, uint8_t* buffer, uint32_t length);
-
-		// Erase functions
-		void erasePage(uint16_t numPage);
-		void eraseSector(uint8_t numSector);
-		void eraseChip();
 	}
 }

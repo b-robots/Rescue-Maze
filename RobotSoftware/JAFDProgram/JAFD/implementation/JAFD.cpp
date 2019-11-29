@@ -8,7 +8,7 @@
 #include "MazeMapping_private.h"
 #include "Dispenser_private.h"
 #include "MotorControl_private.h"
-#include "SpiEeprom_private.h"
+#include "SpiNVSRAM_private.h"
 
 #include <SPI.h>
 
@@ -72,7 +72,7 @@ namespace JAFD
 		}
 
 		// Setup of SPI EEPROM
-		if (SpiEeprom::spiEepromSetup() != ReturnCode::ok)
+		if (SpiNVSRAM::spiNvsramSetup() != ReturnCode::ok)
 		{
 			return ReturnCode::fatalError;
 		}

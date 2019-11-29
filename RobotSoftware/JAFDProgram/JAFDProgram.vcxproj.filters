@@ -39,9 +39,6 @@
     <ClInclude Include="JAFD\implementation\MotorControl_private.h">
       <Filter>implementation\private</Filter>
     </ClInclude>
-    <ClInclude Include="JAFD\implementation\SpiEeprom_private.h">
-      <Filter>implementation\private</Filter>
-    </ClInclude>
     <ClInclude Include="JAFD\utility\DuePinMapping_private.h">
       <Filter>utility\private</Filter>
     </ClInclude>
@@ -59,6 +56,9 @@
       <Filter>implementation\private</Filter>
     </ClInclude>
     <ClInclude Include="__vm\.JAFDProgram.vsarduino.h" />
+    <ClInclude Include="JAFD\implementation\SpiNVSRAM_private.h">
+      <Filter>implementation\private</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="JAFD\implementation\Dispenser.cpp">
@@ -73,13 +73,13 @@
     <ClCompile Include="JAFD\implementation\MotorControl.cpp">
       <Filter>implementation\private</Filter>
     </ClCompile>
-    <ClCompile Include="JAFD\implementation\SpiEEprom.cpp">
-      <Filter>implementation\private</Filter>
-    </ClCompile>
     <ClCompile Include="JAFD\implementation\Bno055.cpp">
       <Filter>implementation\private</Filter>
     </ClCompile>
     <ClCompile Include="JAFD\implementation\Interrupts.cpp">
+      <Filter>implementation\private</Filter>
+    </ClCompile>
+    <ClCompile Include="JAFD\implementation\SpiNVSRAM.cpp">
       <Filter>implementation\private</Filter>
     </ClCompile>
   </ItemGroup>
