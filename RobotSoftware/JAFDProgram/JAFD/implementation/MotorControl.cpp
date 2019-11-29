@@ -163,13 +163,13 @@ namespace JAFD
 			return ReturnCode::ok;
 		}
 
-		void calcMotorSpeed()
+		void calcMotorSpeed(const uint8_t freq)
 		{
 			static int32_t lastLeftCnt = 0;
 			static int32_t lastRightCnt = 0;
 
-			_mLSpeed = (_mLEncCnt - lastLeftCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * 10.0f;
-			_mRSpeed = (_mREncCnt - lastRightCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * 10.0f;
+			_mLSpeed = (_mLEncCnt - lastLeftCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq;
+			_mRSpeed = (_mREncCnt - lastRightCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq;
 
 			lastLeftCnt = _mLEncCnt;
 			lastRightCnt = _mREncCnt;

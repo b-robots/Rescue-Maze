@@ -6,6 +6,7 @@ This part of the Library is responsible for driving the motors.
 
 #include "ReturnCode_public.h"
 #include "Interrupts_private.h"
+#include <stdint.h>
 
 namespace JAFD
 {
@@ -27,7 +28,7 @@ namespace JAFD
 		float getVelocity(Motor motor);
 
 		// Interrupthandler for speed calculation
-		void calcMotorSpeed();
+		void calcMotorSpeed(const uint8_t dt);
 
 		// Interrupthandler for Encoder
 		void encoderInterrupt(Interrupts::InterruptSource source, uint32_t isr);

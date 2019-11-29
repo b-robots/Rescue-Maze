@@ -49,16 +49,31 @@ void TC4_Handler()
 	i++;
 	// 100Hz:
 
-	if (i % 10 == 0)
+	if (i % 2 == 0)
 	{
-		// 10Hz:
-		JAFD::MotorControl::calcMotorSpeed();
+		// 50Hz:
+	}
 
-		if (i % 100 == 0)
+	if (i % 5 == 0)
+	{
+		// 20Hz:
+
+		if (i % 10 == 0)
 		{
-			i = 0;
+			// 10Hz:
 
-			// 1Hz:
+			if (i % 20 == 0)
+			{
+				// 5Hz:
+				JAFD::MotorControl::calcMotorSpeed(5);
+
+				if (i % 100 == 0)
+				{
+					i = 0;
+
+					// 1Hz:
+				}
+			}
 		}
 	}
 }

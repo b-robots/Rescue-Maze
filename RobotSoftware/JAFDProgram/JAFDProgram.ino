@@ -19,6 +19,8 @@
 using namespace JAFD::MazeMapping;
 using namespace JAFD::MotorControl;
 
+float x = 0.0f;
+
 // The setup function runs once when you press reset or power the board
 void setup() {
 	// For testing
@@ -30,7 +32,7 @@ void setup() {
 		while (true);
 	}
 
-	setSpeed(Motor::left, 1.0f);
+	setSpeed(Motor::left, 0.5f);
 	setSpeed(Motor::right, 0.5f);
 }
 
@@ -41,10 +43,4 @@ void loop() {
 	{
 		while (true);
 	}
-
-	delay(500);
-
-	Serial.print(getVelocity(Motor::left));
-	Serial.print(", ");
-	Serial.println(getDistance(Motor::left));
 }

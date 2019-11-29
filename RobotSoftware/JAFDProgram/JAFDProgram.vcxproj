@@ -146,7 +146,7 @@
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties config.Debug.customdebug_arduino_due_x_dbg_debugger_type="universal" arduino.upload.port="COM26" />
+      <UserProperties config.Debug.customdebug_arduino_due_x_dbg_debugger_type="universal" custom_arduino_due_x_dbg_vm.programmer_name="" arduino.upload.port="COM26" custom_arduino_due_x_dbg_vm.upload.useprogrammer="0" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>
