@@ -33,7 +33,11 @@ namespace JAFD
 
 			constexpr auto _mREncA = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::encA];	// Encoder Pin A right motor
 			constexpr auto _mREncB = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::encB];	// Encoder Pin B right motor
-		
+			
+			constexpr auto _kp = JAFDSettings::MotorControl::kp;
+			constexpr auto _ki = JAFDSettings::MotorControl::ki;
+			constexpr auto _kd = JAFDSettings::MotorControl::kd;
+
 			volatile int32_t _mLEncCnt = 0;		// Encoder count left motor
 			volatile int32_t _mREncCnt = 0;		// Encoder count right motor
 
@@ -173,6 +177,15 @@ namespace JAFD
 
 			lastLeftCnt = _mLEncCnt;
 			lastRightCnt = _mREncCnt;
+		}
+
+		void speedPID(const uint8_t dt)
+		{
+			static float _mLlastVel = 0.0f;
+			static float _mLVelSum = 0.0f;
+
+			static float _mRlastVel = 0.0f;
+			static float _mRVelSum = 0.0f;
 		}
 
 		float getVelocity(Motor motor)

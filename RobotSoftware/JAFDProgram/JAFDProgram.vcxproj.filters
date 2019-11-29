@@ -59,6 +59,9 @@
     <ClInclude Include="JAFD\implementation\SpiNVSRAM_private.h">
       <Filter>implementation\private</Filter>
     </ClInclude>
+    <ClInclude Include="JAFD\implementation\SensorFusion_private.h">
+      <Filter>implementation\private</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="JAFD\implementation\Dispenser.cpp">
@@ -80,6 +83,9 @@
       <Filter>implementation\private</Filter>
     </ClCompile>
     <ClCompile Include="JAFD\implementation\SpiNVSRAM.cpp">
+      <Filter>implementation\private</Filter>
+    </ClCompile>
+    <ClCompile Include="JAFD\implementation\SensorFusion.cpp">
       <Filter>implementation\private</Filter>
     </ClCompile>
   </ItemGroup>

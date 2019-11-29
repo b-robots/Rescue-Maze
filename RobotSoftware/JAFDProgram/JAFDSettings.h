@@ -19,6 +19,11 @@ namespace JAFDSettings
 
 	namespace MotorControl
 	{
+		// PID - Values
+		constexpr float kp = 1.0f;
+		constexpr float ki = 1.0f;
+		constexpr float kd = 1.0f;
+
 		namespace Left
 		{
 			constexpr uint8_t pwmPin = 34;	// PWM pin left motor

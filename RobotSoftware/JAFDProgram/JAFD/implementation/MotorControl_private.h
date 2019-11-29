@@ -30,6 +30,9 @@ namespace JAFD
 		// Interrupthandler for speed calculation
 		void calcMotorSpeed(const uint8_t dt);
 
+		// Interrupthandler for speed PID-Loop
+		void speedPID(const uint8_t dt);
+
 		// Interrupthandler for Encoder
 		void encoderInterrupt(Interrupts::InterruptSource source, uint32_t isr);
 
