@@ -31,11 +31,11 @@ namespace JAFD
 		ReturnCode spiNvsramSetup();
 
 		// Read and write functions
-		uint8_t readByte(uint32_t address);
-		void writeByte(uint32_t address, uint8_t byte);
-		void readPage(uint16_t numPage, uint8_t* buffer);
-		void writePage(uint16_t numPage, uint8_t* buffer);
-		void readStream(uint32_t address, uint8_t* buffer, uint32_t length);
-		void writeStream(uint32_t address, uint8_t* buffer, uint32_t length);
+		uint8_t readByte(const uint32_t address);
+		void writeByte(const uint32_t address, const uint8_t byte);
+		void readPage(const uint16_t numPage, uint8_t* buffer);
+		void writePage(const uint16_t numPage, uint8_t* buffer);
+		void readStream(const uint32_t address, uint8_t* buffer, const uint32_t length);
+		void writeStream(uint32_t address, uint8_t* buffer, const uint32_t length);
 	}
 }

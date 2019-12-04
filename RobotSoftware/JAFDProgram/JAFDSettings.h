@@ -14,6 +14,11 @@ In this file are all settings needed for the robot
 
 namespace JAFDSettings
 {
+	namespace Mechanics
+	{
+		constexpr float wheelDiameter = 8.0f;
+	}
+
 	namespace SpiEeprom
 	{
 		constexpr uint8_t ssPin = 10;
@@ -25,6 +30,8 @@ namespace JAFDSettings
 		constexpr float kp = 1.0f;
 		constexpr float ki = 1.0f;
 		constexpr float kd = 1.0f;
+
+		constexpr float cmPSToPerc = 1.0f / (Mechanics::wheelDiameter * M_PI * 210.0f);	// Conversion factor from cm/s to motor PWM duty cycle
 
 		namespace Left
 		{
@@ -43,11 +50,6 @@ namespace JAFDSettings
 			constexpr uint8_t encA = 24;	// Encoder Pin A
 			constexpr uint8_t encB = 25;	// Encoder Pin B
 		}
-	}
-
-	namespace Mechanics
-	{
-		constexpr float wheelDiameter = 8.0f;
 	}
 
 	namespace Dispenser

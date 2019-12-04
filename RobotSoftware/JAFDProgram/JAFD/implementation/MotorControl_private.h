@@ -22,10 +22,10 @@ namespace JAFD
 		ReturnCode motorControlSetup();
 
 		// Get distance measured by encoder
-		float getDistance(Motor motor);
+		float getDistance(const Motor motor);
 
 		// Get measured velocity
-		float getVelocity(Motor motor);
+		float getVelocity(const Motor motor);
 
 		// Interrupthandler for speed calculation
 		void calcMotorSpeed(const uint8_t dt);
@@ -34,12 +34,12 @@ namespace JAFD
 		void speedPID(const uint8_t dt);
 
 		// Interrupthandler for Encoder
-		void encoderInterrupt(Interrupts::InterruptSource source, uint32_t isr);
+		void encoderInterrupt(const Interrupts::InterruptSource source, const uint32_t isr);
 
 		// Set motor speed
-		void setSpeed(Motor motor, float speed);
+		void setSpeed(const Motor motor, float speed);
 
 		// Get the current
-		float getCurrent(Motor motor);
+		float getCurrent(const Motor motor);
 	}
 }

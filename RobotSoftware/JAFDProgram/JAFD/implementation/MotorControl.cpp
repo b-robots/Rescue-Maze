@@ -37,6 +37,8 @@ namespace JAFD
 			constexpr auto _ki = JAFDSettings::MotorControl::ki;	// Ki factor for PID speed controller
 			constexpr auto _kd = JAFDSettings::MotorControl::kd;	// Kd factor for PID speed controller
 
+			constexpr auto _cmPSToPerc = JAFDSettings::MotorControl::cmPSToPerc;	// Conversion factor from cm/s to motor PWM duty cycle
+
 			constexpr uint8_t _lPWMCh = PinMapping::getPWMChannel(_lPWM);	// Left motor PWM channel
 			constexpr uint8_t _rPWMCh = PinMapping::getPWMChannel(_rPWM);	// Right motor PWM channel
 
@@ -48,6 +50,9 @@ namespace JAFD
 
 			volatile float _lSpeed = 0.0f;		// Speed left motor (cm/s)
 			volatile float _rSpeed = 0.0f;		// Speed right motor (cm/s)
+
+			volatile float _lDesSpeed = 0.0f;	// Desired speed left motor (cm/s)
+			volatile float _rDesSpeed = 0.0f;	// Desired speed left motor (cm/s)
 		}
 
 		ReturnCode motorControlSetup()
@@ -185,9 +190,14 @@ namespace JAFD
 
 			static float _rlastVel = 0.0f;
 			static float _rVelSum = 0.0f;
+
+
+
+			_llastVel = _lSpeed;
+			_rlastVel = _rSpeed;
 		}
 
-		float getVelocity(Motor motor)
+		float getVelocity(const Motor motor)
 		{
 			if (motor == Motor::left)
 			{
@@ -199,7 +209,7 @@ namespace JAFD
 			}
 		}
 
-		float getDistance(Motor motor)
+		float getDistance(const Motor motor)
 		{
 			if (motor == Motor::left)
 			{
@@ -211,7 +221,7 @@ namespace JAFD
 			}
 		}
 
-		void encoderInterrupt(Interrupts::InterruptSource source, uint32_t isr)
+		void encoderInterrupt(const Interrupts::InterruptSource source, const uint32_t isr)
 		{
 			if (_lEncA.portID == static_cast<uint8_t>(source) && (isr & _lEncA.pin))
 			{
@@ -238,7 +248,7 @@ namespace JAFD
 			}
 		}
 
-		void setSpeed(Motor motor, float speed)
+		void setSpeed(const Motor motor, const float speed)
 		{
 			uint8_t pwmCh;
 
@@ -276,7 +286,7 @@ namespace JAFD
 			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 		}
 
-		float getCurrent(Motor motor)
+		float getCurrent(const Motor motor)
 		{
 			float result = 0.0f;
 

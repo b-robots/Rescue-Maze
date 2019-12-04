@@ -43,7 +43,7 @@ namespace JAFD
 			_ssPin.port->PIO_SODR = _ssPin.pin;
 		}
 
-		uint8_t readByte(uint32_t address)
+		uint8_t readByte(const uint32_t address)
 		{
 			// Set Byte Mode
 			enable();
@@ -69,7 +69,7 @@ namespace JAFD
 			return val;
 		}
 
-		void writeByte(uint32_t address, uint8_t byte)
+		void writeByte(const uint32_t address, const uint8_t byte)
 		{
 			// Set Byte Mode
 			enable();
@@ -93,7 +93,7 @@ namespace JAFD
 			disable();
 		}
 
-		void readPage(uint16_t numPage, uint8_t* buffer)
+		void readPage(const uint16_t numPage, uint8_t* buffer)
 		{
 			// Set Page Mode
 			enable();
@@ -122,7 +122,7 @@ namespace JAFD
 			disable();
 		}
 
-		void writePage(uint16_t numPage, uint8_t* buffer)
+		void writePage(const uint16_t numPage, uint8_t* buffer)
 		{
 			// Set Page Mode
 			enable();
@@ -151,7 +151,7 @@ namespace JAFD
 			disable();
 		}
 
-		void readStream(uint32_t address, uint8_t* buffer, uint32_t length)
+		void readStream(const uint32_t address, uint8_t* buffer, const uint32_t length)
 		{
 			// Set Stream Mode
 			enable();
@@ -178,7 +178,7 @@ namespace JAFD
 			disable();
 		}
 
-		void writeStream(uint32_t address, uint8_t* buffer, uint32_t length)
+		void writeStream(uint32_t address, uint8_t* buffer, const uint32_t length)
 		{
 			// Set Stream Mode
 			enable();
