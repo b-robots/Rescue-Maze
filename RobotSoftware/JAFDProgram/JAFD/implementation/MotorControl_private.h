@@ -36,7 +36,7 @@ namespace JAFD
 		// Interrupthandler for Encoder
 		void encoderInterrupt(const Interrupts::InterruptSource source, const uint32_t isr);
 
-		// Set motor speed
+		// Set motor speed (cm/2)
 		void setSpeed(const Motor motor, float speed);
 
 		// Get the current

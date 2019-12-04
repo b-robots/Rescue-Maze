@@ -183,18 +183,57 @@ namespace JAFD
 			lastRightCnt = _rEncCnt;
 		}
 
-		void speedPID(const uint8_t dt)
+		void speedPID(const uint8_t freq)
 		{
-			static float _llastVel = 0.0f;
-			static float _lVelSum = 0.0f;
+			static float rIntegral = 0.0f;	// Right velocity error integral
+			static float lIntegral = 0.0f;	// Left velocity error integral
 
-			static float _rlastVel = 0.0f;
-			static float _rVelSum = 0.0f;
+			static float lCorVel = 0.0f;	// Left corrected velocity
+			static float rCorVel = 0.0f;	// Right corrected velocity
 
+			static float lError = 0.0f;		// Left velocity error
+			static float rError = 0.0f;		// Right velocity error
 
+			static float lLastErr = 0.0f;	// Last left error
+			static float rLastErr = 0.0f;	// Last right error
 
-			_llastVel = _lSpeed;
-			_rlastVel = _rSpeed;
+			// PID controller
+			lError = _lDesSpeed - _lSpeed;
+			rError = _rDesSpeed - _rSpeed;
+
+			lCorVel = _kp * lError + _ki * lIntegral + _kd * (lError - lLastErr) * freq + _lDesSpeed;
+			rCorVel = _kp * rError + _ki * rIntegral + _kd * (rError - rLastErr) * freq + _rDesSpeed;
+
+			lIntegral += lError / (float)(freq);
+			rIntegral += rError / (float)(freq);
+
+			lLastErr = lError;
+			rLastErr = rError;
+
+			// Set left dir pin
+			if (lCorVel > 0)
+			{
+				_lDir.port->PIO_CODR = _lDir.pin;
+			}
+			else
+			{
+				_lDir.port->PIO_SODR = _lDir.pin;
+			}
+
+			// Set right dir pin
+			if (rCorVel > 0)
+			{
+				_rDir.port->PIO_CODR = _rDir.pin;
+			}
+			else
+			{
+				_rDir.port->PIO_SODR = _rDir.pin;
+			}
+
+			// Set PWM Value
+			PWM->PWM_CH_NUM[_lPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[_lPWMCh].PWM_CPRD * abs(lCorVel) * _cmPSToPerc);
+			PWM->PWM_CH_NUM[_rPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[_rPWMCh].PWM_CPRD * abs(rCorVel) * _cmPSToPerc);
+			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 		}
 
 		float getVelocity(const Motor motor)
@@ -254,6 +293,7 @@ namespace JAFD
 
 			if (motor == Motor::left)
 			{
+				_lDesSpeed = speed;
 				pwmCh = PinMapping::getPWMChannel(_lPWM);
 
 				// Set Dir Pin
@@ -268,6 +308,7 @@ namespace JAFD
 			}
 			else
 			{
+				_rDesSpeed = speed;
 				pwmCh = PinMapping::getPWMChannel(_rPWM);
 
 				// Set Dir Pin
