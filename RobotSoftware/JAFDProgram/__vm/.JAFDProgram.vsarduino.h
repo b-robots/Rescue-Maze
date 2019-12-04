@@ -4,7 +4,7 @@
 			Visual micro (and the arduino ide) ignore this code during compilation. This code is automatically maintained by visualmicro, manual changes to this file will be overwritten
 			The contents of the _vm sub folder can be deleted prior to publishing a project
 			All non-arduino files created by visual micro and all visual studio project or solution files can be freely deleted and are not required to compile a sketch (do not delete your own code!).
-			Note: debugger breakpoints are stored in '.sln' or '.asln' files, knowledge of last uploaded breakpoints is stored in the upload.vmps.xl file. Both files are required to continue a previous debug session without needing to compile and upload again
+			Note: debugger breakpoints are stored in '.sln' or '.asln' files, knowledge of last uploaded breakpoints is stored in the upload.vmps.xml file. Both files are required to continue a previous debug session without needing to compile and upload again
 	
 	Hardware: Arduino Due (Programming Port), Platform=sam, Package=arduino
 */
@@ -92,7 +92,7 @@ __attribute__((always_inline)) static __INLINE uint32_t __get_CONTROL(void)
 {
 	uint32_t result;
 
-	__ASM volatile ("rS %0, control" : "=r" (result));
+	__ASM volatile ("MRS %0, control" : "=r" (result));
 	return(result);
 }
 
@@ -119,7 +119,7 @@ __attribute__((always_inline)) static __INLINE uint32_t __get_IPSR(void)
 {
 	uint32_t result;
 
-	__ASM volatile ("rS %0, ipsr" : "=r" (result));
+	__ASM volatile ("MRS %0, ipsr" : "=r" (result));
 	return(result);
 }
 
@@ -134,7 +134,7 @@ __attribute__((always_inline)) static __INLINE uint32_t __get_APSR(void)
 {
 	uint32_t result;
 
-	__ASM volatile ("rS %0, apsr" : "=r" (result));
+	__ASM volatile ("MRS %0, apsr" : "=r" (result));
 	return(result);
 }
 
@@ -149,7 +149,7 @@ __attribute__((always_inline)) static __INLINE uint32_t __get_xPSR(void)
 {
 	uint32_t result;
 
-	__ASM volatile ("rS %0, xpsr" : "=r" (result));
+	__ASM volatile ("MRS %0, xpsr" : "=r" (result));
 	return(result);
 }
 
@@ -164,7 +164,7 @@ __attribute__((always_inline)) static __INLINE uint32_t __get_PSP(void)
 {
 	register uint32_t result;
 
-	__ASM volatile ("rS %0, psp\n"  : "=r" (result));
+	__ASM volatile ("MRS %0, psp\n"  : "=r" (result));
 	return(result);
 }
 
@@ -191,7 +191,7 @@ __attribute__((always_inline)) static __INLINE uint32_t __get_MSP(void)
 {
 	register uint32_t result;
 
-	__ASM volatile ("rS %0, msp\n" : "=r" (result));
+	__ASM volatile ("MRS %0, msp\n" : "=r" (result));
 	return(result);
 }
 
@@ -218,7 +218,7 @@ __attribute__((always_inline)) static __INLINE uint32_t __get_PRIMASK(void)
 {
 	uint32_t result;
 
-	__ASM volatile ("rS %0, primask" : "=r" (result));
+	__ASM volatile ("MRS %0, primask" : "=r" (result));
 	return(result);
 }
 

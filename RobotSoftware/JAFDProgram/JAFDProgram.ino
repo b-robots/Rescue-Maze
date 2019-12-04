@@ -32,8 +32,8 @@ void setup() {
 		while (true);
 	}
 
-	setSpeed(Motor::left, 0.5f);
-	setSpeed(Motor::right, 0.5f);
+	setSpeed(Motor::left, 50.0f);
+	setSpeed(Motor::right, 50.0f);
 }
 
 // The loop function runs over and over again until power down or reset
