@@ -10,7 +10,6 @@ This part of the Library is responsible for driving the motors.
 
 #include "../../JAFDSettings.h"
 #include "MotorControl_private.h"
-#include "Interrupts_private.h"
 #include "../utility/DuePinMapping_private.h"
 
 namespace JAFD
@@ -34,9 +33,15 @@ namespace JAFD
 			constexpr auto _rEncA = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::encA];	// Encoder Pin A right motor
 			constexpr auto _rEncB = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::encB];	// Encoder Pin B right motor
 			
-			constexpr auto _kp = JAFDSettings::MotorControl::kp;
-			constexpr auto _ki = JAFDSettings::MotorControl::ki;
-			constexpr auto _kd = JAFDSettings::MotorControl::kd;
+			constexpr auto _kp = JAFDSettings::MotorControl::kp;	// Kp factor for PID speed controller
+			constexpr auto _ki = JAFDSettings::MotorControl::ki;	// Ki factor for PID speed controller
+			constexpr auto _kd = JAFDSettings::MotorControl::kd;	// Kd factor for PID speed controller
+
+			constexpr uint8_t _lPWMCh = PinMapping::getPWMChannel(_lPWM);	// Left motor PWM channel
+			constexpr uint8_t _rPWMCh = PinMapping::getPWMChannel(_rPWM);	// Right motor PWM channel
+
+			constexpr uint8_t _lADCCh = PinMapping::getADCChannel(_lFb);	// Left motor ADC channel
+			constexpr uint8_t _rADCCh = PinMapping::getADCChannel(_rFb);	// Right motor ADC channel
 
 			volatile int32_t _lEncCnt = 0;		// Encoder count left motor
 			volatile int32_t _rEncCnt = 0;		// Encoder count right motor
@@ -117,21 +122,18 @@ namespace JAFD
 			NVIC_SetPriority(static_cast<IRQn_Type>(_rEncA.portID), 4);
 
 			// Setup PWM - Controller (20kHz)
-			const uint8_t lPWMCh = PinMapping::getPWMChannel(_lPWM);
-			const uint8_t rPWMCh = PinMapping::getPWMChannel(_rPWM);
-
 			PMC->PMC_PCER1 = PMC_PCER1_PID36;
 
 			PWM->PWM_CLK = PWM_CLK_PREA(0) | PWM_CLK_DIVA(1);
-			PWM->PWM_ENA = 1 << lPWMCh | 1 << rPWMCh;
+			PWM->PWM_ENA = 1 << _lPWMCh | 1 << _rPWMCh;
 
-			PWM->PWM_CH_NUM[lPWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
-			PWM->PWM_CH_NUM[lPWMCh].PWM_CPRD = 4200;
-			PWM->PWM_CH_NUM[lPWMCh].PWM_CDTY = 0;
+			PWM->PWM_CH_NUM[_lPWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
+			PWM->PWM_CH_NUM[_lPWMCh].PWM_CPRD = 4200;
+			PWM->PWM_CH_NUM[_lPWMCh].PWM_CDTY = 0;
 
-			PWM->PWM_CH_NUM[rPWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
-			PWM->PWM_CH_NUM[rPWMCh].PWM_CPRD = 4200;
-			PWM->PWM_CH_NUM[rPWMCh].PWM_CDTY = 0;
+			PWM->PWM_CH_NUM[_rPWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
+			PWM->PWM_CH_NUM[_rPWMCh].PWM_CPRD = 4200;
+			PWM->PWM_CH_NUM[_rPWMCh].PWM_CDTY = 0;
 
 			_lPWM.port->PIO_PDR = _lPWM.pin;
 			_rPWM.port->PIO_PDR = _rPWM.pin;
@@ -155,14 +157,11 @@ namespace JAFD
 			}
 
 			// Setup ADC (Freerunning mode / 21MHz)
-			const uint8_t lADCCh = PinMapping::getADCChannel(_lFb);
-			const uint8_t rADCCh = PinMapping::getADCChannel(_rFb);
-
 			PMC->PMC_PCER1 = PMC_PCER1_PID37;
 
 			ADC->ADC_MR = ADC_MR_FREERUN_ON | ADC_MR_PRESCAL(3) | ADC_MR_STARTUP_SUT896 | ADC_MR_SETTLING_AST5 | ADC_MR_TRACKTIM(0) | ADC_MR_TRANSFER(1);
 			ADC->ADC_CGR = ADC_CGR_GAIN0(0b11);
-			ADC->ADC_CHER = 1 << lADCCh | 1 << rADCCh;
+			ADC->ADC_CHER = 1 << _lADCCh | 1 << _rADCCh;
 
 			return ReturnCode::ok;
 		}
@@ -279,10 +278,6 @@ namespace JAFD
 
 		float getCurrent(Motor motor)
 		{
-			Serial.println(_lEncCnt);
-			const uint8_t lADCCh = PinMapping::getADCChannel(_lFb);
-			const uint8_t rADCCh = PinMapping::getADCChannel(_rFb);
-
 			float result = 0.0f;
 
 			// Sample 10 values and return average
@@ -293,11 +288,11 @@ namespace JAFD
 
 				if (motor == Motor::left)
 				{
-					result += (float)ADC->ADC_CDR[lADCCh] * 3.3f * 1904.7619f / 4.0f / (float)(1 << 12 - 1);
+					result += (float)ADC->ADC_CDR[_lADCCh] * 3.3f * 1904.7619f / 4.0f / (float)(1 << 12 - 1);
 				}
 				else
 				{
-					result += (float)ADC->ADC_CDR[rADCCh] * 3.3f * 1904.7619f / 4.0f / (float)(1 << 12 - 1);
+					result += (float)ADC->ADC_CDR[_rADCCh] * 3.3f * 1904.7619f / 4.0f / (float)(1 << 12 - 1);
 				}
 			}
 

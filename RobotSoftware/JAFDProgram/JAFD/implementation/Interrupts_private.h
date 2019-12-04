@@ -1,5 +1,5 @@
 /*
-In this private part of the library are all interrupt handler
+In this part are the InterruptSource enums
 */
 
 #pragma once
@@ -10,7 +10,7 @@ In this private part of the library are all interrupt handler
 #include "WProgram.h"
 #endif
 
-#include<stdint.h>
+#include <stdint.h>
 
 namespace JAFD
 {

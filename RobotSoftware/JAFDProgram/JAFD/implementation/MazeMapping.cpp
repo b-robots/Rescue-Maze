@@ -6,7 +6,6 @@ This part of the Library is responsible for mapping the maze and finding the sho
 #include "SpiNVSRAM_private.h"
 #include <algorithm>
 
-
 namespace JAFD
 {
 	namespace MazeMapping

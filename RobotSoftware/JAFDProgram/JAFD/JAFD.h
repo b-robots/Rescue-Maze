@@ -2,7 +2,7 @@
  Name:		JAFD.h
  Created:	07.08.2019 13:20:59
  Author:	B.Robots
- Version:	1.1
+ Version:	1.5
 */
 
 #pragma once
@@ -11,7 +11,7 @@
 #error This Library can only be used with the Arduino Due / ATSam3x8e
 #endif
 
-#define ROBOT_LIB_VERSION "1.3" 
+#define ROBOT_LIB_VERSION "1.5" 
 
 // All public header files of Library
 #include "implementation/ReturnCode_public.h"

@@ -1,12 +1,6 @@
 /*
-In this part of the library are all interrupt handler
+In this part are all interrupt handler
 */
-
-#if defined(ARDUINO) && ARDUINO >= 100
-#include "arduino.h"
-#else
-#include "WProgram.h"
-#endif
 
 #include "Interrupts_private.h"
 #include "MotorControl_private.h"

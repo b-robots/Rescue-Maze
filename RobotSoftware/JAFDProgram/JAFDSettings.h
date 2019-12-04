@@ -10,6 +10,8 @@ In this file are all settings needed for the robot
 #include "WProgram.h"
 #endif
 
+#include <stdint.h>
+
 namespace JAFDSettings
 {
 	namespace SpiEeprom

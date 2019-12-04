@@ -1,7 +1,6 @@
 /*
-This private part of the Library is responsible for dispensing the rescue packages.
+This part is responsible for dispensing the rescue packages.
 */
-
 #pragma once
 
 #include "ReturnCode_public.h"

@@ -6,8 +6,6 @@ This private file of the library is responsible for the access to the SPI EEPROM
 #include "SpiNVSRAM_private.h"
 #include "../utility/DuePinMapping_private.h"
 
-#include <SPI.h>
-
 namespace JAFD
 {
 	namespace SpiNVSRAM

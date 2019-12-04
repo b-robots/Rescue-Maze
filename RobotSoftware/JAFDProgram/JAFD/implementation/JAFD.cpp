@@ -5,9 +5,11 @@
 */
 
 #include "../JAFD.h"
-#include "MazeMapping_private.h"
+#include "Bno055_private.h"
 #include "Dispenser_private.h"
+#include "MazeMapping_private.h"
 #include "MotorControl_private.h"
+#include "SensorFusion_private.h"
 #include "SpiNVSRAM_private.h"
 
 #include <SPI.h>
@@ -71,7 +73,7 @@ namespace JAFD
 			return ReturnCode::fatalError;
 		}
 
-		// Setup of SPI EEPROM
+		// Setup of SPI NVSRAM
 		if (SpiNVSRAM::spiNvsramSetup() != ReturnCode::ok)
 		{
 			return ReturnCode::fatalError;

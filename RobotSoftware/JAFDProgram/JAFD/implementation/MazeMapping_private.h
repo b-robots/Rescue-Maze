@@ -9,7 +9,6 @@ This private part of the Library is responsible for mapping the maze and finding
 
 #include <stdint.h>
 
-
 namespace JAFD
 {
 	// Namespace for the MazeMapper
