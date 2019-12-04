@@ -19,150 +19,150 @@ namespace JAFD
 	{
 		namespace
 		{
-			constexpr auto _mLPWM = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::pwmPin];	// PWM pin left motor
-			constexpr auto _mRPWM = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::pwmPin];	// PWM pin right motor
+			constexpr auto _lPWM = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::pwmPin];	// PWM pin left motor
+			constexpr auto _rPWM = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::pwmPin];	// PWM pin right motor
 
-			constexpr auto _mLDir = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::dirPin];	// Direction pin left motor
-			constexpr auto _mRDir = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::dirPin];	// Direction pin right motor
+			constexpr auto _lDir = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::dirPin];	// Direction pin left motor
+			constexpr auto _rDir = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::dirPin];	// Direction pin right motor
 
-			constexpr auto _mLFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::fbPin];		// Current sense output left motor
-			constexpr auto _mRFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::fbPin];		// Current sense output right motor
+			constexpr auto _lFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::fbPin];		// Current sense output left motor
+			constexpr auto _rFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::fbPin];		// Current sense output right motor
 			
-			constexpr auto _mLEncA = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::encA];		// Encoder Pin A left motor
-			constexpr auto _mLEncB = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::encB];		// Encoder Pin B left motor
+			constexpr auto _lEncA = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::encA];		// Encoder Pin A left motor
+			constexpr auto _lEncB = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::encB];		// Encoder Pin B left motor
 
-			constexpr auto _mREncA = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::encA];	// Encoder Pin A right motor
-			constexpr auto _mREncB = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::encB];	// Encoder Pin B right motor
+			constexpr auto _rEncA = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::encA];	// Encoder Pin A right motor
+			constexpr auto _rEncB = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::encB];	// Encoder Pin B right motor
 			
 			constexpr auto _kp = JAFDSettings::MotorControl::kp;
 			constexpr auto _ki = JAFDSettings::MotorControl::ki;
 			constexpr auto _kd = JAFDSettings::MotorControl::kd;
 
-			volatile int32_t _mLEncCnt = 0;		// Encoder count left motor
-			volatile int32_t _mREncCnt = 0;		// Encoder count right motor
+			volatile int32_t _lEncCnt = 0;		// Encoder count left motor
+			volatile int32_t _rEncCnt = 0;		// Encoder count right motor
 
-			volatile float _mLSpeed = 0.0f;		// Speed left motor (cm/s)
-			volatile float _mRSpeed = 0.0f;		// Speed right motor (cm/s)
+			volatile float _lSpeed = 0.0f;		// Speed left motor (cm/s)
+			volatile float _rSpeed = 0.0f;		// Speed right motor (cm/s)
 		}
 
 		ReturnCode motorControlSetup()
 		{
 			// Check if PWM Pins and ADC Pins are correct
-			if (!PinMapping::hasPWM(_mLPWM) || !PinMapping::hasPWM(_mRPWM) || !PinMapping::hasADC(_mLFb) || !PinMapping::hasADC(_mRFb))
+			if (!PinMapping::hasPWM(_lPWM) || !PinMapping::hasPWM(_rPWM) || !PinMapping::hasADC(_lFb) || !PinMapping::hasADC(_rFb))
 			{
 				return ReturnCode::fatalError;
 			}
 
 			// Set the pin modes for Dir - Pins / Encoder - Pins
 			// Left Dir
-			_mLDir.port->PIO_PER = _mLDir.pin;
-			_mLDir.port->PIO_OER = _mLDir.pin;
-			_mLDir.port->PIO_CODR = _mLDir.pin;
+			_lDir.port->PIO_PER = _lDir.pin;
+			_lDir.port->PIO_OER = _lDir.pin;
+			_lDir.port->PIO_CODR = _lDir.pin;
 			
 			// Right Dir
-			_mRDir.port->PIO_PER = _mRDir.pin;
-			_mRDir.port->PIO_OER = _mRDir.pin;
-			_mRDir.port->PIO_CODR = _mRDir.pin;
+			_rDir.port->PIO_PER = _rDir.pin;
+			_rDir.port->PIO_OER = _rDir.pin;
+			_rDir.port->PIO_CODR = _rDir.pin;
 
 			// Left Encoder A
-			_mLEncA.port->PIO_PER = _mLEncA.pin;
-			_mLEncA.port->PIO_ODR = _mLEncA.pin;
-			_mLEncA.port->PIO_PUER = _mLEncA.pin;
-			_mLEncA.port->PIO_IER = _mLEncA.pin;
-			_mLEncA.port->PIO_AIMER = _mLEncA.pin;
-			_mLEncA.port->PIO_ESR = _mLEncA.pin;
-			_mLEncA.port->PIO_REHLSR = _mLEncA.pin;
-			_mLEncA.port->PIO_DIFSR = _mLEncA.pin;
-			_mLEncA.port->PIO_SCDR = PIO_SCDR_DIV(0);
-			_mLEncA.port->PIO_IFER = _mLEncA.pin;
+			_lEncA.port->PIO_PER = _lEncA.pin;
+			_lEncA.port->PIO_ODR = _lEncA.pin;
+			_lEncA.port->PIO_PUER = _lEncA.pin;
+			_lEncA.port->PIO_IER = _lEncA.pin;
+			_lEncA.port->PIO_AIMER = _lEncA.pin;
+			_lEncA.port->PIO_ESR = _lEncA.pin;
+			_lEncA.port->PIO_REHLSR = _lEncA.pin;
+			_lEncA.port->PIO_DIFSR = _lEncA.pin;
+			_lEncA.port->PIO_SCDR = PIO_SCDR_DIV(0);
+			_lEncA.port->PIO_IFER = _lEncA.pin;
 
 			// Left Encoder B
-			_mLEncB.port->PIO_PER = _mLEncB.pin;
-			_mLEncB.port->PIO_ODR = _mLEncB.pin;
-			_mLEncB.port->PIO_PUER = _mLEncB.pin;
-			_mLEncB.port->PIO_DIFSR = _mLEncB.pin;
-			_mLEncB.port->PIO_SCDR = PIO_SCDR_DIV(0);
-			_mLEncB.port->PIO_IFER = _mLEncB.pin;
+			_lEncB.port->PIO_PER = _lEncB.pin;
+			_lEncB.port->PIO_ODR = _lEncB.pin;
+			_lEncB.port->PIO_PUER = _lEncB.pin;
+			_lEncB.port->PIO_DIFSR = _lEncB.pin;
+			_lEncB.port->PIO_SCDR = PIO_SCDR_DIV(0);
+			_lEncB.port->PIO_IFER = _lEncB.pin;
 
 			// Right Encoder A
-			_mREncA.port->PIO_PER = _mREncA.pin;
-			_mREncA.port->PIO_ODR = _mREncA.pin;
-			_mREncA.port->PIO_PUER = _mREncA.pin;
-			_mREncA.port->PIO_IER = _mREncA.pin;
-			_mREncA.port->PIO_AIMER = _mREncA.pin;
-			_mREncA.port->PIO_ESR = _mREncA.pin;
-			_mREncA.port->PIO_REHLSR = _mREncA.pin;
-			_mREncA.port->PIO_DIFSR = _mREncA.pin;
-			_mREncA.port->PIO_SCDR = PIO_SCDR_DIV(0);
-			_mREncA.port->PIO_IFER = _mREncA.pin;
+			_rEncA.port->PIO_PER = _rEncA.pin;
+			_rEncA.port->PIO_ODR = _rEncA.pin;
+			_rEncA.port->PIO_PUER = _rEncA.pin;
+			_rEncA.port->PIO_IER = _rEncA.pin;
+			_rEncA.port->PIO_AIMER = _rEncA.pin;
+			_rEncA.port->PIO_ESR = _rEncA.pin;
+			_rEncA.port->PIO_REHLSR = _rEncA.pin;
+			_rEncA.port->PIO_DIFSR = _rEncA.pin;
+			_rEncA.port->PIO_SCDR = PIO_SCDR_DIV(0);
+			_rEncA.port->PIO_IFER = _rEncA.pin;
 
 			// Right Encoder B
-			_mREncB.port->PIO_PER = _mREncB.pin;
-			_mREncB.port->PIO_ODR = _mREncB.pin;
-			_mREncB.port->PIO_PUER = _mREncB.pin;
-			_mREncB.port->PIO_DIFSR = _mREncB.pin;
-			_mREncB.port->PIO_SCDR = PIO_SCDR_DIV(0);
-			_mREncB.port->PIO_IFER = _mREncB.pin;
+			_rEncB.port->PIO_PER = _rEncB.pin;
+			_rEncB.port->PIO_ODR = _rEncB.pin;
+			_rEncB.port->PIO_PUER = _rEncB.pin;
+			_rEncB.port->PIO_DIFSR = _rEncB.pin;
+			_rEncB.port->PIO_SCDR = PIO_SCDR_DIV(0);
+			_rEncB.port->PIO_IFER = _rEncB.pin;
 
 			// Discard first interrupt
-			_mREncA.port->PIO_ISR;
-			_mLEncA.port->PIO_ISR;
+			_rEncA.port->PIO_ISR;
+			_lEncA.port->PIO_ISR;
 
 			// Setup interrupts for rotary encoder pins
 			// ISR Priority = 4
-			NVIC_EnableIRQ(static_cast<IRQn_Type>(_mLEncA.portID));
-			NVIC_EnableIRQ(static_cast<IRQn_Type>(_mREncA.portID));
+			NVIC_EnableIRQ(static_cast<IRQn_Type>(_lEncA.portID));
+			NVIC_EnableIRQ(static_cast<IRQn_Type>(_rEncA.portID));
 
-			NVIC_SetPriority(static_cast<IRQn_Type>(_mLEncA.portID), 4);
-			NVIC_SetPriority(static_cast<IRQn_Type>(_mREncA.portID), 4);
+			NVIC_SetPriority(static_cast<IRQn_Type>(_lEncA.portID), 4);
+			NVIC_SetPriority(static_cast<IRQn_Type>(_rEncA.portID), 4);
 
 			// Setup PWM - Controller (20kHz)
-			const uint8_t mLPWMCh = PinMapping::getPWMChannel(_mLPWM);
-			const uint8_t mRPWMCh = PinMapping::getPWMChannel(_mRPWM);
+			const uint8_t lPWMCh = PinMapping::getPWMChannel(_lPWM);
+			const uint8_t rPWMCh = PinMapping::getPWMChannel(_rPWM);
 
 			PMC->PMC_PCER1 = PMC_PCER1_PID36;
 
 			PWM->PWM_CLK = PWM_CLK_PREA(0) | PWM_CLK_DIVA(1);
-			PWM->PWM_ENA = 1 << mLPWMCh | 1 << mRPWMCh;
+			PWM->PWM_ENA = 1 << lPWMCh | 1 << rPWMCh;
 
-			PWM->PWM_CH_NUM[mLPWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
-			PWM->PWM_CH_NUM[mLPWMCh].PWM_CPRD = 4200;
-			PWM->PWM_CH_NUM[mLPWMCh].PWM_CDTY = 0;
+			PWM->PWM_CH_NUM[lPWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
+			PWM->PWM_CH_NUM[lPWMCh].PWM_CPRD = 4200;
+			PWM->PWM_CH_NUM[lPWMCh].PWM_CDTY = 0;
 
-			PWM->PWM_CH_NUM[mRPWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
-			PWM->PWM_CH_NUM[mRPWMCh].PWM_CPRD = 4200;
-			PWM->PWM_CH_NUM[mRPWMCh].PWM_CDTY = 0;
+			PWM->PWM_CH_NUM[rPWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
+			PWM->PWM_CH_NUM[rPWMCh].PWM_CPRD = 4200;
+			PWM->PWM_CH_NUM[rPWMCh].PWM_CDTY = 0;
 
-			_mLPWM.port->PIO_PDR = _mLPWM.pin;
-			_mRPWM.port->PIO_PDR = _mRPWM.pin;
+			_lPWM.port->PIO_PDR = _lPWM.pin;
+			_rPWM.port->PIO_PDR = _rPWM.pin;
 
-			if (PinMapping::toABPeripheral(_mLPWM))
+			if (PinMapping::toABPeripheral(_lPWM))
 			{
-				_mLPWM.port->PIO_ABSR |= _mLPWM.pin;
+				_lPWM.port->PIO_ABSR |= _lPWM.pin;
 			}
 			else
 			{
-				_mLPWM.port->PIO_ABSR &= ~_mLPWM.pin;
+				_lPWM.port->PIO_ABSR &= ~_lPWM.pin;
 			}
 
-			if (PinMapping::toABPeripheral(_mRPWM))
+			if (PinMapping::toABPeripheral(_rPWM))
 			{
-				_mRPWM.port->PIO_ABSR |= _mRPWM.pin;
+				_rPWM.port->PIO_ABSR |= _rPWM.pin;
 			}
 			else
 			{
-				_mRPWM.port->PIO_ABSR &= ~_mRPWM.pin;
+				_rPWM.port->PIO_ABSR &= ~_rPWM.pin;
 			}
 
 			// Setup ADC (Freerunning mode / 21MHz)
-			const uint8_t mLADCCh = PinMapping::getADCChannel(_mLFb);
-			const uint8_t mRADCCh = PinMapping::getADCChannel(_mRFb);
+			const uint8_t lADCCh = PinMapping::getADCChannel(_lFb);
+			const uint8_t rADCCh = PinMapping::getADCChannel(_rFb);
 
 			PMC->PMC_PCER1 = PMC_PCER1_PID37;
 
 			ADC->ADC_MR = ADC_MR_FREERUN_ON | ADC_MR_PRESCAL(3) | ADC_MR_STARTUP_SUT896 | ADC_MR_SETTLING_AST5 | ADC_MR_TRACKTIM(0) | ADC_MR_TRANSFER(1);
 			ADC->ADC_CGR = ADC_CGR_GAIN0(0b11);
-			ADC->ADC_CHER = 1 << mLADCCh | 1 << mRADCCh;
+			ADC->ADC_CHER = 1 << lADCCh | 1 << rADCCh;
 
 			return ReturnCode::ok;
 		}
@@ -172,31 +172,31 @@ namespace JAFD
 			static int32_t lastLeftCnt = 0;
 			static int32_t lastRightCnt = 0;
 
-			_mLSpeed = (_mLEncCnt - lastLeftCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq;
-			_mRSpeed = (_mREncCnt - lastRightCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq;
+			_lSpeed = (_lEncCnt - lastLeftCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq;
+			_rSpeed = (_rEncCnt - lastRightCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq;
 
-			lastLeftCnt = _mLEncCnt;
-			lastRightCnt = _mREncCnt;
+			lastLeftCnt = _lEncCnt;
+			lastRightCnt = _rEncCnt;
 		}
 
 		void speedPID(const uint8_t dt)
 		{
-			static float _mLlastVel = 0.0f;
-			static float _mLVelSum = 0.0f;
+			static float _llastVel = 0.0f;
+			static float _lVelSum = 0.0f;
 
-			static float _mRlastVel = 0.0f;
-			static float _mRVelSum = 0.0f;
+			static float _rlastVel = 0.0f;
+			static float _rVelSum = 0.0f;
 		}
 
 		float getVelocity(Motor motor)
 		{
 			if (motor == Motor::left)
 			{
-				return _mLSpeed;
+				return _lSpeed;
 			}
 			else
 			{
-				return _mRSpeed;
+				return _rSpeed;
 			}
 		}
 
@@ -204,37 +204,37 @@ namespace JAFD
 		{
 			if (motor == Motor::left)
 			{
-				return _mLEncCnt / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI;
+				return _lEncCnt / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI;
 			}
 			else
 			{
-				return _mREncCnt / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI;
+				return _rEncCnt / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI;
 			}
 		}
 
 		void encoderInterrupt(Interrupts::InterruptSource source, uint32_t isr)
 		{
-			if (_mLEncA.portID == static_cast<uint8_t>(source) && (isr & _mLEncA.pin))
+			if (_lEncA.portID == static_cast<uint8_t>(source) && (isr & _lEncA.pin))
 			{
-				if (_mLEncB.port->PIO_PDSR & _mLEncB.pin)
+				if (_lEncB.port->PIO_PDSR & _lEncB.pin)
 				{
-					_mLEncCnt++;
+					_lEncCnt++;
 				}
 				else
 				{
-					_mLEncCnt--;
+					_lEncCnt--;
 				}
 			}
 
-			if (_mREncA.portID == static_cast<uint8_t>(source) && (isr & _mREncA.pin))
+			if (_rEncA.portID == static_cast<uint8_t>(source) && (isr & _rEncA.pin))
 			{
-				if (_mREncB.port->PIO_PDSR & _mREncB.pin)
+				if (_rEncB.port->PIO_PDSR & _rEncB.pin)
 				{
-					_mREncCnt++;
+					_rEncCnt++;
 				}
 				else
 				{
-					_mREncCnt--;
+					_rEncCnt--;
 				}
 			}
 		}
@@ -245,30 +245,30 @@ namespace JAFD
 
 			if (motor == Motor::left)
 			{
-				pwmCh = PinMapping::getPWMChannel(_mLPWM);
+				pwmCh = PinMapping::getPWMChannel(_lPWM);
 
 				// Set Dir Pin
 				if (speed > 0)
 				{
-					_mLDir.port->PIO_CODR = _mLDir.pin;
+					_lDir.port->PIO_CODR = _lDir.pin;
 				}
 				else
 				{
-					_mLDir.port->PIO_SODR = _mLDir.pin;
+					_lDir.port->PIO_SODR = _lDir.pin;
 				}
 			}
 			else
 			{
-				pwmCh = PinMapping::getPWMChannel(_mRPWM);
+				pwmCh = PinMapping::getPWMChannel(_rPWM);
 
 				// Set Dir Pin
 				if (speed > 0)
 				{
-					_mRDir.port->PIO_CODR = _mRDir.pin;
+					_rDir.port->PIO_CODR = _rDir.pin;
 				}
 				else
 				{
-					_mRDir.port->PIO_SODR = _mRDir.pin;
+					_rDir.port->PIO_SODR = _rDir.pin;
 				}
 			}
 
@@ -279,9 +279,9 @@ namespace JAFD
 
 		float getCurrent(Motor motor)
 		{
-			Serial.println(_mLEncCnt);
-			const uint8_t mLADCCh = PinMapping::getADCChannel(_mLFb);
-			const uint8_t mRADCCh = PinMapping::getADCChannel(_mRFb);
+			Serial.println(_lEncCnt);
+			const uint8_t lADCCh = PinMapping::getADCChannel(_lFb);
+			const uint8_t rADCCh = PinMapping::getADCChannel(_rFb);
 
 			float result = 0.0f;
 
@@ -293,11 +293,11 @@ namespace JAFD
 
 				if (motor == Motor::left)
 				{
-					result += (float)ADC->ADC_CDR[mLADCCh] * 3.3f * 1904.7619f / 4.0f / (float)(1 << 12 - 1);
+					result += (float)ADC->ADC_CDR[lADCCh] * 3.3f * 1904.7619f / 4.0f / (float)(1 << 12 - 1);
 				}
 				else
 				{
-					result += (float)ADC->ADC_CDR[mRADCCh] * 3.3f * 1904.7619f / 4.0f / (float)(1 << 12 - 1);
+					result += (float)ADC->ADC_CDR[rADCCh] * 3.3f * 1904.7619f / 4.0f / (float)(1 << 12 - 1);
 				}
 			}
 

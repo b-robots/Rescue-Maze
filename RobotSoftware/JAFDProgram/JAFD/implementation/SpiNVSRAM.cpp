@@ -20,8 +20,8 @@ namespace JAFD
 				write = 0b00000010, // Write data to memory array beginning at selected address
 				edio = 0b00111011,	// Enter Dual I/O access
 				rstio = 0b11111111, // Reset Dual I/O access
-				rdmr = 0b00000101,	// Read Mode Register
-				wrmr = 0b00000001,	// Write Mode Register 
+				rdr = 0b00000101,	// Read Mode Register
+				wrr = 0b00000001,	// Write Mode Register 
 			};
 
 			constexpr auto _ssPin = PinMapping::MappedPins[JAFDSettings::SpiEeprom::ssPin];		// Slave-Select Pin
@@ -50,7 +50,7 @@ namespace JAFD
 			// Set Byte Mode
 			enable();
 
-			SPI.transfer((uint8_t)Instruction::wrmr);
+			SPI.transfer((uint8_t)Instruction::wrr);
 			SPI.transfer(0b00000000);
 
 			disable();
@@ -76,7 +76,7 @@ namespace JAFD
 			// Set Byte Mode
 			enable();
 
-			SPI.transfer((uint8_t)Instruction::wrmr);
+			SPI.transfer((uint8_t)Instruction::wrr);
 			SPI.transfer(0b00000000);
 
 			disable();
@@ -100,7 +100,7 @@ namespace JAFD
 			// Set Page Mode
 			enable();
 
-			SPI.transfer((uint8_t)Instruction::wrmr);
+			SPI.transfer((uint8_t)Instruction::wrr);
 			SPI.transfer(0b10000000);
 
 			disable();
@@ -129,7 +129,7 @@ namespace JAFD
 			// Set Page Mode
 			enable();
 
-			SPI.transfer((uint8_t)Instruction::wrmr);
+			SPI.transfer((uint8_t)Instruction::wrr);
 			SPI.transfer(0b10000000);
 
 			disable();
@@ -158,7 +158,7 @@ namespace JAFD
 			// Set Stream Mode
 			enable();
 
-			SPI.transfer((uint8_t)Instruction::wrmr);
+			SPI.transfer((uint8_t)Instruction::wrr);
 			SPI.transfer(0b01000000);
 
 			disable();
@@ -185,7 +185,7 @@ namespace JAFD
 			// Set Stream Mode
 			enable();
 
-			SPI.transfer((uint8_t)Instruction::wrmr);
+			SPI.transfer((uint8_t)Instruction::wrr);
 			SPI.transfer(0b01000000);
 
 			disable();
