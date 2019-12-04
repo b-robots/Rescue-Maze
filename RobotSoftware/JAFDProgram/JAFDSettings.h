@@ -27,9 +27,9 @@ namespace JAFDSettings
 	namespace MotorControl
 	{
 		// PID - Values
-		constexpr float kp = 0.2f;
-		constexpr float ki = 0.0f;
-		constexpr float kd = 0.0f;
+		constexpr float kp = 0.25f;
+		constexpr float ki = 0.1f;
+		constexpr float kd = 0.05f;
 
 		constexpr float cmPSToPerc = 60.0f / (Mechanics::wheelDiameter * M_PI * 210.0f);	// Conversion factor from cm/s to motor PWM duty cycle
 
