@@ -17,7 +17,7 @@ namespace JAFD
 		}
 		
 		// Set a grid cell in the RAM
-		void setGridCell(GridCell gridCell, MapCoordinate coor)
+		void setGridCell(const GridCell gridCell, const MapCoordinate coor)
 		{
 			// Memory address
 			uint32_t address;
@@ -35,7 +35,7 @@ namespace JAFD
 		}
 
 		// Read a grid cell from the RAM
-		void getGridCell(GridCell* gridCell, MapCoordinate coor)
+		void getGridCell(GridCell* gridCell, const MapCoordinate coor)
 		{
 			// Memory address
 			uint32_t address;
@@ -57,7 +57,7 @@ namespace JAFD
 		}
 
 		// Set a grid cell in the RAM (only informations for the BF Algorithm)
-		void setGridCell(uint8_t bfsValue, MapCoordinate coor)
+		void setGridCell(const uint8_t bfsValue, const MapCoordinate coor)
 		{
 			// Memory address
 			uint32_t address;
@@ -73,7 +73,7 @@ namespace JAFD
 		}
 
 		// Read a grid cell from the RAM (only informations for the BF Algorithm)
-		void getGridCell(uint8_t* bfsValue, MapCoordinate coor)
+		void getGridCell(uint8_t* bfsValue, const MapCoordinate coor)
 		{
 			// Memory address
 			uint32_t address;
@@ -92,7 +92,7 @@ namespace JAFD
 		}
 
 		// Set a grid cell in the RAM (including informations for the BF Algorithm)
-		void setGridCell(GridCell gridCell, uint8_t bfsValue, MapCoordinate coor)
+		void setGridCell(const GridCell gridCell, const uint8_t bfsValue, const MapCoordinate coor)
 		{
 			// Memory address
 			uint32_t address;
@@ -110,7 +110,7 @@ namespace JAFD
 		}
 
 		// Read a grid cell from the RAM (includeing informations for the BF Algorithm)
-		void getGridCell(GridCell* gridCell, uint8_t* bfsValue, MapCoordinate coor)
+		void getGridCell(GridCell* gridCell, uint8_t* bfsValue, const MapCoordinate coor)
 		{
 			// Memory address
 			uint32_t address;
@@ -135,7 +135,7 @@ namespace JAFD
 		namespace BFAlgorithm
 		{
 			// Reset all BFS Values in this floor
-			void resetBFSValues(uint8_t floor)
+			void resetBFSValues(const uint8_t floor)
 			{
 				for (int8_t x = minX; x <= maxX; x++)
 				{
@@ -147,7 +147,7 @@ namespace JAFD
 			}
 
 			// Find the shortest known path from a to b
-			ReturnCode findShortestPath(MapCoordinate start, uint8_t* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell))
+			ReturnCode findShortestPath(const MapCoordinate start, uint8_t* directions, const uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell))
 			{
 				static uint8_t lowerFloorID = 0;
 				static uint8_t upperFloorID = 0;

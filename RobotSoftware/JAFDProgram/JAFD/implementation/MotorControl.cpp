@@ -37,6 +37,10 @@ namespace JAFD
 			constexpr auto _ki = JAFDSettings::MotorControl::ki;	// Ki factor for PID speed controller
 			constexpr auto _kd = JAFDSettings::MotorControl::kd;	// Kd factor for PID speed controller
 
+			constexpr auto _maxCorVal = JAFDSettings::MotorControl::maxCorVal;		// Maximum correction value for PID controller
+
+			constexpr auto _cmPSToPerc = JAFDSettings::MotorControl::cmPSToPerc;	// Conversion factor from cm/s to motor PWM duty cycle
+
 			constexpr uint8_t _lPWMCh = PinMapping::getPWMChannel(_lPWM);	// Left motor PWM channel
 			constexpr uint8_t _rPWMCh = PinMapping::getPWMChannel(_rPWM);	// Right motor PWM channel
 
@@ -48,6 +52,9 @@ namespace JAFD
 
 			volatile float _lSpeed = 0.0f;		// Speed left motor (cm/s)
 			volatile float _rSpeed = 0.0f;		// Speed right motor (cm/s)
+
+			volatile uint8_t _lDesSpeed = 0;	// Desired speed left motor (cm/s)
+			volatile uint8_t _rDesSpeed = 0;	// Desired speed left motor (cm/s)
 		}
 
 		ReturnCode motorControlSetup()
@@ -178,16 +185,81 @@ namespace JAFD
 			lastRightCnt = _rEncCnt;
 		}
 
-		void speedPID(const uint8_t dt)
+		void speedPID(const uint8_t freq)
 		{
-			static float _llastVel = 0.0f;
-			static float _lVelSum = 0.0f;
+			static float rIntegral = 0.0f;	// Right velocity error integral
+			static float lIntegral = 0.0f;	// Left velocity error integral
 
-			static float _rlastVel = 0.0f;
-			static float _rVelSum = 0.0f;
+			static float lTempVal = 0.0f;	// Left temporary value
+			static float rTempVal = 0.0f;	// Right temporary value
+
+			static float lError = 0.0f;		// Left speed error
+			static float rError = 0.0f;		// Right speed error
+
+			static float lLastSpeed = 0.0f;	// Last left speed
+			static float rLastSpeed = 0.0f;	// Last right speed
+
+			// PID controller
+			lError = (float)_lDesSpeed - _lSpeed;
+			rError = (float)_rDesSpeed - _rSpeed;
+
+			lTempVal = _kp * lError + _ki * lIntegral - _kd * (lLastSpeed - _lSpeed) * (float)freq;
+
+			if (lTempVal > _maxCorVal / _cmPSToPerc) lTempVal = _maxCorVal / _cmPSToPerc;
+			else if (lTempVal < -_maxCorVal / _cmPSToPerc) lTempVal = -_maxCorVal / _cmPSToPerc;
+
+			lTempVal += (float)_lDesSpeed;
+			lTempVal *= _cmPSToPerc;
+
+			if (lTempVal > 1.0f) lTempVal = 1.0f;
+			else if (lTempVal < -1.0f) lTempVal = -1.0f;
+
+			rTempVal = _kp * rError + _ki * rIntegral - _kd * (rLastSpeed - _rSpeed) * (float)freq;
+
+			if (rTempVal > _maxCorVal / _cmPSToPerc) rTempVal = _maxCorVal / _cmPSToPerc;
+			else if (rTempVal < -_maxCorVal / _cmPSToPerc) rTempVal = -_maxCorVal / _cmPSToPerc;
+
+			rTempVal += (float)_rDesSpeed;
+			rTempVal *= _cmPSToPerc;
+
+			if (rTempVal > 1.0f) rTempVal = 1.0f;
+			else if (rTempVal < -1.0f) rTempVal = -1.0f;
+
+
+			lIntegral += lError / (float)(freq);
+			rIntegral += rError / (float)(freq);
+
+			lLastSpeed = _lSpeed;
+			rLastSpeed = _lSpeed;
+
+			
+			// Set left dir pin
+			if (lTempVal > 0.0f)
+			{
+				_lDir.port->PIO_CODR = _lDir.pin;
+			}
+			else
+			{
+				_lDir.port->PIO_SODR = _lDir.pin;
+			}
+
+			// Set right dir pin
+			if (rTempVal > 0.0f)
+			{
+				_rDir.port->PIO_CODR = _rDir.pin;
+			}
+			else
+			{
+				_rDir.port->PIO_SODR = _rDir.pin;
+			}
+
+			// Set PWM Value
+			PWM->PWM_CH_NUM[_lPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[_lPWMCh].PWM_CPRD * abs(lTempVal));
+			PWM->PWM_CH_NUM[_rPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[_rPWMCh].PWM_CPRD * abs(rTempVal));
+			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 		}
 
-		float getVelocity(Motor motor)
+		float getSpeed(const Motor motor)
 		{
 			if (motor == Motor::left)
 			{
@@ -199,7 +271,7 @@ namespace JAFD
 			}
 		}
 
-		float getDistance(Motor motor)
+		float getDistance(const Motor motor)
 		{
 			if (motor == Motor::left)
 			{
@@ -211,7 +283,7 @@ namespace JAFD
 			}
 		}
 
-		void encoderInterrupt(Interrupts::InterruptSource source, uint32_t isr)
+		void encoderInterrupt(const Interrupts::InterruptSource source, const uint32_t isr)
 		{
 			if (_lEncA.portID == static_cast<uint8_t>(source) && (isr & _lEncA.pin))
 			{
@@ -238,45 +310,19 @@ namespace JAFD
 			}
 		}
 
-		void setSpeed(Motor motor, float speed)
+		void setSpeed(const Motor motor, const uint8_t speed)
 		{
-			uint8_t pwmCh;
-
 			if (motor == Motor::left)
 			{
-				pwmCh = PinMapping::getPWMChannel(_lPWM);
-
-				// Set Dir Pin
-				if (speed > 0)
-				{
-					_lDir.port->PIO_CODR = _lDir.pin;
-				}
-				else
-				{
-					_lDir.port->PIO_SODR = _lDir.pin;
-				}
+				_lDesSpeed = speed;
 			}
 			else
 			{
-				pwmCh = PinMapping::getPWMChannel(_rPWM);
-
-				// Set Dir Pin
-				if (speed > 0)
-				{
-					_rDir.port->PIO_CODR = _rDir.pin;
-				}
-				else
-				{
-					_rDir.port->PIO_SODR = _rDir.pin;
-				}
+				_rDesSpeed = speed;
 			}
-
-			// Set PWM Value
-			PWM->PWM_CH_NUM[pwmCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[pwmCh].PWM_CPRD * abs(speed));
-			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 		}
 
-		float getCurrent(Motor motor)
+		float getCurrent(const Motor motor)
 		{
 			float result = 0.0f;
 

@@ -112,26 +112,23 @@ namespace JAFD
 		namespace BFAlgorithm
 		{
 			// Reset all BFS Values in this floor
-			void resetBFSValues(uint8_t floor);
+			void resetBFSValues(const uint8_t floor);
 
 			// Find the shortest known path from a to b
-			ReturnCode findShortestPath(MapCoordinate start, uint8_t* directions, uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell));
+			ReturnCode findShortestPath(const MapCoordinate start, uint8_t* directions, const uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell));
 		}
 
 		// Setup the MazeMapper
 		ReturnCode mazeMapperSetup();
 		
 		// Set a grid cell in the RAM
-		void setGridCell(GridCell gridCell, MapCoordinate coor);
-		void setGridCell(uint8_t bfsValue, MapCoordinate coor);
-		void setGridCell(GridCell gridCell, uint8_t bfsValue, MapCoordinate coor);
+		void setGridCell(const GridCell gridCell, const MapCoordinate coor);
+		void setGridCell(const uint8_t bfsValue, const MapCoordinate coor);
+		void setGridCell(const GridCell gridCell, const uint8_t bfsValue, const MapCoordinate coor);
 
 		// Read a grid cell from the RAM
-		void getGridCell(GridCell* gridCell, MapCoordinate coor);
-		void getGridCell(uint8_t* bfsValue, MapCoordinate coor);
-		void getGridCell(GridCell* gridCell, uint8_t* bfsValue, MapCoordinate coor);
-
-		// Reset complete Map
-		void resetMap();
+		void getGridCell(GridCell* gridCell, const MapCoordinate coor);
+		void getGridCell(uint8_t* bfsValue, const MapCoordinate coor);
+		void getGridCell(GridCell* gridCell, uint8_t* bfsValue, const MapCoordinate coor);
 	}
 }
