@@ -18,9 +18,9 @@
   </CurveSettingCollection>
   <XSweepTime>20 sec</XSweepTime>
   <XTimeFormat>Auto</XTimeFormat>
-  <DisplayRefreshRate>Rate1000ms</DisplayRefreshRate>
+  <DisplayRefreshRate>Rate500ms</DisplayRefreshRate>
   <ChartType>LineChart</ChartType>
-  <OptimizeBinaryCurves>On</OptimizeBinaryCurves>
+  <OptimizeBinaryCurves>Off</OptimizeBinaryCurves>
   <CurveDistribution>SingeChart</CurveDistribution>
   <TriggerEnabled>false</TriggerEnabled>
   <TriggerCondition>None</TriggerCondition>

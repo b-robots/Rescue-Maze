@@ -32,15 +32,13 @@ void setup() {
 		while (true);
 	}
 
-	//for (float s = 10.0f; s <= 120.0f; s += 0.3f)
-	//{
-	//	setSpeed(Motor::left, s);
-	//	setSpeed(Motor::right, s);
+	for (float s = 20; s <= 120; s += 1)
+	{
+		setSpeed(Motor::left, s);
+		setSpeed(Motor::right, s);
 
-	//	delay(5);
-	//}
-
-	setSpeed(Motor::left, 50.0f);
+		delay(100);
+	}
 }
 
 // The loop function runs over and over again until power down or reset
