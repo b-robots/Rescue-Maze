@@ -124,6 +124,7 @@
     <ClInclude Include="JAFD\implementation\MazeMapping_private.h" />
     <ClInclude Include="JAFD\implementation\MotorControl_private.h" />
     <ClInclude Include="JAFD\implementation\SensorFusion_private.h" />
+    <ClInclude Include="JAFD\implementation\SmoothDriving_private.h" />
     <ClInclude Include="JAFD\implementation\SpiNVSRAM_private.h" />
     <ClInclude Include="JAFD\implementation\ReturnCode_public.h" />
     <ClInclude Include="JAFD\JAFD.h" />
@@ -141,6 +142,7 @@
     <ClCompile Include="JAFD\implementation\MazeMapping.cpp" />
     <ClCompile Include="JAFD\implementation\MotorControl.cpp" />
     <ClCompile Include="JAFD\implementation\SensorFusion.cpp" />
+    <ClCompile Include="JAFD\implementation\SmoothDriving.cpp" />
     <ClCompile Include="JAFD\implementation\SpiNVSRAM.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -4,6 +4,7 @@ In this part are all interrupt handler
 
 #include "Interrupts_private.h"
 #include "MotorControl_private.h"
+#include "SmoothDriving_private.h"
 
 void PIOA_Handler()
 {
@@ -51,11 +52,12 @@ void TC4_Handler()
 	if (i % 5 == 0)
 	{
 		// 20Hz:
+		JAFD::MotorControl::speedPID(20);
 
 		if (i % 10 == 0)
 		{
 			// 10Hz:
-			JAFD::MotorControl::speedPID(10);
+			JAFD::SmoothDriving::updateSpeed(10);
 
 			if (i % 20 == 0)
 			{
