@@ -11,14 +11,5 @@ namespace JAFD
 {
 	namespace SensorFusion
 	{
-		namespace
-		{
-			float _preciseVelocity;
-		}
-
-		float getPreciseVelocity()
-		{
-
-		}
 	}
 }

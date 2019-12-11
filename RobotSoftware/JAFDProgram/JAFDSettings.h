@@ -53,6 +53,18 @@ namespace JAFDSettings
 		}
 	}
 
+	namespace SmoothDriving
+	{
+		namespace DriveStraight
+		{
+			// PID - Values
+			constexpr float kp = 0.45f;
+			constexpr float ki = 0.7f;
+			constexpr float kd = 0.01f;
+			constexpr float maxCorVal = 0.4f;
+		}
+	}
+
 	namespace Dispenser
 	{
 

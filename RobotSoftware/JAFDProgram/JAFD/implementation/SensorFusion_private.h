@@ -19,16 +19,15 @@ namespace JAFD
 {
 	namespace SensorFusion
 	{
-		struct RobotState
+		// Current state of robot
+		struct
 		{
-			Vec3D<float> lastKnownPoint;	// Last point where we are pretty sure that it is correct (cm)
+			float forwardVel;			// Forward velocity (cm/s)
+			float totalDistance;		// Total distance (average left and right) since last known point (cm)
+			Vec3D<float> position;		// Current position (cm)
 
-			float forwardVel;				// Forward velocity (cm/s)
-			float totalDistance;			// Total distance (average left and right) since last known point (cm)
-			Vec3D<float> position;			// Current position (cm)
-
-			Vec3D<float> angularVel;		// Angular velocity as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad/s)
-			Vec3D<float> rotation;			// Current Rotation as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad)
-		};
+			Vec3D<float> angularVel;	// Angular velocity as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad/s)
+			Vec3D<float> rotation;		// Current Rotation as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad)
+		} robotState;
 	}
 }

@@ -52,17 +52,17 @@ void TC4_Handler()
 	if (i % 5 == 0)
 	{
 		// 20Hz:
-		JAFD::MotorControl::speedPID(20);
 
 		if (i % 10 == 0)
 		{
 			// 10Hz:
-			JAFD::SmoothDriving::updateSpeed(10);
+			JAFD::SmoothDriving::updateSpeeds(10);
 
 			if (i % 20 == 0)
 			{
 				// 5Hz:
 				JAFD::MotorControl::calcMotorSpeed(5);
+				JAFD::MotorControl::speedPID(5);
 
 				if (i % 100 == 0)
 				{

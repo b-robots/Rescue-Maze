@@ -15,9 +15,11 @@
 #include "JAFD/implementation/MotorControl_private.h"
 #include "JAFD/implementation/MazeMapping_private.h"
 #include "JAFD/implementation/Interrupts_private.h"
+#include "JAFD/implementation/SmoothDriving_private.h"
 
 using namespace JAFD::MazeMapping;
 using namespace JAFD::MotorControl;
+using namespace JAFD::SmoothDriving;
 
 float x = 0.0f;
 
@@ -32,13 +34,8 @@ void setup() {
 		while (true);
 	}
 
-	for (float s = 20; s <= 120; s += 1)
-	{
-		setSpeed(Motor::left, s);
-		setSpeed(Motor::right, s);
-
-		delay(100);
-	}
+	auto x  = DriveStraight(0, 0.0f);
+	setNewTask(x);
 }
 
 // The loop function runs over and over again until power down or reset
