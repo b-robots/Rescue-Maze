@@ -13,10 +13,22 @@ This private file of the library is responsible for the access to the SPI NVSRAM
 #include <stdint.h>
 
 #include "ReturnCode_public.h"
+#include "../utility/Vector_private.h"
 
 namespace JAFD
 {
 	namespace SensorFusion
 	{
+		struct RobotState
+		{
+			Vec3D<float> lastKnownPoint;	// Last point where we are pretty sure that it is correct (cm)
+
+			float forwardVel;				// Forward velocity (cm/s)
+			float totalDistance;			// Total distance (average left and right) since last known point (cm)
+			Vec3D<float> position;			// Current position (cm)
+
+			Vec3D<float> angularVel;		// Angular velocity as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad/s)
+			Vec3D<float> rotation;			// Current Rotation as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad)
+		};
 	}
 }
