@@ -5,32 +5,28 @@ This part of the Library is responsible for driving smoothly.
 #pragma once
 
 #include "../../JAFDSettings.h"
-#include "ReturnCode_public.h"
+#include "Vector.h"
+#include "AllDatatypes.h"
+
 #include <stdint.h>
 
 namespace JAFD
 {
 	namespace SmoothDriving
 	{
-		struct Speeds
-		{
-			uint8_t left;
-			uint8_t right;
-		};
-
 		class ITask
 		{
 		public:
 			bool finished = false;									// Is the task already finished?
-			virtual Speeds updateSpeeds(const uint8_t freq) = 0;	// Update speeds for both wheels
+			virtual WheelSpeeds updateSpeeds(const uint8_t freq) = 0;	// Update speeds for both wheels
 		};
 
 		class DriveStraight : public ITask
 		{
 		private:
-			uint8_t _endSpeeds;		// End speed of both wheels
-			float _distance;		// Distance the robot has to travel
-			float _targetAngle;		// Target angle
+			uint8_t _endSpeeds;			// End speed of both wheels
+			float _endDistance;			// Distance the robot has to travel
+			Vec2D<float> _targetDir;	// Target direction
 			static constexpr auto _kp = JAFDSettings::SmoothDriving::DriveStraight::kp;					// Kp factor for PID controller
 			static constexpr auto _ki = JAFDSettings::SmoothDriving::DriveStraight::ki;					// Ki factor for PID controller
 			static constexpr auto _kd = JAFDSettings::SmoothDriving::DriveStraight::kd;					// Kd factor for PID controller
@@ -38,7 +34,7 @@ namespace JAFD
 		
 		public:
 			DriveStraight(uint8_t endSpeeds, float distance);
-			Speeds updateSpeeds(const uint8_t freq);
+			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
 
 		class Rotate : public ITask
@@ -48,7 +44,7 @@ namespace JAFD
 			float _angle;			// Angle the robot has to rotate
 		
 		public:
-			Speeds updateSpeeds(const uint8_t freq);
+			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
 
 		void updateSpeeds(const uint8_t freq);												// Update speeds for both wheels

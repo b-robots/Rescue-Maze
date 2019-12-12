@@ -8,9 +8,9 @@ This part of the Library is responsible for driving smoothly.
 #include "WProgram.h"
 #endif
 
-#include "SmoothDriving_private.h"
-#include "MotorControl_private.h"
-#include "SensorFusion_private.h"
+#include "../header/SmoothDriving.h"
+#include "../header/MotorControl.h"
+#include "../header/SensorFusion.h"
 
 namespace JAFD
 {
@@ -32,12 +32,12 @@ namespace JAFD
 
 		// DriveStraight class - begin 
 
-		DriveStraight::DriveStraight(uint8_t endSpeeds, float distance) : _endSpeeds(endSpeeds), _distance(distance), _targetAngle(SensorFusion::robotState.rotation.x) {}
+		DriveStraight::DriveStraight(uint8_t endSpeeds, float distance) : _endSpeeds(endSpeeds), _endDistance(distance), _targetDir(cosf(SensorFusion::robotState.rotation.x), sinf(SensorFusion::robotState.rotation.x)) {}
 
 		// Update speeds for both wheels
-		Speeds DriveStraight::updateSpeeds(const uint8_t freq)
+		WheelSpeeds DriveStraight::updateSpeeds(const uint8_t freq)
 		{
-			return Speeds{ 30, 30 };
+			return WheelSpeeds{ _endSpeeds, _endSpeeds };
 		}
 
 		// DriveStraight class - end
@@ -45,9 +45,9 @@ namespace JAFD
 		// Rotate class - begin
 
 		// Update speeds for both wheels
-		Speeds Rotate::updateSpeeds(const uint8_t freq)
+		WheelSpeeds Rotate::updateSpeeds(const uint8_t freq)
 		{
-			return Speeds{ 0, 0 };
+			return WheelSpeeds{ 0, 0 };
 		}
 
 		// Rotate class - end
@@ -57,8 +57,8 @@ namespace JAFD
 		{
 			auto updatedSpeeds = _currentTask->updateSpeeds(freq);
 
-			MotorControl::setSpeed(MotorControl::Motor::left, updatedSpeeds.left);
-			MotorControl::setSpeed(MotorControl::Motor::right, updatedSpeeds.right);
+			MotorControl::setSpeed(Motor::left, updatedSpeeds.left);
+			MotorControl::setSpeed(Motor::right, updatedSpeeds.right);
 		}
 
 		// Set new task

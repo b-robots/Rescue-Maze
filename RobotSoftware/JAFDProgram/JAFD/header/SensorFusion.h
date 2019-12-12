@@ -10,10 +10,10 @@ This private file of the library is responsible for the access to the SPI NVSRAM
 #include "WProgram.h"
 #endif
 
-#include <stdint.h>
+#include "AllDatatypes.h"
+#include "Vector.h"
 
-#include "ReturnCode_public.h"
-#include "../utility/Vector_private.h"
+#include <stdint.h>
 
 namespace JAFD
 {
@@ -22,6 +22,7 @@ namespace JAFD
 		// Current state of robot
 		struct
 		{
+			WheelSpeeds wheelSpeeds;	// Speed of the wheels
 			float forwardVel;			// Forward velocity (cm/s)
 			float totalDistance;		// Total distance (average left and right) since last known point (cm)
 			Vec3D<float> position;		// Current position (cm)

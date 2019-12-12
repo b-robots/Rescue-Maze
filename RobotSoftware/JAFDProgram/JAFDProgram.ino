@@ -12,14 +12,16 @@
 
 // RobotLibrary
 #include "JAFD/JAFD.h"
-#include "JAFD/implementation/MotorControl_private.h"
-#include "JAFD/implementation/MazeMapping_private.h"
-#include "JAFD/implementation/Interrupts_private.h"
-#include "JAFD/implementation/SmoothDriving_private.h"
+#include "JAFD/header/MotorControl.h"
+#include "JAFD/header/MazeMapping.h"
+#include "JAFD/header/Interrupts.h"
+#include "JAFD/header/SmoothDriving.h"
+#include "JAFD/header/AllDatatypes.h"
 
 using namespace JAFD::MazeMapping;
 using namespace JAFD::MotorControl;
 using namespace JAFD::SmoothDriving;
+using namespace JAFD;
 
 float x = 0.0f;
 
@@ -28,21 +30,12 @@ void setup() {
 	// For testing
 	Serial.begin(115200);
 
-	// If robot is completely stuck, just do nothing.
-	if (JAFD::robotSetup() == JAFD::ReturnCode::fatalError)
-	{
-		while (true);
-	}
+	JAFD::robotSetup();
 
-	auto x  = DriveStraight(0, 0.0f);
-	setNewTask(x);
+	setNewTask(DriveStraight(20, 0.0f), true);
 }
 
 // The loop function runs over and over again until power down or reset
 void loop() {
-	// If robot is completely stuck, just do nothing.
-	if (JAFD::robotLoop() == JAFD::ReturnCode::fatalError)
-	{
-		while (true);
-	}
+	JAFD::robotLoop();
 }

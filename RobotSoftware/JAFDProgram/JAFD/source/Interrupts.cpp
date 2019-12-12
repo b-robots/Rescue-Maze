@@ -2,9 +2,9 @@
 In this part are all interrupt handler
 */
 
-#include "Interrupts_private.h"
-#include "MotorControl_private.h"
-#include "SmoothDriving_private.h"
+#include "../header/Interrupts.h"
+#include "../header/MotorControl.h"
+#include "../header/SmoothDriving.h"
 
 void PIOA_Handler()
 {

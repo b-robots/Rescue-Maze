@@ -9,8 +9,8 @@ This part of the Library is responsible for driving the motors.
 #endif
 
 #include "../../JAFDSettings.h"
-#include "MotorControl_private.h"
-#include "../utility/DuePinMapping_private.h"
+#include "../header/MotorControl.h"
+#include "../header/DuePinMapping.h"
 
 namespace JAFD
 {

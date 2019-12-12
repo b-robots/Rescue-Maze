@@ -11,16 +11,13 @@
 #error This Library can only be used with the Arduino Due / ATSam3x8e
 #endif
 
-#define ROBOT_LIB_VERSION "1.5" 
-
-// All public header files of Library
-#include "implementation/ReturnCode_public.h"
+#define ROBOT_LIB_VERSION "1.6" 
 
 // Namespace for robot (including sensors, maze solving algorithm, and so on...)
 // JAFD = Just Ask For Direction
 namespace JAFD
 {
 	// Setup & Loop for the Robot
-	ReturnCode robotSetup();
-	ReturnCode robotLoop();
+	void robotSetup();
+	void robotLoop();
 };

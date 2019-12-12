@@ -5,19 +5,20 @@
 */
 
 #include "../JAFD.h"
-#include "Bno055_private.h"
-#include "Dispenser_private.h"
-#include "MazeMapping_private.h"
-#include "MotorControl_private.h"
-#include "SensorFusion_private.h"
-#include "SpiNVSRAM_private.h"
+#include "../header/Bno055.h"
+#include "../header/Dispenser.h"
+#include "../header/MazeMapping.h"
+#include "../header/MotorControl.h"
+#include "../header/SensorFusion.h"
+#include "../header/SpiNVSRAM.h"
+#include "../header/AllDatatypes.h"
 
 #include <SPI.h>
 
 namespace JAFD
 {
 	// Just for testing...
-	ReturnCode robotSetup()
+	void robotSetup()
 	{
 		// Setup the SPI-Bus
 		SPI.begin();
@@ -58,33 +59,33 @@ namespace JAFD
 		// Setup of MazeMapper
 		if (MazeMapping::mazeMapperSetup() != ReturnCode::ok)
 		{
-			return ReturnCode::fatalError;
+
 		}
 
 		// Setup of Dispenser
 		if (Dispenser::dispenserSetup() != ReturnCode::ok)
 		{
-			return ReturnCode::fatalError;
+
 		}
 
 		// Setup of Motor Control
 		if (MotorControl::motorControlSetup() != ReturnCode::ok)
 		{
-			return ReturnCode::fatalError;
+
 		}
 
 		// Setup of SPI NVSRAM
 		if (SpiNVSRAM::spiNvsramSetup() != ReturnCode::ok)
 		{
-			return ReturnCode::fatalError;
+
 		}
 
-		return ReturnCode::ok;
+		return;
 	}
 
-	ReturnCode robotLoop()
+	void robotLoop()
 	{
-		return ReturnCode::ok;
+		return;
 	}
 }
 

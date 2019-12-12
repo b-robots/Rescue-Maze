@@ -4,8 +4,8 @@ This private part of the Library is responsible for mapping the maze and finding
 
 #pragma once
 
-#include "ReturnCode_public.h"
-#include "../utility/StaticQueue_private.h"
+#include "AllDatatypes.h"
+#include "StaticQueue.h"
 
 #include <stdint.h>
 
@@ -19,16 +19,6 @@ namespace JAFD
 		{
 			constexpr uint8_t directionMask = 0xf;
 			constexpr uint8_t rampMask = 0x10;
-		}
-
-		// Directions
-		namespace Direction
-		{
-			constexpr uint8_t north = 1 << 0;
-			constexpr uint8_t east = 1 << 1;
-			constexpr uint8_t south = 1 << 2;
-			constexpr uint8_t west = 1 << 3;
-			constexpr uint8_t nowhere = 0;
 		}
 
 		// Ramp Direction

@@ -2,8 +2,9 @@
 This part of the Library is responsible for mapping the maze and finding the shortest paths.
 */
 
-#include "MazeMapping_private.h"
-#include "SpiNVSRAM_private.h"
+#include "../header/MazeMapping.h"
+#include "../header/SpiNVSRAM.h"
+
 #include <algorithm>
 
 namespace JAFD
