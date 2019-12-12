@@ -5,7 +5,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="JAFDSettings.h" />
-    <ClInclude Include="__vm\.JAFDProgram.vsarduino.h" />
     <ClInclude Include="JAFD\JAFD.h">
       <Filter>JAFD</Filter>
     </ClInclude>
@@ -48,6 +47,7 @@
     <ClInclude Include="JAFD\header\AllDatatypes.h">
       <Filter>JAFD\Header</Filter>
     </ClInclude>
+    <ClInclude Include="__vm\.JAFDProgram.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="JAFD">

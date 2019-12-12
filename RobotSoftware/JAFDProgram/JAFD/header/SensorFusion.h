@@ -25,10 +25,10 @@ namespace JAFD
 			WheelSpeeds wheelSpeeds;	// Speed of the wheels
 			float forwardVel;			// Forward velocity (cm/s)
 			float totalDistance;		// Total distance (average left and right) since last known point (cm)
-			Vec3D<float> position;		// Current position (cm)
+			Vec3f position;				// Current position (cm)
 
-			Vec3D<float> angularVel;	// Angular velocity as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad/s)
-			Vec3D<float> rotation;		// Current Rotation as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad)
+			Vec3f angularVel;			// Angular velocity as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad/s)
+			Vec3f rotation;				// Current Rotation as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad)
 		} robotState;
 	}
 }
