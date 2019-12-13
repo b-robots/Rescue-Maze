@@ -1,10 +1,10 @@
 /*
-This private file of the library is responsible for an Array-based Queue
+This file of the library is responsible for an Array-based Queue
 */
 
 #pragma once
 
-#include "../implementation/ReturnCode_public.h"
+#include "AllDatatypes.h"
 #include <stdint.h>
 
 namespace JAFD

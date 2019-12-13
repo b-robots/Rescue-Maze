@@ -2,7 +2,7 @@
 This part is responsible for dispensing the rescue packages.
 */
 
-#include "Dispenser_private.h"
+#include "../header/Dispenser.h"
 
 namespace JAFD
 {

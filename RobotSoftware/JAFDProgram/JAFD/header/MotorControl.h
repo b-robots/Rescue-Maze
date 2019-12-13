@@ -4,20 +4,15 @@ This part of the Library is responsible for driving the motors.
 
 #pragma once
 
-#include "ReturnCode_public.h"
-#include "Interrupts_private.h"
+#include "AllDatatypes.h"
+#include "Interrupts.h"
+
 #include <stdint.h>
 
 namespace JAFD
 {
 	namespace MotorControl
 	{
-		enum class Motor : uint8_t
-		{
-			left,
-			right
-		};
-
 		// Setup the Motor-Shield
 		ReturnCode motorControlSetup();
 

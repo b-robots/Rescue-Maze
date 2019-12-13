@@ -3,8 +3,8 @@ This private file of the library is responsible for the access to the SPI EEPROM
 */
 
 #include "../../JAFDSettings.h"
-#include "SpiNVSRAM_private.h"
-#include "../utility/DuePinMapping_private.h"
+#include "../header/SpiNVSRAM.h"
+#include "../header/DuePinMapping.h"
 
 namespace JAFD
 {

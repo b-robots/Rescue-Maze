@@ -118,30 +118,33 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="JAFD\implementation\Bno055_private.h" />
-    <ClInclude Include="JAFD\implementation\Dispenser_private.h" />
-    <ClInclude Include="JAFD\implementation\Interrupts_private.h" />
-    <ClInclude Include="JAFD\implementation\MazeMapping_private.h" />
-    <ClInclude Include="JAFD\implementation\MotorControl_private.h" />
-    <ClInclude Include="JAFD\implementation\SensorFusion_private.h" />
-    <ClInclude Include="JAFD\implementation\SpiNVSRAM_private.h" />
-    <ClInclude Include="JAFD\implementation\ReturnCode_public.h" />
-    <ClInclude Include="JAFD\JAFD.h" />
-    <ClInclude Include="JAFD\utility\DuePinMapping_private.h" />
-    <ClInclude Include="JAFD\utility\Math_private.h" />
-    <ClInclude Include="JAFD\utility\StaticQueue_private.h" />
     <ClInclude Include="JAFDSettings.h" />
+    <ClInclude Include="JAFD\header\AllDatatypes.h" />
+    <ClInclude Include="JAFD\header\Bno055.h" />
+    <ClInclude Include="JAFD\header\Dispenser.h" />
+    <ClInclude Include="JAFD\header\DuePinMapping.h" />
+    <ClInclude Include="JAFD\header\Interrupts.h" />
+    <ClInclude Include="JAFD\header\Math.h" />
+    <ClInclude Include="JAFD\header\MazeMapping.h" />
+    <ClInclude Include="JAFD\header\MotorControl.h" />
+    <ClInclude Include="JAFD\header\SensorFusion.h" />
+    <ClInclude Include="JAFD\header\SmoothDriving.h" />
+    <ClInclude Include="JAFD\header\SpiNVSRAM.h" />
+    <ClInclude Include="JAFD\header\StaticQueue.h" />
+    <ClInclude Include="JAFD\header\Vector.h" />
+    <ClInclude Include="JAFD\JAFD.h" />
     <ClInclude Include="__vm\.JAFDProgram.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="JAFD\implementation\Bno055.cpp" />
-    <ClCompile Include="JAFD\implementation\Dispenser.cpp" />
-    <ClCompile Include="JAFD\implementation\Interrupts.cpp" />
-    <ClCompile Include="JAFD\implementation\JAFD.cpp" />
-    <ClCompile Include="JAFD\implementation\MazeMapping.cpp" />
-    <ClCompile Include="JAFD\implementation\MotorControl.cpp" />
-    <ClCompile Include="JAFD\implementation\SensorFusion.cpp" />
-    <ClCompile Include="JAFD\implementation\SpiNVSRAM.cpp" />
+    <ClCompile Include="JAFD\source\Bno055.cpp" />
+    <ClCompile Include="JAFD\source\Dispenser.cpp" />
+    <ClCompile Include="JAFD\source\Interrupts.cpp" />
+    <ClCompile Include="JAFD\source\JAFD.cpp" />
+    <ClCompile Include="JAFD\source\MazeMapping.cpp" />
+    <ClCompile Include="JAFD\source\MotorControl.cpp" />
+    <ClCompile Include="JAFD\source\SensorFusion.cpp" />
+    <ClCompile Include="JAFD\source\SmoothDriving.cpp" />
+    <ClCompile Include="JAFD\source\SpiNVSRAM.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

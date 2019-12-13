@@ -13,7 +13,7 @@ This private file of the library is responsible for the access to the SPI NVSRAM
 #include <SPI.h>
 #include <stdint.h>
 
-#include "ReturnCode_public.h"
+#include "AllDatatypes.h"
 
 namespace JAFD
 {

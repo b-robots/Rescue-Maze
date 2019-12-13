@@ -3,7 +3,7 @@ This part is responsible for dispensing the rescue packages.
 */
 #pragma once
 
-#include "ReturnCode_public.h"
+#include "AllDatatypes.h"
 
 #include <stdint.h>
 

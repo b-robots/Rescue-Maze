@@ -9,7 +9,7 @@ This part is responsible for the 9 DOF-IMU (BNO055).
 #include "WProgram.h"
 #endif
 
-#include "Bno055_private.h"
+#include "../header/Bno055.h"
 
 namespace JAFD
 {
