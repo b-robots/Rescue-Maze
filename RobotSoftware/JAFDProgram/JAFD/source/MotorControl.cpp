@@ -53,8 +53,8 @@ namespace JAFD
 			volatile float _lSpeed = 0.0f;		// Speed left motor (cm/s)
 			volatile float _rSpeed = 0.0f;		// Speed right motor (cm/s)
 
-			volatile uint8_t _lDesSpeed = 0;	// Desired speed left motor (cm/s)
-			volatile uint8_t _rDesSpeed = 0;	// Desired speed left motor (cm/s)
+			volatile int8_t _lDesSpeed = 0;	// Desired speed left motor (cm/s)
+			volatile int8_t _rDesSpeed = 0;	// Desired speed left motor (cm/s)
 		}
 
 		ReturnCode motorControlSetup()
@@ -259,16 +259,9 @@ namespace JAFD
 			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 		}
 
-		float getSpeed(const Motor motor)
+		WheelSpeeds getSpeeds()
 		{
-			if (motor == Motor::left)
-			{
-				return _lSpeed;
-			}
-			else
-			{
-				return _rSpeed;
-			}
+			return WheelSpeeds{_lSpeed, -_rSpeed};
 		}
 
 		float getDistance(const Motor motor)
@@ -279,7 +272,7 @@ namespace JAFD
 			}
 			else
 			{
-				return _rEncCnt / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI;
+				return _rEncCnt / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * -1;
 			}
 		}
 
@@ -310,16 +303,10 @@ namespace JAFD
 			}
 		}
 
-		void setSpeed(const Motor motor, const uint8_t speed)
+		void setSpeeds(const WheelSpeeds wheelSpeeds)
 		{
-			if (motor == Motor::left)
-			{
-				_lDesSpeed = speed;
-			}
-			else
-			{
-				_rDesSpeed = speed;
-			}
+			_lDesSpeed = wheelSpeeds.left;
+			_rDesSpeed = -wheelSpeeds.right;
 		}
 
 		float getCurrent(const Motor motor)

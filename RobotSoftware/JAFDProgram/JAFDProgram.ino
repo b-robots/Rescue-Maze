@@ -32,7 +32,7 @@ void setup() {
 
 	JAFD::robotSetup();
 
-	setNewTask(DriveStraight(20, 0.0f), true);
+	setNewTask(DriveStraight(50, 500.0f), true);
 }
 
 // The loop function runs over and over again until power down or reset

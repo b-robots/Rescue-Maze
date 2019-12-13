@@ -17,11 +17,12 @@ namespace JAFDSettings
 	namespace Mechanics
 	{
 		constexpr float wheelDiameter = 8.0f;
+		constexpr float wheelDistance = 15.0f;
 	}
 
 	namespace SpiEeprom
 	{
-		constexpr uint8_t ssPin = 10;
+		constexpr uint8_t ssPin = 13;
 	}
 
 	namespace MotorControl
@@ -46,10 +47,10 @@ namespace JAFDSettings
 		namespace Right
 		{
 			constexpr uint8_t pwmPin = 36;	// PWM pin left motor
-			constexpr uint8_t dirPin = A1;	// Direction pin left motor
+			constexpr uint8_t dirPin = A7;	// Direction pin left motor
 			constexpr uint8_t fbPin = A10;	// Current feedback output left motor
-			constexpr uint8_t encA = 24;	// Encoder Pin A
-			constexpr uint8_t encB = 25;	// Encoder Pin B
+			constexpr uint8_t encA = 10;	// Encoder Pin A
+			constexpr uint8_t encB = 11;	// Encoder Pin B
 		}
 	}
 
@@ -58,10 +59,9 @@ namespace JAFDSettings
 		namespace DriveStraight
 		{
 			// PID - Values
-			constexpr float kp = 0.45f;
-			constexpr float ki = 0.7f;
-			constexpr float kd = 0.01f;
-			constexpr float maxCorVal = 0.4f;
+			constexpr float kp = 0.0f;
+			constexpr float ki = 0.0f;
+			constexpr float kd = 0.0f;
 		}
 	}
 

@@ -5,6 +5,7 @@ In this part are all interrupt handler
 #include "../header/Interrupts.h"
 #include "../header/MotorControl.h"
 #include "../header/SmoothDriving.h"
+#include "../header/SensorFusion.h"
 
 void PIOA_Handler()
 {
@@ -53,9 +54,11 @@ void TC4_Handler()
 	{
 		// 20Hz:
 
+
 		if (i % 10 == 0)
 		{
 			// 10Hz:
+			JAFD::SensorFusion::updateSensorValues(10);
 			JAFD::SmoothDriving::updateSpeeds(10);
 
 			if (i % 20 == 0)

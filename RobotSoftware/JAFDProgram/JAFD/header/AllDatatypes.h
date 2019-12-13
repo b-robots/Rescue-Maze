@@ -11,8 +11,8 @@ namespace JAFD
 	// Speed of both wheels
 	struct WheelSpeeds
 	{
-		uint8_t left;
-		uint8_t right;
+		int8_t left;
+		int8_t right;
 	};
 
 	// Direction flags

@@ -30,5 +30,7 @@ namespace JAFD
 			Vec3f angularVel;			// Angular velocity as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad/s)
 			Vec3f rotation;				// Current Rotation as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad)
 		} robotState;
+	
+		void updateSensorValues(const uint8_t freq);
 	}
 }
