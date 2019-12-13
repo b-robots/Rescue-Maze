@@ -40,30 +40,20 @@ namespace JAFD
 			static Vec2f posRelToStart;		// Position relative to start position
 			static Vec2f posError;			// Position error
 			static float distance;			// Distance to start position
+			static Vec2f integral;			// Position error integral
+			static Vec2f tempVal;			// Temporary value
+			static Vec2f lastError;			// Last left speed
 
 			// Calculate error
 			posRelToStart = SensorFusion::robotState.position - _startPos;
 			distance = posRelToStart.length();
 			posError = _targetDir * distance - posRelToStart;
 
-			// PID for position error
-			static Vec2f integral;	// Position error integral
-
-			static Vec2f tempVal;	// Temporary value
-
-			static float lError = 0.0f;		// Left speed error
-			static float rError = 0.0f;		// Right speed error
-
-			static float lLastSpeed = 0.0f;	// Last left speed
-			static float rLastSpeed = 0.0f;	// Last right speed
 
 			// PID controller
-			lError = (float)_lDesSpeed - _lSpeed;
-			rError = (float)_rDesSpeed - _rSpeed;
+			tempVal = posError * _kp + integral * _ki - (lastError - posError) * _kd * (float)freq;
 
-			lTempVal = _kp * lError + _ki * lIntegral - _kd * (lLastSpeed - _lSpeed) * (float)freq;
-
-			if (lTempVal > _maxCorVal / _cmPSToPerc) lTempVal = _maxCorVal / _cmPSToPerc;
+			if (tempVal > _maxCorVal / _cmPSToPerc) lTempVal = _maxCorVal / _cmPSToPerc;
 			else if (lTempVal < -_maxCorVal / _cmPSToPerc) lTempVal = -_maxCorVal / _cmPSToPerc;
 
 			lTempVal += (float)_lDesSpeed;

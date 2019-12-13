@@ -24,16 +24,14 @@ namespace JAFD
 		class DriveStraight : public ITask
 		{
 		private:
-			uint8_t _endSpeeds;		// End speed of both wheels
-			float _endDistance;		// Distance the robot has to travel
-			Vec2f _targetDir;		// Target direction (guranteed to be normalized)
-			Vec2f _startPos;		// Start position
-			uint8_t _startSpeeds;	// Average start speed of both wheels
-			static constexpr auto _kp = JAFDSettings::SmoothDriving::DriveStraight::kp;					// Kp factor for PID controller
-			static constexpr auto _ki = JAFDSettings::SmoothDriving::DriveStraight::ki;					// Ki factor for PID controller
-			static constexpr auto _kd = JAFDSettings::SmoothDriving::DriveStraight::kd;					// Kd factor for PID controller
-			static constexpr auto _maxCorVal = JAFDSettings::SmoothDriving::DriveStraight::maxCorVal;	// Maximum correction value for PID controller
-		
+			volatile uint8_t _endSpeeds;													// End speed of both wheels
+			volatile float _endDistance;													// Distance the robot has to travel
+			volatile Vec2f _targetDir;														// Target direction (guranteed to be normalized)
+			volatile Vec2f _startPos;														// Start position
+			volatile uint8_t _startSpeeds;													// Average start speed of both wheels
+			static constexpr auto _kp = JAFDSettings::SmoothDriving::DriveStraight::kp;		// Kp factor for PID controller
+			static constexpr auto _ki = JAFDSettings::SmoothDriving::DriveStraight::ki;		// Ki factor for PID controller
+			static constexpr auto _kd = JAFDSettings::SmoothDriving::DriveStraight::kd;		// Kd factor for PID controller		
 		public:
 			DriveStraight(uint8_t endSpeeds, float distance);
 			WheelSpeeds updateSpeeds(const uint8_t freq);
