@@ -18,7 +18,7 @@ namespace JAFD
 
 		Vec2f(float x, float y) :  x(x), y(y) {}
 		Vec2f() : x(0.0f), y(0.0f) {}
-		Vec2f(const Vec3f& vec);
+		explicit Vec2f(const Vec3f& vec);
 
 		inline Vec2f operator+(const Vec2f& vec) const
 		{
@@ -106,7 +106,7 @@ namespace JAFD
 
 		Vec3f(float x, float y, float z) : x(x), y(y), z(z) {}
 		Vec3f() : x(0.0f), y(0.0f), z(0.0f) {}
-		Vec3f(const Vec2f& vec) : x(vec.x), y(vec.y), z(0.0f) {}
+		explicit Vec3f(const Vec2f& vec) : x(vec.x), y(vec.y), z(0.0f) {}
 
 		inline Vec3f operator+(const Vec3f& vec) const
 		{

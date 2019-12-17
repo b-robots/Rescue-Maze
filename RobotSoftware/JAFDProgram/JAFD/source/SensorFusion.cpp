@@ -15,7 +15,7 @@ namespace JAFD
 		void updateSensorValues(const uint8_t freq)
 		{
 			robotState.wheelSpeeds = MotorControl::getSpeeds();
-			robotState.position += Vec2f((robotState.wheelSpeeds.left + robotState.wheelSpeeds.left) / (float)freq / 2.0f, 0.0f);
+			robotState.position += Vec3f((robotState.wheelSpeeds.left + robotState.wheelSpeeds.left) / (float)freq / 2.0f, 0.0f, 0.0f);
 		}
 	}
 }

@@ -57,12 +57,12 @@ namespace JAFD
 			static float angularVel;		// Desired angular velocity
 
 			// Calculate error
-			posRelToStart = SensorFusion::robotState.position - _startPos;
+			posRelToStart = (Vec2f)SensorFusion::robotState.position - _startPos;
 			distance = posRelToStart.length();
 			posError = _targetDir * distance - posRelToStart;
 
-			// Check if i am here
-			if (posError.length() < 1.0f)
+			// Check if I am there
+			if (distance - _endDistance >= 0.0f)
 			{
 				_finished = true;
 				return WheelSpeeds{ _endSpeeds, _endSpeeds };

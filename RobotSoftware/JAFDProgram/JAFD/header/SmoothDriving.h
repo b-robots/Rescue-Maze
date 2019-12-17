@@ -46,6 +46,8 @@ namespace JAFD
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
 		
+		static const DriveStraight Stop(0, 1.0f);
+
 		class Rotate : public ITask
 		{
 		private:
