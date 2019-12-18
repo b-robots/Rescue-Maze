@@ -24,6 +24,8 @@ namespace JAFD
 
 		Vec2f(float x, float y) :  x(x), y(y) {}
 		Vec2f() : x(0.0f), y(0.0f) {}
+		Vec2f(const volatile Vec2f& vec) : x(vec.x), y(vec.y) {}
+		Vec2f(const Vec2f& vec) : x(vec.x), y(vec.y) {}
 		explicit Vec2f(const Vec3f& vec);
 
 		inline volatile Vec2f& operator=(const Vec2f& vec) volatile
@@ -191,6 +193,8 @@ namespace JAFD
 
 		Vec3f(float x, float y, float z) : x(x), y(y), z(z) {}
 		Vec3f() : x(0.0f), y(0.0f), z(0.0f) {}
+		Vec3f(const volatile Vec3f& vec) : x(vec.x), y(vec.y), z(vec.z) {}
+		Vec3f(const Vec3f& vec) : x(vec.x), y(vec.y), z(vec.z) {}
 		explicit Vec3f(const Vec2f& vec) : x(vec.x), y(vec.y), z(0.0f) {}
 
 		inline volatile Vec3f& operator=(const Vec3f& vec) volatile

@@ -53,15 +53,6 @@ namespace JAFD
 		// Update speeds for both wheels
 		WheelSpeeds DriveStraight::updateSpeeds(const uint8_t freq)
 		{
-			volatile Vec2f test;
-
-			test = Vec2f(0.0f, 0.0f);
-			auto test2 = test + Vec2f(4.0f, 1.0f);
-			volatile Vec2f test3 = test - test;
-			test2 += 5.0f;
-			test3 = test2 + test;
-			test3 /= 1.0f;
-
 			static Vec2f posRelToStart;		// Position relative to start position
 			static Vec2f posError;			// Position error
 			static float distance;			// Distance to start position

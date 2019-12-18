@@ -14,7 +14,7 @@ namespace JAFD
 	{
 		namespace
 		{
-			RobotState _robotState; // Current state of robot
+			volatile RobotState _robotState; // Current state of robot
 		}
 
 		void updateSensorValues(const uint8_t freq)
