@@ -261,7 +261,12 @@ namespace JAFD
 
 		WheelSpeeds getSpeeds()
 		{
-			return WheelSpeeds{_lSpeed, -_rSpeed};
+			return WheelSpeeds{ static_cast<int8_t>(_lSpeed), -static_cast<int8_t>(_rSpeed) };
+		}
+
+		FloatWheelSpeeds getFloatSpeeds()
+		{
+			return FloatWheelSpeeds{ _lSpeed, -_rSpeed };
 		}
 
 		float getDistance(const Motor motor)

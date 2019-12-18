@@ -22,6 +22,9 @@ namespace JAFD
 		// Get measured velocity
 		WheelSpeeds getSpeeds();
 
+		// Get more accurate measured velocity
+		FloatWheelSpeeds getFloatSpeeds();
+
 		// Interrupthandler for speed calculation
 		void calcMotorSpeed(const uint8_t freq);
 

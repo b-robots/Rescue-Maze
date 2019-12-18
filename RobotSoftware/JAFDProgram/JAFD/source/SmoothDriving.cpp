@@ -38,14 +38,30 @@ namespace JAFD
 
 		void DriveStraight::startTask()
 		{
-			_targetDir = Vec2f(cosf(SensorFusion::robotState.rotation.x), sinf(SensorFusion::robotState.rotation.x));
-			_startPos = Vec2f(SensorFusion::robotState.position.x, SensorFusion::robotState.position.y);
-			_startSpeeds = (SensorFusion::robotState.wheelSpeeds.left + SensorFusion::robotState.wheelSpeeds.right) / 2;
+			_targetDir = Vec2f(cosf(SensorFusion::getRobotState().rotation.x), sinf(SensorFusion::getRobotState().rotation.x));
+			_startPos = Vec2f(SensorFusion::getRobotState().position.x, SensorFusion::getRobotState().position.y);
+			_startSpeeds = (SensorFusion::getRobotState().wheelSpeeds.left + SensorFusion::getRobotState().wheelSpeeds.right) / 2;
+			
+			// Set start speeds to minimum value if distance is > 0
+			if (_endDistance >= 0.01f)
+			{
+				if (_startSpeeds < JAFDSettings::MotorControl::minSpeed && _startSpeeds >= 0) _startSpeeds = JAFDSettings::MotorControl::minSpeed;
+				else if (-_startSpeeds < JAFDSettings::MotorControl::minSpeed && _startSpeeds < 0) _startSpeeds = -JAFDSettings::MotorControl::minSpeed;
+			}
 		}
 
 		// Update speeds for both wheels
 		WheelSpeeds DriveStraight::updateSpeeds(const uint8_t freq)
 		{
+			volatile Vec2f test;
+
+			test = Vec2f(0.0f, 0.0f);
+			auto test2 = test + Vec2f(4.0f, 1.0f);
+			volatile Vec2f test3 = test - test;
+			test2 += 5.0f;
+			test3 = test2 + test;
+			test3 /= 1.0f;
+
 			static Vec2f posRelToStart;		// Position relative to start position
 			static Vec2f posError;			// Position error
 			static float distance;			// Distance to start position
@@ -57,12 +73,12 @@ namespace JAFD
 			static float angularVel;		// Desired angular velocity
 
 			// Calculate error
-			posRelToStart = (Vec2f)SensorFusion::robotState.position - _startPos;
+			posRelToStart = (Vec2f)SensorFusion::getRobotState().position - _startPos;
 			distance = posRelToStart.length();
 			posError = _targetDir * distance - posRelToStart;
 
 			// Check if I am there
-			if (distance - _endDistance >= 0.0f)
+			if (distance - _endDistance >= 0.0f || abs(_endDistance) < 0.01f )
 			{
 				_finished = true;
 				return WheelSpeeds{ _endSpeeds, _endSpeeds };
@@ -76,7 +92,7 @@ namespace JAFD
 			lastError = posError;
 
 			// Accelerate / deccelerate
-			desiredSpeed = _startSpeeds + (int8_t)((_endDistance / distance) * (float)(_endSpeeds - _startSpeeds));
+			desiredSpeed = _startSpeeds + static_cast<int8_t>((distance / _endDistance) * static_cast<float>(_endSpeeds - _startSpeeds));
 
 			// Calculate drive vector
 			driveVector = Vec2f(1.0f, 0.0f) + corTerm;

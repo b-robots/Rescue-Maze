@@ -4,6 +4,7 @@ In this file are all definitions off all custom, global datatypes and global nam
 
 #pragma once
 
+#include "Vector.h"
 #include <stdint.h>
 
 namespace JAFD
@@ -13,6 +14,13 @@ namespace JAFD
 	{
 		int8_t left;
 		int8_t right;
+	};
+
+	// More accurate speed of both wheels
+	struct FloatWheelSpeeds
+	{
+		float left;
+		float right;
 	};
 
 	// Direction flags
@@ -39,5 +47,17 @@ namespace JAFD
 		error,
 		aborted,
 		ok
+	};
+
+	// State of robot
+	struct RobotState
+	{
+		FloatWheelSpeeds wheelSpeeds;	// Speed of the wheels
+		float forwardVel;				// Forward velocity (cm/s)
+		float totalDistance;			// Total distance (average left and right) since last known point (cm)
+		Vec3f position;					// Current position (cm)
+
+		Vec3f angularVel;				// Angular velocity as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad/s)
+		Vec3f rotation;					// Current Rotation as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad)
 	};
 }

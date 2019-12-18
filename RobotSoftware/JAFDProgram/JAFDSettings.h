@@ -35,6 +35,8 @@ namespace JAFDSettings
 
 		constexpr float cmPSToPerc = 0.009f;	// Conversion factor from cm/s to motor PWM duty cycle
 
+		constexpr int8_t minSpeed = 15;		// Minimum speed for motor to rotate
+
 		namespace Left
 		{
 			constexpr uint8_t pwmPin = 34;	// PWM pin left motor
