@@ -20,13 +20,13 @@ namespace JAFD
 		class ITask
 		{
 		public:
-			virtual WheelSpeeds updateSpeeds(const uint8_t freq) = 0;	// Update speeds for both wheels
-			virtual void startTask() = 0;
+			virtual WheelSpeeds updateSpeeds(const uint8_t freq) volatile = 0;	// Update speeds for both wheels
+			virtual void startTask() volatile = 0;
 
 			friend bool isTaskFinished();
 			friend void setNewTask(const DriveStraight& newTask, const bool forceOverride);
 		protected:
-			bool _finished = false;										// Is the task already finished?
+			volatile bool _finished = false;							// Is the task already finished?
 		};
 
 		class DriveStraight : public ITask
@@ -42,8 +42,8 @@ namespace JAFD
 			static constexpr auto _kd = JAFDSettings::SmoothDriving::DriveStraight::kd;		// Kd factor for PID controller		
 		public:
 			DriveStraight(int8_t endSpeeds, float distance);
-			void startTask();
-			WheelSpeeds updateSpeeds(const uint8_t freq);
+			void startTask() volatile;
+			WheelSpeeds updateSpeeds(const uint8_t freq) volatile;
 		};
 		
 		static const DriveStraight Stop(0, 1.0f);
@@ -62,6 +62,5 @@ namespace JAFD
 		void setNewTask(const DriveStraight& newTask, const bool forceOverride = false);	// Set new task
 		//void setNewTask(const Rotate& newTask, const bool forceOverride = false);			// Set new task
 		bool isTaskFinished();																// Is the current task finished?
-		WheelSpeeds getcalculatedspeeds();
 	}
 }

@@ -28,15 +28,13 @@ namespace JAFD
 			} _taskCopies;			
 
 			ITask* _currentTask = &_taskCopies.straight;	// Current task
-
-			WheelSpeeds aaa;
 		}
 
 		// DriveStraight class - begin 
 
 		DriveStraight::DriveStraight(int8_t endSpeeds, float distance) : _endSpeeds(endSpeeds), _endDistance(distance) {}
 
-		void DriveStraight::startTask()
+		void DriveStraight::startTask() volatile
 		{
 			_targetDir = Vec2f(cosf(SensorFusion::getRobotState().rotation.x), sinf(SensorFusion::getRobotState().rotation.x));
 			_startPos = Vec2f(SensorFusion::getRobotState().position.x, SensorFusion::getRobotState().position.y);
@@ -51,7 +49,7 @@ namespace JAFD
 		}
 
 		// Update speeds for both wheels
-		WheelSpeeds DriveStraight::updateSpeeds(const uint8_t freq)
+		WheelSpeeds DriveStraight::updateSpeeds(const uint8_t freq) volatile
 		{
 			static Vec2f posRelToStart;		// Position relative to start position
 			static Vec2f posError;			// Position error
@@ -109,13 +107,9 @@ namespace JAFD
 		// Update speeds for both wheels
 		void updateSpeeds(const uint8_t freq)
 		{
-			aaa = _currentTask->updateSpeeds(freq);
-			MotorControl::setSpeeds(aaa);
+			MotorControl::setSpeeds(_currentTask->updateSpeeds(freq));
 		}
-		WheelSpeeds getcalculatedspeeds()
-		{
-			return aaa;
-		}
+
 		// Set new task
 		void setNewTask(const DriveStraight& newTask, const bool forceOverride)
 		{
