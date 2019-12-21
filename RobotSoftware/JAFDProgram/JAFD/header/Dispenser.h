@@ -5,8 +5,6 @@ This part is responsible for dispensing the rescue packages.
 
 #include "AllDatatypes.h"
 
-#include <stdint.h>
-
 namespace JAFD
 {
 	namespace Dispenser

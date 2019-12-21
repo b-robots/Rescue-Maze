@@ -13,14 +13,21 @@
       <CurveDisplayName>RightMotor</CurveDisplayName>
       <CurveLineTicks>None</CurveLineTicks>
       <CurveColor>#008000</CurveColor>
-      <ChartAssignment2>1</ChartAssignment2>
+      <ChartAssignment2>0</ChartAssignment2>
+    </CurveSettings>
+    <CurveSettings>
+      <CurveId>Left</CurveId>
+      <CurveDisplayName>Left</CurveDisplayName>
+      <CurveLineTicks>None</CurveLineTicks>
+      <CurveColor>#000080</CurveColor>
+      <ChartAssignment2>0</ChartAssignment2>
     </CurveSettings>
   </CurveSettingCollection>
   <XSweepTime>20 sec</XSweepTime>
   <XTimeFormat>Auto</XTimeFormat>
-  <DisplayRefreshRate>Rate1000ms</DisplayRefreshRate>
+  <DisplayRefreshRate>AsDataComesIn</DisplayRefreshRate>
   <ChartType>LineChart</ChartType>
-  <OptimizeBinaryCurves>On</OptimizeBinaryCurves>
+  <OptimizeBinaryCurves>Off</OptimizeBinaryCurves>
   <CurveDistribution>MultipleCharts</CurveDistribution>
   <TriggerEnabled>false</TriggerEnabled>
   <TriggerCondition>None</TriggerCondition>

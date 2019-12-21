@@ -5,9 +5,6 @@ This private part of the Library is responsible for mapping the maze and finding
 #pragma once
 
 #include "AllDatatypes.h"
-#include "StaticQueue.h"
-
-#include <stdint.h>
 
 namespace JAFD
 {

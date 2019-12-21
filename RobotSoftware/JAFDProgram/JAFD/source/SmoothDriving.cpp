@@ -12,6 +12,8 @@ This part of the Library is responsible for driving smoothly.
 #include "../header/MotorControl.h"
 #include "../header/SensorFusion.h"
 #include "../../JAFDSettings.h"
+#include "../header/Math.h"
+
 namespace JAFD
 {
 	namespace SmoothDriving
@@ -28,19 +30,28 @@ namespace JAFD
 			} _taskCopies;			
 
 			ITask* _currentTask = &_taskCopies.straight;	// Current task
-
-			WheelSpeeds aaa;
 		}
 
 		// DriveStraight class - begin 
 
-		DriveStraight::DriveStraight(int8_t endSpeeds, float distance) : _endSpeeds(endSpeeds), _endDistance(distance) {}
+		DriveStraight::DriveStraight(int16_t endSpeeds, float distance) : _endSpeeds(endSpeeds), _endDistance(distance) {}
 
-		void DriveStraight::startTask()
+		ReturnCode DriveStraight::startTask()
 		{
-			_targetDir = Vec2f(cosf(SensorFusion::robotState.rotation.x), sinf(SensorFusion::robotState.rotation.x));
-			_startPos = Vec2f(SensorFusion::robotState.position.x, SensorFusion::robotState.position.y);
-			_startSpeeds = (SensorFusion::robotState.wheelSpeeds.left + SensorFusion::robotState.wheelSpeeds.right) / 2;
+			_targetDir = Vec2f(cosf(SensorFusion::getRobotState().rotation.x), sinf(SensorFusion::getRobotState().rotation.x));
+			_startPos = Vec2f(SensorFusion::getRobotState().position.x, SensorFusion::getRobotState().position.y);
+			_startSpeeds = (SensorFusion::getRobotState().wheelSpeeds.left + SensorFusion::getRobotState().wheelSpeeds.right) / 2;
+
+			if (!((_startSpeeds >= 0 && _endSpeeds >= 0 && _endDistance >= 0) || (_startSpeeds <= 0 && _endSpeeds <= 0 && _endDistance <= 0))) return ReturnCode::error;
+			
+			if (_startSpeeds <= 0 && _endSpeeds <= 0)
+			{
+				_targetDir *= -1;
+			}
+
+			_totalTime = 2 * _endDistance / static_cast<float>(abs(_endSpeeds - _startSpeeds));
+
+			return ReturnCode::ok;
 		}
 
 		// Update speeds for both wheels
@@ -52,20 +63,25 @@ namespace JAFD
 			static Vec2f integral;			// Position error integral
 			static Vec2f corTerm;			// Correction term
 			static Vec2f lastError;			// Last left speed
-			static int8_t desiredSpeed;		// Wheel speeds
+			static int16_t desiredSpeed;		// Wheel speeds
 			static Vec2f driveVector;		// Speedvector the robot has to drive
 			static float angularVel;		// Desired angular velocity
+			static float calculatedTime;	// Calculated time since task-start
+			static float radiant;			// Radiant needed for calculation
 
 			// Calculate error
-			posRelToStart = (Vec2f)SensorFusion::robotState.position - _startPos;
+			posRelToStart = (Vec2f)SensorFusion::getRobotState().position - _startPos;
 			distance = posRelToStart.length();
 			posError = _targetDir * distance - posRelToStart;
 
 			// Check if I am there
-			if (distance - _endDistance >= 0.0f)
+			if (abs(distance) >= abs(_endDistance))
 			{
 				_finished = true;
-				return WheelSpeeds{ _endSpeeds, _endSpeeds };
+
+				if (_endSpeeds < JAFDSettings::MotorControl::minSpeed && _endSpeeds >= 0) return WheelSpeeds{ JAFDSettings::MotorControl::minSpeed, JAFDSettings::MotorControl::minSpeed };
+				else if (_endSpeeds > -JAFDSettings::MotorControl::minSpeed && _endSpeeds < 0) return WheelSpeeds{ -JAFDSettings::MotorControl::minSpeed, -JAFDSettings::MotorControl::minSpeed };
+				else return WheelSpeeds{ _endSpeeds ,_endSpeeds };
 			}
 
 			// PID controller
@@ -75,8 +91,13 @@ namespace JAFD
 
 			lastError = posError;
 
-			// Accelerate / deccelerate
-			desiredSpeed = _startSpeeds + (int8_t)((_endDistance / distance) * (float)(_endSpeeds - _startSpeeds));
+			// Accelerate / deccelerate - v = v_1 + (t / t_ges) * (v_2 - v_1); s = integral(v * dt) = ((v_2 - v_1) * t^2) / (2 * t_ges) + v_1 * t => radiant = t_ges * v_1^2 - 2 * s * (v_1 + v_2); t = t_ges * (v_1 - sqrt(radiant)) / (v_2 - v_1); t_ges = s * 2 / (v_2 - v_1)
+			radiant = static_cast<float>(_startSpeeds) * static_cast<float>(_startSpeeds) + 2.0f * distance * static_cast<float>(_endSpeeds - _startSpeeds) / _totalTime;
+			calculatedTime = _totalTime * (static_cast<float>(_startSpeeds) - sqrtf(radiant)) / static_cast<float>(_startSpeeds - _endSpeeds);
+			desiredSpeed = static_cast<float>(_startSpeeds) + (calculatedTime / _totalTime) * static_cast<float>(_endSpeeds - _startSpeeds);
+
+			if (desiredSpeed < JAFDSettings::MotorControl::minSpeed && desiredSpeed >= 0) desiredSpeed = JAFDSettings::MotorControl::minSpeed;
+			else if (desiredSpeed > -JAFDSettings::MotorControl::minSpeed && desiredSpeed < 0) desiredSpeed = -JAFDSettings::MotorControl::minSpeed;
 
 			// Calculate drive vector
 			driveVector = Vec2f(1.0f, 0.0f) + corTerm;
@@ -102,21 +123,17 @@ namespace JAFD
 		// Update speeds for both wheels
 		void updateSpeeds(const uint8_t freq)
 		{
-			aaa = _currentTask->updateSpeeds(freq);
-			MotorControl::setSpeeds(aaa);
+			MotorControl::setSpeeds(_currentTask->updateSpeeds(freq));
 		}
-		WheelSpeeds getcalculatedspeeds()
-		{
-			return aaa;
-		}
+
 		// Set new task
-		void setNewTask(const DriveStraight& newTask, const bool forceOverride)
+		ReturnCode setNewTask(const DriveStraight& newTask, const bool forceOverride)
 		{
 			if (_currentTask->_finished || forceOverride)
 			{
 				_taskCopies.straight = newTask;
 				_currentTask = &_taskCopies.straight;
-				_currentTask->startTask();
+				return _currentTask->startTask();
 			}
 		}
 

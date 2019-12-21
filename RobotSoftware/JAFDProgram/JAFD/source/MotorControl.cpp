@@ -50,11 +50,9 @@ namespace JAFD
 			volatile int32_t _lEncCnt = 0;		// Encoder count left motor
 			volatile int32_t _rEncCnt = 0;		// Encoder count right motor
 
-			volatile float _lSpeed = 0.0f;		// Speed left motor (cm/s)
-			volatile float _rSpeed = 0.0f;		// Speed right motor (cm/s)
+			volatile FloatWheelSpeeds _speeds = { 0.0f, 0.0f };	// Current motor speeds (cm/s)
 
-			volatile int8_t _lDesSpeed = 0;	// Desired speed left motor (cm/s)
-			volatile int8_t _rDesSpeed = 0;	// Desired speed left motor (cm/s)
+			volatile WheelSpeeds _desSpeeds = { 0.0f, 0.0f };	// Desired motor speed (cm/s)
 		}
 
 		ReturnCode motorControlSetup()
@@ -178,8 +176,8 @@ namespace JAFD
 			static int32_t lastLeftCnt = 0;
 			static int32_t lastRightCnt = 0;
 
-			_lSpeed = (_lEncCnt - lastLeftCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq;
-			_rSpeed = (_rEncCnt - lastRightCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq;
+			_speeds.left = (_lEncCnt - lastLeftCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq;
+			_speeds.right = (_rEncCnt - lastRightCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq;
 
 			lastLeftCnt = _lEncCnt;
 			lastRightCnt = _rEncCnt;
@@ -196,43 +194,73 @@ namespace JAFD
 			static float lError = 0.0f;		// Left speed error
 			static float rError = 0.0f;		// Right speed error
 
-			static float lLastSpeed = 0.0f;	// Last left speed
-			static float rLastSpeed = 0.0f;	// Last right speed
+			static WheelSpeeds lastSpeeds = { 0.0f, 0.0f };	// Last speeds
 
-			// PID controller
-			lError = (float)_lDesSpeed - _lSpeed;
-			rError = (float)_rDesSpeed - _rSpeed;
+			// When speed isn't 0, do PID controller
+			if (_desSpeeds.left == 0)
+			{
+				lTempVal = 0.0f;
+				lError = 0.0f;
+				lIntegral = 0.0f;
+			}
+			else
+			{
+				// PID controller
+				lError = (float)_desSpeeds.left - _speeds.left;
 
-			lTempVal = _kp * lError + _ki * lIntegral - _kd * (lLastSpeed - _lSpeed) * (float)freq;
+				lTempVal = _kp * lError + _ki * lIntegral - _kd * (lastSpeeds.left - _speeds.left) * (float)freq;
 
-			if (lTempVal > _maxCorVal / _cmPSToPerc) lTempVal = _maxCorVal / _cmPSToPerc;
-			else if (lTempVal < -_maxCorVal / _cmPSToPerc) lTempVal = -_maxCorVal / _cmPSToPerc;
+				if (lTempVal > _maxCorVal / _cmPSToPerc) lTempVal = _maxCorVal / _cmPSToPerc;
+				else if (lTempVal < -_maxCorVal / _cmPSToPerc) lTempVal = -_maxCorVal / _cmPSToPerc;
 
-			lTempVal += (float)_lDesSpeed;
-			lTempVal *= _cmPSToPerc;
+				lTempVal += (float)_desSpeeds.left;
+				lTempVal *= _cmPSToPerc;
 
-			if (lTempVal > 1.0f) lTempVal = 1.0f;
-			else if (lTempVal < -1.0f) lTempVal = -1.0f;
+				if (lTempVal > 1.0f) lTempVal = 1.0f;
+				else if (lTempVal < -1.0f) lTempVal = -1.0f;
 
-			rTempVal = _kp * rError + _ki * rIntegral - _kd * (rLastSpeed - _rSpeed) * (float)freq;
+				lIntegral += lError / (float)(freq);
 
-			if (rTempVal > _maxCorVal / _cmPSToPerc) rTempVal = _maxCorVal / _cmPSToPerc;
-			else if (rTempVal < -_maxCorVal / _cmPSToPerc) rTempVal = -_maxCorVal / _cmPSToPerc;
+				// Limit integral value to 80% of maximum correction value
+				if (lIntegral > _maxCorVal * 0.8f) lIntegral = _maxCorVal * 0.8f;
+				else if (lIntegral < -_maxCorVal * 0.8f) lIntegral = -_maxCorVal * 0.8f;
+			}
 
-			rTempVal += (float)_rDesSpeed;
-			rTempVal *= _cmPSToPerc;
+			if (_desSpeeds.right == 0)
+			{
+				rTempVal = 0.0f;
+				rError = 0.0f;
+				rIntegral = 0.0f;
+			}
+			else
+			{
+				// PID controller
+				rError = (float)_desSpeeds.right - _speeds.right;
 
-			if (rTempVal > 1.0f) rTempVal = 1.0f;
-			else if (rTempVal < -1.0f) rTempVal = -1.0f;
+				rTempVal = _kp * rError + _ki * rIntegral - _kd * (lastSpeeds.right - _speeds.right) * (float)freq;
 
+				if (rTempVal > _maxCorVal / _cmPSToPerc) rTempVal = _maxCorVal / _cmPSToPerc;
+				else if (rTempVal < -_maxCorVal / _cmPSToPerc) rTempVal = -_maxCorVal / _cmPSToPerc;
 
-			lIntegral += lError / (float)(freq);
-			rIntegral += rError / (float)(freq);
+				rTempVal += (float)_desSpeeds.right;
+				rTempVal *= _cmPSToPerc;
 
-			lLastSpeed = _lSpeed;
-			rLastSpeed = _lSpeed;
+				if (rTempVal > 1.0f) rTempVal = 1.0f;
+				else if (rTempVal < -1.0f) rTempVal = -1.0f;
 
-			
+				rIntegral += rError / (float)(freq);
+
+				// Limit integral value to 80% of maximum correction value
+				if (rIntegral > _maxCorVal * 0.8f) rIntegral = _maxCorVal * 0.8f;
+				else if (rIntegral < -_maxCorVal * 0.8f) rIntegral = -_maxCorVal * 0.8f;
+			}
+
+			lastSpeeds = static_cast<WheelSpeeds>(_speeds);
+			Serial.print(_desSpeeds.left);
+			Serial.print(", ");
+			Serial.print(_speeds.left);
+			Serial.print(", ");
+			Serial.println(lTempVal / _cmPSToPerc);
 			// Set left dir pin
 			if (lTempVal > 0.0f)
 			{
@@ -261,7 +289,12 @@ namespace JAFD
 
 		WheelSpeeds getSpeeds()
 		{
-			return WheelSpeeds{_lSpeed, -_rSpeed};
+			return WheelSpeeds{ static_cast<int16_t>(_speeds.left), -static_cast<int16_t>(_speeds.right) };
+		}
+
+		FloatWheelSpeeds getFloatSpeeds()
+		{
+			return FloatWheelSpeeds{ _speeds.left, -_speeds.right };
 		}
 
 		float getDistance(const Motor motor)
@@ -305,8 +338,12 @@ namespace JAFD
 
 		void setSpeeds(const WheelSpeeds wheelSpeeds)
 		{
-			_lDesSpeed = wheelSpeeds.left;
-			_rDesSpeed = -wheelSpeeds.right;
+			_desSpeeds.left = wheelSpeeds.left;
+			_desSpeeds.right = -wheelSpeeds.right;
+
+			if (_desSpeeds.left < JAFDSettings::MotorControl::minSpeed && _desSpeeds.left > -JAFDSettings::MotorControl::minSpeed) _desSpeeds.left = 0;
+
+			if (_desSpeeds.right < JAFDSettings::MotorControl::minSpeed && _desSpeeds.right > -JAFDSettings::MotorControl::minSpeed) _desSpeeds.right = 0;
 		}
 
 		float getCurrent(const Motor motor)

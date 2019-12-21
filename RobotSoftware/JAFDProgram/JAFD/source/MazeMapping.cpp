@@ -4,6 +4,7 @@ This part of the Library is responsible for mapping the maze and finding the sho
 
 #include "../header/MazeMapping.h"
 #include "../header/SpiNVSRAM.h"
+#include "../header/StaticQueue.h"
 
 #include <algorithm>
 

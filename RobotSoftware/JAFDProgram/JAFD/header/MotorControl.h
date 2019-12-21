@@ -7,8 +7,6 @@ This part of the Library is responsible for driving the motors.
 #include "AllDatatypes.h"
 #include "Interrupts.h"
 
-#include <stdint.h>
-
 namespace JAFD
 {
 	namespace MotorControl
@@ -21,6 +19,9 @@ namespace JAFD
 
 		// Get measured velocity
 		WheelSpeeds getSpeeds();
+
+		// Get more accurate measured velocity
+		FloatWheelSpeeds getFloatSpeeds();
 
 		// Interrupthandler for speed calculation
 		void calcMotorSpeed(const uint8_t freq);

@@ -17,13 +17,15 @@
 #include "JAFD/header/Interrupts.h"
 #include "JAFD/header/SmoothDriving.h"
 #include "JAFD/header/AllDatatypes.h"
+#include "JAFD/header/SensorFusion.h"
 
 using namespace JAFD::MazeMapping;
 using namespace JAFD::MotorControl;
 using namespace JAFD::SmoothDriving;
+using namespace JAFD::SensorFusion;
 using namespace JAFD;
 
-float x = 0.0f;
+int i = 0;
 
 // The setup function runs once when you press reset or power the board
 void setup() {
@@ -32,10 +34,21 @@ void setup() {
 
 	JAFD::robotSetup();
 
-	setNewTask(DriveStraight(50, 500.0f), true);
+	while (!isTaskFinished());
+
+	setNewTask(DriveStraight(40, 100.0f));
 }
 
 // The loop function runs over and over again until power down or reset
 void loop() {
+
+	if (isTaskFinished())
+	{
+		//setNewTask(DriveStraight((i % 2) * 100, 200.0f));
+		i++;
+	}
+	
 	JAFD::robotLoop();
+
+	delay(50);
 }

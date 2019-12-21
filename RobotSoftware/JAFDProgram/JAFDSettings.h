@@ -10,7 +10,7 @@ In this file are all settings needed for the robot
 #include "WProgram.h"
 #endif
 
-#include <stdint.h>
+#include "JAFD/header/AllDatatypes.h"
 
 namespace JAFDSettings
 {
@@ -28,12 +28,14 @@ namespace JAFDSettings
 	namespace MotorControl
 	{
 		// PID - Values
-		constexpr float kp = 0.4f;
-		constexpr float ki = 0.6f;
-		constexpr float kd = 0.015f;
+		constexpr float kp = 0.5f;
+		constexpr float ki = 5.0f;
+		constexpr float kd = 0.0f;
 		constexpr float maxCorVal = 0.4f;
 
 		constexpr float cmPSToPerc = 0.009f;	// Conversion factor from cm/s to motor PWM duty cycle
+
+		constexpr int16_t minSpeed = 20;		// Minimum speed for motor to rotate
 
 		namespace Left
 		{

@@ -5,7 +5,6 @@ This file of the library is responsible for an Array-based Queue
 #pragma once
 
 #include "AllDatatypes.h"
-#include <stdint.h>
 
 namespace JAFD
 {
