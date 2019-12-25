@@ -28,9 +28,9 @@ namespace JAFDSettings
 	namespace MotorControl
 	{
 		// PID - Values
-		constexpr float kp = 0.5f;
-		constexpr float ki = 1.5f;
-		constexpr float kd = 0.0f;
+		constexpr float kp = 0.4f;
+		constexpr float ki = 1.4f;
+		constexpr float kd = 0.005f;
 		constexpr float maxCorVal = 0.4f;
 
 		constexpr float cmPSToPerc = 0.009f;	// Conversion factor from cm/s to motor PWM duty cycle
@@ -58,6 +58,14 @@ namespace JAFDSettings
 
 	namespace SmoothDriving
 	{
+		namespace Accelerate
+		{
+			// PID - Values
+			constexpr float kp = 0.0f;
+			constexpr float ki = 0.0f;
+			constexpr float kd = 0.0f;
+		}
+
 		namespace DriveStraight
 		{
 			// PID - Values

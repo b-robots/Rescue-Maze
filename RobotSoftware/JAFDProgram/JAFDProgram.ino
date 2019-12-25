@@ -40,29 +40,37 @@ void loop() {
 	static ReturnCode c;
 	if (isTaskFinished())
 	{
-		if (i % 6 == 0)
+		if (i % 8 == 0)
 		{
-			c = setNewTask(DriveStraight(50, 200.0f));
+			c = setNewTask(Accelerate(90, 200.0f));
 		}
-		else if (i % 6 == 1)
+		else if (i % 8 == 1)
 		{
-			c = setNewTask(DriveStraight(100, 300.0f));
+			c = setNewTask(DriveStraight(200.0f));
 		}
-		else if (i % 6 == 2)
+		else if (i % 8 == 2)
 		{
-			c = setNewTask(DriveStraight(0, 300.0f));
+			c = setNewTask(Accelerate(20, 200.0f));
 		}
-		else if (i % 6 == 3)
+		else if (i % 8 == 3)
 		{
-			c = setNewTask(DriveStraight(-70, -600.0f));
+			c = setNewTask(Stop());
 		}
-		else if (i % 6 == 4)
+		else if (i % 8 == 4)
 		{
-			c = setNewTask(DriveStraight(0, -400.0f));
+			c = setNewTask(Accelerate(-70, -300.0f));
 		}
-		else if (i % 6 == 5)
+		else if (i % 8 == 5)
 		{
-			c = setNewTask(DriveStraight(100, 200.0f));
+			c = setNewTask(DriveStraight(-200.0f));
+		}
+		else if (i % 8 == 6)
+		{
+			c = setNewTask(Accelerate(-20, -100.0f));
+		}
+		else if (i % 8 == 7)
+		{
+			c = setNewTask(Stop());
 		}
 
 		if (c != ReturnCode::ok)
