@@ -33,22 +33,47 @@ void setup() {
 	Serial.begin(115200);
 
 	JAFD::robotSetup();
-
-	while (!isTaskFinished());
-
-	setNewTask(DriveStraight(40, 100.0f));
 }
 
 // The loop function runs over and over again until power down or reset
 void loop() {
-
+	static ReturnCode c;
 	if (isTaskFinished())
 	{
-		//setNewTask(DriveStraight((i % 2) * 100, 200.0f));
+		if (i % 6 == 0)
+		{
+			c = setNewTask(DriveStraight(50, 200.0f));
+		}
+		else if (i % 6 == 1)
+		{
+			c = setNewTask(DriveStraight(100, 300.0f));
+		}
+		else if (i % 6 == 2)
+		{
+			c = setNewTask(DriveStraight(0, 300.0f));
+		}
+		else if (i % 6 == 3)
+		{
+			c = setNewTask(DriveStraight(-70, -600.0f));
+		}
+		else if (i % 6 == 4)
+		{
+			c = setNewTask(DriveStraight(0, -400.0f));
+		}
+		else if (i % 6 == 5)
+		{
+			c = setNewTask(DriveStraight(100, 200.0f));
+		}
+
+		if (c != ReturnCode::ok)
+		{
+			Serial.println(i);
+		}
+
 		i++;
 	}
 	
 	JAFD::robotLoop();
 
-	delay(50);
+	delay(100);
 }

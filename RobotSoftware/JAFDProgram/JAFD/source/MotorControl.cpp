@@ -119,12 +119,8 @@ namespace JAFD
 			_lEncA.port->PIO_ISR;
 
 			// Setup interrupts for rotary encoder pins
-			// ISR Priority = 4
 			NVIC_EnableIRQ(static_cast<IRQn_Type>(_lEncA.portID));
 			NVIC_EnableIRQ(static_cast<IRQn_Type>(_rEncA.portID));
-
-			NVIC_SetPriority(static_cast<IRQn_Type>(_lEncA.portID), 4);
-			NVIC_SetPriority(static_cast<IRQn_Type>(_rEncA.portID), 4);
 
 			// Setup PWM - Controller (20kHz)
 			PMC->PMC_PCER1 = PMC_PCER1_PID36;
@@ -175,12 +171,16 @@ namespace JAFD
 		{
 			static int32_t lastLeftCnt = 0;
 			static int32_t lastRightCnt = 0;
+			static FloatWheelSpeeds lastSpeeds;
 
-			_speeds.left = (_lEncCnt - lastLeftCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq;
-			_speeds.right = (_rEncCnt - lastRightCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq;
+
+			// Calculate speeds and apply 
+			_speeds.left = ((_lEncCnt - lastLeftCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq) * 0.95f + lastSpeeds.left * 0.05f;
+			_speeds.right = ((_rEncCnt - lastRightCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq) * 0.95f + lastSpeeds.right * 0.05f;
 
 			lastLeftCnt = _lEncCnt;
 			lastRightCnt = _rEncCnt;
+			lastSpeeds = static_cast<decltype(lastSpeeds)>(_speeds);
 		}
 
 		void speedPID(const uint8_t freq)
@@ -220,10 +220,6 @@ namespace JAFD
 				else if (lTempVal < -1.0f) lTempVal = -1.0f;
 
 				lIntegral += lError / (float)(freq);
-
-				// Limit integral value to 80% of maximum correction value
-				if (lIntegral > _maxCorVal * 0.8f) lIntegral = _maxCorVal * 0.8f;
-				else if (lIntegral < -_maxCorVal * 0.8f) lIntegral = -_maxCorVal * 0.8f;
 			}
 
 			if (_desSpeeds.right == 0)
@@ -249,18 +245,10 @@ namespace JAFD
 				else if (rTempVal < -1.0f) rTempVal = -1.0f;
 
 				rIntegral += rError / (float)(freq);
-
-				// Limit integral value to 80% of maximum correction value
-				if (rIntegral > _maxCorVal * 0.8f) rIntegral = _maxCorVal * 0.8f;
-				else if (rIntegral < -_maxCorVal * 0.8f) rIntegral = -_maxCorVal * 0.8f;
 			}
 
 			lastSpeeds = static_cast<WheelSpeeds>(_speeds);
-			Serial.print(_desSpeeds.left);
-			Serial.print(", ");
-			Serial.print(_speeds.left);
-			Serial.print(", ");
-			Serial.println(lTempVal / _cmPSToPerc);
+
 			// Set left dir pin
 			if (lTempVal > 0.0f)
 			{

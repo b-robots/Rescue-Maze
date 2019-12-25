@@ -20,15 +20,18 @@ namespace JAFD
 		WheelSpeeds(int16_t left = 0, int16_t right = 0) : left(left), right(right) {}
 		WheelSpeeds(const volatile WheelSpeeds& speeds) : left(speeds.left), right(speeds.right) {}
 		WheelSpeeds(const WheelSpeeds& speeds) : left(speeds.left), right(speeds.right) {}
-		explicit WheelSpeeds(const volatile FloatWheelSpeeds& speeds);
+		explicit WheelSpeeds(const volatile FloatWheelSpeeds speeds);
 
-		inline volatile WheelSpeeds& operator=(const WheelSpeeds& speeds) volatile
+		inline const volatile WheelSpeeds& operator=(const volatile WheelSpeeds speeds) volatile
 		{
-			if (this == &speeds)
-			{
-				return *this;
-			}
+			left = speeds.left;
+			right = speeds.right;
 
+			return *this;
+		}
+
+		inline const WheelSpeeds& operator=(const WheelSpeeds& speeds)
+		{
 			left = speeds.left;
 			right = speeds.right;
 
@@ -45,15 +48,18 @@ namespace JAFD
 		FloatWheelSpeeds(float left = 0.0f, float right = 0.0f) : left(left), right(right) {}
 		FloatWheelSpeeds(const volatile FloatWheelSpeeds& speeds) : left(speeds.left), right(speeds.right) {}
 		FloatWheelSpeeds(const FloatWheelSpeeds& speeds) : left(speeds.left), right(speeds.right) {}
-		explicit FloatWheelSpeeds(const volatile WheelSpeeds& speeds) : left(static_cast<float>(speeds.left)), right(static_cast<float>(speeds.right)) {}
+		explicit FloatWheelSpeeds(const volatile WheelSpeeds speeds) : left(static_cast<float>(speeds.left)), right(static_cast<float>(speeds.right)) {}
 
-		inline volatile FloatWheelSpeeds& operator=(const FloatWheelSpeeds& speeds) volatile
+		inline const volatile FloatWheelSpeeds& operator=(const volatile FloatWheelSpeeds speeds) volatile
 		{
-			if (this == &speeds)
-			{
-				return *this;
-			}
+			left = speeds.left;
+			right = speeds.right;
 
+			return *this;
+		}
+
+		inline const FloatWheelSpeeds& operator=(const FloatWheelSpeeds& speeds)
+		{
 			left = speeds.left;
 			right = speeds.right;
 
@@ -61,7 +67,7 @@ namespace JAFD
 		}
 	};
 
-	inline WheelSpeeds::WheelSpeeds(const volatile FloatWheelSpeeds& speeds) : left(static_cast<int16_t>(speeds.left)), right(static_cast<int16_t>(speeds.right)) {}
+	inline WheelSpeeds::WheelSpeeds(const volatile FloatWheelSpeeds speeds) : left(static_cast<int16_t>(speeds.left)), right(static_cast<int16_t>(speeds.right)) {}
 
 	// Direction flags
 	namespace Direction
@@ -94,26 +100,30 @@ namespace JAFD
 	{
 		FloatWheelSpeeds wheelSpeeds;	// Speed of the wheels
 		float forwardVel;				// Forward velocity (cm/s)
-		float totalDistance;			// Total distance (average left and right) since last known point (cm)
 		Vec3f position;					// Current position (cm)
 
 		Vec3f angularVel;				// Angular velocity as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad/s)
 		Vec3f rotation;					// Current Rotation as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad)
 	
-		RobotState() : wheelSpeeds(FloatWheelSpeeds()), forwardVel(0.0f), totalDistance(0.0f), position(Vec3f()), angularVel(Vec3f()), rotation(Vec3f()) {}
-		RobotState(const volatile RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), totalDistance(state.totalDistance), position(state.position), angularVel(state.angularVel), rotation(state.rotation) {}
-		RobotState(const RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), totalDistance(state.totalDistance), position(state.position), angularVel(state.angularVel), rotation(state.rotation) {}
+		RobotState() : wheelSpeeds(FloatWheelSpeeds()), forwardVel(0.0f), position(Vec3f()), angularVel(Vec3f()), rotation(Vec3f()) {}
+		RobotState(const volatile RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), rotation(state.rotation) {}
+		RobotState(const RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), rotation(state.rotation) {}
 
-		inline volatile RobotState& operator=(const RobotState& state) volatile
+		inline const volatile RobotState& operator=(const volatile RobotState state) volatile
 		{
-			if (this == &state)
-			{
-				return *this;
-			}
-
 			wheelSpeeds = state.wheelSpeeds;
 			forwardVel = state.forwardVel;
-			totalDistance = state.totalDistance;
+			position = state.position;
+			angularVel = state.angularVel;
+			rotation = state.rotation;
+
+			return *this;
+		}
+
+		inline const RobotState& operator=(const RobotState& state)
+		{
+			wheelSpeeds = state.wheelSpeeds;
+			forwardVel = state.forwardVel;
 			position = state.position;
 			angularVel = state.angularVel;
 			rotation = state.rotation;

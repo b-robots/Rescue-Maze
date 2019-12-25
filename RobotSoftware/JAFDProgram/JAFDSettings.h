@@ -29,13 +29,13 @@ namespace JAFDSettings
 	{
 		// PID - Values
 		constexpr float kp = 0.5f;
-		constexpr float ki = 5.0f;
+		constexpr float ki = 1.5f;
 		constexpr float kd = 0.0f;
 		constexpr float maxCorVal = 0.4f;
 
 		constexpr float cmPSToPerc = 0.009f;	// Conversion factor from cm/s to motor PWM duty cycle
 
-		constexpr int16_t minSpeed = 20;		// Minimum speed for motor to rotate
+		constexpr int16_t minSpeed = 10;		// Minimum speed for motor to rotate
 
 		namespace Left
 		{

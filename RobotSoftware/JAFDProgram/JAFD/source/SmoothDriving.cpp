@@ -26,7 +26,7 @@ namespace JAFD
 				DriveStraight straight;
 				//Rotate rotate;
 
-				_TaskCopies() : straight(DriveStraight(0, 0.0f)) {};
+				_TaskCopies() : straight(Stop) {};
 			} _taskCopies;			
 
 			ITask* _currentTask = &_taskCopies.straight;	// Current task
@@ -34,22 +34,30 @@ namespace JAFD
 
 		// DriveStraight class - begin 
 
-		DriveStraight::DriveStraight(int16_t endSpeeds, float distance) : _endSpeeds(endSpeeds), _endDistance(distance) {}
+		DriveStraight::DriveStraight(int16_t endSpeeds, float distance) : ITask(), _endSpeeds(endSpeeds), _distance(distance), _targetDir(1.0f, 0.0f), _startPos(0.0f, 0.0f), _startSpeeds(0), _totalTime(0) {}
 
-		ReturnCode DriveStraight::startTask()
+		ReturnCode DriveStraight::startTask(RobotState startState)
 		{
-			_targetDir = Vec2f(cosf(SensorFusion::getRobotState().rotation.x), sinf(SensorFusion::getRobotState().rotation.x));
-			_startPos = Vec2f(SensorFusion::getRobotState().position.x, SensorFusion::getRobotState().position.y);
-			_startSpeeds = (SensorFusion::getRobotState().wheelSpeeds.left + SensorFusion::getRobotState().wheelSpeeds.right) / 2;
+			_finished = false;
+			_targetDir = Vec2f(cosf(startState.rotation.x), sinf(startState.rotation.x));
+			_startPos = (Vec2f)(startState.position);
+			_startSpeeds = startState.forwardVel;
 
-			if (!((_startSpeeds >= 0 && _endSpeeds >= 0 && _endDistance >= 0) || (_startSpeeds <= 0 && _endSpeeds <= 0 && _endDistance <= 0))) return ReturnCode::error;
+			if (!((_startSpeeds >= 0 && _endSpeeds >= 0 && _distance >= 0) || (_startSpeeds <= 0 && _endSpeeds <= 0 && _distance <= 0)) || _endSpeeds == _startSpeeds) return ReturnCode::error;
 			
 			if (_startSpeeds <= 0 && _endSpeeds <= 0)
 			{
 				_targetDir *= -1;
 			}
 
-			_totalTime = 2 * _endDistance / static_cast<float>(abs(_endSpeeds - _startSpeeds));
+			_totalTime = 2 * _distance / static_cast<float>(_endSpeeds + _startSpeeds);
+			_totalTime = abs(_totalTime);
+
+			_endState.wheelSpeeds = FloatWheelSpeeds{ _endSpeeds, _endSpeeds };
+			_endState.forwardVel = static_cast<float>(_endSpeeds);
+			_endState.position = startState.position + (Vec3f)(_targetDir * abs(_distance));
+			_endState.angularVel = Vec3f(0.0f, 0.0f, 0.0f);
+			_endState.rotation = startState.rotation;
 
 			return ReturnCode::ok;
 		}
@@ -63,7 +71,7 @@ namespace JAFD
 			static Vec2f integral;			// Position error integral
 			static Vec2f corTerm;			// Correction term
 			static Vec2f lastError;			// Last left speed
-			static int16_t desiredSpeed;		// Wheel speeds
+			static int16_t desiredSpeed;	// Desired wheel speeds
 			static Vec2f driveVector;		// Speedvector the robot has to drive
 			static float angularVel;		// Desired angular velocity
 			static float calculatedTime;	// Calculated time since task-start
@@ -71,17 +79,14 @@ namespace JAFD
 
 			// Calculate error
 			posRelToStart = (Vec2f)SensorFusion::getRobotState().position - _startPos;
-			distance = posRelToStart.length();
+			distance = posRelToStart.length() * sgn(_endSpeeds + _startSpeeds);
 			posError = _targetDir * distance - posRelToStart;
 
 			// Check if I am there
-			if (abs(distance) >= abs(_endDistance))
+			if (abs(distance) >= abs(_distance))
 			{
-				_finished = true;
-
-				if (_endSpeeds < JAFDSettings::MotorControl::minSpeed && _endSpeeds >= 0) return WheelSpeeds{ JAFDSettings::MotorControl::minSpeed, JAFDSettings::MotorControl::minSpeed };
-				else if (_endSpeeds > -JAFDSettings::MotorControl::minSpeed && _endSpeeds < 0) return WheelSpeeds{ -JAFDSettings::MotorControl::minSpeed, -JAFDSettings::MotorControl::minSpeed };
-				else return WheelSpeeds{ _endSpeeds ,_endSpeeds };
+				_finished = true;	
+				return WheelSpeeds{ _endSpeeds, _endSpeeds };
 			}
 
 			// PID controller
@@ -93,11 +98,11 @@ namespace JAFD
 
 			// Accelerate / deccelerate - v = v_1 + (t / t_ges) * (v_2 - v_1); s = integral(v * dt) = ((v_2 - v_1) * t^2) / (2 * t_ges) + v_1 * t => radiant = t_ges * v_1^2 - 2 * s * (v_1 + v_2); t = t_ges * (v_1 - sqrt(radiant)) / (v_2 - v_1); t_ges = s * 2 / (v_2 - v_1)
 			radiant = static_cast<float>(_startSpeeds) * static_cast<float>(_startSpeeds) + 2.0f * distance * static_cast<float>(_endSpeeds - _startSpeeds) / _totalTime;
-			calculatedTime = _totalTime * (static_cast<float>(_startSpeeds) - sqrtf(radiant)) / static_cast<float>(_startSpeeds - _endSpeeds);
+			calculatedTime = _totalTime * (static_cast<float>(_startSpeeds) - sqrtf(abs(radiant)) * sgn(_startSpeeds + _endSpeeds)) / static_cast<float>(_startSpeeds - _endSpeeds);
+			calculatedTime = abs(calculatedTime);
 			desiredSpeed = static_cast<float>(_startSpeeds) + (calculatedTime / _totalTime) * static_cast<float>(_endSpeeds - _startSpeeds);
-
-			if (desiredSpeed < JAFDSettings::MotorControl::minSpeed && desiredSpeed >= 0) desiredSpeed = JAFDSettings::MotorControl::minSpeed;
-			else if (desiredSpeed > -JAFDSettings::MotorControl::minSpeed && desiredSpeed < 0) desiredSpeed = -JAFDSettings::MotorControl::minSpeed;
+			
+			if (desiredSpeed < JAFDSettings::MotorControl::minSpeed && desiredSpeed > -JAFDSettings::MotorControl::minSpeed) desiredSpeed = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
 
 			// Calculate drive vector
 			driveVector = Vec2f(1.0f, 0.0f) + corTerm;
@@ -108,7 +113,7 @@ namespace JAFD
 			return WheelSpeeds{ desiredSpeed + JAFDSettings::Mechanics::wheelDistance * angularVel, desiredSpeed - JAFDSettings::Mechanics::wheelDistance * angularVel };
 		}
 
-		// DriveStraight class - end
+		// DriveStraight class - ends
 
 		// Rotate class - begin
 
@@ -129,12 +134,29 @@ namespace JAFD
 		// Set new task
 		ReturnCode setNewTask(const DriveStraight& newTask, const bool forceOverride)
 		{
+			static RobotState endState;
+			static ReturnCode returnCode;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
 			if (_currentTask->_finished || forceOverride)
 			{
+				endState = static_cast<decltype(endState)>(_currentTask->_endState);
 				_taskCopies.straight = newTask;
 				_currentTask = &_taskCopies.straight;
-				return _currentTask->startTask();
+				returnCode = _currentTask->startTask(endState);
+
+				if (returnCode != ReturnCode::ok)
+				{
+					_taskCopies.straight = Stop;
+					_currentTask = &_taskCopies.straight;
+				}
 			}
+
+			__enable_irq();
+			return returnCode;
 		}
 
 		// Set new task
@@ -152,5 +174,7 @@ namespace JAFD
 		{
 			return _currentTask->_finished;
 		}
+
+		const DriveStraight Stop = DriveStraight(0, 1.0f);
 	}
 }

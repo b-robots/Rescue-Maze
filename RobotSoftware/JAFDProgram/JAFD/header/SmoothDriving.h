@@ -19,19 +19,21 @@ namespace JAFD
 		{
 		public:
 			virtual WheelSpeeds updateSpeeds(const uint8_t freq) = 0;	// Update speeds for both wheels
-			virtual ReturnCode startTask() = 0;
+			virtual ReturnCode startTask(RobotState startState) = 0;
 
 			friend bool isTaskFinished();
 			friend ReturnCode setNewTask(const DriveStraight& newTask, const bool forceOverride);
 		protected:
 			volatile bool _finished = false;							// Is the task already finished?
+			volatile RobotState _endState;								// State of robot at the end of task
+			ITask() = default;
 		};
 
 		class DriveStraight : public ITask
 		{
 		private:
 			int16_t _endSpeeds;																// End speed of both wheels
-			float _endDistance;																// Distance the robot has to travel
+			float _distance;																// Distance the robot has to travel
 			Vec2f _targetDir;																// Target direction (guranteed to be normalized)
 			Vec2f _startPos;																// Start position
 			int16_t _startSpeeds;															// Average start speed of both wheels
@@ -41,10 +43,10 @@ namespace JAFD
 			static constexpr auto _kd = JAFDSettings::SmoothDriving::DriveStraight::kd;		// Kd factor for PID controller		
 		public:
 			DriveStraight(int16_t endSpeeds, float distance);
-			ReturnCode startTask();
+			ReturnCode startTask(RobotState startState);
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
-		
+
 		class Rotate : public ITask
 		{
 		private:
@@ -55,9 +57,11 @@ namespace JAFD
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
 
-		void updateSpeeds(const uint8_t freq);												// Update speeds for both wheels
+		extern const DriveStraight Stop;
+
+		void updateSpeeds(const uint8_t freq);													// Update speeds for both wheels
 		ReturnCode setNewTask(const DriveStraight& newTask, const bool forceOverride = false);	// Set new task
-		//void setNewTask(const Rotate& newTask, const bool forceOverride = false);			// Set new task
-		bool isTaskFinished();																// Is the current task finished?
+		//void setNewTask(const Rotate& newTask, const bool forceOverride = false);				// Set new task
+		bool isTaskFinished();																	// Is the current task finished?
 	}
 }
