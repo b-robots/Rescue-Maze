@@ -42,35 +42,35 @@ void loop() {
 	{
 		if (i % 8 == 0)
 		{
-			c = setNewTask(Accelerate(90, 200.0f));
+			c = setNewTask(Accelerate(90, 200.0f), RobotState());
 		}
 		else if (i % 8 == 1)
 		{
-			c = setNewTask(DriveStraight(200.0f));
+			c = setNewTask<NewStateType::lastEndState>(DriveStraight(200.0f));
 		}
 		else if (i % 8 == 2)
 		{
-			c = setNewTask(Accelerate(20, 200.0f));
+			c = setNewTask<NewStateType::lastEndState>(Accelerate(20, 200.0f));
 		}
 		else if (i % 8 == 3)
 		{
-			c = setNewTask(Stop());
+			c = setNewTask<NewStateType::currentState>(Stop());
 		}
 		else if (i % 8 == 4)
 		{
-			c = setNewTask(Accelerate(-70, -300.0f));
+			c = setNewTask<NewStateType::lastEndState>(Accelerate(-70, -300.0f));
 		}
 		else if (i % 8 == 5)
 		{
-			c = setNewTask(DriveStraight(-200.0f));
+			c = setNewTask<NewStateType::lastEndState>(DriveStraight(-200.0f));
 		}
 		else if (i % 8 == 6)
 		{
-			c = setNewTask(Accelerate(-20, -100.0f));
+			c = setNewTask<NewStateType::lastEndState>(Accelerate(-20, -100.0f));
 		}
 		else if (i % 8 == 7)
 		{
-			c = setNewTask(Stop());
+			c = setNewTask<NewStateType::currentState>(Stop());
 		}
 
 		if (c != ReturnCode::ok)

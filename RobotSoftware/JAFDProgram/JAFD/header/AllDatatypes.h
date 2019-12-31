@@ -105,7 +105,7 @@ namespace JAFD
 		Vec3f angularVel;				// Angular velocity as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad/s)
 		Vec3f rotation;					// Current Rotation as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad)
 	
-		RobotState() : wheelSpeeds(FloatWheelSpeeds()), forwardVel(0.0f), position(Vec3f()), angularVel(Vec3f()), rotation(Vec3f()) {}
+		RobotState(FloatWheelSpeeds wheelSpeeds = FloatWheelSpeeds(), float forwardVel = 0.0f, Vec3f position = Vec3f(), Vec3f angularVel = Vec3f(), Vec3f rotation = Vec3f()) : wheelSpeeds(wheelSpeeds), forwardVel(forwardVel), position(position), angularVel(angularVel), rotation(rotation) {}
 		RobotState(const volatile RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), rotation(state.rotation) {}
 		RobotState(const RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), rotation(state.rotation) {}
 

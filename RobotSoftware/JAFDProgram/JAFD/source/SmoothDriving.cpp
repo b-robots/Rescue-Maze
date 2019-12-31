@@ -215,11 +215,11 @@ namespace JAFD
 
 		// Rotate class - begin
 
-		// Update speeds for both wheels
-		WheelSpeeds Rotate::updateSpeeds(const uint8_t freq)
-		{
-			return WheelSpeeds{ 0, 0 };
-		}
+		//// Update speeds for both wheels
+		//WheelSpeeds Rotate::updateSpeeds(const uint8_t freq)
+		//{
+		//	return WheelSpeeds{ 0, 0 };
+		//}
 
 		// Rotate class - end
 
@@ -229,8 +229,9 @@ namespace JAFD
 			MotorControl::setSpeeds(_currentTask->updateSpeeds(freq));
 		}
 
-		// Set new task
-		ReturnCode setNewTask(const Accelerate& newTask, const bool forceOverride)
+		// Set new Accelerate task (use last end state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const Accelerate& newTask, const bool forceOverride)
 		{
 			static RobotState endState;
 			static ReturnCode returnCode;
@@ -242,7 +243,7 @@ namespace JAFD
 
 			if (_currentTask->_finished || forceOverride)
 			{
-				endState = static_cast<decltype(endState)>(_currentTask->_endState);
+				endState = static_cast<RobotState>(_currentTask->_endState);
 
 				temp = newTask;
 				returnCode = temp.startTask(endState);
@@ -257,8 +258,60 @@ namespace JAFD
 			return returnCode;
 		}
 
-		// Set new task
-		ReturnCode setNewTask(const DriveStraight& newTask, const bool forceOverride)
+		// Set new Accelerate task (use current state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const Accelerate& newTask, const bool forceOverride)
+		{
+			static ReturnCode returnCode;
+			static Accelerate temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->_finished || forceOverride)
+			{
+				temp = newTask;
+				returnCode = temp.startTask(SensorFusion::getRobotState());
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.accelerate)) Accelerate(temp);
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new Accelerate task (use specified state to start)
+		ReturnCode setNewTask(const Accelerate& newTask, RobotState startState, const bool forceOverride)
+		{
+			static ReturnCode returnCode;
+			static Accelerate temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->_finished || forceOverride)
+			{
+				temp = newTask;
+				returnCode = temp.startTask(startState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.accelerate)) Accelerate(temp);
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new DriveStraight task (use last end state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const DriveStraight& newTask, const bool forceOverride)
 		{
 			static RobotState endState;
 			static ReturnCode returnCode;
@@ -270,8 +323,8 @@ namespace JAFD
 
 			if (_currentTask->_finished || forceOverride)
 			{
-				endState = static_cast<decltype(endState)>(_currentTask->_endState);
-				
+				endState = static_cast<RobotState>(_currentTask->_endState);
+
 				temp = newTask;
 				returnCode = temp.startTask(endState);
 
@@ -285,37 +338,136 @@ namespace JAFD
 			return returnCode;
 		}
 
-		// Set new task
-		ReturnCode setNewTask(const Stop& newTask, const bool forceOverride)
+		// Set new DriveStraight task (use current state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const DriveStraight& newTask, const bool forceOverride)
 		{
-			static RobotState endState;
-			static Stop temp;
+			static ReturnCode returnCode;
+			static DriveStraight temp;
+
+			returnCode = ReturnCode::ok;
 
 			__disable_irq();
 
 			if (_currentTask->_finished || forceOverride)
 			{
-				endState = static_cast<decltype(endState)>(_currentTask->_endState);
-
 				temp = newTask;
-				temp.startTask(endState);
+				returnCode = temp.startTask(SensorFusion::getRobotState());
 
-				_currentTask = new (&(_taskCopies.stop)) Stop(temp);
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.straight)) DriveStraight(temp);
+				}
 			}
 
 			__enable_irq();
-			return ReturnCode::ok;
+			return returnCode;
 		}
 
-		// Set new task
-		/*void setNewTask(const Rotate& newTask, const bool forceOverride)
+		// Set new DriveStraight task (use specified state to start)
+		ReturnCode setNewTask(const DriveStraight& newTask, RobotState startState, const bool forceOverride)
 		{
+			static ReturnCode returnCode;
+			static DriveStraight temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
 			if (_currentTask->_finished || forceOverride)
 			{
-				_taskCopies.rotate = newTask;
-				_currentTask = &_taskCopies.rotate;
+				temp = newTask;
+				returnCode = temp.startTask(startState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.straight)) DriveStraight(temp);
+				}
 			}
-		}*/
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new Stop task (use last end state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const Stop& newTask, const bool forceOverride)
+		{
+			static RobotState endState;
+			static ReturnCode returnCode;
+			static Stop temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->_finished || forceOverride)
+			{
+				endState = static_cast<RobotState>(_currentTask->_endState);
+
+				temp = newTask;
+				returnCode = temp.startTask(endState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.stop)) Stop(temp);
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new Stop task (use current state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const Stop& newTask, const bool forceOverride)
+		{
+			static ReturnCode returnCode;
+			static Stop temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->_finished || forceOverride)
+			{
+				temp = newTask;
+				returnCode = temp.startTask(SensorFusion::getRobotState());
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.stop)) Stop(temp);
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new DriveStraight task (use specified state to start)
+		ReturnCode setNewTask(const Stop& newTask, RobotState startState, const bool forceOverride)
+		{
+			static ReturnCode returnCode;
+			static Stop temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->_finished || forceOverride)
+			{
+				temp = newTask;
+				returnCode = temp.startTask(startState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.stop)) Stop(temp);
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
 
 		// Is the current task finished?
 		bool isTaskFinished()
