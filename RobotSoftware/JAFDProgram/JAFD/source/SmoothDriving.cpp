@@ -33,12 +33,16 @@ namespace JAFD
 				_TaskCopies() : stop() {};
 			} _taskCopies;			
 
-			ITask* _currentTask = &_taskCopies.stop;	// Current task
+			ITask* _currentTask = &_taskCopies.stop;							// Current task
+
+			constexpr auto _kp = JAFDSettings::Controller::PathFollowing::kp;	// Kp factor for PID speed controller
+			constexpr auto _ki = JAFDSettings::Controller::PathFollowing::ki;	// Ki factor for PID speed controller
+			constexpr auto _kd = JAFDSettings::Controller::PathFollowing::kd;	// Kd factor for PID speed controller
 		}
 
 		// Accelerate class - begin 
 
-		Accelerate::Accelerate(int16_t endSpeeds, float distance) : ITask(), _endSpeeds(endSpeeds), _distance(distance), _targetDir(1.0f, 0.0f), _startPos(0.0f, 0.0f), _startSpeeds(0), _totalTime(0) {}
+		Accelerate::Accelerate(int16_t endSpeeds, float distance) : ITask(), _endSpeeds(endSpeeds), _distance(distance), _targetDir(1.0f, 0.0f){}
 
 		ReturnCode Accelerate::startTask(RobotState startState)
 		{
@@ -48,18 +52,12 @@ namespace JAFD
 			_startSpeeds = startState.forwardVel;
 
 			if (!((_startSpeeds >= 0 && _endSpeeds >= 0 && _distance >= 0) || (_startSpeeds <= 0 && _endSpeeds <= 0 && _distance <= 0)) || _endSpeeds == _startSpeeds) return ReturnCode::error;
-			
-			if (_startSpeeds <= 0 && _endSpeeds <= 0)
-			{
-				_targetDir *= -1;
-			}
 
 			_totalTime = 2 * _distance / static_cast<float>(_endSpeeds + _startSpeeds);
-			_totalTime = abs(_totalTime);
 
 			_endState.wheelSpeeds = FloatWheelSpeeds{ _endSpeeds, _endSpeeds };
 			_endState.forwardVel = static_cast<float>(_endSpeeds);
-			_endState.position = startState.position + (Vec3f)(_targetDir * abs(_distance));
+			_endState.position = startState.position + (Vec3f)(_targetDir * _distance);
 			_endState.angularVel = Vec3f(0.0f, 0.0f, 0.0f);
 			_endState.rotation = startState.rotation;
 
@@ -69,60 +67,80 @@ namespace JAFD
 		// Update speeds for both wheels
 		WheelSpeeds Accelerate::updateSpeeds(const uint8_t freq)
 		{
-			static Vec2f posRelToStart;		// Position relative to start position
-			static Vec2f posError;			// Position error
-			static float distance;			// Distance to start position
-			static Vec2f integral;			// Position error integral
-			static Vec2f corTerm;			// Correction term
-			static Vec2f lastError;			// Last left speed
-			static int16_t desiredSpeed;	// Desired wheel speeds
-			static Vec2f driveVector;		// Speedvector the robot has to drive
-			static float angularVel;		// Desired angular velocity
-			static float calculatedTime;	// Calculated time since task-start
-			static float radiant;			// Radiant needed for calculation
+			static Vec2f currentPosition;		// Current position of robot
+			static float currentHeading;		// Current heading of robot;
+			static Vec2f posRelToStart;			// Position relative to start
+			static float drivenDistance;		// Distance to startpoint (with correct sign for direction)
+			static float radiant;				// Needed as temporary value for acceleration/decceleration
+			static float calculatedTime;		// Calculated time based on driven distance
+			static float desiredSpeed;			// Desired linear velocity (calculated by acceleration/decceleration calculation + PID controller)
+			static float desAngularVel;			// Desired angular velocity (calculated by pure pursuit algorithm + PID controller)
+			static float lookAheadDistance;		// Lookahead distance for pure pursuit algorithm
+			static Vec2f goalPointGlobal;		// Goal-Point in global coordinate space for pure pursuit algorithm
+			static Vec2f goalPointRobot;		// Goal-Point in robot coordinate space for pure pursuit algorithm
+			static float desCurvature;			// Desired curvature (calculated by pure pursuit algorithm)
+			static WheelSpeeds output;			// Speed output for both wheels
 
-			// Calculate error
-			posRelToStart = (Vec2f)SensorFusion::getRobotState().position - _startPos;
-			distance = posRelToStart.length() * sgn(_endSpeeds + _startSpeeds);
-			posError = _targetDir * distance - posRelToStart;
+			currentPosition = (Vec2f)(SensorFusion::getRobotState().position);
+			currentHeading = SensorFusion::getRobotState().rotation.x;
+
+			// Calculate driven distance
+			posRelToStart = currentPosition - _startPos;
+			drivenDistance = posRelToStart.length();
 
 			// Check if I am there
-			if (abs(distance) >= abs(_distance))
+			if (drivenDistance >= abs(_distance))
 			{
-				_finished = true;	
+				_finished = true;
 				return WheelSpeeds{ _endSpeeds, _endSpeeds };
 			}
 
-			// PID controller
-			corTerm = posError * _kp + integral * _ki - (lastError - posError) * _kd * (float)freq;
+			drivenDistance *= sgn(_distance);
 
-			integral += posError / (float)(freq);
-
-			lastError = posError;
-
-			// Accelerate / deccelerate - v = v_1 + (t / t_ges) * (v_2 - v_1); s = integral(v * dt) = ((v_2 - v_1) * t^2) / (2 * t_ges) + v_1 * t => radiant = t_ges * v_1^2 - 2 * s * (v_1 + v_2); t = t_ges * (v_1 - sqrt(radiant)) / (v_2 - v_1); t_ges = s * 2 / (v_2 - v_1)
-			radiant = static_cast<float>(_startSpeeds) * static_cast<float>(_startSpeeds) + 2.0f * distance * static_cast<float>(_endSpeeds - _startSpeeds) / _totalTime;
+			// Accelerate / deccelerate - v = v_1 + (t / t_ges) * (v_2 - v_1); s = _errorIntegral(v * dt) = ((v_2 - v_1) * t^2) / (2 * t_ges) + v_1 * t => radiant = t_ges * v_1^2 - 2 * s * (v_1 + v_2); t = t_ges * (v_1 - sqrt(radiant)) / (v_2 - v_1); t_ges = s * 2 / (v_2 - v_1)
+			radiant = static_cast<float>(_startSpeeds) * static_cast<float>(_startSpeeds) + 2.0f * drivenDistance * static_cast<float>(_endSpeeds - _startSpeeds) / _totalTime;
 			calculatedTime = _totalTime * (static_cast<float>(_startSpeeds) - sqrtf(abs(radiant)) * sgn(_startSpeeds + _endSpeeds)) / static_cast<float>(_startSpeeds - _endSpeeds);
 			calculatedTime = abs(calculatedTime);
 			desiredSpeed = static_cast<float>(_startSpeeds) + (calculatedTime / _totalTime) * static_cast<float>(_endSpeeds - _startSpeeds);
+
+			// A variation of pure pursuits controller where the goal point is a lookahead distance on the path away (not a lookahead distance from the robot).
+			// Furthermore, the lookahead distance is dynamically adapted to the speed
+			// Calculate goal point
+			lookAheadDistance = JAFDSettings::Controller::PathFollowing::lookAheadGain * desiredSpeed;
+
+			if (lookAheadDistance < JAFDSettings::Controller::PathFollowing::minLookAheadDist && lookAheadDistance > -JAFDSettings::Controller::PathFollowing::minLookAheadDist) lookAheadDistance = JAFDSettings::Controller::PathFollowing::minLookAheadDist * sgn(desiredSpeed);
+
+			goalPointGlobal = _startPos + _targetDir * (drivenDistance + lookAheadDistance);
+
+			// Transform goal point to robot coordinates
+			goalPointRobot.x = (goalPointGlobal.x - currentPosition.x)  * cosf(currentHeading) + (goalPointGlobal.y - currentPosition.y) * sinf(currentHeading);
+			goalPointRobot.y = -(goalPointGlobal.x - currentPosition.x) * sinf(currentHeading) + (goalPointGlobal.y - currentPosition.y) * cosf(currentHeading);
+
+			// Calculate curvature and angular velocity
+			desCurvature = 2.0f * goalPointRobot.y / (goalPointRobot.x * goalPointRobot.x + goalPointRobot.y * goalPointRobot.y);
 			
+			if (desCurvature > JAFDSettings::Controller::PathFollowing::maxCurvature) desCurvature = JAFDSettings::Controller::PathFollowing::maxCurvature;
+			else if (desCurvature < -JAFDSettings::Controller::PathFollowing::maxCurvature) desCurvature = -JAFDSettings::Controller::PathFollowing::maxCurvature;
+
+			desAngularVel = desiredSpeed * desCurvature;
+
+			// PID - controller for forward velocity and angular velocity
+
+			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
+			output = WheelSpeeds{ desiredSpeed - JAFDSettings::Mechanics::wheelDistance * desAngularVel / 2.0f, desiredSpeed + JAFDSettings::Mechanics::wheelDistance * desAngularVel / 2.0f };
+
 			// Correct speed if it is too low 
-			if (desiredSpeed < JAFDSettings::MotorControl::minSpeed && desiredSpeed > -JAFDSettings::MotorControl::minSpeed) desiredSpeed = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
-
-			// Calculate drive vector
-			driveVector = Vec2f(1.0f, 0.0f) + corTerm;
-
-			// Calculate speeds - w = atan2(y, x); v = v_l / 2 + v_r / 2; w = v_l / (2 * b) - v_r / (2 * b); => v_l = b * w + v; v_r = v - b * w
-			angularVel = atan2f(driveVector.y, driveVector.x);
+			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed) output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed) output.right = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
 			
-			return WheelSpeeds{ desiredSpeed + JAFDSettings::Mechanics::wheelDistance * angularVel, desiredSpeed - JAFDSettings::Mechanics::wheelDistance * angularVel };
+			return output;
 		}
 
 		// Accelerate class - end
 
 		// DriveStraight class - begin
 
-		DriveStraight::DriveStraight(float distance) : ITask(), _speeds(0), _distance(distance), _targetDir(1.0f, 0.0f), _startPos(0.0f, 0.0f) {}
+		DriveStraight::DriveStraight(float distance) : ITask(), _distance(distance), _targetDir(1.0f, 0.0f) {}
 
 		ReturnCode DriveStraight::startTask(RobotState startState)
 		{
@@ -150,44 +168,65 @@ namespace JAFD
 		// Update speeds for both wheels
 		WheelSpeeds DriveStraight::updateSpeeds(const uint8_t freq)
 		{
-			static Vec2f posRelToStart;		// Position relative to start position
-			static Vec2f posError;			// Position error
-			static float distance;			// Distance to start position
-			static Vec2f integral;			// Position error integral
-			static Vec2f corTerm;			// Correction term
-			static Vec2f lastError;			// Last left speed
-			static Vec2f driveVector;		// Speedvector the robot has to drive
-			static float angularVel;		// Desired angular velocity
+			static Vec2f currentPosition;		// Current position of robot
+			static float currentHeading;		// Current heading of robot;
+			static Vec2f posRelToStart;			// Position relative to start
+			static float absDrivenDist;			// Absolute distance to startpoint
+			static float radiant;				// Needed as temporary value for acceleration/decceleration
+			static float calculatedTime;		// Calculated time based on driven distance
+			static float desAngularVel;			// Desired angular velocity (calculated by pure pursuit algorithm + PID controller)
+			static float lookAheadDistance;		// Lookahead distance for pure pursuit algorithm
+			static Vec2f goalPointGlobal;		// Goal-Point in global coordinate space for pure pursuit algorithm
+			static Vec2f goalPointRobot;		// Goal-Point in robot coordinate space for pure pursuit algorithm
+			static float desCurvature;			// Desired curvature (calculated by pure pursuit algorithm)
+			static WheelSpeeds output;			// Speed output for both wheels
 
-			// Calculate error
-			posRelToStart = (Vec2f)SensorFusion::getRobotState().position - _startPos;
-			distance = posRelToStart.length() * sgn(_speeds);
-			posError = _targetDir * distance - posRelToStart;
+			currentPosition = (Vec2f)(SensorFusion::getRobotState().position);
+			currentHeading = SensorFusion::getRobotState().rotation.x;
+
+			// Calculate driven distance
+			posRelToStart = currentPosition - _startPos;
+			absDrivenDist = posRelToStart.length();
 
 			// Check if I am there
-			if (abs(distance) >= abs(_distance))
+			if (abs(absDrivenDist) >= abs(_distance))
 			{
 				_finished = true;
 				return WheelSpeeds{ _speeds, _speeds };
 			}
 
-			// PID controller
-			corTerm = posError * _kp + integral * _ki - (lastError - posError) * _kd * (float)freq;
+			// A variation of pure pursuits controller where the goal point is a lookahead distance on the path away (not a lookahead distance from the robot).
+			// Furthermore, the lookahead distance is dynamically adapted to the speed
+			// Calculate goal point
+			lookAheadDistance = JAFDSettings::Controller::PathFollowing::lookAheadGain * _speeds;
+			lookAheadDistance = abs(lookAheadDistance);
 
-			integral += posError / (float)(freq);
+			if (lookAheadDistance < JAFDSettings::Controller::PathFollowing::minLookAheadDist) lookAheadDistance = JAFDSettings::Controller::PathFollowing::minLookAheadDist;
 
-			lastError = posError;
-			
+			goalPointGlobal = _startPos + _targetDir * (absDrivenDist + lookAheadDistance);
+
+			// Transform goal point to robot coordinates
+			goalPointRobot.x = (goalPointGlobal.x - currentPosition.x)  * cosf(currentHeading) + (goalPointGlobal.y - currentPosition.y) * sinf(currentHeading);
+			goalPointRobot.y = -(goalPointGlobal.x - currentPosition.x) * sinf(currentHeading) + (goalPointGlobal.y - currentPosition.y) * cosf(currentHeading);
+
+			// Calculate curvature and angular velocity
+			desCurvature = 2.0f * goalPointRobot.y / (goalPointRobot.x * goalPointRobot.x + goalPointRobot.y * goalPointRobot.y);
+
+			if (desCurvature > JAFDSettings::Controller::PathFollowing::maxCurvature) desCurvature = JAFDSettings::Controller::PathFollowing::maxCurvature;
+			else if (desCurvature < -JAFDSettings::Controller::PathFollowing::maxCurvature) desCurvature = -JAFDSettings::Controller::PathFollowing::maxCurvature;
+
+			desAngularVel = _speeds * desCurvature;
+
+			// PID - controller for forward velocity and angular velocity
+
+			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
+			output = WheelSpeeds{ _speeds - JAFDSettings::Mechanics::wheelDistance * desAngularVel / 2.0f, _speeds + JAFDSettings::Mechanics::wheelDistance * desAngularVel / 2.0f };
+
 			// Correct speed if it is too low 
-			if (_speeds < JAFDSettings::MotorControl::minSpeed && _speeds > -JAFDSettings::MotorControl::minSpeed) _speeds = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed) output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed) output.right = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
 
-			// Calculate drive vector
-			driveVector = Vec2f(1.0f, 0.0f) + corTerm;
-
-			// Calculate speeds - w = atan2(y, x); v = v_l / 2 + v_r / 2; w = v_l / (2 * b) - v_r / (2 * b); => v_l = b * w + v; v_r = v - b * w
-			angularVel = atan2f(driveVector.y, driveVector.x);
-
-			return WheelSpeeds{ _speeds + JAFDSettings::Mechanics::wheelDistance * angularVel, _speeds - JAFDSettings::Mechanics::wheelDistance * angularVel };
+			return output;
 		}
 
 		// DriveStraight class - end
@@ -202,6 +241,8 @@ namespace JAFD
 			_endState.position = startState.position;
 			_endState.angularVel = Vec3f(0.0f, 0.0f, 0.0f);
 			_endState.rotation = startState.rotation;
+
+			return ReturnCode::ok;
 		}
 
 		WheelSpeeds Stop::updateSpeeds(const uint8_t freq)
@@ -215,11 +256,6 @@ namespace JAFD
 
 		// Rotate class - begin
 
-		//// Update speeds for both wheels
-		//WheelSpeeds Rotate::updateSpeeds(const uint8_t freq)
-		//{
-		//	return WheelSpeeds{ 0, 0 };
-		//}
 
 		// Rotate class - end
 

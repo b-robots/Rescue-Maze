@@ -25,17 +25,32 @@ namespace JAFDSettings
 		constexpr uint8_t ssPin = 13;
 	}
 
+	namespace Controller
+	{
+		namespace Motor
+		{
+			constexpr float kp = 0.3f;
+			constexpr float ki = 1.2f;
+			constexpr float kd = 0.005f;
+			constexpr float maxCorVal = 0.35f;
+		}
+
+		namespace PathFollowing
+		{
+			constexpr float lookAheadGain = 0.5f;
+			constexpr float minLookAheadDist = 5.0f;
+			constexpr float maxCurvature = 0.06f;
+			constexpr float kp = 0.0f;
+			constexpr float ki = 0.0f;
+			constexpr float kd = 0.0f;
+		}
+	}
+
 	namespace MotorControl
 	{
-		// PID - Values
-		constexpr float kp = 0.4f;
-		constexpr float ki = 1.4f;
-		constexpr float kd = 0.005f;
-		constexpr float maxCorVal = 0.4f;
-
 		constexpr float cmPSToPerc = 0.009f;	// Conversion factor from cm/s to motor PWM duty cycle
 
-		constexpr int16_t minSpeed = 10;		// Minimum speed for motor to rotate
+		constexpr int16_t minSpeed = 15;		// Minimum speed for motor to rotate
 
 		namespace Left
 		{
@@ -61,17 +76,17 @@ namespace JAFDSettings
 		namespace Accelerate
 		{
 			// PID - Values
-			constexpr float kp = 0.0f;
-			constexpr float ki = 0.0f;
-			constexpr float kd = 0.0f;
+			constexpr float kp = 0.002f;
+			constexpr float ki = 0.01f;
+			constexpr float kd = 0.001f;
 		}
 
 		namespace DriveStraight
 		{
 			// PID - Values
-			constexpr float kp = 0.0f;
-			constexpr float ki = 0.0f;
-			constexpr float kd = 0.0f;
+			constexpr float kp = 0.002f;
+			constexpr float ki = 0.01f;
+			constexpr float kd = 0.001f;
 		}
 	}
 

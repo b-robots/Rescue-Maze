@@ -2,17 +2,10 @@
 <PlotSettings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <CurveSettingCollection>
     <CurveSettings>
-      <CurveId>X</CurveId>
-      <CurveDisplayName>X</CurveDisplayName>
+      <CurveId>DesAngVel</CurveId>
+      <CurveDisplayName>DesAngVel</CurveDisplayName>
       <CurveLineTicks>None</CurveLineTicks>
       <CurveColor>#800000</CurveColor>
-      <ChartAssignment2>0</ChartAssignment2>
-    </CurveSettings>
-    <CurveSettings>
-      <CurveId>Y</CurveId>
-      <CurveDisplayName>Y</CurveDisplayName>
-      <CurveLineTicks>None</CurveLineTicks>
-      <CurveColor>#008000</CurveColor>
       <ChartAssignment2>0</ChartAssignment2>
     </CurveSettings>
   </CurveSettingCollection>
@@ -21,7 +14,7 @@
   <DisplayRefreshRate>AsDataComesIn</DisplayRefreshRate>
   <ChartType>LineChart</ChartType>
   <OptimizeBinaryCurves>Off</OptimizeBinaryCurves>
-  <CurveDistribution>SingeChart</CurveDistribution>
+  <CurveDistribution>MultipleCharts</CurveDistribution>
   <TriggerEnabled>false</TriggerEnabled>
   <TriggerCondition>None</TriggerCondition>
   <TriggerMode>Continuous</TriggerMode>

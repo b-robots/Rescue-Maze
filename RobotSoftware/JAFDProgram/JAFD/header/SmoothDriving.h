@@ -52,6 +52,7 @@ namespace JAFD
 			virtual ReturnCode startTask(RobotState startState) = 0;
 
 			// Friends
+
 			friend bool isTaskFinished();
 
 			template<NewStateType stateType>

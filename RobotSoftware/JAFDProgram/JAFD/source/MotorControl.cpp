@@ -33,11 +33,11 @@ namespace JAFD
 			constexpr auto _rEncA = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::encA];	// Encoder Pin A right motor
 			constexpr auto _rEncB = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::encB];	// Encoder Pin B right motor
 			
-			constexpr auto _kp = JAFDSettings::MotorControl::kp;	// Kp factor for PID speed controller
-			constexpr auto _ki = JAFDSettings::MotorControl::ki;	// Ki factor for PID speed controller
-			constexpr auto _kd = JAFDSettings::MotorControl::kd;	// Kd factor for PID speed controller
+			constexpr auto _kp = JAFDSettings::Controller::Motor::kp;	// Kp factor for PID speed controller
+			constexpr auto _ki = JAFDSettings::Controller::Motor::ki;	// Ki factor for PID speed controller
+			constexpr auto _kd = JAFDSettings::Controller::Motor::kd;	// Kd factor for PID speed controller
 
-			constexpr auto _maxCorVal = JAFDSettings::MotorControl::maxCorVal;		// Maximum correction value for PID controller
+			constexpr auto _maxCorVal = JAFDSettings::Controller::Motor::maxCorVal;		// Maximum correction value for PID controller
 
 			constexpr auto _cmPSToPerc = JAFDSettings::MotorControl::cmPSToPerc;	// Conversion factor from cm/s to motor PWM duty cycle
 

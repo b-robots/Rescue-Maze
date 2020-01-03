@@ -2,15 +2,15 @@
 <PlotSettings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <CurveSettingCollection>
     <CurveSettings>
-      <CurveId>X</CurveId>
-      <CurveDisplayName>X</CurveDisplayName>
+      <CurveId>x</CurveId>
+      <CurveDisplayName>x</CurveDisplayName>
       <CurveLineTicks>None</CurveLineTicks>
       <CurveColor>#800000</CurveColor>
       <ChartAssignment2>0</ChartAssignment2>
     </CurveSettings>
     <CurveSettings>
-      <CurveId>Y</CurveId>
-      <CurveDisplayName>Y</CurveDisplayName>
+      <CurveId>y</CurveId>
+      <CurveDisplayName>y</CurveDisplayName>
       <CurveLineTicks>None</CurveLineTicks>
       <CurveColor>#008000</CurveColor>
       <ChartAssignment2>0</ChartAssignment2>

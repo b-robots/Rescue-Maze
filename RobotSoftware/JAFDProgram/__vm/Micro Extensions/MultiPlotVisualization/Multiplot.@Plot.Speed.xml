@@ -22,13 +22,20 @@
       <CurveColor>#000080</CurveColor>
       <ChartAssignment2>0</ChartAssignment2>
     </CurveSettings>
+    <CurveSettings>
+      <CurveId>Right</CurveId>
+      <CurveDisplayName>Right</CurveDisplayName>
+      <CurveLineTicks>None</CurveLineTicks>
+      <CurveColor>#808000</CurveColor>
+      <ChartAssignment2>0</ChartAssignment2>
+    </CurveSettings>
   </CurveSettingCollection>
   <XSweepTime>20 sec</XSweepTime>
   <XTimeFormat>Auto</XTimeFormat>
   <DisplayRefreshRate>AsDataComesIn</DisplayRefreshRate>
   <ChartType>LineChart</ChartType>
   <OptimizeBinaryCurves>Off</OptimizeBinaryCurves>
-  <CurveDistribution>MultipleCharts</CurveDistribution>
+  <CurveDistribution>SingeChart</CurveDistribution>
   <TriggerEnabled>false</TriggerEnabled>
   <TriggerCondition>None</TriggerCondition>
   <TriggerMode>Continuous</TriggerMode>
