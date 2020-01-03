@@ -29,26 +29,42 @@ namespace JAFDSettings
 	{
 		namespace Motor
 		{
-			constexpr float kp = 0.3f;
-			constexpr float ki = 1.2f;
+			constexpr float kp = 0.2f;
+			constexpr float ki = 1.0f;
 			constexpr float kd = 0.005f;
 			constexpr float maxCorVal = 0.35f;
 		}
 
-		namespace PathFollowing
+		namespace PurePursuit
 		{
-			constexpr float lookAheadGain = 0.5f;
+			constexpr float lookAheadGain = 0.6f;
 			constexpr float minLookAheadDist = 5.0f;
 			constexpr float maxCurvature = 0.06f;
-			constexpr float kp = 0.0f;
-			constexpr float ki = 0.0f;
-			constexpr float kd = 0.0f;
+		}
+
+		namespace SmoothDriving
+		{
+			namespace ForwardVel
+			{
+				constexpr float kp = 0.2f;
+				constexpr float ki = 2.0f;
+				constexpr float kd = 10.0f;
+				constexpr uint8_t maxCorVal = 10;
+			}
+
+			namespace AngularVel
+			{
+				constexpr float kp = 0.1f;
+				constexpr float ki = 0.5f;
+				constexpr float kd = 1.0f;
+				constexpr float maxCorVal = 2.0f;
+			}
 		}
 	}
 
 	namespace MotorControl
 	{
-		constexpr float cmPSToPerc = 0.009f;	// Conversion factor from cm/s to motor PWM duty cycle
+		constexpr float cmPSToPerc = 0.0075f;	// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed. It is ideal for about 100cm/s)
 
 		constexpr int16_t minSpeed = 15;		// Minimum speed for motor to rotate
 
@@ -73,21 +89,7 @@ namespace JAFDSettings
 
 	namespace SmoothDriving
 	{
-		namespace Accelerate
-		{
-			// PID - Values
-			constexpr float kp = 0.002f;
-			constexpr float ki = 0.01f;
-			constexpr float kd = 0.001f;
-		}
 
-		namespace DriveStraight
-		{
-			// PID - Values
-			constexpr float kp = 0.002f;
-			constexpr float ki = 0.01f;
-			constexpr float kd = 0.001f;
-		}
 	}
 
 	namespace Dispenser

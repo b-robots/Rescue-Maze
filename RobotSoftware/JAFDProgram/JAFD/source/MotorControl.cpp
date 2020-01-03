@@ -206,20 +206,20 @@ namespace JAFD
 			else
 			{
 				// PID controller
-				lError = (float)_desSpeeds.left - _speeds.left;
+				lError = _desSpeeds.left - _speeds.left;
 
-				lTempVal = _kp * lError + _ki * lIntegral - _kd * (lastSpeeds.left - _speeds.left) * (float)freq;
+				lTempVal = _kp * lError + _ki * lIntegral - _kd * (lastSpeeds.left - _speeds.left) * freq;
 
 				if (lTempVal > _maxCorVal / _cmPSToPerc) lTempVal = _maxCorVal / _cmPSToPerc;
 				else if (lTempVal < -_maxCorVal / _cmPSToPerc) lTempVal = -_maxCorVal / _cmPSToPerc;
 
-				lTempVal += (float)_desSpeeds.left;
+				lTempVal += _desSpeeds.left;
 				lTempVal *= _cmPSToPerc;
 
 				if (lTempVal > 1.0f) lTempVal = 1.0f;
 				else if (lTempVal < -1.0f) lTempVal = -1.0f;
 
-				lIntegral += lError / (float)(freq);
+				lIntegral += lError / freq;
 			}
 
 			if (_desSpeeds.right == 0)
@@ -231,20 +231,20 @@ namespace JAFD
 			else
 			{
 				// PID controller
-				rError = (float)_desSpeeds.right - _speeds.right;
+				rError = _desSpeeds.right - _speeds.right;
 
-				rTempVal = _kp * rError + _ki * rIntegral - _kd * (lastSpeeds.right - _speeds.right) * (float)freq;
+				rTempVal = _kp * rError + _ki * rIntegral - _kd * (lastSpeeds.right - _speeds.right) * freq;
 
 				if (rTempVal > _maxCorVal / _cmPSToPerc) rTempVal = _maxCorVal / _cmPSToPerc;
 				else if (rTempVal < -_maxCorVal / _cmPSToPerc) rTempVal = -_maxCorVal / _cmPSToPerc;
 
-				rTempVal += (float)_desSpeeds.right;
+				rTempVal += _desSpeeds.right;
 				rTempVal *= _cmPSToPerc;
 
 				if (rTempVal > 1.0f) rTempVal = 1.0f;
 				else if (rTempVal < -1.0f) rTempVal = -1.0f;
 
-				rIntegral += rError / (float)(freq);
+				rIntegral += rError / freq;
 			}
 
 			lastSpeeds = static_cast<WheelSpeeds>(_speeds);
@@ -346,11 +346,11 @@ namespace JAFD
 
 				if (motor == Motor::left)
 				{
-					result += (float)ADC->ADC_CDR[_lADCCh] * 3.3f * 1904.7619f / 4.0f / (float)(1 << 12 - 1);
+					result += ADC->ADC_CDR[_lADCCh] * 3.3f * 1904.7619f / 4.0f / (1 << 12 - 1);
 				}
 				else
 				{
-					result += (float)ADC->ADC_CDR[_rADCCh] * 3.3f * 1904.7619f / 4.0f / (float)(1 << 12 - 1);
+					result += ADC->ADC_CDR[_rADCCh] * 3.3f * 1904.7619f / 4.0f / (1 << 12 - 1);
 				}
 			}
 

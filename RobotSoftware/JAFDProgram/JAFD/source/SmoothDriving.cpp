@@ -34,10 +34,6 @@ namespace JAFD
 			} _taskCopies;			
 
 			ITask* _currentTask = &_taskCopies.stop;							// Current task
-
-			constexpr auto _kp = JAFDSettings::Controller::PathFollowing::kp;	// Kp factor for PID speed controller
-			constexpr auto _ki = JAFDSettings::Controller::PathFollowing::ki;	// Ki factor for PID speed controller
-			constexpr auto _kd = JAFDSettings::Controller::PathFollowing::kd;	// Kd factor for PID speed controller
 		}
 
 		// Accelerate class - begin 
@@ -80,6 +76,10 @@ namespace JAFD
 			static Vec2f goalPointRobot;		// Goal-Point in robot coordinate space for pure pursuit algorithm
 			static float desCurvature;			// Desired curvature (calculated by pure pursuit algorithm)
 			static WheelSpeeds output;			// Speed output for both wheels
+			static float forwardVelErr;			// Error of forward velocity
+			static float correctedForwardVel;	// Corrected forward velocity (also used as temporary correction value of PID controller)
+			static float angularVelErr;			// Error of angular velocity
+			static float correctedAngularVel;	// Corrected angular velocity (also used as temporary correction value of PID controller)
 
 			currentPosition = (Vec2f)(SensorFusion::getRobotState().position);
 			currentHeading = SensorFusion::getRobotState().rotation.x;
@@ -92,7 +92,15 @@ namespace JAFD
 			if (drivenDistance >= abs(_distance))
 			{
 				_finished = true;
-				return WheelSpeeds{ _endSpeeds, _endSpeeds };
+
+				if (_endSpeeds == 0)
+				{
+					return WheelSpeeds{ 0, 0 };
+				}
+				else
+				{
+					return WheelSpeeds{ correctedForwardVel, correctedForwardVel };
+				}
 			}
 
 			drivenDistance *= sgn(_distance);
@@ -106,9 +114,9 @@ namespace JAFD
 			// A variation of pure pursuits controller where the goal point is a lookahead distance on the path away (not a lookahead distance from the robot).
 			// Furthermore, the lookahead distance is dynamically adapted to the speed
 			// Calculate goal point
-			lookAheadDistance = JAFDSettings::Controller::PathFollowing::lookAheadGain * desiredSpeed;
+			lookAheadDistance = JAFDSettings::Controller::PurePursuit::lookAheadGain * desiredSpeed;
 
-			if (lookAheadDistance < JAFDSettings::Controller::PathFollowing::minLookAheadDist && lookAheadDistance > -JAFDSettings::Controller::PathFollowing::minLookAheadDist) lookAheadDistance = JAFDSettings::Controller::PathFollowing::minLookAheadDist * sgn(desiredSpeed);
+			if (lookAheadDistance < JAFDSettings::Controller::PurePursuit::minLookAheadDist && lookAheadDistance > -JAFDSettings::Controller::PurePursuit::minLookAheadDist) lookAheadDistance = JAFDSettings::Controller::PurePursuit::minLookAheadDist * sgn(desiredSpeed);
 
 			goalPointGlobal = _startPos + _targetDir * (drivenDistance + lookAheadDistance);
 
@@ -119,12 +127,38 @@ namespace JAFD
 			// Calculate curvature and angular velocity
 			desCurvature = 2.0f * goalPointRobot.y / (goalPointRobot.x * goalPointRobot.x + goalPointRobot.y * goalPointRobot.y);
 			
-			if (desCurvature > JAFDSettings::Controller::PathFollowing::maxCurvature) desCurvature = JAFDSettings::Controller::PathFollowing::maxCurvature;
-			else if (desCurvature < -JAFDSettings::Controller::PathFollowing::maxCurvature) desCurvature = -JAFDSettings::Controller::PathFollowing::maxCurvature;
+			if (desCurvature > JAFDSettings::Controller::PurePursuit::maxCurvature) desCurvature = JAFDSettings::Controller::PurePursuit::maxCurvature;
+			else if (desCurvature < -JAFDSettings::Controller::PurePursuit::maxCurvature) desCurvature = -JAFDSettings::Controller::PurePursuit::maxCurvature;
 
 			desAngularVel = desiredSpeed * desCurvature;
 
-			// PID - controller for forward velocity and angular velocity
+			// PID - controller for forward velocity
+			forwardVelErr = desiredSpeed - SensorFusion::getRobotState().forwardVel;
+
+			correctedForwardVel = _forwardVelKP * forwardVelErr + _forwardVelKI * _forwardVelErrIntegral + _forwardVelKD * (forwardVelErr - _forwardVelLastErr) * freq;
+
+			if (correctedForwardVel > _forwardVelMaxCorVal) correctedForwardVel = _forwardVelMaxCorVal;
+			else if (correctedForwardVel < -_forwardVelMaxCorVal) correctedForwardVel = -_forwardVelMaxCorVal;
+
+			correctedForwardVel += desiredSpeed;
+
+			_forwardVelErrIntegral += forwardVelErr / freq;
+
+			_forwardVelLastErr = forwardVelErr;
+
+			// PID - controller for angular velocity
+			angularVelErr = desAngularVel - SensorFusion::getRobotState().angularVel.x;
+
+			correctedAngularVel = _angularVelKP * angularVelErr + _angularVelKI * _angularVelErrIntegral + _angularVelKD * (angularVelErr - _angularVelLastErr) * freq;
+
+			if (correctedAngularVel > _angularVelMaxCorVal) correctedAngularVel = _angularVelMaxCorVal;
+			else if (correctedAngularVel < -_angularVelMaxCorVal) correctedAngularVel = -_angularVelMaxCorVal;
+
+			_angularVelErrIntegral += angularVelErr / freq;
+
+			_angularVelLastErr = angularVelErr;
+
+			correctedAngularVel += desAngularVel;
 
 			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
 			output = WheelSpeeds{ desiredSpeed - JAFDSettings::Mechanics::wheelDistance * desAngularVel / 2.0f, desiredSpeed + JAFDSettings::Mechanics::wheelDistance * desAngularVel / 2.0f };
@@ -180,6 +214,10 @@ namespace JAFD
 			static Vec2f goalPointRobot;		// Goal-Point in robot coordinate space for pure pursuit algorithm
 			static float desCurvature;			// Desired curvature (calculated by pure pursuit algorithm)
 			static WheelSpeeds output;			// Speed output for both wheels
+			static float forwardVelErr;			// Error of forward velocity
+			static float correctedForwardVel;	// Corrected forward velocity (also used as temporary correction value of PID controller)
+			static float angularVelErr;			// Error of angular velocity
+			static float correctedAngularVel;	// Corrected angular velocity (also used as temporary correction value of PID controller)
 
 			currentPosition = (Vec2f)(SensorFusion::getRobotState().position);
 			currentHeading = SensorFusion::getRobotState().rotation.x;
@@ -192,16 +230,16 @@ namespace JAFD
 			if (abs(absDrivenDist) >= abs(_distance))
 			{
 				_finished = true;
-				return WheelSpeeds{ _speeds, _speeds };
+				return WheelSpeeds{ correctedForwardVel, correctedForwardVel };
 			}
 
 			// A variation of pure pursuits controller where the goal point is a lookahead distance on the path away (not a lookahead distance from the robot).
 			// Furthermore, the lookahead distance is dynamically adapted to the speed
 			// Calculate goal point
-			lookAheadDistance = JAFDSettings::Controller::PathFollowing::lookAheadGain * _speeds;
+			lookAheadDistance = JAFDSettings::Controller::PurePursuit::lookAheadGain * _speeds;
 			lookAheadDistance = abs(lookAheadDistance);
 
-			if (lookAheadDistance < JAFDSettings::Controller::PathFollowing::minLookAheadDist) lookAheadDistance = JAFDSettings::Controller::PathFollowing::minLookAheadDist;
+			if (lookAheadDistance < JAFDSettings::Controller::PurePursuit::minLookAheadDist) lookAheadDistance = JAFDSettings::Controller::PurePursuit::minLookAheadDist;
 
 			goalPointGlobal = _startPos + _targetDir * (absDrivenDist + lookAheadDistance);
 
@@ -212,15 +250,41 @@ namespace JAFD
 			// Calculate curvature and angular velocity
 			desCurvature = 2.0f * goalPointRobot.y / (goalPointRobot.x * goalPointRobot.x + goalPointRobot.y * goalPointRobot.y);
 
-			if (desCurvature > JAFDSettings::Controller::PathFollowing::maxCurvature) desCurvature = JAFDSettings::Controller::PathFollowing::maxCurvature;
-			else if (desCurvature < -JAFDSettings::Controller::PathFollowing::maxCurvature) desCurvature = -JAFDSettings::Controller::PathFollowing::maxCurvature;
+			if (desCurvature > JAFDSettings::Controller::PurePursuit::maxCurvature) desCurvature = JAFDSettings::Controller::PurePursuit::maxCurvature;
+			else if (desCurvature < -JAFDSettings::Controller::PurePursuit::maxCurvature) desCurvature = -JAFDSettings::Controller::PurePursuit::maxCurvature;
 
 			desAngularVel = _speeds * desCurvature;
 
-			// PID - controller for forward velocity and angular velocity
+			// PID - controller for forward velocity
+			forwardVelErr = _speeds - SensorFusion::getRobotState().forwardVel;
+
+			correctedForwardVel = _forwardVelKP * forwardVelErr + _forwardVelKI * _forwardVelErrIntegral + _forwardVelKD * (forwardVelErr - _forwardVelLastErr) * freq;
+
+			if (correctedForwardVel > _forwardVelMaxCorVal) correctedForwardVel = _forwardVelMaxCorVal;
+			else if (correctedForwardVel < -_forwardVelMaxCorVal) correctedForwardVel = -_forwardVelMaxCorVal;
+
+			correctedForwardVel += _speeds;
+
+			_forwardVelErrIntegral += forwardVelErr / freq;
+
+			_forwardVelLastErr = forwardVelErr;
+
+			// PID - controller for angular velocity
+			angularVelErr = desAngularVel - SensorFusion::getRobotState().angularVel.x;
+
+			correctedAngularVel = _angularVelKP * angularVelErr + _angularVelKI * _angularVelErrIntegral + _angularVelKD * (angularVelErr - _angularVelLastErr) * freq;
+
+			if (correctedAngularVel > _angularVelMaxCorVal) correctedAngularVel = _angularVelMaxCorVal;
+			else if (correctedAngularVel < -_angularVelMaxCorVal) correctedAngularVel = -_angularVelMaxCorVal;
+
+			_angularVelErrIntegral += angularVelErr / freq;
+
+			_angularVelLastErr = angularVelErr;
+
+			correctedAngularVel += desAngularVel;
 
 			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
-			output = WheelSpeeds{ _speeds - JAFDSettings::Mechanics::wheelDistance * desAngularVel / 2.0f, _speeds + JAFDSettings::Mechanics::wheelDistance * desAngularVel / 2.0f };
+			output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * desAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * desAngularVel / 2.0f };
 
 			// Correct speed if it is too low 
 			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed) output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
