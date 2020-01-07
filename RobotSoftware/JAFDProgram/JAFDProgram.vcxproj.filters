@@ -48,6 +48,9 @@
       <Filter>JAFD\Header</Filter>
     </ClInclude>
     <ClInclude Include="__vm\.JAFDProgram.vsarduino.h" />
+    <ClInclude Include="JAFD\header\PIDController.h">
+      <Filter>JAFD\Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="JAFD">
@@ -86,6 +89,9 @@
       <Filter>JAFD\Source</Filter>
     </ClCompile>
     <ClCompile Include="JAFD\source\SpiNVSRAM.cpp">
+      <Filter>JAFD\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="JAFD\source\PIDController.cpp">
       <Filter>JAFD\Source</Filter>
     </ClCompile>
   </ItemGroup>

@@ -11,6 +11,7 @@ In this file are all settings needed for the robot
 #endif
 
 #include "JAFD/header/AllDatatypes.h"
+#include "JAFD/header/PIDController.h"
 
 namespace JAFDSettings
 {
@@ -23,43 +24,6 @@ namespace JAFDSettings
 	namespace SpiEeprom
 	{
 		constexpr uint8_t ssPin = 13;
-	}
-
-	namespace Controller
-	{
-		namespace Motor
-		{
-			constexpr float kp = 0.2f;
-			constexpr float ki = 1.0f;
-			constexpr float kd = 0.005f;
-			constexpr float maxCorVal = 0.35f;
-		}
-
-		namespace PurePursuit
-		{
-			constexpr float lookAheadGain = 0.6f;
-			constexpr float minLookAheadDist = 5.0f;
-			constexpr float maxCurvature = 0.06f;
-		}
-
-		namespace SmoothDriving
-		{
-			namespace ForwardVel
-			{
-				constexpr float kp = 0.2f;
-				constexpr float ki = 2.0f;
-				constexpr float kd = 10.0f;
-				constexpr uint8_t maxCorVal = 10;
-			}
-
-			namespace AngularVel
-			{
-				constexpr float kp = 0.1f;
-				constexpr float ki = 0.5f;
-				constexpr float kd = 1.0f;
-				constexpr float maxCorVal = 2.0f;
-			}
-		}
 	}
 
 	namespace MotorControl
@@ -84,6 +48,27 @@ namespace JAFDSettings
 			constexpr uint8_t fbPin = A10;	// Current feedback output left motor
 			constexpr uint8_t encA = 10;	// Encoder Pin A
 			constexpr uint8_t encB = 11;	// Encoder Pin B
+		}
+	}
+
+	namespace Controller
+	{
+		namespace Motor
+		{
+			constexpr JAFD::PIDSettings pidSettings(0.85f, 5.5f, 0.08f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
+		}
+
+		namespace PurePursuit
+		{
+			constexpr float lookAheadGain = 0.6f;
+			constexpr float minLookAheadDist = 5.0f;
+			constexpr float maxCurvature = 0.06f;
+		}
+
+		namespace SmoothDriving
+		{
+			constexpr JAFD::PIDSettings forwardVelPidSettings(0.7f, 6.3f, 0.001f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
+			constexpr JAFD::PIDSettings angularVelPidSettings(1.0f, 0.0f, 0.0f, 10.0f, 5.0f, -10.0f, 10.0f);
 		}
 	}
 

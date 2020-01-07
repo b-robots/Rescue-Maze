@@ -15,6 +15,7 @@ This part of the Library is responsible for driving smoothly.
 #include "../header/SensorFusion.h"
 #include "../../JAFDSettings.h"
 #include "../header/Math.h"
+#include "../header/PIDController.h"
 
 namespace JAFD
 {
@@ -33,7 +34,10 @@ namespace JAFD
 				_TaskCopies() : stop() {};
 			} _taskCopies;			
 
-			ITask* _currentTask = &_taskCopies.stop;							// Current task
+			ITask* _currentTask = &_taskCopies.stop;	// Current task
+			
+			PIDController _forwardVelPID(JAFDSettings::Controller::SmoothDriving::forwardVelPidSettings);	// PID controller for forward velocity
+			PIDController _angularVelPID(JAFDSettings::Controller::SmoothDriving::angularVelPidSettings);	// PID controller for angular velocity
 		}
 
 		// Accelerate class - begin 
@@ -75,11 +79,9 @@ namespace JAFD
 			static Vec2f goalPointGlobal;		// Goal-Point in global coordinate space for pure pursuit algorithm
 			static Vec2f goalPointRobot;		// Goal-Point in robot coordinate space for pure pursuit algorithm
 			static float desCurvature;			// Desired curvature (calculated by pure pursuit algorithm)
+			static float correctedForwardVel;	// Corrected forward velocity
+			static float correctedAngularVel;	// Corrected angular velocity
 			static WheelSpeeds output;			// Speed output for both wheels
-			static float forwardVelErr;			// Error of forward velocity
-			static float correctedForwardVel;	// Corrected forward velocity (also used as temporary correction value of PID controller)
-			static float angularVelErr;			// Error of angular velocity
-			static float correctedAngularVel;	// Corrected angular velocity (also used as temporary correction value of PID controller)
 
 			currentPosition = (Vec2f)(SensorFusion::getRobotState().position);
 			currentHeading = SensorFusion::getRobotState().rotation.x;
@@ -95,11 +97,10 @@ namespace JAFD
 
 				if (_endSpeeds == 0)
 				{
+					_forwardVelPID.reset();
+					_angularVelPID.reset();
+
 					return WheelSpeeds{ 0, 0 };
-				}
-				else
-				{
-					return WheelSpeeds{ correctedForwardVel, correctedForwardVel };
 				}
 			}
 
@@ -132,36 +133,12 @@ namespace JAFD
 
 			desAngularVel = desiredSpeed * desCurvature;
 
-			// PID - controller for forward velocity
-			forwardVelErr = desiredSpeed - SensorFusion::getRobotState().forwardVel;
-
-			correctedForwardVel = _forwardVelKP * forwardVelErr + _forwardVelKI * _forwardVelErrIntegral + _forwardVelKD * (forwardVelErr - _forwardVelLastErr) * freq;
-
-			if (correctedForwardVel > _forwardVelMaxCorVal) correctedForwardVel = _forwardVelMaxCorVal;
-			else if (correctedForwardVel < -_forwardVelMaxCorVal) correctedForwardVel = -_forwardVelMaxCorVal;
-
-			correctedForwardVel += desiredSpeed;
-
-			_forwardVelErrIntegral += forwardVelErr / freq;
-
-			_forwardVelLastErr = forwardVelErr;
-
-			// PID - controller for angular velocity
-			angularVelErr = desAngularVel - SensorFusion::getRobotState().angularVel.x;
-
-			correctedAngularVel = _angularVelKP * angularVelErr + _angularVelKI * _angularVelErrIntegral + _angularVelKD * (angularVelErr - _angularVelLastErr) * freq;
-
-			if (correctedAngularVel > _angularVelMaxCorVal) correctedAngularVel = _angularVelMaxCorVal;
-			else if (correctedAngularVel < -_angularVelMaxCorVal) correctedAngularVel = -_angularVelMaxCorVal;
-
-			_angularVelErrIntegral += angularVelErr / freq;
-
-			_angularVelLastErr = angularVelErr;
-
-			correctedAngularVel += desAngularVel;
+			// PID - controller
+			correctedForwardVel = _forwardVelPID.process(desiredSpeed, SensorFusion::getRobotState().forwardVel, 1.0f / freq);
+			correctedAngularVel = desAngularVel;//_angularVelPID.process(desAngularVel, SensorFusion::getRobotState().rotation.x, 1.0f / freq);
 
 			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
-			output = WheelSpeeds{ desiredSpeed - JAFDSettings::Mechanics::wheelDistance * desAngularVel / 2.0f, desiredSpeed + JAFDSettings::Mechanics::wheelDistance * desAngularVel / 2.0f };
+			output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
 
 			// Correct speed if it is too low 
 			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed) output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
@@ -214,10 +191,8 @@ namespace JAFD
 			static Vec2f goalPointRobot;		// Goal-Point in robot coordinate space for pure pursuit algorithm
 			static float desCurvature;			// Desired curvature (calculated by pure pursuit algorithm)
 			static WheelSpeeds output;			// Speed output for both wheels
-			static float forwardVelErr;			// Error of forward velocity
-			static float correctedForwardVel;	// Corrected forward velocity (also used as temporary correction value of PID controller)
-			static float angularVelErr;			// Error of angular velocity
-			static float correctedAngularVel;	// Corrected angular velocity (also used as temporary correction value of PID controller)
+			static float correctedForwardVel;	// Corrected forward velocity
+			static float correctedAngularVel;	// Corrected angular velocity
 
 			currentPosition = (Vec2f)(SensorFusion::getRobotState().position);
 			currentHeading = SensorFusion::getRobotState().rotation.x;
@@ -230,7 +205,6 @@ namespace JAFD
 			if (abs(absDrivenDist) >= abs(_distance))
 			{
 				_finished = true;
-				return WheelSpeeds{ correctedForwardVel, correctedForwardVel };
 			}
 
 			// A variation of pure pursuits controller where the goal point is a lookahead distance on the path away (not a lookahead distance from the robot).
@@ -255,36 +229,12 @@ namespace JAFD
 
 			desAngularVel = _speeds * desCurvature;
 
-			// PID - controller for forward velocity
-			forwardVelErr = _speeds - SensorFusion::getRobotState().forwardVel;
-
-			correctedForwardVel = _forwardVelKP * forwardVelErr + _forwardVelKI * _forwardVelErrIntegral + _forwardVelKD * (forwardVelErr - _forwardVelLastErr) * freq;
-
-			if (correctedForwardVel > _forwardVelMaxCorVal) correctedForwardVel = _forwardVelMaxCorVal;
-			else if (correctedForwardVel < -_forwardVelMaxCorVal) correctedForwardVel = -_forwardVelMaxCorVal;
-
-			correctedForwardVel += _speeds;
-
-			_forwardVelErrIntegral += forwardVelErr / freq;
-
-			_forwardVelLastErr = forwardVelErr;
-
-			// PID - controller for angular velocity
-			angularVelErr = desAngularVel - SensorFusion::getRobotState().angularVel.x;
-
-			correctedAngularVel = _angularVelKP * angularVelErr + _angularVelKI * _angularVelErrIntegral + _angularVelKD * (angularVelErr - _angularVelLastErr) * freq;
-
-			if (correctedAngularVel > _angularVelMaxCorVal) correctedAngularVel = _angularVelMaxCorVal;
-			else if (correctedAngularVel < -_angularVelMaxCorVal) correctedAngularVel = -_angularVelMaxCorVal;
-
-			_angularVelErrIntegral += angularVelErr / freq;
-
-			_angularVelLastErr = angularVelErr;
-
-			correctedAngularVel += desAngularVel;
+			// PID - controller
+			correctedForwardVel = _forwardVelPID.process(_speeds, SensorFusion::getRobotState().forwardVel, 1.0f / freq);
+			correctedAngularVel = desAngularVel;//_angularVelPID.process(desAngularVel, SensorFusion::getRobotState().rotation.x, 1.0f / freq);
 
 			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
-			output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * desAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * desAngularVel / 2.0f };
+			output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
 
 			// Correct speed if it is too low 
 			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed) output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
@@ -305,6 +255,9 @@ namespace JAFD
 			_endState.position = startState.position;
 			_endState.angularVel = Vec3f(0.0f, 0.0f, 0.0f);
 			_endState.rotation = startState.rotation;
+
+			_forwardVelPID.reset();
+			_angularVelPID.reset();
 
 			return ReturnCode::ok;
 		}

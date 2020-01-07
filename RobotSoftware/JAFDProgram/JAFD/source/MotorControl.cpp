@@ -11,6 +11,7 @@ This part of the Library is responsible for driving the motors.
 #include "../../JAFDSettings.h"
 #include "../header/MotorControl.h"
 #include "../header/DuePinMapping.h"
+#include "../header/PIDController.h"
 
 namespace JAFD
 {
@@ -32,12 +33,6 @@ namespace JAFD
 
 			constexpr auto _rEncA = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::encA];	// Encoder Pin A right motor
 			constexpr auto _rEncB = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::encB];	// Encoder Pin B right motor
-			
-			constexpr auto _kp = JAFDSettings::Controller::Motor::kp;	// Kp factor for PID speed controller
-			constexpr auto _ki = JAFDSettings::Controller::Motor::ki;	// Ki factor for PID speed controller
-			constexpr auto _kd = JAFDSettings::Controller::Motor::kd;	// Kd factor for PID speed controller
-
-			constexpr auto _maxCorVal = JAFDSettings::Controller::Motor::maxCorVal;		// Maximum correction value for PID controller
 
 			constexpr auto _cmPSToPerc = JAFDSettings::MotorControl::cmPSToPerc;	// Conversion factor from cm/s to motor PWM duty cycle
 
@@ -46,6 +41,9 @@ namespace JAFD
 
 			constexpr uint8_t _lADCCh = PinMapping::getADCChannel(_lFb);	// Left motor ADC channel
 			constexpr uint8_t _rADCCh = PinMapping::getADCChannel(_rFb);	// Right motor ADC channel
+
+			PIDController _leftPID(JAFDSettings::Controller::Motor::pidSettings);		// Left speed PID-Controller
+			PIDController _rightPID(JAFDSettings::Controller::Motor::pidSettings);		// Right speed PID-Controller
 
 			volatile int32_t _lEncCnt = 0;		// Encoder count left motor
 			volatile int32_t _rEncCnt = 0;		// Encoder count right motor
@@ -180,77 +178,37 @@ namespace JAFD
 
 			lastLeftCnt = _lEncCnt;
 			lastRightCnt = _rEncCnt;
-			lastSpeeds = static_cast<decltype(lastSpeeds)>(_speeds);
+			lastSpeeds = static_cast<FloatWheelSpeeds>(_speeds);
 		}
 
 		void speedPID(const uint8_t freq)
 		{
-			static float rIntegral = 0.0f;	// Right velocity error integral
-			static float lIntegral = 0.0f;	// Left velocity error integral
-
-			static float lTempVal = 0.0f;	// Left temporary value
-			static float rTempVal = 0.0f;	// Right temporary value
-
-			static float lError = 0.0f;		// Left speed error
-			static float rError = 0.0f;		// Right speed error
-
-			static WheelSpeeds lastSpeeds = { 0.0f, 0.0f };	// Last speeds
+			static float lSetSpeed;
+			static float rSetSpeed;
 
 			// When speed isn't 0, do PID controller
 			if (_desSpeeds.left == 0)
 			{
-				lTempVal = 0.0f;
-				lError = 0.0f;
-				lIntegral = 0.0f;
+				_leftPID.reset();
+				lSetSpeed = 0.0f;
 			}
 			else
 			{
-				// PID controller
-				lError = _desSpeeds.left - _speeds.left;
-
-				lTempVal = _kp * lError + _ki * lIntegral - _kd * (lastSpeeds.left - _speeds.left) * freq;
-
-				if (lTempVal > _maxCorVal / _cmPSToPerc) lTempVal = _maxCorVal / _cmPSToPerc;
-				else if (lTempVal < -_maxCorVal / _cmPSToPerc) lTempVal = -_maxCorVal / _cmPSToPerc;
-
-				lTempVal += _desSpeeds.left;
-				lTempVal *= _cmPSToPerc;
-
-				if (lTempVal > 1.0f) lTempVal = 1.0f;
-				else if (lTempVal < -1.0f) lTempVal = -1.0f;
-
-				lIntegral += lError / freq;
+				lSetSpeed = _leftPID.process(_desSpeeds.left, _speeds.left, 1.0f / freq) * _cmPSToPerc;
 			}
 
 			if (_desSpeeds.right == 0)
 			{
-				rTempVal = 0.0f;
-				rError = 0.0f;
-				rIntegral = 0.0f;
+				_rightPID.reset();
+				rSetSpeed = 0.0f;
 			}
 			else
 			{
-				// PID controller
-				rError = _desSpeeds.right - _speeds.right;
-
-				rTempVal = _kp * rError + _ki * rIntegral - _kd * (lastSpeeds.right - _speeds.right) * freq;
-
-				if (rTempVal > _maxCorVal / _cmPSToPerc) rTempVal = _maxCorVal / _cmPSToPerc;
-				else if (rTempVal < -_maxCorVal / _cmPSToPerc) rTempVal = -_maxCorVal / _cmPSToPerc;
-
-				rTempVal += _desSpeeds.right;
-				rTempVal *= _cmPSToPerc;
-
-				if (rTempVal > 1.0f) rTempVal = 1.0f;
-				else if (rTempVal < -1.0f) rTempVal = -1.0f;
-
-				rIntegral += rError / freq;
+				rSetSpeed = _rightPID.process(_desSpeeds.right, _speeds.right, 1.0f / freq) * _cmPSToPerc;
 			}
 
-			lastSpeeds = static_cast<WheelSpeeds>(_speeds);
-
 			// Set left dir pin
-			if (lTempVal > 0.0f)
+			if (lSetSpeed > 0.0f)
 			{
 				_lDir.port->PIO_CODR = _lDir.pin;
 			}
@@ -260,7 +218,7 @@ namespace JAFD
 			}
 
 			// Set right dir pin
-			if (rTempVal > 0.0f)
+			if (rSetSpeed > 0.0f)
 			{
 				_rDir.port->PIO_CODR = _rDir.pin;
 			}
@@ -270,8 +228,8 @@ namespace JAFD
 			}
 
 			// Set PWM Value
-			PWM->PWM_CH_NUM[_lPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[_lPWMCh].PWM_CPRD * abs(lTempVal));
-			PWM->PWM_CH_NUM[_rPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[_rPWMCh].PWM_CPRD * abs(rTempVal));
+			PWM->PWM_CH_NUM[_lPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[_lPWMCh].PWM_CPRD * abs(lSetSpeed));
+			PWM->PWM_CH_NUM[_rPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[_rPWMCh].PWM_CPRD * abs(rSetSpeed));
 			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 		}
 

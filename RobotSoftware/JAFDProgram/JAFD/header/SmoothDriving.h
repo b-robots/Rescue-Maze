@@ -81,18 +81,6 @@ namespace JAFD
 			Vec2f _startPos;					// Start position
 			int16_t _startSpeeds;				// Average start speed of both wheels
 			float _totalTime;					// Calculated time needed to drive
-			float _forwardVelErrIntegral;		// Error integral of forward velocity
-			float _forwardVelLastErr;			// Last forward velocity error
-			float _angularVelErrIntegral;		// Error integral of angular velocity
-			float _angularVelLastErr;			// Last angular velocity error
-			static constexpr auto _forwardVelKP = JAFDSettings::Controller::SmoothDriving::ForwardVel::kp;					// Kp factor for forward velocity PID controller
-			static constexpr auto _forwardVelKI = JAFDSettings::Controller::SmoothDriving::ForwardVel::ki;					// Ki factor for forward velocity PID controller
-			static constexpr auto _forwardVelKD = JAFDSettings::Controller::SmoothDriving::ForwardVel::kd;					// Kd factor for forward velocity PID controller		
-			static constexpr auto _forwardVelMaxCorVal = JAFDSettings::Controller::SmoothDriving::ForwardVel::maxCorVal;	// Maximum correction value for forward velocity PID controller
-			static constexpr auto _angularVelKP = JAFDSettings::Controller::SmoothDriving::AngularVel::kp;					// Kp factor for angular velocity PID controller
-			static constexpr auto _angularVelKI = JAFDSettings::Controller::SmoothDriving::AngularVel::ki;					// Ki factor for angular velocity PID controller
-			static constexpr auto _angularVelKD = JAFDSettings::Controller::SmoothDriving::AngularVel::kd;					// Kd factor for angular velocity PID controller		
-			static constexpr auto _angularVelMaxCorVal = JAFDSettings::Controller::SmoothDriving::AngularVel::maxCorVal;	// Maximum correction value for angular velocity PID controller
 		public:
 			Accelerate(int16_t endSpeeds = 0, float distance = 0.0f);
 			ReturnCode startTask(RobotState startState);
@@ -106,18 +94,6 @@ namespace JAFD
 			float _distance;					// Distance the robot has to travel
 			Vec2f _targetDir;					// Target direction (guranteed to be normalized)
 			Vec2f _startPos;					// Start position
-			float _forwardVelErrIntegral;		// Error integral of forward velocity
-			float _forwardVelLastErr;			// Last forward velocity error
-			float _angularVelErrIntegral;		// Error integral of angular velocity
-			float _angularVelLastErr;			// Last angular velocity error
-			static constexpr auto _forwardVelKP = JAFDSettings::Controller::SmoothDriving::ForwardVel::kp;					// Kp factor for forward velocity PID controller
-			static constexpr auto _forwardVelKI = JAFDSettings::Controller::SmoothDriving::ForwardVel::ki;					// Ki factor for forward velocity PID controller
-			static constexpr auto _forwardVelKD = JAFDSettings::Controller::SmoothDriving::ForwardVel::kd;					// Kd factor for forward velocity PID controller		
-			static constexpr auto _forwardVelMaxCorVal = JAFDSettings::Controller::SmoothDriving::ForwardVel::maxCorVal;	// Maximum correction value for forward velocity PID controller
-			static constexpr auto _angularVelKP = JAFDSettings::Controller::SmoothDriving::AngularVel::kp;					// Kp factor for angular velocity PID controller
-			static constexpr auto _angularVelKI = JAFDSettings::Controller::SmoothDriving::AngularVel::ki;					// Ki factor for angular velocity PID controller
-			static constexpr auto _angularVelKD = JAFDSettings::Controller::SmoothDriving::AngularVel::kd;					// Kd factor for angular velocity PID controller		
-			static constexpr auto _angularVelMaxCorVal = JAFDSettings::Controller::SmoothDriving::AngularVel::maxCorVal;	// Maximum correction value for angular velocity PID controller
 		public:
 			DriveStraight(float distance = 0);
 			ReturnCode startTask(RobotState startState);

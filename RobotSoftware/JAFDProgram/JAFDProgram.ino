@@ -41,7 +41,7 @@ void loop() {
 	{
 		if (i % 8 == 0)
 		{
-			c = setNewTask<NewStateType::lastEndState>(Accelerate(100, 200.0f));
+			c = setNewTask<NewStateType::lastEndState>(Accelerate(100, 50.0f));
 		}
 		else if (i % 8 == 1)
 		{
@@ -49,7 +49,7 @@ void loop() {
 		}
 		else if (i % 8 == 2)
 		{
-			c = setNewTask<NewStateType::currentState>(Accelerate(20, 200.0f));
+			c = setNewTask<NewStateType::currentState>(Accelerate(20, 50.0f));
 		}
 		else if (i % 8 == 3)
 		{
@@ -57,7 +57,7 @@ void loop() {
 		}
 		else if (i % 8 == 4)
 		{
-			c = setNewTask<NewStateType::lastEndState>(Accelerate(-100, -200.0f));
+			c = setNewTask<NewStateType::lastEndState>(Accelerate(-100, -50.0f));
 		}
 		else if (i % 8 == 5)
 		{
@@ -65,7 +65,7 @@ void loop() {
 		}
 		else if (i % 8 == 6)
 		{
-			c = setNewTask<NewStateType::currentState>(Accelerate(-20, -200.0f));
+			c = setNewTask<NewStateType::currentState>(Accelerate(-20, -50.0f));
 		}
 		else if (i % 8 == 7)
 		{
@@ -79,7 +79,7 @@ void loop() {
 
 		i++;
 	}
-	
+	//{@Plot.Position.X getRobotState().position.x}{@Plot.Position.Y getRobotState().position.y}{@Plot.Heading.Heading getRobotState().rotation.x * 180.0f / 3.1416f}
 	JAFD::robotLoop();
 
 	delay(200);
