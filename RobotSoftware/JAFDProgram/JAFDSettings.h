@@ -35,7 +35,7 @@ namespace JAFDSettings
 		namespace Left
 		{
 			constexpr uint8_t pwmPin = 34;	// PWM pin left motor
-			constexpr uint8_t dirPin = A4;	// Direction pin left motor
+			constexpr uint8_t dirPin = 53;	// Direction pin left motor
 			constexpr uint8_t fbPin = A11;	// Current feedback output left motor
 			constexpr uint8_t encA = 22;	// Encoder Pin A
 			constexpr uint8_t encB = 23;	// Encoder Pin B
@@ -60,14 +60,14 @@ namespace JAFDSettings
 
 		namespace PurePursuit
 		{
-			constexpr float lookAheadGain = 0.6f;
-			constexpr float minLookAheadDist = 5.0f;
-			constexpr float maxCurvature = 0.06f;
+			constexpr float lookAheadGain = 0.7f;
+			constexpr float minLookAheadDist = 10.0f;
+			constexpr float maxCurvature = 0.065f;
 		}
 
 		namespace SmoothDriving
 		{
-			constexpr JAFD::PIDSettings forwardVelPidSettings(0.7f, 6.3f, 0.001f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
+			constexpr JAFD::PIDSettings forwardVelPidSettings(0.3f, 1.3f, 0.0f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
 			constexpr JAFD::PIDSettings angularVelPidSettings(1.0f, 0.0f, 0.0f, 10.0f, 5.0f, -10.0f, 10.0f);
 		}
 	}

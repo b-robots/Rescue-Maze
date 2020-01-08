@@ -106,11 +106,19 @@ namespace JAFD
 
 			drivenDistance *= sgn(_distance);
 
-			// Accelerate / deccelerate - v = v_1 + (t / t_ges) * (v_2 - v_1); s = _errorIntegral(v * dt) = ((v_2 - v_1) * t^2) / (2 * t_ges) + v_1 * t => radiant = t_ges * v_1^2 - 2 * s * (v_1 + v_2); t = t_ges * (v_1 - sqrt(radiant)) / (v_2 - v_1); t_ges = s * 2 / (v_2 - v_1)
-			radiant = static_cast<float>(_startSpeeds) * static_cast<float>(_startSpeeds) + 2.0f * drivenDistance * static_cast<float>(_endSpeeds - _startSpeeds) / _totalTime;
-			calculatedTime = _totalTime * (static_cast<float>(_startSpeeds) - sqrtf(abs(radiant)) * sgn(_startSpeeds + _endSpeeds)) / static_cast<float>(_startSpeeds - _endSpeeds);
-			calculatedTime = abs(calculatedTime);
-			desiredSpeed = static_cast<float>(_startSpeeds) + (calculatedTime / _totalTime) * static_cast<float>(_endSpeeds - _startSpeeds);
+			// If finished, drive with end speeds
+			if (!_finished)
+			{
+				// Accelerate / deccelerate - v = v_1 + (t / t_ges) * (v_2 - v_1); s = _errorIntegral(v * dt) = ((v_2 - v_1) * t^2) / (2 * t_ges) + v_1 * t => radiant = t_ges * v_1^2 - 2 * s * (v_1 + v_2); t = t_ges * (v_1 - sqrt(radiant)) / (v_2 - v_1); t_ges = s * 2 / (v_2 - v_1)
+				radiant = static_cast<float>(_startSpeeds) * static_cast<float>(_startSpeeds) + 2.0f * drivenDistance * static_cast<float>(_endSpeeds - _startSpeeds) / _totalTime;
+				calculatedTime = _totalTime * (static_cast<float>(_startSpeeds) - sqrtf(abs(radiant)) * sgn(_startSpeeds + _endSpeeds)) / static_cast<float>(_startSpeeds - _endSpeeds);
+				calculatedTime = abs(calculatedTime);
+				desiredSpeed = static_cast<float>(_startSpeeds) + (calculatedTime / _totalTime) * static_cast<float>(_endSpeeds - _startSpeeds);
+			}
+			else
+			{
+				desiredSpeed = _endSpeeds;
+			}
 
 			// A variation of pure pursuits controller where the goal point is a lookahead distance on the path away (not a lookahead distance from the robot).
 			// Furthermore, the lookahead distance is dynamically adapted to the speed
@@ -133,8 +141,8 @@ namespace JAFD
 
 			desAngularVel = desiredSpeed * desCurvature;
 
-			// PID - controller
-			correctedForwardVel = _forwardVelPID.process(desiredSpeed, SensorFusion::getRobotState().forwardVel, 1.0f / freq);
+			// Kind of PID - controller
+			correctedForwardVel = desiredSpeed * 0.8f + _forwardVelPID.process(desiredSpeed, SensorFusion::getRobotState().forwardVel, 1.0f / freq);
 			correctedAngularVel = desAngularVel;//_angularVelPID.process(desAngularVel, SensorFusion::getRobotState().rotation.x, 1.0f / freq);
 
 			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
@@ -229,8 +237,8 @@ namespace JAFD
 
 			desAngularVel = _speeds * desCurvature;
 
-			// PID - controller
-			correctedForwardVel = _forwardVelPID.process(_speeds, SensorFusion::getRobotState().forwardVel, 1.0f / freq);
+			// Kind of PID - controller
+			correctedForwardVel = _speeds * 0.8f + _forwardVelPID.process(_speeds, SensorFusion::getRobotState().forwardVel, 1.0f / freq);
 			correctedAngularVel = desAngularVel;//_angularVelPID.process(desAngularVel, SensorFusion::getRobotState().rotation.x, 1.0f / freq);
 
 			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2

@@ -12,6 +12,7 @@ This part of the Library is responsible for driving the motors.
 #include "../header/MotorControl.h"
 #include "../header/DuePinMapping.h"
 #include "../header/PIDController.h"
+#include "../header//Math.h"
 
 namespace JAFD
 {
@@ -183,32 +184,35 @@ namespace JAFD
 
 		void speedPID(const uint8_t freq)
 		{
-			static float lSetSpeed;
-			static float rSetSpeed;
+			static FloatWheelSpeeds setSpeed;	// Speed calculated by PID
 
 			// When speed isn't 0, do PID controller
 			if (_desSpeeds.left == 0)
 			{
 				_leftPID.reset();
-				lSetSpeed = 0.0f;
+				setSpeed.left = 0.0f;
 			}
 			else
 			{
-				lSetSpeed = _leftPID.process(_desSpeeds.left, _speeds.left, 1.0f / freq) * _cmPSToPerc;
+				setSpeed.left = _leftPID.process(_desSpeeds.left, _speeds.left, 1.0f / freq) * _cmPSToPerc;
+
+				if (setSpeed.left < JAFDSettings::MotorControl::minSpeed * _cmPSToPerc && setSpeed.left > -JAFDSettings::MotorControl::minSpeed * _cmPSToPerc) setSpeed.left = JAFDSettings::MotorControl::minSpeed * _cmPSToPerc * sgn(_desSpeeds.left);
 			}
 
 			if (_desSpeeds.right == 0)
 			{
 				_rightPID.reset();
-				rSetSpeed = 0.0f;
+				setSpeed.right = 0.0f;
 			}
 			else
 			{
-				rSetSpeed = _rightPID.process(_desSpeeds.right, _speeds.right, 1.0f / freq) * _cmPSToPerc;
+				setSpeed.right = _rightPID.process(_desSpeeds.right, _speeds.right, 1.0f / freq) * _cmPSToPerc;
+
+				if (setSpeed.right < JAFDSettings::MotorControl::minSpeed * _cmPSToPerc && setSpeed.right > -JAFDSettings::MotorControl::minSpeed * _cmPSToPerc) setSpeed.right = JAFDSettings::MotorControl::minSpeed * _cmPSToPerc * sgn(_desSpeeds.right);
 			}
 
 			// Set left dir pin
-			if (lSetSpeed > 0.0f)
+			if (setSpeed.left > 0.0f)
 			{
 				_lDir.port->PIO_CODR = _lDir.pin;
 			}
@@ -218,7 +222,7 @@ namespace JAFD
 			}
 
 			// Set right dir pin
-			if (rSetSpeed > 0.0f)
+			if (setSpeed.right > 0.0f)
 			{
 				_rDir.port->PIO_CODR = _rDir.pin;
 			}
@@ -228,8 +232,8 @@ namespace JAFD
 			}
 
 			// Set PWM Value
-			PWM->PWM_CH_NUM[_lPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[_lPWMCh].PWM_CPRD * abs(lSetSpeed));
-			PWM->PWM_CH_NUM[_rPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[_rPWMCh].PWM_CPRD * abs(rSetSpeed));
+			PWM->PWM_CH_NUM[_lPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[_lPWMCh].PWM_CPRD * abs(setSpeed.left));
+			PWM->PWM_CH_NUM[_rPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[_rPWMCh].PWM_CPRD * abs(setSpeed.right));
 			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 		}
 
