@@ -29,7 +29,7 @@ namespace JAFD
 				Accelerate accelerate;
 				DriveStraight straight;
 				Stop stop;
-				//Rotate rotate;
+				Rotate rotate;
 
 				_TaskCopies() : stop() {};
 			} _taskCopies;			
@@ -143,7 +143,7 @@ namespace JAFD
 
 			// Kind of PID - controller
 			correctedForwardVel = desiredSpeed * 0.8f + _forwardVelPID.process(desiredSpeed, SensorFusion::getRobotState().forwardVel, 1.0f / freq);
-			correctedAngularVel = desAngularVel;//_angularVelPID.process(desAngularVel, SensorFusion::getRobotState().rotation.x, 1.0f / freq);
+			correctedAngularVel = desAngularVel;//_angularVelPID.process(desAngularVel, SensorFusion::getRobotState().angularVel, 1.0f / freq);
 
 			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
 			output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
@@ -239,7 +239,7 @@ namespace JAFD
 
 			// Kind of PID - controller
 			correctedForwardVel = _speeds * 0.8f + _forwardVelPID.process(_speeds, SensorFusion::getRobotState().forwardVel, 1.0f / freq);
-			correctedAngularVel = desAngularVel;//_angularVelPID.process(desAngularVel, SensorFusion::getRobotState().rotation.x, 1.0f / freq);
+			correctedAngularVel = desAngularVel;//_angularVelPID.process(desAngularVel, SensorFusion::getRobotState().angularVel, 1.0f / freq);
 
 			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
 			output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
@@ -281,6 +281,82 @@ namespace JAFD
 
 		// Rotate class - begin
 
+		Rotate::Rotate(int16_t maxAngularVel, float angle) : ITask(), _maxAngularVel(maxAngularVel), _angle(angle) {}
+
+		ReturnCode Rotate::startTask(RobotState startState)
+		{
+			_finished = false;
+			_startAngle = startState.rotation.x;
+
+			if (abs(startState.wheelSpeeds.left) < JAFDSettings::MotorControl::minSpeed || abs(startState.wheelSpeeds.right) < JAFDSettings::MotorControl::minSpeed) return ReturnCode::error;
+
+			_totalTime = _angle / _maxAngularVel;
+
+			if (_totalTime < 0.0f) return ReturnCode::error;
+
+			_endState.wheelSpeeds = FloatWheelSpeeds{ 0.0f, 0.0f };
+			_endState.forwardVel = static_cast<float>(0.0f);
+			_endState.position = startState.position;
+			_endState.angularVel = Vec3f(0.0f, 0.0f, 0.0f);
+			_endState.rotation = startState.rotation + Vec3f(_angle, 0.0f, 0.0f);
+
+			_forwardVelPID.reset();
+			_angularVelPID.reset();
+
+			return ReturnCode::ok;
+		}
+
+		// Update speeds for both wheels
+		WheelSpeeds Rotate::updateSpeeds(const uint8_t freq)
+		{
+			static float rotatedAngle;			// Rotated angle since start
+			static float desAngularVel;			// Desired angular velocity
+			static float correctedAngularVel;	// By PID Controller corrected angular velocity
+			static bool accelerate;				// Still accelerate? 
+
+			// Calculate rotated angle
+			rotatedAngle = SensorFusion::getRobotState().rotation.x - _startAngle;
+
+			// Check if I am there
+			if (abs(rotatedAngle) >= abs(_angle))
+			{
+				_finished = true;
+
+				_forwardVelPID.reset();
+				_angularVelPID.reset();
+
+				return WheelSpeeds{ 0, 0 };
+			}
+
+			// Accelerate / deccelerate
+			if (accelerate)
+			{
+				// w(t) = w_max * 2 * t / t_ges => a(t) = w_max * t^2 / t_ges => t(a) = sqrt(a * t_ges / w_max); w(a) = w_max * 2 * sqrt(a * t_ges / w_max) / t_ges = sqrt(4 * a * w_max / t_ges)
+				desAngularVel = sqrtf(4.0f * rotatedAngle * _maxAngularVel / _totalTime) * sgn(_maxAngularVel);
+
+				if (abs(desAngularVel) >= abs(_maxAngularVel)) accelerate = false;
+			}
+			else
+			{
+				// w(t) = w_max * 2 * (t_ges - t) / t_ges => a(t) = -(w_max * (2 * t - 5 * t_ges) * (2 * t - t_ges)) / (8 * t_ges) => t(a) = sqrt(a * t_ges / w_max); w(a) = w_max * 2 * sqrt(a * t_ges / w_max) / t_ges = sqrt(4 * a * w_max / t_ges)
+				desAngularVel = sqrtf(4.0f * rotatedAngle * _maxAngularVel / _totalTime) * sgn(_maxAngularVel);
+			}
+
+			// Kind of PID - controller
+			correctedAngularVel = desAngularVel * 0.8 + _angularVelPID.process(desAngularVel, SensorFusion::getRobotState().angularVel.x, 1.0f / freq);
+
+			// Compute wheel speeds -- w = (v_r - v_l) / wheelDistance; v_l = -v_r; => v_l = -w * wheelDistance / 2; v_r = w * wheelDistance / 2
+			output = WheelSpeeds{ -JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
+
+			// Correct speed if it is too low
+			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed)
+			{
+				output.right = JAFDSettings::MotorControl::minSpeed * sgn(_angle);
+				output.left = -output.right;
+			}
+
+			return output;
+		}
 
 		// Rotate class - end
 

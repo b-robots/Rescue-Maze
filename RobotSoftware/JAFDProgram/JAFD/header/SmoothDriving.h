@@ -21,7 +21,7 @@ namespace JAFD
 		};
 
 		class Accelerate;
-		//class rotate;
+		class Rotate;
 		class DriveStraight;
 		class Stop;
 
@@ -45,6 +45,12 @@ namespace JAFD
 
 		ReturnCode setNewTask(const Stop& newTask, RobotState startState, const bool forceOverride = false);
 
+		// Set new Rotate task
+		template<NewStateType stateType>
+		ReturnCode setNewTask(const Rotate& newTask, const bool forceOverride = false);
+
+		ReturnCode setNewTask(const Rotate& newTask, RobotState startState, const bool forceOverride = false);
+
 		class ITask
 		{
 		public:
@@ -66,6 +72,11 @@ namespace JAFD
 			template<NewStateType stateType>
 			friend ReturnCode setNewTask(const Stop& newTask, const bool forceOverride);
 			friend ReturnCode setNewTask(const Stop& newTask, RobotState startState, const bool forceOverride);
+
+			template<NewStateType stateType>
+			friend ReturnCode setNewTask(const Rotate& newTask, const bool forceOverride);
+			friend ReturnCode setNewTask(const Rotate& newTask, RobotState startState, const bool forceOverride);
+
 		protected:
 			volatile bool _finished = false;							// Is the task already finished?
 			volatile RobotState _endState;								// State of robot at the end of task
@@ -106,17 +117,20 @@ namespace JAFD
 			ReturnCode startTask(RobotState startState);
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
-		/*
+
 		class Rotate : public ITask
 		{
 		private:
-			float _angularVelocity;	// Angular velocity for rotation
-			float _angle;			// Angle the robot has to rotate
-		
+			int16_t _maxAngularVel;			// Maximum angular velocity
+			float _angle;					// Angle the robot has to rotate
+			float _startAngle;				// Angle at start
+			float _totalTime;				// Calculated time needed to drive
 		public:
+			Rotate(int16_t maxAngularVel = 0, float angle = 0.0f);
+			ReturnCode startTask(RobotState startState);
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
-		*/
+
 		void updateSpeeds(const uint8_t freq);													// Update speeds for both wheels
 
 		bool isTaskFinished();																	// Is the current task finished?

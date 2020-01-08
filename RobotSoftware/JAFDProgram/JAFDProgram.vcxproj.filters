@@ -47,10 +47,10 @@
     <ClInclude Include="JAFD\header\AllDatatypes.h">
       <Filter>JAFD\Header</Filter>
     </ClInclude>
-    <ClInclude Include="__vm\.JAFDProgram.vsarduino.h" />
     <ClInclude Include="JAFD\header\PIDController.h">
       <Filter>JAFD\Header</Filter>
     </ClInclude>
+    <ClInclude Include="__vm\.JAFDProgram.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="JAFD">
