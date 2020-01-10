@@ -11,7 +11,6 @@ This private file of the library is responsible for the access to the SPI NVSRAM
 #endif
 
 #include <SPI.h>
-#include <stdint.h>
 
 #include "AllDatatypes.h"
 

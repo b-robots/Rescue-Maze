@@ -11,6 +11,8 @@ This part of the Library is responsible for driving the motors.
 #include "../../JAFDSettings.h"
 #include "../header/MotorControl.h"
 #include "../header/DuePinMapping.h"
+#include "../header/PIDController.h"
+#include "../header//Math.h"
 
 namespace JAFD
 {
@@ -32,12 +34,6 @@ namespace JAFD
 
 			constexpr auto _rEncA = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::encA];	// Encoder Pin A right motor
 			constexpr auto _rEncB = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::encB];	// Encoder Pin B right motor
-			
-			constexpr auto _kp = JAFDSettings::MotorControl::kp;	// Kp factor for PID speed controller
-			constexpr auto _ki = JAFDSettings::MotorControl::ki;	// Ki factor for PID speed controller
-			constexpr auto _kd = JAFDSettings::MotorControl::kd;	// Kd factor for PID speed controller
-
-			constexpr auto _maxCorVal = JAFDSettings::MotorControl::maxCorVal;		// Maximum correction value for PID controller
 
 			constexpr auto _cmPSToPerc = JAFDSettings::MotorControl::cmPSToPerc;	// Conversion factor from cm/s to motor PWM duty cycle
 
@@ -47,14 +43,15 @@ namespace JAFD
 			constexpr uint8_t _lADCCh = PinMapping::getADCChannel(_lFb);	// Left motor ADC channel
 			constexpr uint8_t _rADCCh = PinMapping::getADCChannel(_rFb);	// Right motor ADC channel
 
+			PIDController _leftPID(JAFDSettings::Controller::Motor::pidSettings);		// Left speed PID-Controller
+			PIDController _rightPID(JAFDSettings::Controller::Motor::pidSettings);		// Right speed PID-Controller
+
 			volatile int32_t _lEncCnt = 0;		// Encoder count left motor
 			volatile int32_t _rEncCnt = 0;		// Encoder count right motor
 
-			volatile float _lSpeed = 0.0f;		// Speed left motor (cm/s)
-			volatile float _rSpeed = 0.0f;		// Speed right motor (cm/s)
+			volatile FloatWheelSpeeds _speeds = { 0.0f, 0.0f };	// Current motor speeds (cm/s)
 
-			volatile uint8_t _lDesSpeed = 0;	// Desired speed left motor (cm/s)
-			volatile uint8_t _rDesSpeed = 0;	// Desired speed left motor (cm/s)
+			volatile WheelSpeeds _desSpeeds = { 0.0f, 0.0f };	// Desired motor speed (cm/s)
 		}
 
 		ReturnCode motorControlSetup()
@@ -121,12 +118,8 @@ namespace JAFD
 			_lEncA.port->PIO_ISR;
 
 			// Setup interrupts for rotary encoder pins
-			// ISR Priority = 4
 			NVIC_EnableIRQ(static_cast<IRQn_Type>(_lEncA.portID));
 			NVIC_EnableIRQ(static_cast<IRQn_Type>(_rEncA.portID));
-
-			NVIC_SetPriority(static_cast<IRQn_Type>(_lEncA.portID), 4);
-			NVIC_SetPriority(static_cast<IRQn_Type>(_rEncA.portID), 4);
 
 			// Setup PWM - Controller (20kHz)
 			PMC->PMC_PCER1 = PMC_PCER1_PID36;
@@ -177,64 +170,49 @@ namespace JAFD
 		{
 			static int32_t lastLeftCnt = 0;
 			static int32_t lastRightCnt = 0;
+			static FloatWheelSpeeds lastSpeeds;
 
-			_lSpeed = (_lEncCnt - lastLeftCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq;
-			_rSpeed = (_rEncCnt - lastRightCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq;
+
+			// Calculate speeds and apply 
+			_speeds.left = ((_lEncCnt - lastLeftCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq) * 0.95f + lastSpeeds.left * 0.05f;
+			_speeds.right = ((_rEncCnt - lastRightCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq) * 0.95f + lastSpeeds.right * 0.05f;
 
 			lastLeftCnt = _lEncCnt;
 			lastRightCnt = _rEncCnt;
+			lastSpeeds = static_cast<FloatWheelSpeeds>(_speeds);
 		}
 
 		void speedPID(const uint8_t freq)
 		{
-			static float rIntegral = 0.0f;	// Right velocity error integral
-			static float lIntegral = 0.0f;	// Left velocity error integral
+			static FloatWheelSpeeds setSpeed;	// Speed calculated by PID
 
-			static float lTempVal = 0.0f;	// Left temporary value
-			static float rTempVal = 0.0f;	// Right temporary value
+			// When speed isn't 0, do PID controller
+			if (_desSpeeds.left == 0)
+			{
+				_leftPID.reset();
+				setSpeed.left = 0.0f;
+			}
+			else
+			{
+				setSpeed.left = _leftPID.process(_desSpeeds.left, _speeds.left, 1.0f / freq) * _cmPSToPerc;
 
-			static float lError = 0.0f;		// Left speed error
-			static float rError = 0.0f;		// Right speed error
+				if (setSpeed.left < JAFDSettings::MotorControl::minSpeed * _cmPSToPerc && setSpeed.left > -JAFDSettings::MotorControl::minSpeed * _cmPSToPerc) setSpeed.left = JAFDSettings::MotorControl::minSpeed * _cmPSToPerc * sgn(_desSpeeds.left);
+			}
 
-			static float lLastSpeed = 0.0f;	// Last left speed
-			static float rLastSpeed = 0.0f;	// Last right speed
+			if (_desSpeeds.right == 0)
+			{
+				_rightPID.reset();
+				setSpeed.right = 0.0f;
+			}
+			else
+			{
+				setSpeed.right = _rightPID.process(_desSpeeds.right, _speeds.right, 1.0f / freq) * _cmPSToPerc;
 
-			// PID controller
-			lError = (float)_lDesSpeed - _lSpeed;
-			rError = (float)_rDesSpeed - _rSpeed;
+				if (setSpeed.right < JAFDSettings::MotorControl::minSpeed * _cmPSToPerc && setSpeed.right > -JAFDSettings::MotorControl::minSpeed * _cmPSToPerc) setSpeed.right = JAFDSettings::MotorControl::minSpeed * _cmPSToPerc * sgn(_desSpeeds.right);
+			}
 
-			lTempVal = _kp * lError + _ki * lIntegral - _kd * (lLastSpeed - _lSpeed) * (float)freq;
-
-			if (lTempVal > _maxCorVal / _cmPSToPerc) lTempVal = _maxCorVal / _cmPSToPerc;
-			else if (lTempVal < -_maxCorVal / _cmPSToPerc) lTempVal = -_maxCorVal / _cmPSToPerc;
-
-			lTempVal += (float)_lDesSpeed;
-			lTempVal *= _cmPSToPerc;
-
-			if (lTempVal > 1.0f) lTempVal = 1.0f;
-			else if (lTempVal < -1.0f) lTempVal = -1.0f;
-
-			rTempVal = _kp * rError + _ki * rIntegral - _kd * (rLastSpeed - _rSpeed) * (float)freq;
-
-			if (rTempVal > _maxCorVal / _cmPSToPerc) rTempVal = _maxCorVal / _cmPSToPerc;
-			else if (rTempVal < -_maxCorVal / _cmPSToPerc) rTempVal = -_maxCorVal / _cmPSToPerc;
-
-			rTempVal += (float)_rDesSpeed;
-			rTempVal *= _cmPSToPerc;
-
-			if (rTempVal > 1.0f) rTempVal = 1.0f;
-			else if (rTempVal < -1.0f) rTempVal = -1.0f;
-
-
-			lIntegral += lError / (float)(freq);
-			rIntegral += rError / (float)(freq);
-
-			lLastSpeed = _lSpeed;
-			rLastSpeed = _lSpeed;
-
-			
 			// Set left dir pin
-			if (lTempVal > 0.0f)
+			if (setSpeed.left > 0.0f)
 			{
 				_lDir.port->PIO_CODR = _lDir.pin;
 			}
@@ -244,7 +222,7 @@ namespace JAFD
 			}
 
 			// Set right dir pin
-			if (rTempVal > 0.0f)
+			if (setSpeed.right > 0.0f)
 			{
 				_rDir.port->PIO_CODR = _rDir.pin;
 			}
@@ -254,21 +232,19 @@ namespace JAFD
 			}
 
 			// Set PWM Value
-			PWM->PWM_CH_NUM[_lPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[_lPWMCh].PWM_CPRD * abs(lTempVal));
-			PWM->PWM_CH_NUM[_rPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[_rPWMCh].PWM_CPRD * abs(rTempVal));
+			PWM->PWM_CH_NUM[_lPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[_lPWMCh].PWM_CPRD * abs(setSpeed.left));
+			PWM->PWM_CH_NUM[_rPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[_rPWMCh].PWM_CPRD * abs(setSpeed.right));
 			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 		}
 
-		float getSpeed(const Motor motor)
+		WheelSpeeds getSpeeds()
 		{
-			if (motor == Motor::left)
-			{
-				return _lSpeed;
-			}
-			else
-			{
-				return _rSpeed;
-			}
+			return WheelSpeeds{ static_cast<int16_t>(_speeds.left), -static_cast<int16_t>(_speeds.right) };
+		}
+
+		FloatWheelSpeeds getFloatSpeeds()
+		{
+			return FloatWheelSpeeds{ _speeds.left, -_speeds.right };
 		}
 
 		float getDistance(const Motor motor)
@@ -279,7 +255,7 @@ namespace JAFD
 			}
 			else
 			{
-				return _rEncCnt / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI;
+				return _rEncCnt / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * -1;
 			}
 		}
 
@@ -310,16 +286,14 @@ namespace JAFD
 			}
 		}
 
-		void setSpeed(const Motor motor, const uint8_t speed)
+		void setSpeeds(const WheelSpeeds wheelSpeeds)
 		{
-			if (motor == Motor::left)
-			{
-				_lDesSpeed = speed;
-			}
-			else
-			{
-				_rDesSpeed = speed;
-			}
+			_desSpeeds.left = wheelSpeeds.left;
+			_desSpeeds.right = -wheelSpeeds.right;
+
+			if (_desSpeeds.left < JAFDSettings::MotorControl::minSpeed && _desSpeeds.left > -JAFDSettings::MotorControl::minSpeed) _desSpeeds.left = 0;
+
+			if (_desSpeeds.right < JAFDSettings::MotorControl::minSpeed && _desSpeeds.right > -JAFDSettings::MotorControl::minSpeed) _desSpeeds.right = 0;
 		}
 
 		float getCurrent(const Motor motor)
@@ -334,11 +308,11 @@ namespace JAFD
 
 				if (motor == Motor::left)
 				{
-					result += (float)ADC->ADC_CDR[_lADCCh] * 3.3f * 1904.7619f / 4.0f / (float)(1 << 12 - 1);
+					result += ADC->ADC_CDR[_lADCCh] * 3.3f * 1904.7619f / 4.0f / (1 << 12 - 1);
 				}
 				else
 				{
-					result += (float)ADC->ADC_CDR[_rADCCh] * 3.3f * 1904.7619f / 4.0f / (float)(1 << 12 - 1);
+					result += ADC->ADC_CDR[_rADCCh] * 3.3f * 1904.7619f / 4.0f / (1 << 12 - 1);
 				}
 			}
 

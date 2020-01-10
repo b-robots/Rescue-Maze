@@ -27,7 +27,6 @@ namespace JAFD
 		PMC->PMC_PCER0 = 1 << ID_PIOA | 1 << ID_PIOB | 1 << ID_PIOC | 1 << ID_PIOD;
 
 		// Setup TC3 for an interrupt every ms -> 1kHz (MCK / 32 / 2625)
-		// ISR Priority = 5
 		PMC->PMC_PCER0 = 1 << ID_TC3;
 
 		TC1->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK3 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;
@@ -37,12 +36,10 @@ namespace JAFD
 		TC1->TC_CHANNEL[0].TC_IDR = ~TC_IER_CPCS;
 
 		NVIC_EnableIRQ(TC3_IRQn);
-		NVIC_SetPriority(TC3_IRQn, 5);
 
 		TC1->TC_CHANNEL[0].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
 
 		// Setup TC4 for an interrupt every 10ms -> 100Hz (MCK / 32 / 26250)
-		// ISR Priority = 6
 		PMC->PMC_PCER0 = 1 << ID_TC4;
 
 		TC1->TC_CHANNEL[1].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK3 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;
@@ -52,7 +49,6 @@ namespace JAFD
 		TC1->TC_CHANNEL[1].TC_IDR = ~TC_IER_CPCS;
 
 		NVIC_EnableIRQ(TC4_IRQn);
-		NVIC_SetPriority(TC4_IRQn, 6);
 
 		TC1->TC_CHANNEL[1].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
 
