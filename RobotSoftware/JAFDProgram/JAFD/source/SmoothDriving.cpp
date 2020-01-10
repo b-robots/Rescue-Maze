@@ -13,7 +13,6 @@ This part of the Library is responsible for driving smoothly.
 #include "../header/SmoothDriving.h"
 #include "../header/MotorControl.h"
 #include "../header/SensorFusion.h"
-#include "../../JAFDSettings.h"
 #include "../header/Math.h"
 #include "../header/PIDController.h"
 
