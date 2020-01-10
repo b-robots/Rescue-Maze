@@ -11,6 +11,7 @@
 #include "../header/MotorControl.h"
 #include "../header/SensorFusion.h"
 #include "../header/SpiNVSRAM.h"
+#include "../header/DistanceSensors.h"
 #include "../header/AllDatatypes.h"
 
 #include <SPI.h>
@@ -51,6 +52,8 @@ namespace JAFD
 		NVIC_EnableIRQ(TC4_IRQn);
 
 		TC1->TC_CHANNEL[1].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
+
+		// INIT Distance Sensors
 
 		// Setup of MazeMapper
 		if (MazeMapping::mazeMapperSetup() != ReturnCode::ok)
