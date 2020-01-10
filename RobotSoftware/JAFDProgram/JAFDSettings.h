@@ -62,13 +62,13 @@ namespace JAFDSettings
 		{
 			constexpr float lookAheadGain = 0.7f;
 			constexpr float minLookAheadDist = 10.0f;
-			constexpr float maxCurvature = 0.065f;
+			constexpr float maxCurvature = 0.02f;
 		}
 
 		namespace SmoothDriving
 		{
 			constexpr JAFD::PIDSettings forwardVelPidSettings(0.3f, 1.3f, 0.0f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
-			constexpr JAFD::PIDSettings angularVelPidSettings(1.0f, 0.0f, 0.0f, 10.0f, 5.0f, -10.0f, 10.0f);
+			constexpr JAFD::PIDSettings angularVelPidSettings(0.5f, 0.5f, 0.0f, 10.0f, 5.0f, -10.0f, 10.0f);
 		}
 	}
 

@@ -57,15 +57,15 @@ void loop() {
 		}
 		else if (i % 8 == 4)
 		{
-			c = setNewTask<NewStateType::lastEndState>(Accelerate(-100, -100.0f));
+			c = setNewTask<NewStateType::lastEndState>(Rotate(5.0f, 1000.0f));
 		}
 		else if (i % 8 == 5)
 		{
-			c = setNewTask<NewStateType::lastEndState>(DriveStraight(-300.0f));
+			c = setNewTask<NewStateType::lastEndState>(Rotate(-5.0f, -1000.0f));
 		}
 		else if (i % 8 == 6)
 		{
-			c = setNewTask<NewStateType::lastEndState>(Accelerate(-20, -100.0f));
+			c = setNewTask<NewStateType::lastEndState>(Accelerate(-50, -100.0f));
 		}
 		else if (i % 8 == 7)
 		{

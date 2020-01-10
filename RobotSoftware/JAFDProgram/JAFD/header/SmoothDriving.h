@@ -121,18 +121,19 @@ namespace JAFD
 		class Rotate : public ITask
 		{
 		private:
-			int16_t _maxAngularVel;			// Maximum angular velocity
-			float _angle;					// Angle the robot has to rotate
+			float _maxAngularVel;			// Maximum angular velocity
+			float _angle;					// Angle the robot has to rotate in rad
 			float _startAngle;				// Angle at start
 			float _totalTime;				// Calculated time needed to drive
+			bool _accelerate;				// Still accelerating?	
 		public:
-			Rotate(int16_t maxAngularVel = 0, float angle = 0.0f);
+			Rotate(float maxAngularVel = 0, float angle = 0.0f);			// Set angular velocity in rad/s and angle in degree
 			ReturnCode startTask(RobotState startState);
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
 
-		void updateSpeeds(const uint8_t freq);													// Update speeds for both wheels
+		void updateSpeeds(const uint8_t freq);								// Update speeds for both wheels
 
-		bool isTaskFinished();																	// Is the current task finished?
+		bool isTaskFinished();												// Is the current task finished?
 	}
 }
