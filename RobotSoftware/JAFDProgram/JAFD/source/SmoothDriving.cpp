@@ -334,13 +334,13 @@ namespace JAFD
 			if (_accelerate)
 			{
 				// w(t) = w_max * 2 * t / t_ges => a(t) = w_max * t^2 / t_ges => t(a) = sqrt(a * t_ges / w_max); w(a) = w_max * 2 * sqrt(a * t_ges / w_max) / t_ges = sqrt(4 * a * w_max / t_ges)
-				desAngularVel = sqrtf(4.0f * rotatedAngle * _maxAngularVel / _totalTime) * sgn(_maxAngularVel);
+				desAngularVel = sqrtf(4.0f * abs(rotatedAngle * _maxAngularVel) / _totalTime) * sgn(_maxAngularVel);
 
 				if (abs(rotatedAngle) >= abs(_angle) / 2.0f) _accelerate = false;
 			}
 			else
 			{
-				desAngularVel = _maxAngularVel - sqrtf(4.0f * (rotatedAngle - _angle / 2.0f) * _maxAngularVel / _totalTime) * sgn(_maxAngularVel);
+				desAngularVel = _maxAngularVel - sqrtf(4.0f * abs((rotatedAngle - _angle / 2.0f) * _maxAngularVel) / _totalTime) * sgn(_maxAngularVel);
 			}
 
 			Serial.println(desAngularVel);
