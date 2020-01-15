@@ -9,6 +9,7 @@ This part of the Library is responsible for driving smoothly.
 #endif
 
 #include <new>
+#include <algorithm>
 
 #include "../header/SmoothDriving.h"
 #include "../header/MotorControl.h"
@@ -88,7 +89,7 @@ namespace JAFD
 
 			// Calculate driven distance
 			posRelToStart = currentPosition - _startPos;
-			drivenDistance = posRelToStart.length();
+			drivenDistance = std::max(posRelToStart.x * _targetDir.x + posRelToStart.y * _targetDir.y, 0.0f);
 
 			// Check if I am there
 			if (drivenDistance >= abs(_distance))
@@ -128,7 +129,7 @@ namespace JAFD
 
 			if (lookAheadDistance < JAFDSettings::Controller::PurePursuit::minLookAheadDist && lookAheadDistance > -JAFDSettings::Controller::PurePursuit::minLookAheadDist) lookAheadDistance = JAFDSettings::Controller::PurePursuit::minLookAheadDist * sgn(desiredSpeed);
 
-			goalPointGlobal = _startPos + _targetDir * (drivenDistance + lookAheadDistance);
+			goalPointGlobal = _startPos + _targetDir * (posRelToStart.length() * sgn(_distance) + lookAheadDistance);
 
 			// Transform goal point to robot coordinates
 			goalPointRobot.x = (goalPointGlobal.x - currentPosition.x)  * cosf(currentHeading) + (goalPointGlobal.y - currentPosition.y) * sinf(currentHeading);
