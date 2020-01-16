@@ -1,3 +1,7 @@
+/*
+This file is responsible for all distance sensors
+*/
+
 #pragma once
 
 #if defined(ARDUINO) && ARDUINO >= 100
@@ -6,36 +10,65 @@
 #include "WProgram.h"
 #endif
 
+#include <Adafruit_VL6180X.h>
+
 #include "../../JAFDSettings.h"
 #include "AllDatatypes.h"
 
-#include <Adafruit_VL6180X.h>
-
 namespace JAFD
 {
-	class VL6180
-	{
-	public:
-		/*VL6180(uint8_t);*/
-		void updateValues();
-		float getDistance();
-		uint8_t getStatus();
-	private:
-		// Alle Werte als volatile
-		Adafruit_VL6180X _sensor;
-		volatile float _distance;
-		volatile float _surroundLight;
-		volatile uint8_t _status;
-	};
-
-	class Lidar
-	{
-
-	};
-
 	namespace DistanceSensors
 	{
-		extern VL6180 front;
-		extern Lidar left;
+		enum class Status : uint8_t
+		{
+			noError,
+			systemError,
+			eceFailure,
+			noConvergence,
+			ignoringRange,
+			noiseError,
+			underflow,
+			overflow
+		};
+
+		class DistanceSensor
+		{
+		public:
+			virtual ReturnCode setup() = 0;
+			virtual void updateValues() = 0;
+			virtual float getDistance() const = 0;
+			virtual Status getStatus() const = 0;
+		};
+
+		class VL6180 : public DistanceSensor
+		{
+		public:
+			ReturnCode setup();
+			void updateValues();
+			float getDistance() const;
+			Status getStatus() const;
+		private:
+			Adafruit_VL6180X _sensor;
+			volatile float _distance;
+			volatile Status _status;
+		};
+
+		class Lidar : public DistanceSensor
+		{
+		public:
+			ReturnCode setup();
+			void updateValues();
+			float getDistance() const;
+			Status getStatus() const;
+		private:
+			Adafruit_VL6180X _sensor;
+			volatile float _distance;
+			volatile Status _status;
+		};
+
+		extern VL6180 front;	// Front distance sensor
+		extern Lidar left;		// Left distance sensor
+
+		ReturnCode setup();
 	}
 }

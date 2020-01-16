@@ -312,6 +312,7 @@ namespace JAFD
 			static float desAngularVel;			// Desired angular velocity
 			static float correctedAngularVel;	// By PID Controller corrected angular velocity
 			static bool accelerate;				// Still accelerate? 
+			static WheelSpeeds output;			// Output for both wheels
 
 			// Calculate rotated angle
 			rotatedAngle = SensorFusion::getRobotState().rotation.x - _startAngle;

@@ -56,25 +56,31 @@ namespace JAFD
 		// INIT Distance Sensors
 
 		// Setup of MazeMapper
-		if (MazeMapping::mazeMapperSetup() != ReturnCode::ok)
+		if (MazeMapping::setup() != ReturnCode::ok)
 		{
 
 		}
 
 		// Setup of Dispenser
-		if (Dispenser::dispenserSetup() != ReturnCode::ok)
+		if (Dispenser::setup() != ReturnCode::ok)
 		{
 
 		}
 
 		// Setup of Motor Control
-		if (MotorControl::motorControlSetup() != ReturnCode::ok)
+		if (MotorControl::setup() != ReturnCode::ok)
 		{
 
 		}
 
 		// Setup of SPI NVSRAM
-		if (SpiNVSRAM::spiNvsramSetup() != ReturnCode::ok)
+		if (SpiNVSRAM::setup() != ReturnCode::ok)
+		{
+
+		}
+
+		// Setup of Distance Sensors
+		if (DistanceSensors::setup() != ReturnCode::ok)
 		{
 
 		}

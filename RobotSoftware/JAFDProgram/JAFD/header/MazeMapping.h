@@ -106,7 +106,7 @@ namespace JAFD
 		}
 
 		// Setup the MazeMapper
-		ReturnCode mazeMapperSetup();
+		ReturnCode setup();
 		
 		// Set a grid cell in the RAM
 		void setGridCell(const GridCell gridCell, const MapCoordinate coor);

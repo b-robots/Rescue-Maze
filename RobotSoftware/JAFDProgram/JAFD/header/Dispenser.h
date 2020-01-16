@@ -10,7 +10,7 @@ namespace JAFD
 	namespace Dispenser
 	{
 		// Set up the Dispenser System
-		ReturnCode dispenserSetup();
+		ReturnCode setup();
 
 		// Dispence items
 		ReturnCode dispense(uint8_t number); // So könnte es aussehen
