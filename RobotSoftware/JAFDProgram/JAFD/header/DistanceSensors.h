@@ -11,6 +11,7 @@ This file is responsible for all distance sensors
 #endif
 
 #include <Adafruit_VL6180X.h>
+#include <DFRobot_TFmini.h>
 
 #include "../../JAFDSettings.h"
 #include "AllDatatypes.h"
@@ -36,7 +37,9 @@ namespace JAFD
 		public:
 			virtual ReturnCode setup() = 0;
 			virtual void updateValues() = 0;
-			virtual float getDistance() const = 0;
+			virtual uint16_t getDistance() const = 0;
+		protected:
+			volatile uint16_t _distance;
 		};
 
 		class VL6180 : public DistanceSensor
@@ -44,29 +47,31 @@ namespace JAFD
 		public:
 			ReturnCode setup();
 			void updateValues();
-			float getDistance() const;
+			uint16_t getDistance() const;
 			Status getStatus() const;
 		private:
 			Adafruit_VL6180X _sensor;
-			volatile float _distance;
 			volatile Status _status;
 		};
 
-		class Lidar : public DistanceSensor
+		class TFMini : public DistanceSensor
 		{
 		public:
 			ReturnCode setup();
 			void updateValues();
-			float getDistance() const;
-			Status getStatus() const;
+			uint16_t getDistance() const;
 		private:
-			Adafruit_VL6180X _sensor;
-			volatile float _distance;
-			volatile Status _status;
+			DFRobot_TFmini _sensor;
 		};
 
-		extern VL6180 front;	// Front distance sensor
-		extern Lidar left;		// Left distance sensor
+		extern VL6180 frontLeft;	// Front-Left short distance sensor
+		extern VL6180 frontRight;	// Front-Right short distance sensor
+		extern TFMini frontLong;		// Front long distance sensor
+		extern TFMini backLong;		// Back long distance sensor
+		extern VL6180 leftFront;	// Left-Front short distance sensor
+		extern VL6180 leftBack;		// Left-Back short distance sensor
+		extern VL6180 rightFront;	// Right-Front short distance sensor
+		extern VL6180 rightBack;	// Right-Front short distance sensor
 
 		ReturnCode setup();
 	}
