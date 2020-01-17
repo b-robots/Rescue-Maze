@@ -39,12 +39,12 @@ void setup()
 // The loop function runs over and over again until power down or reset
 void loop()
 {
-	front.updateValues();
-	left.updateValues();
+	frontLeft.updateValues();
+	frontLong.updateValues();
 
-	Serial.print(front.getStatus() == Status::noError ? front.getDistance() : -1.0f);
+	Serial.print(frontLeft.getStatus() == Status::noError ? frontLeft.getDistance() : -1.0f);
 	Serial.print(", ");
-	Serial.println(left.getStatus() == Status::noError ? left.getDistance() : -1.0f);
+	Serial.println(frontLong.getDistance());
 
 	JAFD::robotLoop();
 

@@ -49,7 +49,7 @@ namespace JAFD
 			}
 		}
 
-		float VL6180::getDistance() const
+		uint16_t VL6180::getDistance() const
 		{
 			return _distance;
 		}
@@ -63,70 +63,74 @@ namespace JAFD
 
 		// Lidar class - begin
 
-		ReturnCode Lidar::setup()
+		ReturnCode TFMini::setup()
 		{
-			if (_sensor.begin()) return ReturnCode::ok;
-			else return ReturnCode::fatalError;
+			_sensor.begin(Serial1);
+			return ReturnCode::ok;
 		}
 
-		void Lidar::updateValues()
+		void TFMini::updateValues()
 		{
-			_distance = _sensor.readRange();
+			_distance = _sensor.getDistance();
 
-			auto status = _sensor.readRangeStatus();
-
-			if ((status >= VL6180X_ERROR_SYSERR_1) && (status <= VL6180X_ERROR_SYSERR_5)) {
-				_status = Status::systemError;
-			}
-			else if (status == VL6180X_ERROR_ECEFAIL) {
-				_status = Status::eceFailure;
-			}
-			else if (status == VL6180X_ERROR_NOCONVERGE) {
-				_status = Status::noConvergence;
-			}
-			else if (status == VL6180X_ERROR_RANGEIGNORE) {
-				_status = Status::ignoringRange;
-			}
-			else if (status == VL6180X_ERROR_SNR) {
-				_status = Status::noiseError;
-			}
-			else if (status == VL6180X_ERROR_RAWUFLOW || status == VL6180X_ERROR_RANGEUFLOW) {
-				_status = Status::underflow;
-			}
-			else if (status == VL6180X_ERROR_RAWOFLOW || status == VL6180X_ERROR_RANGEOFLOW) {
-				_status = Status::overflow;
-			}
-			else
-			{
-				_status = Status::noError;
-			}
 		}
 
-		float Lidar::getDistance() const
+		uint16_t TFMini::getDistance() const
 		{
 			return _distance;
 		}
 
-		Status Lidar::getStatus() const
-		{
-			return _status;
-		}
-
 		// Lidar class - end
 
-		VL6180 front = VL6180();
-		Lidar left = Lidar();
+		VL6180 frontLeft;
+		VL6180 frontRight;
+		TFMini frontLong;
+		TFMini backLong;
+		VL6180 leftFront;
+		VL6180 leftBack;
+		VL6180 rightFront;
+		VL6180 rightBack;
 
 		ReturnCode setup()
 		{
 			ReturnCode code = ReturnCode::ok;
 			
-			if (front.setup() != ReturnCode::ok)
+			if (frontLeft.setup() != ReturnCode::ok)
 			{
 				code = ReturnCode::fatalError;
 			}
 
-			if (left.setup() != ReturnCode::ok)
+			if (frontRight.setup() != ReturnCode::ok)
+			{
+				code = ReturnCode::fatalError;
+			}
+
+			if (frontLong.setup() != ReturnCode::ok)
+			{
+				code = ReturnCode::fatalError;
+			}
+
+			if (backLong.setup() != ReturnCode::ok)
+			{
+				code = ReturnCode::fatalError;
+			}
+
+			if (leftFront.setup() != ReturnCode::ok)
+			{
+				code = ReturnCode::fatalError;
+			}
+
+			if (leftBack.setup() != ReturnCode::ok)
+			{
+				code = ReturnCode::fatalError;
+			}
+
+			if (rightFront.setup() != ReturnCode::ok)
+			{
+				code = ReturnCode::fatalError;
+			}
+
+			if (rightBack.setup() != ReturnCode::ok)
 			{
 				code = ReturnCode::fatalError;
 			}
