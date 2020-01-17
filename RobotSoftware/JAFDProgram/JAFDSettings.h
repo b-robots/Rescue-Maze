@@ -28,9 +28,11 @@ namespace JAFDSettings
 
 	namespace MotorControl
 	{
-		constexpr float cmPSToPerc = 0.0075f;	// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed. It is ideal for about 100cm/s)
+		constexpr float cmPSToPerc = 0.0075f;			// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed. It is ideal for about 100cm/s)
 
-		constexpr int16_t minSpeed = 15;		// Minimum speed for motor to rotate
+		constexpr int16_t minSpeed = 15;				// Minimum speed for motor to rotate
+
+		constexpr float pulsePerRev = 11.0f * 34.0f;	// Rotary-Encoder pulses per revolution
 
 		namespace Left
 		{
