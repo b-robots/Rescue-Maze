@@ -194,9 +194,11 @@ namespace JAFD
 			}
 			else
 			{
-				setSpeed.left = _leftPID.process(_desSpeeds.left, _speeds.left, 1.0f / freq) * _cmPSToPerc;
+				setSpeed.left = _leftPID.process(_desSpeeds.left, _speeds.left, 1.0f / freq);
 
-				if (setSpeed.left < JAFDSettings::MotorControl::minSpeed * _cmPSToPerc && setSpeed.left > -JAFDSettings::MotorControl::minSpeed * _cmPSToPerc) setSpeed.left = JAFDSettings::MotorControl::minSpeed * _cmPSToPerc * sgn(_desSpeeds.left);
+				if (setSpeed.left < JAFDSettings::MotorControl::minSpeed && setSpeed.left > -JAFDSettings::MotorControl::minSpeed) setSpeed.left = JAFDSettings::MotorControl::minSpeed * sgn(_desSpeeds.left);
+				
+				setSpeed.left *= _cmPSToPerc;
 			}
 
 			if (_desSpeeds.right == 0)
@@ -206,9 +208,11 @@ namespace JAFD
 			}
 			else
 			{
-				setSpeed.right = _rightPID.process(_desSpeeds.right, _speeds.right, 1.0f / freq) * _cmPSToPerc;
+				setSpeed.right = _rightPID.process(_desSpeeds.right, _speeds.right, 1.0f / freq);
 
-				if (setSpeed.right < JAFDSettings::MotorControl::minSpeed * _cmPSToPerc && setSpeed.right > -JAFDSettings::MotorControl::minSpeed * _cmPSToPerc) setSpeed.right = JAFDSettings::MotorControl::minSpeed * _cmPSToPerc * sgn(_desSpeeds.right);
+				if (setSpeed.right < JAFDSettings::MotorControl::minSpeed && setSpeed.right > -JAFDSettings::MotorControl::minSpeed) setSpeed.right = JAFDSettings::MotorControl::minSpeed * sgn(_desSpeeds.right);
+			
+				setSpeed.right *= _cmPSToPerc;
 			}
 
 			// Set left dir pin
