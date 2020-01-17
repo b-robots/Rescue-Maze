@@ -37,7 +37,6 @@ namespace JAFD
 			virtual ReturnCode setup() = 0;
 			virtual void updateValues() = 0;
 			virtual float getDistance() const = 0;
-			virtual Status getStatus() const = 0;
 		};
 
 		class VL6180 : public DistanceSensor
