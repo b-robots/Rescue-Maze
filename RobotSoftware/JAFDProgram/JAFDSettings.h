@@ -83,4 +83,12 @@ namespace JAFDSettings
 	{
 
 	}
+
+	namespace DistanceSensors
+	{
+		namespace Front
+		{
+			constexpr uint8_t i2cAddress = 0x27;
+		}
+	}
 }

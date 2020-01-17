@@ -9,7 +9,7 @@ namespace JAFD
 	namespace Dispenser
 	{
 		// Set up the Dispenser System
-		ReturnCode dispenserSetup()
+		ReturnCode setup()
 		{
 			// Do something...
 

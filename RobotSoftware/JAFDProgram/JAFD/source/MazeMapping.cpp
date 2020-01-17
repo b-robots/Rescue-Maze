@@ -13,7 +13,7 @@ namespace JAFD
 	namespace MazeMapping
 	{
 		// Setup the MazeMapper
-		ReturnCode mazeMapperSetup()
+		ReturnCode setup()
 		{
 			return ReturnCode::ok;
 		}

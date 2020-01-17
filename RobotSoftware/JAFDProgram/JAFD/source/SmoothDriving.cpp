@@ -41,6 +41,18 @@ namespace JAFD
 			PIDController _angularVelPID(JAFDSettings::Controller::SmoothDriving::angularVelPidSettings);	// PID controller for angular velocity
 		}
 
+		ITask::ITask() : _finished(false), _endState() {}
+
+		bool ITask::isFinished()
+		{
+			return _finished;
+		}
+
+		RobotState ITask::getEndState()
+		{
+			return _endState;
+		}
+
 		// Accelerate class - begin 
 
 		Accelerate::Accelerate(int16_t endSpeeds, float distance) : ITask(), _endSpeeds(endSpeeds), _distance(distance), _targetDir(1.0f, 0.0f){}
@@ -382,9 +394,9 @@ namespace JAFD
 
 			__disable_irq();
 
-			if (_currentTask->_finished || forceOverride)
+			if (_currentTask->isFinished() || forceOverride)
 			{
-				endState = static_cast<RobotState>(_currentTask->_endState);
+				endState = static_cast<RobotState>(_currentTask->getEndState());
 
 				temp = newTask;
 				returnCode = temp.startTask(endState);
@@ -410,7 +422,7 @@ namespace JAFD
 
 			__disable_irq();
 
-			if (_currentTask->_finished || forceOverride)
+			if (_currentTask->isFinished() || forceOverride)
 			{
 				temp = newTask;
 				returnCode = temp.startTask(SensorFusion::getRobotState());
@@ -435,7 +447,7 @@ namespace JAFD
 
 			__disable_irq();
 
-			if (_currentTask->_finished || forceOverride)
+			if (_currentTask->isFinished() || forceOverride)
 			{
 				temp = newTask;
 				returnCode = temp.startTask(startState);
@@ -462,9 +474,9 @@ namespace JAFD
 
 			__disable_irq();
 
-			if (_currentTask->_finished || forceOverride)
+			if (_currentTask->isFinished() || forceOverride)
 			{
-				endState = static_cast<RobotState>(_currentTask->_endState);
+				endState = static_cast<RobotState>(_currentTask->getEndState());
 
 				temp = newTask;
 				returnCode = temp.startTask(endState);
@@ -490,7 +502,7 @@ namespace JAFD
 
 			__disable_irq();
 
-			if (_currentTask->_finished || forceOverride)
+			if (_currentTask->isFinished() || forceOverride)
 			{
 				temp = newTask;
 				returnCode = temp.startTask(SensorFusion::getRobotState());
@@ -515,7 +527,7 @@ namespace JAFD
 
 			__disable_irq();
 
-			if (_currentTask->_finished || forceOverride)
+			if (_currentTask->isFinished() || forceOverride)
 			{
 				temp = newTask;
 				returnCode = temp.startTask(startState);
@@ -542,9 +554,9 @@ namespace JAFD
 
 			__disable_irq();
 
-			if (_currentTask->_finished || forceOverride)
+			if (_currentTask->isFinished() || forceOverride)
 			{
-				endState = static_cast<RobotState>(_currentTask->_endState);
+				endState = static_cast<RobotState>(_currentTask->getEndState());
 
 				temp = newTask;
 				returnCode = temp.startTask(endState);
@@ -570,7 +582,7 @@ namespace JAFD
 
 			__disable_irq();
 
-			if (_currentTask->_finished || forceOverride)
+			if (_currentTask->isFinished() || forceOverride)
 			{
 				temp = newTask;
 				returnCode = temp.startTask(SensorFusion::getRobotState());
@@ -595,7 +607,7 @@ namespace JAFD
 
 			__disable_irq();
 
-			if (_currentTask->_finished || forceOverride)
+			if (_currentTask->isFinished() || forceOverride)
 			{
 				temp = newTask;
 				returnCode = temp.startTask(startState);
@@ -622,9 +634,9 @@ namespace JAFD
 
 			__disable_irq();
 
-			if (_currentTask->_finished || forceOverride)
+			if (_currentTask->isFinished() || forceOverride)
 			{
-				endState = static_cast<RobotState>(_currentTask->_endState);
+				endState = static_cast<RobotState>(_currentTask->getEndState());
 
 				temp = newTask;
 				returnCode = temp.startTask(endState);
@@ -650,7 +662,7 @@ namespace JAFD
 
 			__disable_irq();
 
-			if (_currentTask->_finished || forceOverride)
+			if (_currentTask->isFinished() || forceOverride)
 			{
 				temp = newTask;
 				returnCode = temp.startTask(SensorFusion::getRobotState());
@@ -675,7 +687,7 @@ namespace JAFD
 
 			__disable_irq();
 
-			if (_currentTask->_finished || forceOverride)
+			if (_currentTask->isFinished() || forceOverride)
 			{
 				temp = newTask;
 				returnCode = temp.startTask(startState);
@@ -693,7 +705,7 @@ namespace JAFD
 		// Is the current task finished?
 		bool isTaskFinished()
 		{
-			return _currentTask->_finished;
+			return _currentTask->isFinished();
 		}
 	}
 }

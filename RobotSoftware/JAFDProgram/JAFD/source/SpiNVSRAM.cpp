@@ -25,7 +25,7 @@ namespace JAFD
 			constexpr auto _ssPin = PinMapping::MappedPins[JAFDSettings::SpiEeprom::ssPin];		// Slave-Select Pin
 		}
 
-		ReturnCode spiNvsramSetup()
+		ReturnCode setup()
 		{
 			_ssPin.port->PIO_PER = _ssPin.pin;
 			_ssPin.port->PIO_OER = _ssPin.pin;

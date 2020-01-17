@@ -54,7 +54,7 @@ namespace JAFD
 			volatile WheelSpeeds _desSpeeds = { 0.0f, 0.0f };	// Desired motor speed (cm/s)
 		}
 
-		ReturnCode motorControlSetup()
+		ReturnCode setup()
 		{
 			// Check if PWM Pins and ADC Pins are correct
 			if (!PinMapping::hasPWM(_lPWM) || !PinMapping::hasPWM(_rPWM) || !PinMapping::hasADC(_lFb) || !PinMapping::hasADC(_rFb))
