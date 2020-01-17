@@ -80,6 +80,8 @@ namespace JAFD
 
 		}
 
+		JAFD::Bno055::init();
+
 		return;
 	}
 

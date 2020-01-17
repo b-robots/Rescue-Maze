@@ -88,7 +88,7 @@ namespace JAFD
 
 		inline float length()
 		{
-			return sqrtf(x * x + y * y);
+			return 0;
 		}
 
 		inline Vec2f normalized()
@@ -176,7 +176,7 @@ namespace JAFD
 
 		inline float length() const
 		{
-			return sqrtf(x * x + y * y + z * z);
+			return 0;
 		}
 
 		inline Vec3f normalized()
