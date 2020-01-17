@@ -11,7 +11,7 @@ This file is responsible for all distance sensors
 #endif
 
 #include <Adafruit_VL6180X.h>
-#include <DFRobot_TFmini.h>
+//#include <DFRobot_TFmini.h>
 
 #include "../../JAFDSettings.h"
 #include "AllDatatypes.h"
@@ -54,20 +54,20 @@ namespace JAFD
 			volatile Status _status;
 		};
 
-		class TFMini : public DistanceSensor
-		{
-		public:
-			ReturnCode setup();
-			void updateValues();
-			uint16_t getDistance() const;
-		private:
-			DFRobot_TFmini _sensor;
-		};
+		//class TFMini : public DistanceSensor
+		//{
+		//public:
+		//	ReturnCode setup();
+		//	void updateValues();
+		//	uint16_t getDistance() const;
+		//private:
+		//	DFRobot_TFmini _sensor;
+		//};
 
 		extern VL6180 frontLeft;	// Front-Left short distance sensor
 		extern VL6180 frontRight;	// Front-Right short distance sensor
-		extern TFMini frontLong;		// Front long distance sensor
-		extern TFMini backLong;		// Back long distance sensor
+		//extern TFMini frontLong;		// Front long distance sensor
+		//extern TFMini backLong;		// Back long distance sensor
 		extern VL6180 leftFront;	// Left-Front short distance sensor
 		extern VL6180 leftBack;		// Left-Back short distance sensor
 		extern VL6180 rightFront;	// Right-Front short distance sensor

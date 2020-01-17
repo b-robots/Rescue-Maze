@@ -61,31 +61,31 @@ namespace JAFD
 
 		// VL6180 class - end
 
-		// Lidar class - begin
+		//// TFMini class - begin
 
-		ReturnCode TFMini::setup()
-		{
-			_sensor.begin(Serial1);
-			return ReturnCode::ok;
-		}
+		//ReturnCode TFMini::setup()
+		//{
+		//	_sensor.begin(Serial1);
+		//	return ReturnCode::ok;
+		//}
 
-		void TFMini::updateValues()
-		{
-			_distance = _sensor.getDistance();
+		//void TFMini::updateValues()
+		//{
+		//	_distance = _sensor.getDistance();
 
-		}
+		//}
 
-		uint16_t TFMini::getDistance() const
-		{
-			return _distance;
-		}
+		//uint16_t TFMini::getDistance() const
+		//{
+		//	return _distance;
+		//}
 
-		// Lidar class - end
+		//// TFMini class - end
 
 		VL6180 frontLeft;
 		VL6180 frontRight;
-		TFMini frontLong;
-		TFMini backLong;
+		//TFMini frontLong;
+		//TFMini backLong;
 		VL6180 leftFront;
 		VL6180 leftBack;
 		VL6180 rightFront;
@@ -105,15 +105,15 @@ namespace JAFD
 				code = ReturnCode::fatalError;
 			}
 
-			if (frontLong.setup() != ReturnCode::ok)
-			{
-				code = ReturnCode::fatalError;
-			}
+			//if (frontLong.setup() != ReturnCode::ok)
+			//{
+			//	code = ReturnCode::fatalError;
+			//}
 
-			if (backLong.setup() != ReturnCode::ok)
-			{
-				code = ReturnCode::fatalError;
-			}
+			//if (backLong.setup() != ReturnCode::ok)
+			//{
+			//	code = ReturnCode::fatalError;
+			//}
 
 			if (leftFront.setup() != ReturnCode::ok)
 			{

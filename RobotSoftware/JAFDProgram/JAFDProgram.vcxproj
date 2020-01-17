@@ -122,6 +122,7 @@
     <ClInclude Include="JAFD\header\AllDatatypes.h" />
     <ClInclude Include="JAFD\header\Bno055.h" />
     <ClInclude Include="JAFD\header\Dispenser.h" />
+    <ClInclude Include="JAFD\header\DistanceSensors.h" />
     <ClInclude Include="JAFD\header\DuePinMapping.h" />
     <ClInclude Include="JAFD\header\Interrupts.h" />
     <ClInclude Include="JAFD\header\Math.h" />
@@ -139,6 +140,7 @@
   <ItemGroup>
     <ClCompile Include="JAFD\source\Bno055.cpp" />
     <ClCompile Include="JAFD\source\Dispenser.cpp" />
+    <ClCompile Include="JAFD\source\DistanceSensors.cpp" />
     <ClCompile Include="JAFD\source\Interrupts.cpp" />
     <ClCompile Include="JAFD\source\JAFD.cpp" />
     <ClCompile Include="JAFD\source\MazeMapping.cpp" />

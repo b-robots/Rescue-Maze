@@ -40,11 +40,8 @@ void setup()
 void loop()
 {
 	frontLeft.updateValues();
-	frontLong.updateValues();
 
-	Serial.print(frontLeft.getStatus() == Status::noError ? frontLeft.getDistance() : -1.0f);
-	Serial.print(", ");
-	Serial.println(frontLong.getDistance());
+	Serial.println(frontLeft.getStatus() == Status::noError ? frontLeft.getDistance() : -1.0f);
 
 	JAFD::robotLoop();
 
