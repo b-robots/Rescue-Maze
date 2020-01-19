@@ -61,31 +61,58 @@ namespace JAFD
 
 		// VL6180 class - end
 
-		//// TFMini class - begin
+		// MyTFMini class - begin
 
-		//ReturnCode TFMini::setup()
-		//{
-		//	_sensor.begin(Serial1);
-		//	return ReturnCode::ok;
-		//}
+		MyTFMini::MyTFMini(SerialType serialType) : _serialType(serialType) {}
 
-		//void TFMini::updateValues()
-		//{
-		//	_distance = _sensor.getDistance();
+		ReturnCode MyTFMini::setup()
+		{
+			switch (_serialType)
+			{
+			case JAFD::SerialType::software:
+				return ReturnCode::error;
+				break;
 
-		//}
+			case JAFD::SerialType::zero:
+				_sensor.begin(&Serial);
+				break;
 
-		//uint16_t TFMini::getDistance() const
-		//{
-		//	return _distance;
-		//}
+			case JAFD::SerialType::one:
+				_sensor.begin(&Serial1);
+				break;
 
-		//// TFMini class - end
+			case JAFD::SerialType::two:
+				_sensor.begin(&Serial2);
+				break;
+
+			case JAFD::SerialType::three:
+				_sensor.begin(&Serial3);
+				break;
+
+			default:
+				return ReturnCode::error;
+			}
+			
+			return ReturnCode::ok;
+		}
+
+		void MyTFMini::updateValues()
+		{
+			_distance = _sensor.getDistance();
+
+		}
+
+		uint16_t MyTFMini::getDistance() const
+		{
+			return _distance;
+		}
+
+		// TFMini class - end
 
 		VL6180 frontLeft;
 		VL6180 frontRight;
-		//TFMini frontLong;
-		//TFMini backLong;
+		MyTFMini frontLong(JAFDSettings::DistanceSensors::FrontLong::serialType);
+		MyTFMini backLong(JAFDSettings::DistanceSensors::BackLong::serialType);
 		VL6180 leftFront;
 		VL6180 leftBack;
 		VL6180 rightFront;

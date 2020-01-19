@@ -86,9 +86,14 @@ namespace JAFDSettings
 
 	namespace DistanceSensors
 	{
-		namespace Front
+		namespace FrontLong
 		{
-			constexpr uint8_t i2cAddress = 0x27;
+			constexpr JAFD::SerialType serialType = JAFD::SerialType::one;
+		}
+
+		namespace BackLong
+		{
+			constexpr JAFD::SerialType serialType = JAFD::SerialType::two;
 		}
 	}
 }
