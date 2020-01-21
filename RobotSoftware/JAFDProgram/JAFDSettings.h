@@ -88,12 +88,12 @@ namespace JAFDSettings
 	{
 		namespace FrontLong
 		{
-			constexpr JAFD::SerialType serialType = JAFD::SerialType::one;
+			constexpr JAFD::SerialType serialType = JAFD::SerialType::three;
 		}
 
 		namespace BackLong
 		{
-			constexpr JAFD::SerialType serialType = JAFD::SerialType::two;
+			constexpr JAFD::SerialType serialType = JAFD::SerialType::one;
 		}
 	}
 }

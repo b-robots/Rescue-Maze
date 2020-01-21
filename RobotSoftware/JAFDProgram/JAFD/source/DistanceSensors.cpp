@@ -74,18 +74,22 @@ namespace JAFD
 				break;
 
 			case JAFD::SerialType::zero:
+				Serial.begin(TFMINI_BAUDRATE);
 				_sensor.begin(&Serial);
 				break;
 
 			case JAFD::SerialType::one:
+				Serial1.begin(TFMINI_BAUDRATE);
 				_sensor.begin(&Serial1);
 				break;
 
 			case JAFD::SerialType::two:
+				Serial2.begin(TFMINI_BAUDRATE);
 				_sensor.begin(&Serial2);
 				break;
 
 			case JAFD::SerialType::three:
+				Serial3.begin(TFMINI_BAUDRATE);
 				_sensor.begin(&Serial3);
 				break;
 
@@ -99,12 +103,26 @@ namespace JAFD
 		void MyTFMini::updateValues()
 		{
 			_distance = _sensor.getDistance();
-
+			
+			if (_sensor.getState() != MEASUREMENT_OK)
+			{
+				_status = Status::unknownError;
+				Serial.println("Fehler");
+			}
+			else
+			{
+				_status = Status::noError;
+			}
 		}
 
 		uint16_t MyTFMini::getDistance() const
 		{
 			return _distance;
+		}
+
+		Status MyTFMini::getStatus() const
+		{
+			return _status;
 		}
 
 		// TFMini class - end
@@ -127,40 +145,40 @@ namespace JAFD
 				code = ReturnCode::fatalError;
 			}
 
-			if (frontRight.setup() != ReturnCode::ok)
-			{
-				code = ReturnCode::fatalError;
-			}
-
-			//if (frontLong.setup() != ReturnCode::ok)
+			//if (frontRight.setup() != ReturnCode::ok)
 			//{
 			//	code = ReturnCode::fatalError;
 			//}
+
+			if (frontLong.setup() != ReturnCode::ok)
+			{
+				code = ReturnCode::fatalError;
+			}
 
 			//if (backLong.setup() != ReturnCode::ok)
 			//{
 			//	code = ReturnCode::fatalError;
 			//}
 
-			if (leftFront.setup() != ReturnCode::ok)
-			{
-				code = ReturnCode::fatalError;
-			}
+			//if (leftFront.setup() != ReturnCode::ok)
+			//{
+			//	code = ReturnCode::fatalError;
+			//}
 
-			if (leftBack.setup() != ReturnCode::ok)
-			{
-				code = ReturnCode::fatalError;
-			}
+			//if (leftBack.setup() != ReturnCode::ok)
+			//{
+			//	code = ReturnCode::fatalError;
+			//}
 
-			if (rightFront.setup() != ReturnCode::ok)
-			{
-				code = ReturnCode::fatalError;
-			}
+			//if (rightFront.setup() != ReturnCode::ok)
+			//{
+			//	code = ReturnCode::fatalError;
+			//}
 
-			if (rightBack.setup() != ReturnCode::ok)
-			{
-				code = ReturnCode::fatalError;
-			}
+			//if (rightBack.setup() != ReturnCode::ok)
+			//{
+			//	code = ReturnCode::fatalError;
+			//}
 
 			return code;
 		}

@@ -29,7 +29,8 @@ namespace JAFD
 			ignoringRange,
 			noiseError,
 			underflow,
-			overflow
+			overflow,
+			unknownError
 		};
 
 		class DistanceSensor
@@ -38,8 +39,10 @@ namespace JAFD
 			virtual ReturnCode setup() = 0;
 			virtual void updateValues() = 0;
 			virtual uint16_t getDistance() const = 0;
+			virtual Status getStatus() const = 0;
 		protected:
 			volatile uint16_t _distance;
+			volatile Status _status;
 		};
 
 		class VL6180 : public DistanceSensor
@@ -51,7 +54,6 @@ namespace JAFD
 			Status getStatus() const;
 		private:
 			Adafruit_VL6180X _sensor;
-			volatile Status _status;
 		};
 
 		class MyTFMini : public DistanceSensor
@@ -60,6 +62,7 @@ namespace JAFD
 			ReturnCode setup();
 			void updateValues();
 			uint16_t getDistance() const;
+			Status getStatus() const;
 			MyTFMini(SerialType serialType);
 		private:
 			SerialType _serialType;
