@@ -129,6 +129,7 @@
     <ClInclude Include="JAFD\header\MazeMapping.h" />
     <ClInclude Include="JAFD\header\MotorControl.h" />
     <ClInclude Include="JAFD\header\PIDController.h" />
+    <ClInclude Include="JAFD\header\RobotLogic.h" />
     <ClInclude Include="JAFD\header\SensorFusion.h" />
     <ClInclude Include="JAFD\header\SmoothDriving.h" />
     <ClInclude Include="JAFD\header\SpiNVSRAM.h" />
@@ -146,6 +147,7 @@
     <ClCompile Include="JAFD\source\MazeMapping.cpp" />
     <ClCompile Include="JAFD\source\MotorControl.cpp" />
     <ClCompile Include="JAFD\source\PIDController.cpp" />
+    <ClCompile Include="JAFD\source\RobotLogic.cpp" />
     <ClCompile Include="JAFD\source\SensorFusion.cpp" />
     <ClCompile Include="JAFD\source\SmoothDriving.cpp" />
     <ClCompile Include="JAFD\source\SpiNVSRAM.cpp" />

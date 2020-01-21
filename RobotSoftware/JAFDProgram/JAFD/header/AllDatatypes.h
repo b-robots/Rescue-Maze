@@ -78,16 +78,6 @@ namespace JAFD
 
 	inline WheelSpeeds::WheelSpeeds(const volatile FloatWheelSpeeds speeds) : left(static_cast<int16_t>(speeds.left)), right(static_cast<int16_t>(speeds.right)) {}
 
-	// Direction flags
-	namespace Direction
-	{
-		constexpr uint8_t north = 1 << 0;
-		constexpr uint8_t east = 1 << 1;
-		constexpr uint8_t south = 1 << 2;
-		constexpr uint8_t west = 1 << 3;
-		constexpr uint8_t nowhere = 0;
-	}
-
 	// Which motor?
 	enum class Motor : uint8_t
 	{
@@ -104,6 +94,17 @@ namespace JAFD
 		ok
 	};
 
+	// Coordinate on the map
+	struct MapCoordinate
+	{
+		int8_t x;
+		int8_t y;
+		uint8_t floor;
+	};
+
+	// Home Position
+	constexpr MapCoordinate homePosition = { 0, 0, 0 };
+
 	// State of robot
 	struct RobotState
 	{
@@ -113,7 +114,9 @@ namespace JAFD
 
 		Vec3f angularVel;				// Angular velocity as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad/s)
 		Vec3f rotation;					// Current Rotation as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad)
-	
+		
+		MapCoordinate mapCoordinate;	// Position on the map; (0, 0, 0) == start
+
 		RobotState(FloatWheelSpeeds wheelSpeeds = FloatWheelSpeeds(), float forwardVel = 0.0f, Vec3f position = Vec3f(), Vec3f angularVel = Vec3f(), Vec3f rotation = Vec3f()) : wheelSpeeds(wheelSpeeds), forwardVel(forwardVel), position(position), angularVel(angularVel), rotation(rotation) {}
 		RobotState(const volatile RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), rotation(state.rotation) {}
 		RobotState(const RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), rotation(state.rotation) {}
@@ -139,5 +142,65 @@ namespace JAFD
 
 			return *this;
 		}
+	};
+
+	// Possible states of a cell
+	namespace CellState
+	{
+		constexpr uint8_t visited = 1 << 0;
+		constexpr uint8_t victim = 1 << 1;
+		constexpr uint8_t checkpoint = 1 << 2;
+		constexpr uint8_t blackTile = 1 << 3;
+		constexpr uint8_t ramp = 1 << 4;
+		constexpr uint8_t none = 0;
+	}
+
+	// Cell Connections
+	namespace CellConnections
+	{
+		constexpr uint8_t directionMask = 0xf;
+		constexpr uint8_t rampMask = 0x10;
+	}
+
+	// Direction flags
+	namespace Direction
+	{
+		constexpr uint8_t north = 1 << 0;
+		constexpr uint8_t east = 1 << 1;
+		constexpr uint8_t south = 1 << 2;
+		constexpr uint8_t west = 1 << 3;
+		constexpr uint8_t nowhere = 0;
+	}
+
+	// Ramp Direction
+	namespace RampDirection
+	{
+		constexpr uint8_t north = 0b00 << 4;
+		constexpr uint8_t east = 0b01 << 4;
+		constexpr uint8_t south = 0b11 << 4;
+		constexpr uint8_t west = 0b11 << 4;
+	}
+
+	// Informations for one cell
+	struct GridCell
+	{
+		// Information about the entrances of the cell
+		// From right to left:
+		// 1.Bit: Entrance North
+		// 2.Bit: Entrance East
+		// 3.Bit: Entrance South
+		// 4.Bit: Entrance West
+		// 5. & 6.Bit: 00 = Ramp North; 01 = Ramp East; 10 = Ramp South; 11 = Ramp West
+		// 7. & 8.Bit: Unused
+		uint8_t cellConnections;
+
+		// Information about Speed Bumps, Victims, Checkpoints...
+		// From right to left:
+		// 1.Bit: Is this Cell already visited?
+		// 2.Bit: Victim already detected?
+		// 3.Bit: Checkpoint?
+		// 4.Bit: Black Tile?
+		// 5.Bit: Ramp?
+		uint8_t cellState;
 	};
 }

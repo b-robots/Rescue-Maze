@@ -1,5 +1,5 @@
 /*
-This private file of the library is responsible for the access to the SPI NVSRAM
+This file of the library is responsible for the sensor fusion
 */
 
 #pragma once
@@ -16,7 +16,8 @@ namespace JAFD
 {
 	namespace SensorFusion
 	{
-		void updateSensorValues(const uint8_t freq);	// Update sensor values
-		RobotState getRobotState();						// Get current robot state
+		void filter(const uint8_t freq);	// Apply filter and calculate robot state
+		void updateSensorValues();			// Update sensor values
+		RobotState getRobotState();			// Get current robot state
 	}
 }
