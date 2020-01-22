@@ -21,10 +21,6 @@ namespace JAFD
 			constexpr uint8_t west = 0b11 << 1;
 		}
 
-		// Comparison operators for MapCoordinate
-		inline bool operator==(const MapCoordinate& lhs, const MapCoordinate& rhs) { return (lhs.floor == rhs.floor && lhs.x == rhs.x && lhs.y == rhs.y); }
-		inline bool operator!=(const MapCoordinate& lhs, const MapCoordinate& rhs) { return !(lhs == rhs); }
-
 		// Usable size for the maze mapping
 		constexpr uint32_t usableSize = 64 * 1024;
 
@@ -56,5 +52,8 @@ namespace JAFD
 		void getGridCell(GridCell* gridCell, const MapCoordinate coor);
 		void getGridCell(uint8_t* bfsValue, const MapCoordinate coor);
 		void getGridCell(GridCell* gridCell, uint8_t* bfsValue, const MapCoordinate coor);
+		
+		// Update current GridCell; Return-Value tells you how certain the algorithm is about the result
+		float updateCurrentCell();
 	}
 }

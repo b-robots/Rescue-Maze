@@ -90,7 +90,7 @@ namespace JAFD
 
 	void robotLoop()
 	{
-		SensorFusion::updateSensorValues();
+		SensorFusion::untimedSensorUpdate();
 
 		RobotLogic::loop();
 

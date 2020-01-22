@@ -5,6 +5,7 @@ This part of the Library is responsible for mapping the maze and finding the sho
 #include "../header/MazeMapping.h"
 #include "../header/SpiNVSRAM.h"
 #include "../header/StaticQueue.h"
+#include "../header/DistanceSensors.h"
 
 #include <algorithm>
 
@@ -153,7 +154,7 @@ namespace JAFD
 			{
 				static uint8_t lowerFloorID = 0;
 				static uint8_t upperFloorID = 0;
-				const uint8_t currentID = (start.floor == 0) ? lowerFloorID++ : upperFloorID++;
+				//const uint8_t currentID = (start.floor == 0) ? lowerFloorID++ : upperFloorID++;
 
 				StaticQueue<MapCoordinate, 64> queue; // MaxSize = 64, because this is enough for a normal labyrinth (4*63 would be maximum)
 
@@ -322,6 +323,42 @@ namespace JAFD
 				resetBFSValues(start.floor);
 				return ReturnCode::error;
 			}
+		}
+
+		// Update current GridCell; Return-Value tells you how sure the algorithm is about the result
+		float updateCurrentCell()
+		{
+			static GridCell cell;
+			static MapCoordinate lastPosition;	
+
+			if (lastPosition == (MapCoordinate)SensorFusion::getFusedData().robotState.mapCoordinate)
+			{
+				return 1.0f;
+			}
+
+			lastPosition = MapCoordinate(SensorFusion::getFusedData().robotState.mapCoordinate);
+
+			if (DistanceSensors::frontLong.getDistance() >= 0)
+			{
+				cell.cellConnections |= Direction::north;
+			}
+
+			if (DistanceSensors::backLong.getDistance() >= 0)
+			{
+				cell.cellConnections |= Direction::north;
+			}
+
+			if (DistanceSensors::frontLong.getDistance() >= 0)
+			{
+				cell.cellConnections |= Direction::north;
+			}
+
+			if (DistanceSensors::frontLong.getDistance() >= 0)
+			{
+				cell.cellConnections |= Direction::north;
+			}
+
+			return 1.0f;
 		}
 	}
 }

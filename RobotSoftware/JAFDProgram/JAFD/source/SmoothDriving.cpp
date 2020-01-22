@@ -96,8 +96,8 @@ namespace JAFD
 			static float correctedAngularVel;	// Corrected angular velocity
 			static WheelSpeeds output;			// Speed output for both wheels
 
-			currentPosition = (Vec2f)(SensorFusion::getRobotState().position);
-			currentHeading = SensorFusion::getRobotState().rotation.x;
+			currentPosition = (Vec2f)(SensorFusion::getFusedData().robotState.position);
+			currentHeading = SensorFusion::getFusedData().robotState.rotation.x;
 
 			// Calculate driven distance
 			posRelToStart = currentPosition - _startPos;
@@ -156,8 +156,8 @@ namespace JAFD
 			desAngularVel = desiredSpeed * desCurvature;
 
 			// Kind of PID - controller
-			correctedForwardVel = desiredSpeed * 0.8f + _forwardVelPID.process(desiredSpeed, SensorFusion::getRobotState().forwardVel, 1.0f / freq);
-			correctedAngularVel = desAngularVel * 0.8f + _angularVelPID.process(desAngularVel, SensorFusion::getRobotState().angularVel.x, 1.0f / freq);
+			correctedForwardVel = desiredSpeed * 0.8f + _forwardVelPID.process(desiredSpeed, SensorFusion::getFusedData().robotState.forwardVel, 1.0f / freq);
+			correctedAngularVel = desAngularVel * 0.8f + _angularVelPID.process(desAngularVel, SensorFusion::getFusedData().robotState.angularVel.x, 1.0f / freq);
 
 			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
 			output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
@@ -216,8 +216,8 @@ namespace JAFD
 			static float correctedForwardVel;	// Corrected forward velocity
 			static float correctedAngularVel;	// Corrected angular velocity
 
-			currentPosition = (Vec2f)(SensorFusion::getRobotState().position);
-			currentHeading = SensorFusion::getRobotState().rotation.x;
+			currentPosition = (Vec2f)(SensorFusion::getFusedData().robotState.position);
+			currentHeading = SensorFusion::getFusedData().robotState.rotation.x;
 
 			// Calculate driven distance
 			posRelToStart = currentPosition - _startPos;
@@ -252,8 +252,8 @@ namespace JAFD
 			desAngularVel = _speeds * desCurvature;
 
 			// Kind of PID - controller
-			correctedForwardVel = _speeds * 0.8f + _forwardVelPID.process(_speeds, SensorFusion::getRobotState().forwardVel, 1.0f / freq);
-			correctedAngularVel = desAngularVel * 0.8 + _angularVelPID.process(desAngularVel, SensorFusion::getRobotState().angularVel.x, 1.0f / freq);
+			correctedForwardVel = _speeds * 0.8f + _forwardVelPID.process(_speeds, SensorFusion::getFusedData().robotState.forwardVel, 1.0f / freq);
+			correctedAngularVel = desAngularVel * 0.8 + _angularVelPID.process(desAngularVel, SensorFusion::getFusedData().robotState.angularVel.x, 1.0f / freq);
 
 			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
 			output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
@@ -330,7 +330,7 @@ namespace JAFD
 			static WheelSpeeds output;			// Output
 
 			// Calculate rotated angle
-			rotatedAngle = SensorFusion::getRobotState().rotation.x - _startAngle;
+			rotatedAngle = SensorFusion::getFusedData().robotState.rotation.x - _startAngle;
 
 			// Check if I am there
 			if (abs(rotatedAngle) >= abs(_angle))
@@ -359,7 +359,7 @@ namespace JAFD
 			Serial.println(desAngularVel);
 
 			// Kind of PID - controller
-			correctedAngularVel = desAngularVel * 0.8 + _angularVelPID.process(desAngularVel, SensorFusion::getRobotState().angularVel.x, 1.0f / freq);
+			correctedAngularVel = desAngularVel * 0.8 + _angularVelPID.process(desAngularVel, SensorFusion::getFusedData().robotState.angularVel.x, 1.0f / freq);
 
 			// Compute wheel speeds -- w = (v_r - v_l) / wheelDistance; v_l = -v_r; => v_l = -w * wheelDistance / 2; v_r = w * wheelDistance / 2
 			output = WheelSpeeds{ -JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
@@ -425,7 +425,7 @@ namespace JAFD
 			if (_currentTask->isFinished() || forceOverride)
 			{
 				temp = newTask;
-				returnCode = temp.startTask(SensorFusion::getRobotState());
+				returnCode = temp.startTask(SensorFusion::getFusedData().robotState);
 
 				if (returnCode == ReturnCode::ok)
 				{
@@ -505,7 +505,7 @@ namespace JAFD
 			if (_currentTask->isFinished() || forceOverride)
 			{
 				temp = newTask;
-				returnCode = temp.startTask(SensorFusion::getRobotState());
+				returnCode = temp.startTask(SensorFusion::getFusedData().robotState);
 
 				if (returnCode == ReturnCode::ok)
 				{
@@ -585,7 +585,7 @@ namespace JAFD
 			if (_currentTask->isFinished() || forceOverride)
 			{
 				temp = newTask;
-				returnCode = temp.startTask(SensorFusion::getRobotState());
+				returnCode = temp.startTask(SensorFusion::getFusedData().robotState);
 
 				if (returnCode == ReturnCode::ok)
 				{
@@ -665,7 +665,7 @@ namespace JAFD
 			if (_currentTask->isFinished() || forceOverride)
 			{
 				temp = newTask;
-				returnCode = temp.startTask(SensorFusion::getRobotState());
+				returnCode = temp.startTask(SensorFusion::getFusedData().robotState);
 
 				if (returnCode == ReturnCode::ok)
 				{

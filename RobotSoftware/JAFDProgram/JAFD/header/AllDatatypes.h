@@ -100,11 +100,18 @@ namespace JAFD
 		int8_t x;
 		int8_t y;
 		uint8_t floor;
+
+		MapCoordinate(int8_t x = 0, int8_t y = 0, uint8_t floor = 0) : x(x), y(y), floor(floor) {}
+		MapCoordinate(const volatile MapCoordinate& coor) : x(coor.x), y(coor.y), floor(coor.floor) {}
+		MapCoordinate(const MapCoordinate& coor) : x(coor.x), y(coor.y), floor(coor.floor) {}
 	};
 
 	// Home Position
 	constexpr MapCoordinate homePosition = { 0, 0, 0 };
 
+	// Comparison operators for MapCoordinate
+	inline bool operator==(const MapCoordinate& lhs, const MapCoordinate& rhs) { return (lhs.floor == rhs.floor && lhs.x == rhs.x && lhs.y == rhs.y); }
+	inline bool operator!=(const MapCoordinate& lhs, const MapCoordinate& rhs) { return !(lhs == rhs); }
 	// State of robot
 	struct RobotState
 	{
@@ -202,5 +209,16 @@ namespace JAFD
 		// 4.Bit: Black Tile?
 		// 5.Bit: Ramp?
 		uint8_t cellState;
+
+		GridCell(uint8_t cellConnections = 0, uint8_t cellState = 0) : cellConnections(cellConnections), cellState(cellState) {}
+		GridCell(const volatile GridCell& cell) : cellConnections(cell.cellConnections), cellState(cell.cellState) {}
+		GridCell(const GridCell& cell) : cellConnections(cell.cellConnections), cellState(cell.cellState) {}
+	};
+
+	// Data fused by SensorFusion
+	struct FusedData
+	{
+		RobotState robotState;	// Current state of robot
+		GridCell gridCell;		// Current grid cell
 	};
 }

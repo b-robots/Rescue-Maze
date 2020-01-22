@@ -6,7 +6,9 @@ This file of the library is responsible for the sensor fusion
 
 #include "../header/SensorFusion.h"
 #include "../header/MotorControl.h"
+#include "../header/DistanceSensors.h"
 #include "../../JAFDSettings.h"
+#include <math.h>
 
 namespace JAFD
 {
@@ -14,26 +16,37 @@ namespace JAFD
 	{
 		namespace
 		{
-			volatile RobotState _robotState;	// Current state of robot
-			volatile GridCell _gridCell;		// Current grid cell
+			volatile FusedData _fusedData;	// Fused data
 		}
 
-		void filter(const uint8_t freq)
+		void timedSensorUpdate(const uint8_t freq)
 		{
-			_robotState.angularVel = Vec3f((_robotState.wheelSpeeds.right - _robotState.wheelSpeeds.left) / JAFDSettings::Mechanics::wheelDistance, 0.0f, 0.0f);
-			_robotState.rotation += _robotState.angularVel / freq;
-			_robotState.forwardVel = (_robotState.wheelSpeeds.left + _robotState.wheelSpeeds.right) / 2.0f;
-			_robotState.position += Vec3f(cosf(_robotState.rotation.x), sinf(_robotState.rotation.x), 0.0f) * (_robotState.forwardVel / freq);
+			_fusedData.robotState.angularVel = Vec3f((_fusedData.robotState.wheelSpeeds.right - _fusedData.robotState.wheelSpeeds.left) / JAFDSettings::Mechanics::wheelDistance, 0.0f, 0.0f);
+			_fusedData.robotState.rotation += _fusedData.robotState.angularVel / freq;
+			_fusedData.robotState.forwardVel = (_fusedData.robotState.wheelSpeeds.left + _fusedData.robotState.wheelSpeeds.right) / 2.0f;
+			_fusedData.robotState.position += Vec3f(cosf(_fusedData.robotState.rotation.x), sinf(_fusedData.robotState.rotation.x), 0.0f) * (_fusedData.robotState.forwardVel / freq);
+			_fusedData.robotState.mapCoordinate.x = _fusedData.robotState.position.x * 2.0f / JAFDSettings::Field::cellWidth;
+			_fusedData.robotState.mapCoordinate.y = _fusedData.robotState.position.y * 2.0f / JAFDSettings::Field::cellWidth;
+			_fusedData.robotState.mapCoordinate.floor = 0;
 		}
 
-		void updateSensorValues()
+		void untimedSensorUpdate()
 		{
-			_robotState.wheelSpeeds = MotorControl::getFloatSpeeds();
+			_fusedData.robotState.wheelSpeeds = MotorControl::getFloatSpeeds();
+			
+			DistanceSensors::frontLeft.updateValues();
+			DistanceSensors::frontRight.updateValues();
+			DistanceSensors::frontLong.updateValues();
+			DistanceSensors::backLong.updateValues();
+			DistanceSensors::leftFront.updateValues();
+			DistanceSensors::leftBack.updateValues();
+			DistanceSensors::rightFront.updateValues();
+			DistanceSensors::rightBack.updateValues();
 		}
 
-		RobotState getRobotState()
+		const volatile FusedData& getFusedData()
 		{
-			return _robotState;
+			return _fusedData;
 		}
 	}
 }

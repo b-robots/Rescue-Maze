@@ -15,6 +15,11 @@ In this file are all settings needed for the robot
 
 namespace JAFDSettings
 {
+	namespace Field
+	{
+		constexpr float cellWidth = 30.0f;	// Cell width in cm
+	}
+
 	namespace Mechanics
 	{
 		constexpr float wheelDiameter = 8.0f;

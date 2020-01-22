@@ -107,7 +107,6 @@ namespace JAFD
 			if (_sensor.getState() != MEASUREMENT_OK)
 			{
 				_status = Status::unknownError;
-				Serial.println("Fehler");
 			}
 			else
 			{
