@@ -22,11 +22,12 @@ namespace JAFD
 		float x;
 		float y;
 
-		Vec2f(float x, float y) :  x(x), y(y) {}
-		Vec2f() : x(0.0f), y(0.0f) {}
+		constexpr Vec2f(float x, float y) :  x(x), y(y) {}
+		constexpr Vec2f() : x(0.0f), y(0.0f) {}
 		Vec2f(const volatile Vec2f& vec) : x(vec.x), y(vec.y) {}
-		Vec2f(const Vec2f& vec) : x(vec.x), y(vec.y) {}
+		constexpr Vec2f(const Vec2f& vec) : x(vec.x), y(vec.y) {}
 		explicit Vec2f(const volatile Vec3f vec);
+		explicit constexpr Vec2f(const Vec3f& vec);
 
 		inline const volatile Vec2f& operator=(const volatile Vec2f vec) volatile
 		{
@@ -194,11 +195,12 @@ namespace JAFD
 		float y;
 		float z;
 
-		Vec3f(float x, float y, float z) : x(x), y(y), z(z) {}
-		Vec3f() : x(0.0f), y(0.0f), z(0.0f) {}
+		constexpr Vec3f(float x, float y, float z) : x(x), y(y), z(z) {}
+		constexpr Vec3f() : x(0.0f), y(0.0f), z(0.0f) {}
 		Vec3f(const volatile Vec3f& vec) : x(vec.x), y(vec.y), z(vec.z) {}
-		Vec3f(const Vec3f& vec) : x(vec.x), y(vec.y), z(vec.z) {}
+		constexpr Vec3f(const Vec3f& vec) : x(vec.x), y(vec.y), z(vec.z) {}
 		explicit Vec3f(const volatile Vec2f vec) : x(vec.x), y(vec.y), z(0.0f) {}
+		explicit constexpr Vec3f(const Vec2f& vec) : x(vec.x), y(vec.y), z(0.0f) {}
 
 		inline const volatile Vec3f& operator=(const volatile Vec3f vec) volatile
 		{
@@ -362,4 +364,5 @@ namespace JAFD
 	};
 
 	inline Vec2f::Vec2f(const volatile Vec3f vec) : x(vec.x), y(vec.y) {}
+	inline constexpr Vec2f::Vec2f(const Vec3f& vec) : x(vec.x), y(vec.y) {}
 }

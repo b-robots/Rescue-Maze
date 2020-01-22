@@ -6,6 +6,7 @@ This part of the Library is responsible for mapping the maze and finding the sho
 #include "../header/SpiNVSRAM.h"
 #include "../header/StaticQueue.h"
 #include "../header/DistanceSensors.h"
+#include "../header/SensorFusion.h"
 
 #include <algorithm>
 

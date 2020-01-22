@@ -26,10 +26,11 @@ namespace JAFD
 		int16_t left;
 		int16_t right;
 
-		WheelSpeeds(int16_t left = 0, int16_t right = 0) : left(left), right(right) {}
+		constexpr WheelSpeeds(int16_t left = 0, int16_t right = 0) : left(left), right(right) {}
 		WheelSpeeds(const volatile WheelSpeeds& speeds) : left(speeds.left), right(speeds.right) {}
-		WheelSpeeds(const WheelSpeeds& speeds) : left(speeds.left), right(speeds.right) {}
+		constexpr WheelSpeeds(const WheelSpeeds& speeds) : left(speeds.left), right(speeds.right) {}
 		explicit WheelSpeeds(const volatile FloatWheelSpeeds speeds);
+		explicit constexpr WheelSpeeds(const FloatWheelSpeeds& speeds);
 
 		inline const volatile WheelSpeeds& operator=(const volatile WheelSpeeds speeds) volatile
 		{
@@ -54,10 +55,11 @@ namespace JAFD
 		float left;
 		float right;
 
-		FloatWheelSpeeds(float left = 0.0f, float right = 0.0f) : left(left), right(right) {}
+		constexpr FloatWheelSpeeds(float left = 0.0f, float right = 0.0f) : left(left), right(right) {}
 		FloatWheelSpeeds(const volatile FloatWheelSpeeds& speeds) : left(speeds.left), right(speeds.right) {}
-		FloatWheelSpeeds(const FloatWheelSpeeds& speeds) : left(speeds.left), right(speeds.right) {}
+		constexpr FloatWheelSpeeds(const FloatWheelSpeeds& speeds) : left(speeds.left), right(speeds.right) {}
 		explicit FloatWheelSpeeds(const volatile WheelSpeeds speeds) : left(static_cast<float>(speeds.left)), right(static_cast<float>(speeds.right)) {}
+		explicit constexpr FloatWheelSpeeds(const WheelSpeeds& speeds) : left(static_cast<float>(speeds.left)), right(static_cast<float>(speeds.right)) {}
 
 		inline const volatile FloatWheelSpeeds& operator=(const volatile FloatWheelSpeeds speeds) volatile
 		{
@@ -77,6 +79,7 @@ namespace JAFD
 	};
 
 	inline WheelSpeeds::WheelSpeeds(const volatile FloatWheelSpeeds speeds) : left(static_cast<int16_t>(speeds.left)), right(static_cast<int16_t>(speeds.right)) {}
+	inline constexpr WheelSpeeds::WheelSpeeds(const FloatWheelSpeeds& speeds) : left(static_cast<int16_t>(speeds.left)), right(static_cast<int16_t>(speeds.right)) {}
 
 	// Which motor?
 	enum class Motor : uint8_t
@@ -101,9 +104,27 @@ namespace JAFD
 		int8_t y;
 		uint8_t floor;
 
-		MapCoordinate(int8_t x = 0, int8_t y = 0, uint8_t floor = 0) : x(x), y(y), floor(floor) {}
+		constexpr MapCoordinate(int8_t x = 0, int8_t y = 0, uint8_t floor = 0) : x(x), y(y), floor(floor) {}
 		MapCoordinate(const volatile MapCoordinate& coor) : x(coor.x), y(coor.y), floor(coor.floor) {}
-		MapCoordinate(const MapCoordinate& coor) : x(coor.x), y(coor.y), floor(coor.floor) {}
+		constexpr MapCoordinate(const MapCoordinate& coor) : x(coor.x), y(coor.y), floor(coor.floor) {}
+
+		inline const volatile MapCoordinate& operator=(const volatile MapCoordinate coor) volatile
+		{
+			x = coor.x;
+			y = coor.y;
+			floor = coor.floor;
+
+			return *this;
+		}
+
+		inline const MapCoordinate& operator=(const MapCoordinate& coor)
+		{
+			x = coor.x;
+			y = coor.y;
+			floor = coor.floor;
+
+			return *this;
+		}
 	};
 
 	// Home Position
@@ -124,9 +145,9 @@ namespace JAFD
 		
 		MapCoordinate mapCoordinate;	// Position on the map; (0, 0, 0) == start
 
-		RobotState(FloatWheelSpeeds wheelSpeeds = FloatWheelSpeeds(), float forwardVel = 0.0f, Vec3f position = Vec3f(), Vec3f angularVel = Vec3f(), Vec3f rotation = Vec3f()) : wheelSpeeds(wheelSpeeds), forwardVel(forwardVel), position(position), angularVel(angularVel), rotation(rotation) {}
+		constexpr RobotState(FloatWheelSpeeds wheelSpeeds = FloatWheelSpeeds(), float forwardVel = 0.0f, Vec3f position = Vec3f(), Vec3f angularVel = Vec3f(), Vec3f rotation = Vec3f()) : wheelSpeeds(wheelSpeeds), forwardVel(forwardVel), position(position), angularVel(angularVel), rotation(rotation) {}
 		RobotState(const volatile RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), rotation(state.rotation) {}
-		RobotState(const RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), rotation(state.rotation) {}
+		constexpr RobotState(const RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), rotation(state.rotation) {}
 
 		inline const volatile RobotState& operator=(const volatile RobotState state) volatile
 		{
@@ -210,9 +231,25 @@ namespace JAFD
 		// 5.Bit: Ramp?
 		uint8_t cellState;
 
-		GridCell(uint8_t cellConnections = 0, uint8_t cellState = 0) : cellConnections(cellConnections), cellState(cellState) {}
+		constexpr GridCell(uint8_t cellConnections = 0, uint8_t cellState = 0) : cellConnections(cellConnections), cellState(cellState) {}
 		GridCell(const volatile GridCell& cell) : cellConnections(cell.cellConnections), cellState(cell.cellState) {}
-		GridCell(const GridCell& cell) : cellConnections(cell.cellConnections), cellState(cell.cellState) {}
+		constexpr GridCell(const GridCell& cell) : cellConnections(cell.cellConnections), cellState(cell.cellState) {}
+
+		inline const volatile GridCell& operator=(const volatile GridCell cell) volatile
+		{
+			cellConnections = cell.cellConnections;
+			cellState = cell.cellState;
+
+			return *this;
+		}
+
+		inline const GridCell& operator=(const GridCell& cell)
+		{
+			cellConnections = cell.cellConnections;
+			cellState = cell.cellState;
+
+			return *this;
+		}
 	};
 
 	// Data fused by SensorFusion

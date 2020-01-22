@@ -104,11 +104,13 @@ namespace JAFD
 		{
 			_distance = _sensor.getDistance();
 			
-			if (_sensor.getState() != MEASUREMENT_OK)
-			{
-				_status = Status::unknownError;
-			}
-			else
+			// TODO: TFMini Klasse selber implementieren und Status hinzufügen!!!
+
+			//if (_sensor.getState() != MEASUREMENT_OK)
+			//{
+			//	_status = Status::unknownError;
+			//}
+			//else
 			{
 				_status = Status::noError;
 			}
