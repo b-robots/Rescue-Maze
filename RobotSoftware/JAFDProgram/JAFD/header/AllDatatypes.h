@@ -267,6 +267,7 @@ namespace JAFD
 	{
 		RobotState robotState;		// Current state of robot
 		GridCell gridCell;			// Current grid cell
+		float gridCellCertainty;	// Certainty about the grid cell
 		HeadingDirection heading;	// Heading of the robot
 	};
 }

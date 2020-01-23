@@ -16,14 +16,8 @@ namespace JAFD
 		enum class NewStateType : uint8_t
 		{
 			currentState,
-			lastEndState,
-			test
+			lastEndState
 		};
-
-		class Accelerate;
-		class Rotate;
-		class DriveStraight;
-		class Stop;
 
 		class ITask
 		{
@@ -32,6 +26,7 @@ namespace JAFD
 			virtual ReturnCode startTask(RobotState startState) = 0;
 			bool isFinished();
 			RobotState getEndState();
+			virtual ~ITask() = default;
 		protected:
 			volatile bool _finished;			// Is the task already finished?
 			volatile RobotState _endState;		// State of robot at the end of task
@@ -83,6 +78,32 @@ namespace JAFD
 			bool _accelerate;				// Still accelerating?	
 		public:
 			Rotate(float maxAngularVel = 0, float angle = 0.0f);			// Set angular velocity in rad/s and angle in degree
+			ReturnCode startTask(RobotState startState);
+			WheelSpeeds updateSpeeds(const uint8_t freq);
+		};
+
+		template <uint8_t N>
+		class TaskArray : public ITask
+		{
+		private:
+			union _TaskCopies
+			{
+				Accelerate accelerate;
+				DriveStraight straight;
+				Stop stop;
+				Rotate rotate;
+
+				_TaskCopies() : stop() {};
+			} _taskCopies[N];
+
+			ITask* _taskPointers[N];
+
+		public:
+			TaskArray() = default;
+
+			template <typename T, typename... T2>
+			TaskArray(T task, T2... rest);
+
 			ReturnCode startTask(RobotState startState);
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};

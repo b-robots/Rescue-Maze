@@ -33,7 +33,7 @@ namespace JAFD
 				Rotate rotate;
 
 				_TaskCopies() : stop() {};
-			} _taskCopies;			
+			} _taskCopies;
 
 			ITask* _currentTask = &_taskCopies.stop;	// Current task
 			
@@ -375,6 +375,30 @@ namespace JAFD
 		}
 
 		// Rotate class - end
+
+		// TaskArray class - begin
+
+		template <uint8_t N>
+		template <typename T, typename... T2>
+		TaskArray<N>::TaskArray(T task, T2... rest) : TaskArray(rest...)
+		{
+
+		}
+
+		template <uint8_t N>
+		ReturnCode TaskArray<N>::startTask(RobotState startState)
+		{
+
+		}
+
+		template <uint8_t N>
+		WheelSpeeds TaskArray<N>::updateSpeeds(const uint8_t freq)
+		{
+
+		}
+
+
+		// TaskArray class - end
 
 		// Update speeds for both wheels
 		void updateSpeeds(const uint8_t freq)

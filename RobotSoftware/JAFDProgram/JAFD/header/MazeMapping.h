@@ -53,7 +53,7 @@ namespace JAFD
 		void getGridCell(uint8_t* bfsValue, const MapCoordinate coor);
 		void getGridCell(GridCell* gridCell, uint8_t* bfsValue, const MapCoordinate coor);
 		
-		// Update current GridCell; Return-Value tells you how certain the algorithm is about the result
-		float updateCurrentCell();
+		// Update current GridCell
+		void updateCurrentCell(volatile float& certainty, volatile GridCell& cell);
 	}
 }

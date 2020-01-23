@@ -52,6 +52,8 @@ namespace JAFD
 			DistanceSensors::leftBack.updateValues();
 			DistanceSensors::rightFront.updateValues();
 			DistanceSensors::rightBack.updateValues();
+
+			MazeMapping::updateCurrentCell(_fusedData.gridCellCertainty, _fusedData.cell);
 		}
 
 		const volatile FusedData& getFusedData()

@@ -326,16 +326,14 @@ namespace JAFD
 			}
 		}
 
-		// Update current GridCell; Return-Value tells you how sure the algorithm is about the result
-		float updateCurrentCell()
+		// Update current GridCell
+		void updateCurrentCell(volatile float& certainty, volatile GridCell& cell)
 		{
-			static GridCell cell;
-			static MapCoordinate lastPosition;	
+			static MapCoordinate lastPosition;
+			static float tempCertainty;
+			GridCell tempCell;
 
-			if (lastPosition == (MapCoordinate)SensorFusion::getFusedData().robotState.mapCoordinate)
-			{
-				return 1.0f;
-			}
+			tempCertainty = 1.0f;
 
 			lastPosition = MapCoordinate(SensorFusion::getFusedData().robotState.mapCoordinate);
 
@@ -344,16 +342,16 @@ namespace JAFD
 				switch (SensorFusion::getFusedData().heading)
 				{
 				case HeadingDirection::north:
-					cell.cellConnections |= Direction::north;
+					tempCell.cellConnections |= Direction::north;
 					break;
 				case HeadingDirection::east:
-					cell.cellConnections |= Direction::east;
+					tempCell.cellConnections |= Direction::east;
 					break;
 				case HeadingDirection::south:
-					cell.cellConnections |= Direction::south;
+					tempCell.cellConnections |= Direction::south;
 					break;
 				case HeadingDirection::west:
-					cell.cellConnections |= Direction::west;
+					tempCell.cellConnections |= Direction::west;
 					break;
 				default:
 					break;
@@ -365,65 +363,66 @@ namespace JAFD
 				switch (SensorFusion::getFusedData().heading)
 				{
 				case HeadingDirection::north:
-					cell.cellConnections |= Direction::south;
+					tempCell.cellConnections |= Direction::south;
 					break;
 				case HeadingDirection::east:
-					cell.cellConnections |= Direction::west;
+					tempCell.cellConnections |= Direction::west;
 					break;
 				case HeadingDirection::south:
-					cell.cellConnections |= Direction::north;
+					tempCell.cellConnections |= Direction::north;
 					break;
 				case HeadingDirection::west:
-					cell.cellConnections |= Direction::east;
+					tempCell.cellConnections |= Direction::east;
 					break;
 				default:
 					break;
 				}
 			}
 
-			if (DistanceSensors::frontLong.getDistance() >= 0)
+			if (DistanceSensors::rightFront.getDistance() > 30.0f - JAFDSettings::Mechanics::sensorLeftRightDist)
 			{
 				switch (SensorFusion::getFusedData().heading)
 				{
 				case HeadingDirection::north:
-					cell.cellConnections |= Direction::north;
+					tempCell.cellConnections |= Direction::east;
 					break;
 				case HeadingDirection::east:
-					cell.cellConnections |= Direction::east;
+					tempCell.cellConnections |= Direction::south;
 					break;
 				case HeadingDirection::south:
-					cell.cellConnections |= Direction::south;
+					tempCell.cellConnections |= Direction::west;
 					break;
 				case HeadingDirection::west:
-					cell.cellConnections |= Direction::west;
+					tempCell.cellConnections |= Direction::north;
 					break;
 				default:
 					break;
 				}
 			}
 
-			if (DistanceSensors::frontLong.getDistance() >= 0)
+			if (DistanceSensors::leftFront.getDistance() > 30.0f - JAFDSettings::Mechanics::sensorLeftRightDist)
 			{
 				switch (SensorFusion::getFusedData().heading)
 				{
 				case HeadingDirection::north:
-					cell.cellConnections |= Direction::north;
+					tempCell.cellConnections |= Direction::west;
 					break;
 				case HeadingDirection::east:
-					cell.cellConnections |= Direction::east;
+					tempCell.cellConnections |= Direction::north;
 					break;
 				case HeadingDirection::south:
-					cell.cellConnections |= Direction::south;
+					tempCell.cellConnections |= Direction::east;
 					break;
 				case HeadingDirection::west:
-					cell.cellConnections |= Direction::west;
+					tempCell.cellConnections |= Direction::south;
 					break;
 				default:
 					break;
 				}
 			}
 
-			return 1.0f;
+			certainty = tempCertainty;
+			cell = tempCell;
 		}
 	}
 }
