@@ -29,7 +29,7 @@ namespace JAFD
 		constexpr WheelSpeeds(int16_t left = 0, int16_t right = 0) : left(left), right(right) {}
 		WheelSpeeds(const volatile WheelSpeeds& speeds) : left(speeds.left), right(speeds.right) {}
 		constexpr WheelSpeeds(const WheelSpeeds& speeds) : left(speeds.left), right(speeds.right) {}
-		explicit WheelSpeeds(const volatile FloatWheelSpeeds speeds);
+		explicit WheelSpeeds(const volatile FloatWheelSpeeds& speeds);
 		explicit constexpr WheelSpeeds(const FloatWheelSpeeds& speeds);
 
 		inline const volatile WheelSpeeds& operator=(const volatile WheelSpeeds speeds) volatile
@@ -58,7 +58,7 @@ namespace JAFD
 		constexpr FloatWheelSpeeds(float left = 0.0f, float right = 0.0f) : left(left), right(right) {}
 		FloatWheelSpeeds(const volatile FloatWheelSpeeds& speeds) : left(speeds.left), right(speeds.right) {}
 		constexpr FloatWheelSpeeds(const FloatWheelSpeeds& speeds) : left(speeds.left), right(speeds.right) {}
-		explicit FloatWheelSpeeds(const volatile WheelSpeeds speeds) : left(static_cast<float>(speeds.left)), right(static_cast<float>(speeds.right)) {}
+		explicit FloatWheelSpeeds(const volatile WheelSpeeds& speeds) : left(static_cast<float>(speeds.left)), right(static_cast<float>(speeds.right)) {}
 		explicit constexpr FloatWheelSpeeds(const WheelSpeeds& speeds) : left(static_cast<float>(speeds.left)), right(static_cast<float>(speeds.right)) {}
 
 		inline const volatile FloatWheelSpeeds& operator=(const volatile FloatWheelSpeeds speeds) volatile
@@ -78,7 +78,7 @@ namespace JAFD
 		}
 	};
 
-	inline WheelSpeeds::WheelSpeeds(const volatile FloatWheelSpeeds speeds) : left(static_cast<int16_t>(speeds.left)), right(static_cast<int16_t>(speeds.right)) {}
+	inline WheelSpeeds::WheelSpeeds(const volatile FloatWheelSpeeds& speeds) : left(static_cast<int16_t>(speeds.left)), right(static_cast<int16_t>(speeds.right)) {}
 	inline constexpr WheelSpeeds::WheelSpeeds(const FloatWheelSpeeds& speeds) : left(static_cast<int16_t>(speeds.left)), right(static_cast<int16_t>(speeds.right)) {}
 
 	// Which motor?
