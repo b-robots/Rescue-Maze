@@ -28,6 +28,16 @@ namespace JAFD
 			_fusedData.robotState.mapCoordinate.x = _fusedData.robotState.position.x * 2.0f / JAFDSettings::Field::cellWidth;
 			_fusedData.robotState.mapCoordinate.y = _fusedData.robotState.position.y * 2.0f / JAFDSettings::Field::cellWidth;
 			_fusedData.robotState.mapCoordinate.floor = 0;
+
+			float positiveAngle = _fusedData.robotState.rotation.x;
+
+			while (positiveAngle < 0.0f) positiveAngle += 360.0f;
+			while (positiveAngle > 360.0f) positiveAngle -= 360.0f;
+
+			if (_fusedData.robotState.rotation.x > 315.0f || _fusedData.robotState.rotation.x < 45.0f) _fusedData.heading = HeadingDirection::north;
+			else if (_fusedData.robotState.rotation.x > 45.0f && _fusedData.robotState.rotation.x < 135.0f) _fusedData.heading = HeadingDirection::east;
+			else if (_fusedData.robotState.rotation.x > 135.0f && _fusedData.robotState.rotation.x < 225.0f) _fusedData.heading = HeadingDirection::south;
+			else _fusedData.heading = HeadingDirection::west;
 		}
 
 		void untimedSensorUpdate()

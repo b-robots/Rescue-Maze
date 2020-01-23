@@ -24,6 +24,8 @@ namespace JAFDSettings
 	{
 		constexpr float wheelDiameter = 8.0f;
 		constexpr float wheelDistance = 15.0f;
+		constexpr float sensorLeftRightDist = 17.0f;
+		constexpr float sensorFrontBackDist = 16.0f;
 	}
 
 	namespace SpiEeprom

@@ -339,24 +339,88 @@ namespace JAFD
 
 			lastPosition = MapCoordinate(SensorFusion::getFusedData().robotState.mapCoordinate);
 
-			if (DistanceSensors::frontLong.getDistance() >= 0)
+			if (DistanceSensors::frontLong.getDistance() > 30.0f - JAFDSettings::Mechanics::sensorFrontBackDist)
 			{
-				cell.cellConnections |= Direction::north;
+				switch (SensorFusion::getFusedData().heading)
+				{
+				case HeadingDirection::north:
+					cell.cellConnections |= Direction::north;
+					break;
+				case HeadingDirection::east:
+					cell.cellConnections |= Direction::east;
+					break;
+				case HeadingDirection::south:
+					cell.cellConnections |= Direction::south;
+					break;
+				case HeadingDirection::west:
+					cell.cellConnections |= Direction::west;
+					break;
+				default:
+					break;
+				}
 			}
 
-			if (DistanceSensors::backLong.getDistance() >= 0)
+			if (DistanceSensors::backLong.getDistance() > 30.0f - JAFDSettings::Mechanics::sensorFrontBackDist)
 			{
-				cell.cellConnections |= Direction::north;
+				switch (SensorFusion::getFusedData().heading)
+				{
+				case HeadingDirection::north:
+					cell.cellConnections |= Direction::south;
+					break;
+				case HeadingDirection::east:
+					cell.cellConnections |= Direction::west;
+					break;
+				case HeadingDirection::south:
+					cell.cellConnections |= Direction::north;
+					break;
+				case HeadingDirection::west:
+					cell.cellConnections |= Direction::east;
+					break;
+				default:
+					break;
+				}
 			}
 
 			if (DistanceSensors::frontLong.getDistance() >= 0)
 			{
-				cell.cellConnections |= Direction::north;
+				switch (SensorFusion::getFusedData().heading)
+				{
+				case HeadingDirection::north:
+					cell.cellConnections |= Direction::north;
+					break;
+				case HeadingDirection::east:
+					cell.cellConnections |= Direction::east;
+					break;
+				case HeadingDirection::south:
+					cell.cellConnections |= Direction::south;
+					break;
+				case HeadingDirection::west:
+					cell.cellConnections |= Direction::west;
+					break;
+				default:
+					break;
+				}
 			}
 
 			if (DistanceSensors::frontLong.getDistance() >= 0)
 			{
-				cell.cellConnections |= Direction::north;
+				switch (SensorFusion::getFusedData().heading)
+				{
+				case HeadingDirection::north:
+					cell.cellConnections |= Direction::north;
+					break;
+				case HeadingDirection::east:
+					cell.cellConnections |= Direction::east;
+					break;
+				case HeadingDirection::south:
+					cell.cellConnections |= Direction::south;
+					break;
+				case HeadingDirection::west:
+					cell.cellConnections |= Direction::west;
+					break;
+				default:
+					break;
+				}
 			}
 
 			return 1.0f;

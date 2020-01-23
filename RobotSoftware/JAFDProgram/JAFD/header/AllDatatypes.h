@@ -133,6 +133,16 @@ namespace JAFD
 	// Comparison operators for MapCoordinate
 	inline bool operator==(const MapCoordinate& lhs, const MapCoordinate& rhs) { return (lhs.floor == rhs.floor && lhs.x == rhs.x && lhs.y == rhs.y); }
 	inline bool operator!=(const MapCoordinate& lhs, const MapCoordinate& rhs) { return !(lhs == rhs); }
+	
+	// Heading direction
+	enum class HeadingDirection : uint8_t
+	{
+		north,
+		east,
+		south,
+		west
+	};
+	
 	// State of robot
 	struct RobotState
 	{
@@ -255,7 +265,8 @@ namespace JAFD
 	// Data fused by SensorFusion
 	struct FusedData
 	{
-		RobotState robotState;	// Current state of robot
-		GridCell gridCell;		// Current grid cell
+		RobotState robotState;		// Current state of robot
+		GridCell gridCell;			// Current grid cell
+		HeadingDirection heading;	// Heading of the robot
 	};
 }
