@@ -101,8 +101,10 @@ namespace JAFD
 		public:
 			TaskArray() = delete;
 
+			TaskArray(Accelerate task) {}
+
 			template<typename ...Rest>
-			TaskArray(Accelerate task, Rest... rest);
+			TaskArray(Accelerate task, Rest... rest) : TaskArray(rest...) {}
 		};
 
 		void updateSpeeds(const uint8_t freq);								// Update speeds for both wheels
@@ -113,11 +115,23 @@ namespace JAFD
 		template<NewStateType stateType>
 		ReturnCode setNewTask(const Accelerate& newTask, const bool forceOverride = false);
 
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const Accelerate& newTask, const bool forceOverride);
+
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const Accelerate& newTask, const bool forceOverride);
+
 		ReturnCode setNewTask(const Accelerate& newTask, RobotState startState, const bool forceOverride = false);
 
 		// Set new DriveStraight task
 		template<NewStateType stateType>
 		ReturnCode setNewTask(const DriveStraight& newTask, const bool forceOverride = false);
+
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const DriveStraight& newTask, const bool forceOverride);
+
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const DriveStraight& newTask, const bool forceOverride);
 
 		ReturnCode setNewTask(const DriveStraight& newTask, RobotState startState, const bool forceOverride = false);
 
@@ -125,11 +139,23 @@ namespace JAFD
 		template<NewStateType stateType>
 		ReturnCode setNewTask(const Stop& newTask, const bool forceOverride = false);
 
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const Stop& newTask, const bool forceOverride);
+
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const Stop& newTask, const bool forceOverride);
+
 		ReturnCode setNewTask(const Stop& newTask, RobotState startState, const bool forceOverride = false);
 
 		// Set new Rotate task
 		template<NewStateType stateType>
 		ReturnCode setNewTask(const Rotate& newTask, const bool forceOverride = false);
+
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const Rotate& newTask, const bool forceOverride);
+
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const Rotate& newTask, const bool forceOverride);
 
 		ReturnCode setNewTask(const Rotate& newTask, RobotState startState, const bool forceOverride = false);
 	}

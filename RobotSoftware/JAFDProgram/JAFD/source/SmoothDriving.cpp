@@ -379,11 +379,6 @@ namespace JAFD
 
 		// TaskArray class - begin
 
-		template<typename ...Rest>
-		TaskArray::TaskArray(Accelerate task, Rest... rest) : TaskArray(rest...)
-		{
-
-		}
 
 		// TaskArray class - end
 
