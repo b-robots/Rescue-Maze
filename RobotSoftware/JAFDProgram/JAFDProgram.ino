@@ -5,7 +5,6 @@
 */
 
 #if defined(ARDUINO) && ARDUINO >= 100
-#include <Adafruit_VL6180X.h>
 #include "arduino.h"
 #else
 #include "WProgram.h"
@@ -25,10 +24,12 @@ using namespace JAFD::MazeMapping;
 using namespace JAFD::MotorControl;
 using namespace JAFD::SmoothDriving;
 using namespace JAFD::SensorFusion;
+using namespace JAFD::DistanceSensors;
 using namespace JAFD;
 
 // The setup function runs once when you press reset or power the board
-void setup() {
+void setup()
+{
 	// For testing
 	Serial.begin(115200);
 
@@ -36,9 +37,16 @@ void setup() {
 }
 
 // The loop function runs over and over again until power down or reset
-void loop() {
-	VL6180 S1;
-	Serial.println(S1.getDistance());
+void loop()
+{
+	frontLeft.updateValues();
+	frontLong.updateValues();
+
+	Serial.print(frontLeft.getStatus() == Status::noError ? frontLeft.getDistance() : -1.0f);
+	Serial.print(", ");
+	Serial.println(frontLong.getStatus() == Status::noError ? frontLong.getDistance() : -1.0f);
 
 	JAFD::robotLoop();
+
+	delay(100);
 }

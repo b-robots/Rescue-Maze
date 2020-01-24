@@ -27,7 +27,7 @@ namespace JAFD
 		constexpr uint16_t pageSize = 256;
 
 		// Init
-		ReturnCode spiNvsramSetup();
+		ReturnCode setup();
 
 		// Read and write functions
 		uint8_t readByte(const uint32_t address);

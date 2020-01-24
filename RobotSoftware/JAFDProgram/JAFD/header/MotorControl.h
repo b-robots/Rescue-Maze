@@ -12,7 +12,7 @@ namespace JAFD
 	namespace MotorControl
 	{
 		// Setup the Motor-Shield
-		ReturnCode motorControlSetup();
+		ReturnCode setup();
 
 		// Get distance measured by encoder
 		float getDistance(const Motor motor);

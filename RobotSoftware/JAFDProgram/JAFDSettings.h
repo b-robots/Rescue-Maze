@@ -28,9 +28,11 @@ namespace JAFDSettings
 
 	namespace MotorControl
 	{
-		constexpr float cmPSToPerc = 0.0075f;	// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed. It is ideal for about 100cm/s)
+		constexpr float cmPSToPerc = 0.0075f;			// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed. It is ideal for about 100cm/s)
 
-		constexpr int16_t minSpeed = 15;		// Minimum speed for motor to rotate
+		constexpr int16_t minSpeed = 15;				// Minimum speed for motor to rotate
+
+		constexpr float pulsePerRev = 11.0f * 34.0f;	// Rotary-Encoder pulses per revolution
 
 		namespace Left
 		{
@@ -62,13 +64,13 @@ namespace JAFDSettings
 		{
 			constexpr float lookAheadGain = 0.7f;
 			constexpr float minLookAheadDist = 10.0f;
-			constexpr float maxCurvature = 0.065f;
+			constexpr float maxCurvature = 0.02f;
 		}
 
 		namespace SmoothDriving
 		{
 			constexpr JAFD::PIDSettings forwardVelPidSettings(0.3f, 1.3f, 0.0f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
-			constexpr JAFD::PIDSettings angularVelPidSettings(1.0f, 0.0f, 0.0f, 10.0f, 5.0f, -10.0f, 10.0f);
+			constexpr JAFD::PIDSettings angularVelPidSettings(0.5f, 0.5f, 0.0f, 10.0f, 5.0f, -10.0f, 10.0f);
 		}
 	}
 
@@ -84,9 +86,14 @@ namespace JAFDSettings
 
 	namespace DistanceSensors
 	{
-		namespace Front
+		namespace FrontLong
 		{
-			constexpr uint8_t i2cAddress = 0x27;
+			constexpr JAFD::SerialType serialType = JAFD::SerialType::three;
+		}
+
+		namespace BackLong
+		{
+			constexpr JAFD::SerialType serialType = JAFD::SerialType::one;
 		}
 	}
 }

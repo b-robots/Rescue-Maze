@@ -9,6 +9,15 @@ In this file are all definitions and includes for datatypes and name aliases, wh
 
 namespace JAFD
 {
+	enum class SerialType : uint8_t
+	{
+		software,
+		zero,
+		one,
+		two,
+		three
+	};
+
 	struct FloatWheelSpeeds;
 
 	// Speed of both wheels

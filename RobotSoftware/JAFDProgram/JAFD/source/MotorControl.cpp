@@ -12,7 +12,7 @@ This part of the Library is responsible for driving the motors.
 #include "../header/MotorControl.h"
 #include "../header/DuePinMapping.h"
 #include "../header/PIDController.h"
-#include "../header//Math.h"
+#include "../header/Math.h"
 
 namespace JAFD
 {
@@ -54,7 +54,7 @@ namespace JAFD
 			volatile WheelSpeeds _desSpeeds = { 0.0f, 0.0f };	// Desired motor speed (cm/s)
 		}
 
-		ReturnCode motorControlSetup()
+		ReturnCode setup()
 		{
 			// Check if PWM Pins and ADC Pins are correct
 			if (!PinMapping::hasPWM(_lPWM) || !PinMapping::hasPWM(_rPWM) || !PinMapping::hasADC(_lFb) || !PinMapping::hasADC(_rFb))
@@ -174,8 +174,8 @@ namespace JAFD
 
 
 			// Calculate speeds and apply 
-			_speeds.left = ((_lEncCnt - lastLeftCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq) * 0.95f + lastSpeeds.left * 0.05f;
-			_speeds.right = ((_rEncCnt - lastRightCnt) / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * freq) * 0.95f + lastSpeeds.right * 0.05f;
+			_speeds.left = ((_lEncCnt - lastLeftCnt) / (JAFDSettings::MotorControl::pulsePerRev) * JAFDSettings::Mechanics::wheelDiameter * PI * freq) * 0.95f + lastSpeeds.left * 0.05f;
+			_speeds.right = ((_rEncCnt - lastRightCnt) / (JAFDSettings::MotorControl::pulsePerRev) * JAFDSettings::Mechanics::wheelDiameter * PI * freq) * 0.95f + lastSpeeds.right * 0.05f;
 
 			lastLeftCnt = _lEncCnt;
 			lastRightCnt = _rEncCnt;
@@ -194,9 +194,11 @@ namespace JAFD
 			}
 			else
 			{
-				setSpeed.left = _leftPID.process(_desSpeeds.left, _speeds.left, 1.0f / freq) * _cmPSToPerc;
+				setSpeed.left = _leftPID.process(_desSpeeds.left, _speeds.left, 1.0f / freq);
 
-				if (setSpeed.left < JAFDSettings::MotorControl::minSpeed * _cmPSToPerc && setSpeed.left > -JAFDSettings::MotorControl::minSpeed * _cmPSToPerc) setSpeed.left = JAFDSettings::MotorControl::minSpeed * _cmPSToPerc * sgn(_desSpeeds.left);
+				if (setSpeed.left < JAFDSettings::MotorControl::minSpeed && setSpeed.left > -JAFDSettings::MotorControl::minSpeed) setSpeed.left = JAFDSettings::MotorControl::minSpeed * sgn(_desSpeeds.left);
+				
+				setSpeed.left *= _cmPSToPerc;
 			}
 
 			if (_desSpeeds.right == 0)
@@ -206,9 +208,11 @@ namespace JAFD
 			}
 			else
 			{
-				setSpeed.right = _rightPID.process(_desSpeeds.right, _speeds.right, 1.0f / freq) * _cmPSToPerc;
+				setSpeed.right = _rightPID.process(_desSpeeds.right, _speeds.right, 1.0f / freq);
 
-				if (setSpeed.right < JAFDSettings::MotorControl::minSpeed * _cmPSToPerc && setSpeed.right > -JAFDSettings::MotorControl::minSpeed * _cmPSToPerc) setSpeed.right = JAFDSettings::MotorControl::minSpeed * _cmPSToPerc * sgn(_desSpeeds.right);
+				if (setSpeed.right < JAFDSettings::MotorControl::minSpeed && setSpeed.right > -JAFDSettings::MotorControl::minSpeed) setSpeed.right = JAFDSettings::MotorControl::minSpeed * sgn(_desSpeeds.right);
+			
+				setSpeed.right *= _cmPSToPerc;
 			}
 
 			// Set left dir pin
