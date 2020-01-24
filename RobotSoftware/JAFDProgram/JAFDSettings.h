@@ -28,7 +28,7 @@ namespace JAFDSettings
 		constexpr float sensorFrontBackDist = 16.0f;
 	}
 
-	namespace SpiEeprom
+	namespace SpiNVSRAM
 	{
 		constexpr uint8_t ssPin = 13;
 	}
@@ -83,7 +83,7 @@ namespace JAFDSettings
 
 	namespace SmoothDriving
 	{
-
+		constexpr uint8_t maxArrrayedTasks = 5;
 	}
 
 	namespace Dispenser

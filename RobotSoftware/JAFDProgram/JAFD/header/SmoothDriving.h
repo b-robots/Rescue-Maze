@@ -82,8 +82,7 @@ namespace JAFD
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
 
-		template <uint8_t N>
-		class TaskArray : public ITask
+		class TaskArray
 		{
 		private:
 			union _TaskCopies
@@ -94,24 +93,22 @@ namespace JAFD
 				Rotate rotate;
 
 				_TaskCopies() : stop() {};
-			} _taskCopies[N];
+				~_TaskCopies() {}
+			} _taskCopies[JAFDSettings::SmoothDriving::maxArrrayedTasks];
 
-			ITask* _taskPointers[N];
+			ITask* _taskArray[JAFDSettings::SmoothDriving::maxArrrayedTasks];
 
 		public:
-			TaskArray() = default;
+			TaskArray() = delete;
 
-			template <typename T, typename... T2>
-			TaskArray(T task, T2... rest);
-
-			ReturnCode startTask(RobotState startState);
-			WheelSpeeds updateSpeeds(const uint8_t freq);
+			template<typename ...Rest>
+			TaskArray(Accelerate task, Rest... rest);
 		};
 
 		void updateSpeeds(const uint8_t freq);								// Update speeds for both wheels
 
 		bool isTaskFinished();												// Is the current task finished?
-	
+
 		// Set new Accelerate task
 		template<NewStateType stateType>
 		ReturnCode setNewTask(const Accelerate& newTask, const bool forceOverride = false);
@@ -135,6 +132,5 @@ namespace JAFD
 		ReturnCode setNewTask(const Rotate& newTask, const bool forceOverride = false);
 
 		ReturnCode setNewTask(const Rotate& newTask, RobotState startState, const bool forceOverride = false);
-
 	}
 }

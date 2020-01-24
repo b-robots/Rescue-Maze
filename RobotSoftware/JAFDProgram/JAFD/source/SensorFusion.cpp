@@ -4,6 +4,7 @@ This file of the library is responsible for the sensor fusion
 
 #pragma once
 
+#include "../header/MazeMapping.h"
 #include "../header/SensorFusion.h"
 #include "../header/MotorControl.h"
 #include "../header/DistanceSensors.h"
@@ -53,7 +54,7 @@ namespace JAFD
 			DistanceSensors::rightFront.updateValues();
 			DistanceSensors::rightBack.updateValues();
 
-			MazeMapping::updateCurrentCell(_fusedData.gridCellCertainty, _fusedData.cell);
+			MazeMapping::updateCurrentCell(_fusedData.gridCellCertainty, _fusedData.gridCell);
 		}
 
 		const volatile FusedData& getFusedData()
