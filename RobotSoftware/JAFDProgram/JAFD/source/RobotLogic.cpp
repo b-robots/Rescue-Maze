@@ -6,6 +6,7 @@ This is the heart of the robot
 #include "../header/SensorFusion.h"
 #include "../header/MazeMapping.h"
 #include "../header/SmoothDriving.h"
+#include "../header/MotorControl.h"
 
 namespace JAFD
 {
@@ -13,9 +14,13 @@ namespace JAFD
 	{
 		void loop()
 		{
-			if (SensorFusion::getFusedData().gridCellCertainty >= 0.5f)
+			MotorControl::setSpeeds(WheelSpeeds(50, 50));
+			/*if (SensorFusion::getFusedData().gridCellCertainty >= 0.5f)
 			{
-				SmoothDriving::TaskArray(SmoothDriving::Accelerate(), SmoothDriving::Accelerate(), SmoothDriving::Accelerate());
+				SmoothDriving::TaskArray test = SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Accelerate(), SmoothDriving::DriveStraight(), SmoothDriving::Accelerate(), SmoothDriving::Stop());
+
+				test.updateSpeeds(0);
+
 				GridCell cell = SensorFusion::getFusedData().gridCell;
 
 				if (SmoothDriving::isTaskFinished())
@@ -158,6 +163,7 @@ namespace JAFD
 					}
 				}
 			}
+		*/
 		}
 	}
 }

@@ -185,7 +185,7 @@ namespace JAFD
 		void speedPID(const uint8_t freq)
 		{
 			static FloatWheelSpeeds setSpeed;	// Speed calculated by PID
-
+			
 			// When speed isn't 0, do PID controller
 			if (_desSpeeds.left == 0)
 			{
@@ -214,6 +214,7 @@ namespace JAFD
 			
 				setSpeed.right *= _cmPSToPerc;
 			}
+
 
 			// Set left dir pin
 			if (setSpeed.left > 0.0f)

@@ -39,12 +39,15 @@ void setup()
 // The loop function runs over and over again until power down or reset
 void loop()
 {
-	frontLeft.updateValues();
-	frontLong.updateValues();
-
-	Serial.print(frontLeft.getStatus() == Status::noError ? frontLeft.getDistance() : -1.0f);
-	Serial.print(", ");
-	Serial.println(frontLong.getStatus() == Status::noError ? frontLong.getDistance() : -1.0f);
+	while (!isTaskFinished());
+	setNewTask<NewStateType::lastEndState>(Accelerate(40, 40));
+	Serial.println("1");
+	while (!isTaskFinished());
+	setNewTask<NewStateType::lastEndState>(Accelerate(0, 40));
+	Serial.println("2");
+	while (!isTaskFinished());
+	setNewTask<NewStateType::lastEndState>(Rotate(3, -90));
+	Serial.println("3");
 
 	JAFD::robotLoop();
 

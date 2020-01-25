@@ -8,7 +8,6 @@ This part of the Library is responsible for driving smoothly.
 #include "WProgram.h"
 #endif
 
-#include <new>
 #include <algorithm>
 
 #include "../header/SmoothDriving.h"
@@ -379,6 +378,67 @@ namespace JAFD
 
 		// TaskArray class - begin
 
+		TaskArray::TaskArray(const TaskArray& taskArray)
+		{
+			for (uint8_t i = 0; i < _numTasks; i++)
+			{
+				switch (_taskTypes[i])
+				{
+				case _TaskType::accelerate:
+					_taskArray[i] = new (&(_taskCopies[i].accelerate)) Accelerate(taskArray._taskCopies[i].accelerate);
+					break;
+				case _TaskType::straight:
+					_taskArray[i] = new (&(_taskCopies[i].straight)) DriveStraight(taskArray._taskCopies[i].straight);
+					break;
+				case _TaskType::stop:
+					_taskArray[i] = new (&(_taskCopies[i].stop)) Stop(taskArray._taskCopies[i].stop);
+					break;
+				case _TaskType::rotate:
+					_taskArray[i] = new (&(_taskCopies[i].rotate)) Rotate(taskArray._taskCopies[i].rotate);
+					break;
+				default:
+					break;
+				}
+			}
+		}
+
+		TaskArray::TaskArray(const Accelerate& task)
+		{
+			_taskTypes[_numTasks] = _TaskType::accelerate;
+			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].accelerate)) Accelerate(task);
+			_numTasks++;
+		}
+
+		TaskArray::TaskArray(const DriveStraight& task)
+		{
+			_taskTypes[_numTasks] = _TaskType::straight;
+			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].straight)) DriveStraight(task);
+			_numTasks++;
+		}
+
+		TaskArray::TaskArray(const Stop& task)
+		{
+			_taskTypes[_numTasks] = _TaskType::accelerate;
+			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].stop)) Stop(task);
+			_numTasks++;
+		}
+
+		TaskArray::TaskArray(const Rotate& task)
+		{
+			_taskTypes[_numTasks] = _TaskType::accelerate;
+			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].rotate)) Rotate(task);
+			_numTasks++;
+		}
+
+		ReturnCode TaskArray::startTask(RobotState startState)
+		{
+
+		}
+
+		WheelSpeeds TaskArray::updateSpeeds(const uint8_t freq)
+		{
+			
+		}
 
 		// TaskArray class - end
 

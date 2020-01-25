@@ -4,6 +4,8 @@ This part of the Library is responsible for driving smoothly.
 
 #pragma once
 
+#include <new>
+
 #include "../../JAFDSettings.h"
 #include "AllDatatypes.h"
 #include "Vector.h"
@@ -43,7 +45,7 @@ namespace JAFD
 			int16_t _startSpeeds;				// Average start speed of both wheels
 			float _totalTime;					// Calculated time needed to drive
 		public:
-			Accelerate(int16_t endSpeeds = 0, float distance = 0.0f);
+			explicit Accelerate(int16_t endSpeeds = 0, float distance = 0.0f);
 			ReturnCode startTask(RobotState startState);
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
@@ -56,7 +58,7 @@ namespace JAFD
 			Vec2f _targetDir;					// Target direction (guranteed to be normalized)
 			Vec2f _startPos;					// Start position
 		public:
-			DriveStraight(float distance = 0);
+			explicit DriveStraight(float distance = 0);
 			ReturnCode startTask(RobotState startState);
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
@@ -77,7 +79,7 @@ namespace JAFD
 			float _totalTime;				// Calculated time needed to drive
 			bool _accelerate;				// Still accelerating?	
 		public:
-			Rotate(float maxAngularVel = 0, float angle = 0.0f);			// Set angular velocity in rad/s and angle in degree
+			explicit Rotate(float maxAngularVel = 0, float angle = 0.0f);			// Set angular velocity in rad/s and angle in degree
 			ReturnCode startTask(RobotState startState);
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
@@ -85,6 +87,14 @@ namespace JAFD
 		class TaskArray
 		{
 		private:
+			enum class _TaskType : uint8_t
+			{
+				accelerate,
+				straight,
+				stop,
+				rotate
+			} _taskTypes[JAFDSettings::SmoothDriving::maxArrrayedTasks];
+
 			union _TaskCopies
 			{
 				Accelerate accelerate;
@@ -98,13 +108,56 @@ namespace JAFD
 
 			ITask* _taskArray[JAFDSettings::SmoothDriving::maxArrrayedTasks];
 
+			uint8_t _numTasks = 0;
+
 		public:
 			TaskArray() = delete;
 
-			TaskArray(Accelerate task) {}
+			TaskArray(const TaskArray& taskArray);
 
-			template<typename ...Rest>
-			TaskArray(Accelerate task, Rest... rest) : TaskArray(rest...) {}
+			TaskArray(const Accelerate& task);
+			TaskArray(const DriveStraight& task);
+			TaskArray(const Stop& task);
+			TaskArray(const Rotate& task);
+
+			// Uses SFINAE to prohibit more than maximum arguments.
+			template<typename ...Rest, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rest)]>
+			TaskArray(const Accelerate& task, const Rest&... rest) : TaskArray(rest...)
+			{
+				_taskTypes[_numTasks] = _TaskType::accelerate;
+				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].accelerate)) Accelerate(task);
+				_numTasks++;
+			}
+
+			// Uses SFINAE to prohibit more than maximum arguments.
+			template<typename ...Rest, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rest)]>
+			TaskArray(const DriveStraight& task, const Rest&... rest) : TaskArray(rest...)
+			{
+				_taskTypes[_numTasks] = _TaskType::straight;
+				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].straight)) DriveStraight(task);
+				_numTasks++;
+			}
+
+			// Uses SFINAE to prohibit more than maximum arguments.
+			template<typename ...Rest, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rest)]>
+			TaskArray(const Stop& task, const Rest&... rest) : TaskArray(rest...)
+			{
+				_taskTypes[_numTasks] = _TaskType::stop;
+				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].stop)) Stop(task);
+				_numTasks++;
+			}
+
+			// Uses SFINAE to prohibit more than maximum arguments.
+			template<typename ...Rest, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rest)]>
+			TaskArray(const Rotate& task, const Rest&... rest) : TaskArray(rest...)
+			{
+				_taskTypes[_numTasks] = _TaskType::rotate;
+				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].rotate)) Rotate(task);
+				_numTasks++;
+			}
+
+			ReturnCode startTask(RobotState startState);
+			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
 
 		void updateSpeeds(const uint8_t freq);								// Update speeds for both wheels

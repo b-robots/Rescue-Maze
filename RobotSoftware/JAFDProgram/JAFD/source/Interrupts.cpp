@@ -62,7 +62,7 @@ void TC4_Handler()
 			// 10Hz:
 			JAFD::MotorControl::calcMotorSpeed(10);
 			JAFD::MotorControl::speedPID(10);
-
+			
 			if (i % 20 == 0)
 			{
 				// 5Hz:
