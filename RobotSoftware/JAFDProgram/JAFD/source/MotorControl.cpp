@@ -172,7 +172,6 @@ namespace JAFD
 			static int32_t lastRightCnt = 0;
 			static FloatWheelSpeeds lastSpeeds;
 
-
 			// Calculate speeds and apply 
 			_speeds.left = ((_lEncCnt - lastLeftCnt) / (JAFDSettings::MotorControl::pulsePerRev) * JAFDSettings::Mechanics::wheelDiameter * PI * freq) * 0.95f + lastSpeeds.left * 0.05f;
 			_speeds.right = ((_rEncCnt - lastRightCnt) / (JAFDSettings::MotorControl::pulsePerRev) * JAFDSettings::Mechanics::wheelDiameter * PI * freq) * 0.95f + lastSpeeds.right * 0.05f;
@@ -256,11 +255,11 @@ namespace JAFD
 		{
 			if (motor == Motor::left)
 			{
-				return _lEncCnt / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI;
+				return _lEncCnt / JAFDSettings::MotorControl::pulsePerRev * JAFDSettings::Mechanics::wheelDiameter * PI;
 			}
 			else
 			{
-				return _rEncCnt / (11.0f * 34.02f) * JAFDSettings::Mechanics::wheelDiameter * PI * -1;
+				return _rEncCnt / JAFDSettings::MotorControl::pulsePerRev * JAFDSettings::Mechanics::wheelDiameter * PI * -1;
 			}
 		}
 

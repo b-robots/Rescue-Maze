@@ -14,8 +14,7 @@ namespace JAFD
 	{
 		void loop()
 		{
-			MotorControl::setSpeeds(WheelSpeeds(50, 50));
-			/*if (SensorFusion::getFusedData().gridCellCertainty >= 0.5f)
+			if (SensorFusion::getFusedData().gridCellCertainty >= 0.5f)
 			{
 				SmoothDriving::TaskArray test = SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Accelerate(), SmoothDriving::DriveStraight(), SmoothDriving::Accelerate(), SmoothDriving::Stop());
 
@@ -30,30 +29,31 @@ namespace JAFD
 						switch (SensorFusion::getFusedData().heading)
 						{
 						case HeadingDirection::north:
-							SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Stop());
-							while (!SmoothDriving::isTaskFinished());
-							SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Accelerate(30, 30.0f));
+							SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
+																															SmoothDriving::Accelerate(30, 15.0f),
+																															SmoothDriving::Accelerate(0, 15.0f),
+																															SmoothDriving::Stop()));
 							break;
 						case HeadingDirection::east:
-							SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Stop());
-							while (!SmoothDriving::isTaskFinished());
-							SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Rotate(5, 90.0f));
-							while (!SmoothDriving::isTaskFinished());
-							SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Accelerate(30, 30.0f));
+							SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
+																															SmoothDriving::Rotate(5, 90.0f),
+																															SmoothDriving::Accelerate(30, 15.0f),
+																															SmoothDriving::Accelerate(0, 15.0f),
+																															SmoothDriving::Stop()));
 							break;
 						case HeadingDirection::south:
-							SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Stop());
-							while (!SmoothDriving::isTaskFinished());
-							SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Rotate(5, 180.0f));
-							while (!SmoothDriving::isTaskFinished());
-							SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Accelerate(30, 30.0f));
+							SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
+																															SmoothDriving::Rotate(5, 180.0f),
+																															SmoothDriving::Accelerate(30, 15.0f),
+																															SmoothDriving::Accelerate(0, 15.0f),
+																															SmoothDriving::Stop()));
 							break;
 						case HeadingDirection::west:
-							SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Stop());
-							while (!SmoothDriving::isTaskFinished());
-							SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Rotate(-5, -90.0f));
-							while (!SmoothDriving::isTaskFinished());
-							SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Accelerate(30, 30.0f));
+							SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
+																															SmoothDriving::Rotate(-5, -90.0f),
+																															SmoothDriving::Accelerate(30, 15.0f),
+																															SmoothDriving::Accelerate(0, 15.0f),
+																															SmoothDriving::Stop()));
 							break;
 						default:
 							break;
@@ -163,7 +163,6 @@ namespace JAFD
 					}
 				}
 			}
-		*/
 		}
 	}
 }

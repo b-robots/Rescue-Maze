@@ -22,6 +22,7 @@ namespace JAFD
 
 		void timedSensorUpdate(const uint8_t freq)
 		{
+			_fusedData.robotState.wheelSpeeds = MotorControl::getFloatSpeeds();
 			_fusedData.robotState.angularVel = Vec3f((_fusedData.robotState.wheelSpeeds.right - _fusedData.robotState.wheelSpeeds.left) / JAFDSettings::Mechanics::wheelDistance, 0.0f, 0.0f);
 			_fusedData.robotState.rotation += _fusedData.robotState.angularVel / freq;
 			_fusedData.robotState.forwardVel = (_fusedData.robotState.wheelSpeeds.left + _fusedData.robotState.wheelSpeeds.right) / 2.0f;
@@ -43,8 +44,6 @@ namespace JAFD
 
 		void untimedSensorUpdate()
 		{
-			_fusedData.robotState.wheelSpeeds = MotorControl::getFloatSpeeds();
-			
 			DistanceSensors::frontLeft.updateValues();
 			DistanceSensors::frontRight.updateValues();
 			DistanceSensors::frontLong.updateValues();

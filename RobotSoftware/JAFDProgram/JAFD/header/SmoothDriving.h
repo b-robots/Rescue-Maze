@@ -84,7 +84,7 @@ namespace JAFD
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
 
-		class TaskArray
+		class TaskArray : public ITask
 		{
 		private:
 			enum class _TaskType : uint8_t
@@ -109,6 +109,7 @@ namespace JAFD
 			ITask* _taskArray[JAFDSettings::SmoothDriving::maxArrrayedTasks];
 
 			uint8_t _numTasks = 0;
+			uint8_t _currentTaskNum = 0;
 
 		public:
 			TaskArray() = delete;
@@ -211,5 +212,17 @@ namespace JAFD
 		ReturnCode setNewTask<NewStateType::lastEndState>(const Rotate& newTask, const bool forceOverride);
 
 		ReturnCode setNewTask(const Rotate& newTask, RobotState startState, const bool forceOverride = false);
+
+		// Set new TaskArray task
+		template<NewStateType stateType>
+		ReturnCode setNewTask(const TaskArray& newTask, const bool forceOverride = false);
+
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const TaskArray& newTask, const bool forceOverride);
+
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const TaskArray& newTask, const bool forceOverride);
+
+		ReturnCode setNewTask(const TaskArray& newTask, RobotState startState, const bool forceOverride = false);
 	}
 }

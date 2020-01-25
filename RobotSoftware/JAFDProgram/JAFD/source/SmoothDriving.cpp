@@ -30,6 +30,7 @@ namespace JAFD
 				DriveStraight straight;
 				Stop stop;
 				Rotate rotate;
+				TaskArray taskArray;
 
 				_TaskCopies() : stop() {};
 				~_TaskCopies() {}
@@ -378,10 +379,12 @@ namespace JAFD
 
 		// TaskArray class - begin
 
-		TaskArray::TaskArray(const TaskArray& taskArray)
+		TaskArray::TaskArray(const TaskArray& taskArray) : _numTasks(taskArray._numTasks)
 		{
 			for (uint8_t i = 0; i < _numTasks; i++)
 			{
+				_taskTypes[i] = taskArray._taskTypes[i];
+
 				switch (_taskTypes[i])
 				{
 				case _TaskType::accelerate:
@@ -402,42 +405,59 @@ namespace JAFD
 			}
 		}
 
-		TaskArray::TaskArray(const Accelerate& task)
+		TaskArray::TaskArray(const Accelerate& task) : _numTasks(_numTasks + 1)
 		{
 			_taskTypes[_numTasks] = _TaskType::accelerate;
 			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].accelerate)) Accelerate(task);
-			_numTasks++;
 		}
 
-		TaskArray::TaskArray(const DriveStraight& task)
+		TaskArray::TaskArray(const DriveStraight& task) : _numTasks(_numTasks + 1)
 		{
 			_taskTypes[_numTasks] = _TaskType::straight;
 			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].straight)) DriveStraight(task);
-			_numTasks++;
 		}
 
-		TaskArray::TaskArray(const Stop& task)
+		TaskArray::TaskArray(const Stop& task) : _numTasks(_numTasks + 1)
 		{
 			_taskTypes[_numTasks] = _TaskType::accelerate;
 			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].stop)) Stop(task);
-			_numTasks++;
 		}
 
-		TaskArray::TaskArray(const Rotate& task)
+		TaskArray::TaskArray(const Rotate& task) : _numTasks(_numTasks + 1)
 		{
 			_taskTypes[_numTasks] = _TaskType::accelerate;
 			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].rotate)) Rotate(task);
-			_numTasks++;
 		}
 
 		ReturnCode TaskArray::startTask(RobotState startState)
 		{
+			ReturnCode code = ReturnCode::ok;
+			RobotState state = startState;
 
+			for (uint8_t i = 0; i < _numTasks; i++)
+			{
+				if (_taskArray[i]->startTask(state) != ReturnCode::ok)
+				{
+					code = ReturnCode::error;
+				}
+
+				state = _taskArray[i]->getEndState();
+			}
+			
+			return code;
 		}
 
 		WheelSpeeds TaskArray::updateSpeeds(const uint8_t freq)
 		{
-			
+			WheelSpeeds speeds = _taskArray[_currentTaskNum]->updateSpeeds(freq);
+
+			if (_taskArray[_currentTaskNum]->isFinished())
+			{
+				_currentTaskNum++;
+				_taskArray[_currentTaskNum]->startTask(_taskArray[_currentTaskNum - 1]->getEndState());
+			}
+
+			return speeds;
 		}
 
 		// TaskArray class - end
@@ -761,6 +781,83 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.rotate)) Rotate(temp);
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new TaskArray task (use last end state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const TaskArray& newTask, const bool forceOverride)
+		{
+			static RobotState endState;
+			static ReturnCode returnCode;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				endState = static_cast<RobotState>(_currentTask->getEndState());
+
+				TaskArray temp = newTask;
+				returnCode = temp.startTask(endState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.taskArray)) TaskArray(temp);
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new TaskArray task (use current state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const TaskArray& newTask, const bool forceOverride)
+		{
+			static ReturnCode returnCode;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				TaskArray temp = newTask;
+				returnCode = temp.startTask(SensorFusion::getFusedData().robotState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.taskArray)) TaskArray(temp);
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new TaskArray task (use specified state to start)
+		ReturnCode setNewTask(const TaskArray& newTask, RobotState startState, const bool forceOverride)
+		{
+			static ReturnCode returnCode;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				TaskArray temp = newTask;
+				returnCode = temp.startTask(startState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.taskArray)) TaskArray(temp);
 				}
 			}
 
