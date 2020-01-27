@@ -444,6 +444,8 @@ namespace JAFD
 				state = _taskArray[i]->getEndState();
 			}
 			
+			_endState = state;
+
 			return code;
 		}
 
