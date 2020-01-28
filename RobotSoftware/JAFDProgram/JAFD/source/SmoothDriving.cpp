@@ -379,6 +379,8 @@ namespace JAFD
 
 		TaskArray::TaskArray(const TaskArray& taskArray) : ITask(), _numTasks(taskArray._numTasks), _currentTaskNum(taskArray._numTasks - 1)
 		{
+			_endState = taskArray._endState;
+
 			for (uint8_t i = 0; i < _numTasks; i++)
 			{
 				_taskTypes[i] = taskArray._taskTypes[i];
@@ -444,14 +446,19 @@ namespace JAFD
 			{
 				if (_taskArray[i]->startTask(state) != ReturnCode::ok)
 				{
+					Serial.println(i);
 					code = ReturnCode::error;
+				}
+				else
+				{
+					Serial.println("ok");
 				}
 
 				state = _taskArray[i]->getEndState();
 			}
 
 			_endState = state;
-
+			
 			return code;
 		}
 

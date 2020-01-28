@@ -38,7 +38,27 @@ void setup()
 
 // The loop function runs over and over again until power down or reset
 void loop()
-{	
+{
+	static int i = 0;
+
+	if (isTaskFinished())
+	{
+		if (i % 2)
+		{
+			Serial.println("set1");
+			//Serial.println((uint8_t)setNewTask<NewStateType::lastEndState>(TaskArray(Accelerate(0, 50.0f))));
+			Serial.println("set2");
+		}
+		else
+		{
+			Serial.println("set1");
+			Serial.println((uint8_t)setNewTask<NewStateType::lastEndState>(TaskArray(Accelerate(50, 50.0f))));
+			Serial.println("set2");
+		}
+
+		i++;
+	}
+
 	JAFD::robotLoop();
 
 	delay(100);
