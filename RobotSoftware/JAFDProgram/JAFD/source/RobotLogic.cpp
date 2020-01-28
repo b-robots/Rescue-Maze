@@ -16,7 +16,7 @@ namespace JAFD
 		{
 			static GridCell cell;
 			static HeadingDirection relativeTurnDir;
-
+			
 			if (SensorFusion::getFusedData().gridCellCertainty >= 0.5f)
 			{
 				if (SmoothDriving::isTaskFinished())
@@ -106,32 +106,33 @@ namespace JAFD
 					switch (relativeTurnDir)
 					{
 					case HeadingDirection::north:
-						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
+						SmoothDriving::setNewTask<SmoothDriving::NewStateType::currentState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
 																														SmoothDriving::Accelerate(30, 15.0f),
 																														SmoothDriving::Accelerate(0, 15.0f),
 																														SmoothDriving::Stop()));
+
 						break;
 					case HeadingDirection::east:
-						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
+						/*SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
 																														SmoothDriving::Rotate(5, 90.0f),
 																														SmoothDriving::Accelerate(30, 15.0f),
 																														SmoothDriving::Accelerate(0, 15.0f),
 																														SmoothDriving::Stop()));
-						break;
+						*/break;
 					case HeadingDirection::south:
-						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
+						/*SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
 																														SmoothDriving::Rotate(5, 180.0f),
 																														SmoothDriving::Accelerate(30, 15.0f),
 																														SmoothDriving::Accelerate(0, 15.0f),
 																														SmoothDriving::Stop()));
-						break;
+						*/break;
 					case HeadingDirection::west:
-						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
+						/*SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
 																														SmoothDriving::Rotate(-5, -90.0f),
 																														SmoothDriving::Accelerate(30, 15.0f),
 																														SmoothDriving::Accelerate(0, 15.0f),
 																														SmoothDriving::Stop()));
-						break;
+						*/break;
 					default:
 						break;
 					}

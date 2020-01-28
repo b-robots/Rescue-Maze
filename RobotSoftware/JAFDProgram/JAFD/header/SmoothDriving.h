@@ -109,7 +109,7 @@ namespace JAFD
 			ITask* _taskArray[JAFDSettings::SmoothDriving::maxArrrayedTasks];
 
 			uint8_t _numTasks = 0;
-			uint8_t _currentTaskNum = 0;
+			int16_t _currentTaskNum = 0;
 
 		public:
 			TaskArray() = delete;

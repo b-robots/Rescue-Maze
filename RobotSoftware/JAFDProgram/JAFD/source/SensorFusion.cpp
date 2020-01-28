@@ -31,11 +31,11 @@ namespace JAFD
 			_fusedData.robotState.mapCoordinate.y = _fusedData.robotState.position.y * 2.0f / JAFDSettings::Field::cellWidth;
 			_fusedData.robotState.mapCoordinate.floor = 0;
 
-			float positiveAngle = _fusedData.robotState.rotation.x;
+			float positiveAngle = RAD_TO_DEG * _fusedData.robotState.rotation.x;
 
 			while (positiveAngle < 0.0f) positiveAngle += 360.0f;
 			while (positiveAngle > 360.0f) positiveAngle -= 360.0f;
-
+			
 			if (_fusedData.robotState.rotation.x > 315.0f || _fusedData.robotState.rotation.x < 45.0f) _fusedData.heading = HeadingDirection::north;
 			else if (_fusedData.robotState.rotation.x > 45.0f && _fusedData.robotState.rotation.x < 135.0f) _fusedData.heading = HeadingDirection::east;
 			else if (_fusedData.robotState.rotation.x > 135.0f && _fusedData.robotState.rotation.x < 225.0f) _fusedData.heading = HeadingDirection::south;
@@ -44,14 +44,14 @@ namespace JAFD
 
 		void untimedSensorUpdate()
 		{
-			DistanceSensors::frontLeft.updateValues();
-			DistanceSensors::frontRight.updateValues();
-			DistanceSensors::frontLong.updateValues();
-			DistanceSensors::backLong.updateValues();
-			DistanceSensors::leftFront.updateValues();
-			DistanceSensors::leftBack.updateValues();
-			DistanceSensors::rightFront.updateValues();
-			DistanceSensors::rightBack.updateValues();
+			//DistanceSensors::frontLeft.updateValues();
+			//DistanceSensors::frontRight.updateValues();
+			//DistanceSensors::frontLong.updateValues();
+			//DistanceSensors::backLong.updateValues();
+			//DistanceSensors::leftFront.updateValues();
+			//DistanceSensors::leftBack.updateValues();
+			//DistanceSensors::rightFront.updateValues();
+			//DistanceSensors::rightBack.updateValues();
 
 			MazeMapping::updateCurrentCell(_fusedData.gridCellCertainty, _fusedData.gridCell);
 		}

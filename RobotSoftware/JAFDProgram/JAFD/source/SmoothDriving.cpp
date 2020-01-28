@@ -357,8 +357,6 @@ namespace JAFD
 				desAngularVel = _maxAngularVel - sqrtf(4.0f * abs((rotatedAngle - _angle / 2.0f) * _maxAngularVel) / _totalTime) * sgn(_maxAngularVel);
 			}
 
-			Serial.println(desAngularVel);
-
 			// Kind of PID - controller
 			correctedAngularVel = desAngularVel * 0.8 + _angularVelPID.process(desAngularVel, SensorFusion::getFusedData().robotState.angularVel.x, 1.0f / freq);
 
@@ -379,7 +377,7 @@ namespace JAFD
 
 		// TaskArray class - begin
 
-		TaskArray::TaskArray(const TaskArray& taskArray) : _numTasks(taskArray._numTasks)
+		TaskArray::TaskArray(const TaskArray& taskArray) : ITask(), _numTasks(taskArray._numTasks), _currentTaskNum(taskArray._numTasks - 1)
 		{
 			for (uint8_t i = 0; i < _numTasks; i++)
 			{
@@ -405,28 +403,36 @@ namespace JAFD
 			}
 		}
 
-		TaskArray::TaskArray(const Accelerate& task) : _numTasks(_numTasks + 1)
+		TaskArray::TaskArray(const Accelerate& task) : ITask()
 		{
 			_taskTypes[_numTasks] = _TaskType::accelerate;
 			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].accelerate)) Accelerate(task);
+			_currentTaskNum = _numTasks;
+			_numTasks++;
 		}
 
-		TaskArray::TaskArray(const DriveStraight& task) : _numTasks(_numTasks + 1)
+		TaskArray::TaskArray(const DriveStraight& task) : ITask()
 		{
 			_taskTypes[_numTasks] = _TaskType::straight;
 			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].straight)) DriveStraight(task);
+			_currentTaskNum = _numTasks;
+			_numTasks++;
 		}
 
-		TaskArray::TaskArray(const Stop& task) : _numTasks(_numTasks + 1)
+		TaskArray::TaskArray(const Stop& task) : ITask()
 		{
-			_taskTypes[_numTasks] = _TaskType::accelerate;
+			_taskTypes[_numTasks] = _TaskType::stop;
 			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].stop)) Stop(task);
+			_currentTaskNum = _numTasks;
+			_numTasks++;
 		}
 
-		TaskArray::TaskArray(const Rotate& task) : _numTasks(_numTasks + 1)
+		TaskArray::TaskArray(const Rotate& task) : ITask()
 		{
-			_taskTypes[_numTasks] = _TaskType::accelerate;
+			_taskTypes[_numTasks] = _TaskType::rotate;
 			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].rotate)) Rotate(task);
+			_currentTaskNum = _numTasks;
+			_numTasks++;
 		}
 
 		ReturnCode TaskArray::startTask(RobotState startState)
@@ -434,7 +440,7 @@ namespace JAFD
 			ReturnCode code = ReturnCode::ok;
 			RobotState state = startState;
 
-			for (uint8_t i = 0; i < _numTasks; i++)
+			for (int16_t i = _numTasks - 1; i >= 0; i--)
 			{
 				if (_taskArray[i]->startTask(state) != ReturnCode::ok)
 				{
@@ -443,7 +449,7 @@ namespace JAFD
 
 				state = _taskArray[i]->getEndState();
 			}
-			
+
 			_endState = state;
 
 			return code;
@@ -455,8 +461,15 @@ namespace JAFD
 
 			if (_taskArray[_currentTaskNum]->isFinished())
 			{
-				_currentTaskNum++;
-				_taskArray[_currentTaskNum]->startTask(_taskArray[_currentTaskNum - 1]->getEndState());
+				_currentTaskNum--;
+
+				if (_currentTaskNum < 0)
+				{
+					_finished = true;
+					return speeds;
+				}
+
+				_taskArray[_currentTaskNum]->startTask(_taskArray[_currentTaskNum + 1]->getEndState());
 			}
 
 			return speeds;
