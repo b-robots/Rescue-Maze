@@ -55,6 +55,7 @@ void TC4_Handler()
 	{
 		// 20Hz:
 		JAFD::SensorFusion::timedSensorUpdate(20);
+		JAFD::SmoothDriving::updateSpeeds(20);
 
 		if (i % 10 == 0)
 		{
@@ -65,7 +66,6 @@ void TC4_Handler()
 			if (i % 20 == 0)
 			{
 				// 5Hz:
-				JAFD::SmoothDriving::updateSpeeds(5);
 
 				if (i % 100 == 0)
 				{

@@ -337,7 +337,14 @@ namespace JAFD
 
 			lastPosition = MapCoordinate(SensorFusion::getFusedData().robotState.mapCoordinate);
 
-			tempCell.cellConnections = Direction::north;
+			if (SensorFusion::getFusedData().robotState.mapCoordinate.x % 2)
+			{
+				tempCell.cellConnections = Direction::south;
+			}
+			else
+			{
+				tempCell.cellConnections = Direction::north;
+			}
 
 			/*if (DistanceSensors::frontLong.getDistance() > 30.0f - JAFDSettings::Mechanics::sensorFrontBackDist)
 			{

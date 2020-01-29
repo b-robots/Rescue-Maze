@@ -23,7 +23,7 @@ namespace JAFDSettings
 	namespace Mechanics
 	{
 		constexpr float wheelDiameter = 8.0f;
-		constexpr float wheelDistance = 15.0f;
+		constexpr float wheelDistance = 15.5f;
 		constexpr float sensorLeftRightDist = 17.0f;
 		constexpr float sensorFrontBackDist = 16.0f;
 	}
@@ -37,7 +37,7 @@ namespace JAFDSettings
 	{
 		constexpr float cmPSToPerc = 0.0075f;			// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed. It is ideal for about 100cm/s)
 
-		constexpr int16_t minSpeed = 15;				// Minimum speed for motor to rotate
+		constexpr int16_t minSpeed = 10;				// Minimum speed for motor to rotate
 
 		constexpr float pulsePerRev = 11.0f * 34.0f;	// Rotary-Encoder pulses per revolution
 
@@ -64,7 +64,7 @@ namespace JAFDSettings
 	{
 		namespace Motor
 		{
-			constexpr JAFD::PIDSettings pidSettings(0.85f, 5.5f, 0.08f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
+			constexpr JAFD::PIDSettings pidSettings(0.9f, 5.7f, 0.09f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
 		}
 
 		namespace PurePursuit
