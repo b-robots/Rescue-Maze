@@ -165,8 +165,21 @@ namespace JAFD
 			output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
 
 			// Correct speed if it is too low 
-			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed) output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
-			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed) output.right = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed)
+			{
+				_forwardVelPID.reset();
+				_angularVelPID.reset();
+
+				output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			}
+
+			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed)
+			{
+				_forwardVelPID.reset();
+				_angularVelPID.reset();
+
+				output.right = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			}
 			
 			return output;
 		}
@@ -261,8 +274,21 @@ namespace JAFD
 			output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
 
 			// Correct speed if it is too low 
-			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed) output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
-			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed) output.right = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed)
+			{
+				_forwardVelPID.reset();
+				_angularVelPID.reset();
+
+				output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			}
+
+			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed)
+			{
+				_forwardVelPID.reset();
+				_angularVelPID.reset();
+
+				output.right = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			}
 
 			return output;
 		}
@@ -351,7 +377,10 @@ namespace JAFD
 				// w(t) = w_max * 2 * t / t_ges => a(t) = w_max * t^2 / t_ges => t(a) = sqrt(a * t_ges / w_max); w(a) = w_max * 2 * sqrt(a * t_ges / w_max) / t_ges = sqrt(4 * a * w_max / t_ges)
 				desAngularVel = sqrtf(4.0f * fabs(rotatedAngle * _maxAngularVel) / _totalTime) * sgn(_maxAngularVel);
 
-				if (fabs(rotatedAngle) >= fabs(_angle) / 2.0f) _accelerate = false;
+				if (fabs(rotatedAngle) >= fabs(_angle) / 2.0f)
+				{
+					_accelerate = false;
+				}
 			}
 			else
 			{
@@ -367,6 +396,7 @@ namespace JAFD
 			// Correct speed if it is too low
 			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed)
 			{
+				_angularVelPID.reset();
 				output.right = JAFDSettings::MotorControl::minSpeed * sgn(_angle);
 				output.left = -output.right;
 			}
@@ -463,8 +493,21 @@ namespace JAFD
 			output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
 
 			// Correct speed if it is too low 
-			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed) output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
-			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed) output.right = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed)
+			{
+				_forwardVelPID.reset();
+				_angularVelPID.reset();
+
+				output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			}
+
+			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed)
+			{
+				_forwardVelPID.reset();
+				_angularVelPID.reset();
+
+				output.right = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			}
 
 			return output;
 		}

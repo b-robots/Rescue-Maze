@@ -40,6 +40,4 @@ void setup()
 void loop()
 {
 	JAFD::robotLoop();
-
-	delay(200);
 }

@@ -108,28 +108,28 @@ namespace JAFD
 					{
 					case HeadingDirection::north:
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
-																														SmoothDriving::Accelerate(30, 15.0f),
+																														SmoothDriving::Accelerate(20, 15.0f),
 																														SmoothDriving::Accelerate(0, 15.0f),
 																														SmoothDriving::Stop()));
 						break;
 					case HeadingDirection::east:
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
-																														SmoothDriving::Rotate(-3, -270.0f),
-																														SmoothDriving::Accelerate(30, 15.0f),
+																														SmoothDriving::Rotate(-2.0f, -115.0f),
+																														SmoothDriving::Accelerate(20, 15.0f),
 																														SmoothDriving::Accelerate(0, 15.0f),
 																														SmoothDriving::Stop()));
 						break;
 					case HeadingDirection::south:
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
-																														SmoothDriving::Rotate(3, 180.0f),
-																														SmoothDriving::Accelerate(30, 15.0f),
+																														SmoothDriving::Rotate(3.0f, 225.0f),
+																														SmoothDriving::Accelerate(20, 15.0f),
 																														SmoothDriving::Accelerate(0, 15.0f),
 																														SmoothDriving::Stop()));
 						break;
 					case HeadingDirection::west:
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
-																														SmoothDriving::Rotate(3, 270.0f),
-																														SmoothDriving::Accelerate(30, 15.0f),
+																														SmoothDriving::Rotate(2.0f, 115.0f),
+																														SmoothDriving::Accelerate(20, 15.0f),
 																														SmoothDriving::Accelerate(0, 15.0f),
 																														SmoothDriving::Stop()));
 						break;

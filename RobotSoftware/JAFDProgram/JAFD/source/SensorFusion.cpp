@@ -37,9 +37,9 @@ namespace JAFD
 			while (positiveAngle > 360.0f) positiveAngle -= 360.0f;
 
 			if (positiveAngle > 315.0f || positiveAngle < 45.0f) _fusedData.heading = HeadingDirection::north;
-			else if (positiveAngle > 45.0f && positiveAngle < 135.0f) _fusedData.heading = HeadingDirection::east;
+			else if (positiveAngle > 45.0f && positiveAngle < 135.0f) _fusedData.heading = HeadingDirection::west;
 			else if (positiveAngle > 135.0f && positiveAngle < 225.0f) _fusedData.heading = HeadingDirection::south;
-			else _fusedData.heading = HeadingDirection::west;
+			else _fusedData.heading = HeadingDirection::east;
 		}
 
 		void untimedSensorUpdate()

@@ -337,13 +337,21 @@ namespace JAFD
 
 			lastPosition = MapCoordinate(SensorFusion::getFusedData().robotState.mapCoordinate);
 
-			if (SensorFusion::getFusedData().robotState.mapCoordinate.x % 2)
+			if ((MapCoordinate)SensorFusion::getFusedData().robotState.mapCoordinate == homePosition)
+			{
+				tempCell.cellConnections = Direction::north;
+			}
+			else if ((MapCoordinate)SensorFusion::getFusedData().robotState.mapCoordinate == MapCoordinate{1, 0, 0})
+			{
+				tempCell.cellConnections = Direction::east;
+			}
+			else if ((MapCoordinate)SensorFusion::getFusedData().robotState.mapCoordinate == MapCoordinate{ 1, -1, 0 })
 			{
 				tempCell.cellConnections = Direction::south;
 			}
-			else
+			else if ((MapCoordinate)SensorFusion::getFusedData().robotState.mapCoordinate == MapCoordinate{ 0, -1, 0 })
 			{
-				tempCell.cellConnections = Direction::north;
+				tempCell.cellConnections = Direction::west;
 			}
 
 			/*if (DistanceSensors::frontLong.getDistance() > 30.0f - JAFDSettings::Mechanics::sensorFrontBackDist)
