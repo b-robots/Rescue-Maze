@@ -104,12 +104,12 @@ namespace JAFD
 		{
 			_distance = _sensor.getDistance();
 			
-			if (_sensor.getState() != MEASUREMENT_OK)
-			{
-				_status = Status::unknownError;
-				Serial.println("Fehler");
-			}
-			else
+			//if (_sensor.getState() != MEASUREMENT_OK)
+			//{
+			//	_status = Status::unknownError;
+			//	Serial.println("Fehler");
+			//}
+			//else
 			{
 				_status = Status::noError;
 			}
@@ -135,6 +135,8 @@ namespace JAFD
 		VL6180 leftBack;
 		VL6180 rightFront;
 		VL6180 rightBack;
+		VL6180 packsRight;
+		VL6180 packsLeft;
 
 		ReturnCode setup()
 		{

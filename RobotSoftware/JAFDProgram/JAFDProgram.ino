@@ -5,6 +5,7 @@
 */
 
 #if defined(ARDUINO) && ARDUINO >= 100
+#include <Servo.h>
 #include "arduino.h"
 #else
 #include "WProgram.h"
@@ -19,6 +20,7 @@
 #include "JAFD/header/AllDatatypes.h"
 #include "JAFD/header/SensorFusion.h"
 #include "JAFD/header/DistanceSensors.h"
+#include "JAFD/header/Dispenser.h"
 
 using namespace JAFD::MazeMapping;
 using namespace JAFD::MotorControl;
@@ -39,12 +41,8 @@ void setup()
 // The loop function runs over and over again until power down or reset
 void loop()
 {
-	frontLeft.updateValues();
-	frontLong.updateValues();
-
-	Serial.print(frontLeft.getStatus() == Status::noError ? frontLeft.getDistance() : -1.0f);
-	Serial.print(", ");
-	Serial.println(frontLong.getStatus() == Status::noError ? frontLong.getDistance() : -1.0f);
+	//Pin 39
+	Dispenser::dispenseLeft(3);
 
 	JAFD::robotLoop();
 

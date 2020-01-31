@@ -81,7 +81,18 @@ namespace JAFDSettings
 
 	namespace Dispenser
 	{
-
+		namespace left
+		{
+			constexpr float  startDYC = 0.06f; // duty cylce for start
+			constexpr float  endDYC = 0.09f; // duty cylce for start
+			constexpr uint8_t servoPinLeft = 39;
+		}
+		namespace right
+		{
+			constexpr float  startDYC = 0.06f; // duty cylce for start
+			constexpr float  endDYC = 0.09f; // duty cylce for start
+			constexpr uint8_t servoPinRight = 41;
+		}
 	}
 
 	namespace DistanceSensors

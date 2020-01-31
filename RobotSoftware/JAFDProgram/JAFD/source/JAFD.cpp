@@ -26,34 +26,36 @@ namespace JAFD
 		SPI.beginTransaction(SPISettings(10e+6, MSBFIRST, SPI_MODE0));
 
 		PMC->PMC_PCER0 = 1 << ID_PIOA | 1 << ID_PIOB | 1 << ID_PIOC | 1 << ID_PIOD;
+		PMC->PMC_PCER1 = PMC_PCER1_PID36;
 
-		// Setup TC3 for an interrupt every ms -> 1kHz (MCK / 32 / 2625)
-		PMC->PMC_PCER0 = 1 << ID_TC3;
+		// Setup PWM clock
+		PWM->PWM_CLK = PWM_CLK_PREA(0) | PWM_CLK_DIVA(1) | PWM_CLK_PREB(0b111) | PWM_CLK_DIVB(1);
 
-		TC1->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK3 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;
-		TC1->TC_CHANNEL[0].TC_RC = 2625;
+		// Setup TC6 for an interrupt every ms -> 1kHz (MCK / 32 / 2625)
+		PMC->PMC_PCER0 = 1 << ID_TC6;
 
-		TC1->TC_CHANNEL[0].TC_IER = TC_IER_CPCS;
-		TC1->TC_CHANNEL[0].TC_IDR = ~TC_IER_CPCS;
+		TC2->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK3 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;
+		TC2->TC_CHANNEL[0].TC_RC = 2625;
 
-		NVIC_EnableIRQ(TC3_IRQn);
+		TC2->TC_CHANNEL[0].TC_IER = TC_IER_CPCS;
+		TC2->TC_CHANNEL[0].TC_IDR = ~TC_IER_CPCS;
 
-		TC1->TC_CHANNEL[0].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
+		NVIC_EnableIRQ(TC6_IRQn);
 
-		// Setup TC4 for an interrupt every 10ms -> 100Hz (MCK / 32 / 26250)
-		PMC->PMC_PCER0 = 1 << ID_TC4;
+		TC2->TC_CHANNEL[0].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
 
-		TC1->TC_CHANNEL[1].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK3 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;
-		TC1->TC_CHANNEL[1].TC_RC = 26250;
+		// Setup TC7 for an interrupt every 10ms -> 100Hz (MCK / 32 / 26250)
+		PMC->PMC_PCER0 = 1 << ID_TC7;
 
-		TC1->TC_CHANNEL[1].TC_IER = TC_IER_CPCS;
-		TC1->TC_CHANNEL[1].TC_IDR = ~TC_IER_CPCS;
+		TC2->TC_CHANNEL[1].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK3 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;
+		TC2->TC_CHANNEL[1].TC_RC = 26250;
 
-		NVIC_EnableIRQ(TC4_IRQn);
+		TC2->TC_CHANNEL[1].TC_IER = TC_IER_CPCS;
+		TC2->TC_CHANNEL[1].TC_IDR = ~TC_IER_CPCS;
 
-		TC1->TC_CHANNEL[1].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
+		NVIC_EnableIRQ(TC7_IRQn);
 
-		// INIT Distance Sensors
+		TC2->TC_CHANNEL[1].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
 
 		// Setup of MazeMapper
 		if (MazeMapping::setup() != ReturnCode::ok)
@@ -64,7 +66,7 @@ namespace JAFD
 		// Setup of Dispenser
 		if (Dispenser::setup() != ReturnCode::ok)
 		{
-
+			Serial.println("Error!!");
 		}
 
 		// Setup of Motor Control
@@ -82,7 +84,7 @@ namespace JAFD
 		// Setup of Distance Sensors
 		if (DistanceSensors::setup() != ReturnCode::ok)
 		{
-			Serial.println("Error!!");
+
 		}
 
 		return;
