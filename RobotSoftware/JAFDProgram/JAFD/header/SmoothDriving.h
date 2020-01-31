@@ -84,6 +84,19 @@ namespace JAFD
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
 
+		class ForceSpeed : public ITask
+		{
+		private:
+			int16_t _speeds;					// Speeds of both wheels
+			float _distance;					// Distance the robot has to travel
+			Vec2f _targetDir;					// Target direction (guranteed to be normalized)
+			Vec2f _startPos;					// Start position
+		public:
+			explicit ForceSpeed(int16_t speed = 0, float distance = 0);
+			ReturnCode startTask(RobotState startState);
+			WheelSpeeds updateSpeeds(const uint8_t freq);
+		};
+
 		class TaskArray : public ITask
 		{
 		private:
@@ -92,7 +105,8 @@ namespace JAFD
 				accelerate,
 				straight,
 				stop,
-				rotate
+				rotate,
+				forceSpeed
 			} _taskTypes[JAFDSettings::SmoothDriving::maxArrrayedTasks];
 
 			union _TaskCopies
@@ -101,6 +115,7 @@ namespace JAFD
 				DriveStraight straight;
 				Stop stop;
 				Rotate rotate;
+				ForceSpeed forceSpeed;
 
 				_TaskCopies() : stop() {};
 				~_TaskCopies() {}
@@ -120,6 +135,7 @@ namespace JAFD
 			TaskArray(const DriveStraight& task);
 			TaskArray(const Stop& task);
 			TaskArray(const Rotate& task);
+			TaskArray(const ForceSpeed& task);
 
 			// Uses SFINAE to prohibit more than maximum arguments.
 			template<typename ...Rest, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rest)]>
@@ -154,6 +170,15 @@ namespace JAFD
 			{
 				_taskTypes[_numTasks] = _TaskType::rotate;
 				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].rotate)) Rotate(task);
+				_numTasks++;
+			}
+
+			// Uses SFINAE to prohibit more than maximum arguments.
+			template<typename ...Rest, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rest)]>
+			TaskArray(const ForceSpeed& task, const Rest&... rest) : TaskArray(rest...)
+			{
+				_taskTypes[_numTasks] = _TaskType::forceSpeed;
+				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].forceSpeed)) ForceSpeed(task);
 				_numTasks++;
 			}
 
@@ -212,6 +237,19 @@ namespace JAFD
 		ReturnCode setNewTask<NewStateType::lastEndState>(const Rotate& newTask, const bool forceOverride);
 
 		ReturnCode setNewTask(const Rotate& newTask, RobotState startState, const bool forceOverride = false);
+
+		// Set new ForceSpeed task
+		template<NewStateType stateType>
+		ReturnCode setNewTask(const ForceSpeed& newTask, const bool forceOverride = false);
+
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const ForceSpeed& newTask, const bool forceOverride);
+
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const ForceSpeed& newTask, const bool forceOverride);
+
+		ReturnCode setNewTask(const ForceSpeed& newTask, RobotState startState, const bool forceOverride = false);
+
 
 		// Set new TaskArray task
 		template<NewStateType stateType>

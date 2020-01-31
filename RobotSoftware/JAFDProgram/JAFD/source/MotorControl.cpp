@@ -173,8 +173,8 @@ namespace JAFD
 			static FloatWheelSpeeds lastSpeeds;
 
 			// Calculate speeds and apply 
-			_speeds.left = ((_lEncCnt - lastLeftCnt) / (JAFDSettings::MotorControl::pulsePerRev) * JAFDSettings::Mechanics::wheelDiameter * PI * freq) * 0.95f + lastSpeeds.left * 0.05f;
-			_speeds.right = ((_rEncCnt - lastRightCnt) / (JAFDSettings::MotorControl::pulsePerRev) * JAFDSettings::Mechanics::wheelDiameter * PI * freq) * 0.95f + lastSpeeds.right * 0.05f;
+			_speeds.left = ((_lEncCnt - lastLeftCnt) / (JAFDSettings::MotorControl::pulsePerRev) * JAFDSettings::Mechanics::wheelDiameter * PI * freq);
+			_speeds.right = ((_rEncCnt - lastRightCnt) / (JAFDSettings::MotorControl::pulsePerRev) * JAFDSettings::Mechanics::wheelDiameter * PI * freq);
 
 			lastLeftCnt = _lEncCnt;
 			lastRightCnt = _rEncCnt;
@@ -213,7 +213,6 @@ namespace JAFD
 			
 				setSpeed.right *= _cmPSToPerc;
 			}
-
 
 			// Set left dir pin
 			if (setSpeed.left > 0.0f)
@@ -269,11 +268,11 @@ namespace JAFD
 			{
 				if (_lEncB.port->PIO_PDSR & _lEncB.pin)
 				{
-					_lEncCnt++;
+					_lEncCnt--;
 				}
 				else
 				{
-					_lEncCnt--;
+					_lEncCnt++;
 				}
 			}
 
@@ -281,11 +280,11 @@ namespace JAFD
 			{
 				if (_rEncB.port->PIO_PDSR & _rEncB.pin)
 				{
-					_rEncCnt++;
+					_rEncCnt--;
 				}
 				else
 				{
-					_rEncCnt--;
+					_rEncCnt++;
 				}
 			}
 		}

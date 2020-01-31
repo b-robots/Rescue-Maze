@@ -104,38 +104,38 @@ namespace JAFD
 						}
 					}
 
-					//switch (relativeTurnDir)
-					//{
-					//case HeadingDirection::north:
-					//	SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
-					//																									SmoothDriving::Accelerate(30, 15.0f),
-					//																									SmoothDriving::Accelerate(0, 15.0f),
-					//																									SmoothDriving::Stop()));
-					//	break;
-					//case HeadingDirection::east:
-					//	SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
-					//																									SmoothDriving::Rotate(-3, -270.0f),
-					//																									SmoothDriving::Accelerate(30, 15.0f),
-					//																									SmoothDriving::Accelerate(0, 15.0f),
-					//																									SmoothDriving::Stop()));
-					//	break;
-					//case HeadingDirection::south:
-					//	SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
-					//																									SmoothDriving::Rotate(3, 180.0f),
-					//																									SmoothDriving::Accelerate(30, 15.0f),
-					//																									SmoothDriving::Accelerate(0, 15.0f),
-					//																									SmoothDriving::Stop()));
-					//	break;
-					//case HeadingDirection::west:
-					//	SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
-					//																									SmoothDriving::Rotate(3, 270.0f),
-					//																									SmoothDriving::Accelerate(30, 15.0f),
-					//																									SmoothDriving::Accelerate(0, 15.0f),
-					//																									SmoothDriving::Stop()));
-					//	break;
-					//default:
-					//	break;
-					//}
+					switch (relativeTurnDir)
+					{
+					case HeadingDirection::north:
+						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
+																														SmoothDriving::Accelerate(30, 15.0f),
+																														SmoothDriving::Accelerate(0, 15.0f),
+																														SmoothDriving::Stop()));
+						break;
+					case HeadingDirection::east:
+						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
+																														SmoothDriving::Rotate(-3, -270.0f),
+																														SmoothDriving::Accelerate(30, 15.0f),
+																														SmoothDriving::Accelerate(0, 15.0f),
+																														SmoothDriving::Stop()));
+						break;
+					case HeadingDirection::south:
+						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
+																														SmoothDriving::Rotate(3, 180.0f),
+																														SmoothDriving::Accelerate(30, 15.0f),
+																														SmoothDriving::Accelerate(0, 15.0f),
+																														SmoothDriving::Stop()));
+						break;
+					case HeadingDirection::west:
+						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
+																														SmoothDriving::Rotate(3, 270.0f),
+																														SmoothDriving::Accelerate(30, 15.0f),
+																														SmoothDriving::Accelerate(0, 15.0f),
+																														SmoothDriving::Stop()));
+						break;
+					default:
+						break;
+					}
 				}
 			}
 		}

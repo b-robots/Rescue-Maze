@@ -41,10 +41,5 @@ void loop()
 {
 	JAFD::robotLoop();
 
-	if (isTaskFinished())
-	{
-		setNewTask<NewStateType::lastEndState>(TaskArray(Rotate(3.0f, 180.0f), Stop(), Rotate(-3.0f, -180.0f), Stop()));
-	}
-
-	delay(400);
+	delay(200);
 }
