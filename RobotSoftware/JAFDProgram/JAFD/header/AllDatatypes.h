@@ -143,6 +143,104 @@ namespace JAFD
 		west
 	};
 	
+	// Relative direction for robot
+	enum class RelativeDir : uint8_t
+	{
+		forward,
+		backward,
+		left,
+		right
+	};
+
+	RelativeDir makeRelative(const HeadingDirection absoluteDir, const HeadingDirection heading)
+	{
+		switch (absoluteDir)
+		{
+		case HeadingDirection::north:
+		{
+			switch (heading)
+			{
+			case HeadingDirection::north:
+				return RelativeDir::forward;
+				break;
+			case HeadingDirection::east:
+				return RelativeDir::left;
+				break;
+			case HeadingDirection::south:
+				return RelativeDir::backward;
+				break;
+			case HeadingDirection::west:
+				return RelativeDir::right;
+				break;
+			default:
+				break;
+			}
+		}
+		case HeadingDirection::east:
+		{
+			switch (heading)
+			{
+			case HeadingDirection::north:
+				return RelativeDir::right;
+				break;
+			case HeadingDirection::east:
+				return RelativeDir::forward;
+				break;
+			case HeadingDirection::south:
+				return RelativeDir::left;
+				break;
+			case HeadingDirection::west:
+				return RelativeDir::backward;
+				break;
+			default:
+				break;
+			}
+		}
+		case HeadingDirection::south:
+		{
+			switch (heading)
+			{
+			case HeadingDirection::north:
+				return RelativeDir::backward;
+				break;
+			case HeadingDirection::east:
+				return RelativeDir::right;
+				break;
+			case HeadingDirection::south:
+				return RelativeDir::forward;
+				break;
+			case HeadingDirection::west:
+				return RelativeDir::left;
+				break;
+			default:
+				break;
+			}
+		}
+		case HeadingDirection::west:
+		{
+			switch (heading)
+			{
+			case HeadingDirection::north:
+				return RelativeDir::left;
+				break;
+			case HeadingDirection::east:
+				return RelativeDir::backward;
+				break;
+			case HeadingDirection::south:
+				return RelativeDir::right;
+				break;
+			case HeadingDirection::west:
+				return RelativeDir::forward;
+				break;
+			default:
+				break;
+			}
+		}
+		default:
+			break;
+		}
+	}
+
 	// State of robot
 	struct RobotState
 	{

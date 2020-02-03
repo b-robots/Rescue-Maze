@@ -15,7 +15,7 @@ namespace JAFD
 		void loop()
 		{
 			static GridCell cell;
-			static HeadingDirection relativeTurnDir;
+			static RelativeDir relativeTurnDir;
 			
 			if (SensorFusion::getFusedData().gridCellCertainty >= 0.5f)
 			{
@@ -25,110 +25,46 @@ namespace JAFD
 
 					if (cell.cellConnections & Direction::north)
 					{
-						switch (SensorFusion::getFusedData().heading)
-						{
-						case HeadingDirection::north:
-							relativeTurnDir = HeadingDirection::north;
-							break;
-						case HeadingDirection::east:
-							relativeTurnDir = HeadingDirection::east;
-							break;
-						case HeadingDirection::south:
-							relativeTurnDir = HeadingDirection::south;
-							break;
-						case HeadingDirection::west:
-							relativeTurnDir = HeadingDirection::west;
-							break;
-						default:
-							break;
-						}
+						relativeTurnDir = makeRelative(HeadingDirection::north, SensorFusion::getFusedData().heading);
 					}
 					else if (cell.cellConnections & Direction::east)
 					{
-						switch (SensorFusion::getFusedData().heading)
-						{
-						case HeadingDirection::north:
-							relativeTurnDir = HeadingDirection::east;
-							break;
-						case HeadingDirection::east:
-							relativeTurnDir = HeadingDirection::north;
-							break;
-						case HeadingDirection::south:
-							relativeTurnDir = HeadingDirection::west;
-							break;
-						case HeadingDirection::west:
-							relativeTurnDir = HeadingDirection::south;
-							break;
-						default:
-							break;
-						}
+						relativeTurnDir = makeRelative(HeadingDirection::east, SensorFusion::getFusedData().heading);
 					}
 					else if (cell.cellConnections & Direction::south)
 					{
-						switch (SensorFusion::getFusedData().heading)
-						{
-						case HeadingDirection::north:
-							relativeTurnDir = HeadingDirection::south;
-							break;
-						case HeadingDirection::east:
-							relativeTurnDir = HeadingDirection::east;
-							break;
-						case HeadingDirection::south:
-							relativeTurnDir = HeadingDirection::north;
-							break;
-						case HeadingDirection::west:
-							relativeTurnDir = HeadingDirection::west;
-							break;
-						default:
-							break;
-						}
+						relativeTurnDir = makeRelative(HeadingDirection::south, SensorFusion::getFusedData().heading);
 					}
 					else if (cell.cellConnections & Direction::west)
 					{
-						switch (SensorFusion::getFusedData().heading)
-						{
-						case HeadingDirection::north:
-							relativeTurnDir = HeadingDirection::west;
-							break;
-						case HeadingDirection::east:
-							relativeTurnDir = HeadingDirection::south;
-							break;
-						case HeadingDirection::south:
-							relativeTurnDir = HeadingDirection::east;
-							break;
-						case HeadingDirection::west:
-							relativeTurnDir = HeadingDirection::north;
-							break;
-						default:
-							break;
-						}
+						relativeTurnDir = makeRelative(HeadingDirection::west, SensorFusion::getFusedData().heading);
 					}
 
 					switch (relativeTurnDir)
 					{
-					case HeadingDirection::north:
+					case RelativeDir::forward:
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
 																														SmoothDriving::Accelerate(20, 15.0f),
 																														SmoothDriving::Accelerate(0, 15.0f),
 																														SmoothDriving::Stop()));
 						break;
-					case HeadingDirection::east:
+					case RelativeDir::right:
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
-																														SmoothDriving::Rotate(-2.0f, -115.0f),
+																														SmoothDriving::Rotate(-2.0f, -90.0f),
 																														SmoothDriving::Accelerate(20, 15.0f),
 																														SmoothDriving::Accelerate(0, 15.0f),
 																														SmoothDriving::Stop()));
 						break;
-					case HeadingDirection::south:
+					case RelativeDir::backward:
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
-																														SmoothDriving::Rotate(3.0f, 225.0f),
+																														SmoothDriving::Rotate(3.0f, 180.0f),
 																														SmoothDriving::Accelerate(20, 15.0f),
 																														SmoothDriving::Accelerate(0, 15.0f),
 																														SmoothDriving::Stop()));
 						break;
-					case HeadingDirection::west:
+					case RelativeDir::left:
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
-																														SmoothDriving::Rotate(2.0f, 115.0f),
+																														SmoothDriving::Rotate(2.0f, 90.0f),
 																														SmoothDriving::Accelerate(20, 15.0f),
 																														SmoothDriving::Accelerate(0, 15.0f),
 																														SmoothDriving::Stop()));
