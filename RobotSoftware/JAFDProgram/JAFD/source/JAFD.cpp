@@ -85,7 +85,7 @@ namespace JAFD
 		// Setup of Distance Sensors
 		if (DistanceSensors::setup() != ReturnCode::ok)
 		{
-			Serial.println("Error!!");
+
 		}
 
 		return;

@@ -2,29 +2,41 @@
 This file is responsible for all distance sensors
 */
 
+#include "../../JAFDSettings.h"
 #include "../header/DistanceSensors.h"
+#include "../header/TCA9548A.h"
 
 namespace JAFD
 {
 	namespace DistanceSensors
 	{
+		namespace
+		{
+			TCA9548A _i2cMultiplexer(JAFDSettings::DistanceSensors::multiplexerAddr);
+		}
+
 		// VL6180 class - begin
 		VL6180::VL6180(uint8_t multiplexCh) : _multiplexCh(multiplexCh) {}
 
-		ReturnCode VL6180::setup()
+		ReturnCode VL6180::setup() const
 		{
-			if (read8(VL6180X_REG_IDENTIFICATION_MODEL_ID) != 0xB4) {
-				return ReturnCode::error;
+			if (read8(_regModelID) != 0xB4) {
+				// Retry
+				delay(10);
+
+				if (read8(_regModelID) != 0xB4) {
+					return ReturnCode::error;
+				}
 			}
 
 			loadSettings();
 
-			write8(VL6180X_REG_SYSTEM_FRESH_OUT_OF_RESET, 0x00);
+			write8(_regSysFreshOutOfReset, 0x00);
 
 			return ReturnCode::ok;
 		}
 
-		void VL6180::loadSettings()
+		void VL6180::loadSettings() const
 		{
 			// private settings from page 24 of app note
 			write8(0x0207, 0x01);
@@ -83,45 +95,105 @@ namespace JAFD
 										// Ready threshold event'
 		}
 
-		void VL6180::updateValues()
+		// Write 1 byte
+		void VL6180::write8(uint16_t address, uint8_t data) const
 		{
-			_distance = _sensor.readRange();
-
-			auto status = _sensor.readRangeStatus();
-
-			if ((status >= VL6180X_ERROR_SYSERR_1) && (status <= VL6180X_ERROR_SYSERR_5)) {
-				_status = Status::systemError;
-			}
-			else if (status == VL6180X_ERROR_ECEFAIL) {
-				_status = Status::eceFailure;
-			}
-			else if (status == VL6180X_ERROR_NOCONVERGE) {
-				_status = Status::noConvergence;
-			}
-			else if (status == VL6180X_ERROR_RANGEIGNORE) {
-				_status = Status::ignoringRange;
-			}
-			else if (status == VL6180X_ERROR_SNR) {
-				_status = Status::noiseError;
-			}
-			else if (status == VL6180X_ERROR_RAWUFLOW || status == VL6180X_ERROR_RANGEUFLOW) {
-				_status = Status::underflow;
-			}
-			else if (status == VL6180X_ERROR_RAWOFLOW || status == VL6180X_ERROR_RANGEOFLOW) {
-				_status = Status::overflow;
-			}
-			else
+			if (_i2cMultiplexer.getChannel() != _multiplexCh)
 			{
-				_status = Status::noError;
+				_i2cMultiplexer.selectChannel(_multiplexCh);
 			}
+
+			Wire.beginTransmission(_i2cAddr);
+			Wire.write(address >> 8);
+			Wire.write(address);
+			Wire.write(data);
+			Wire.endTransmission();
 		}
 
-		uint16_t VL6180::getDistance() const
+		// Write 2 bytes
+		void VL6180::write16(uint16_t address, uint16_t data) const
+		{
+			if (_i2cMultiplexer.getChannel() != _multiplexCh)
+			{
+				_i2cMultiplexer.selectChannel(_multiplexCh);
+			}
+
+			Wire.beginTransmission(_i2cAddr);
+			Wire.write(address >> 8);
+			Wire.write(address);
+			Wire.write(data >> 8);
+			Wire.write(data);
+			Wire.endTransmission();
+		}
+
+		// Read 1 byte
+		uint8_t VL6180::read8(uint16_t address) const
+		{
+			if (_i2cMultiplexer.getChannel() != _multiplexCh)
+			{
+				_i2cMultiplexer.selectChannel(_multiplexCh);
+			}
+
+			Wire.beginTransmission(_i2cAddr);
+			Wire.write(address >> 8);
+			Wire.write(address);
+			Wire.endTransmission();
+
+			Wire.requestFrom(_i2cAddr, (uint8_t)1);
+			
+			return Wire.read();
+		}
+
+		// Read 2 bytes
+		uint16_t VL6180::read16(uint16_t address) const
+		{
+			if (_i2cMultiplexer.getChannel() != _multiplexCh)
+			{
+				_i2cMultiplexer.selectChannel(_multiplexCh);
+			}
+
+			uint16_t data;
+
+			Wire.beginTransmission(_i2cAddr);
+			Wire.write(address >> 8);
+			Wire.write(address);
+			Wire.endTransmission();
+
+			Wire.requestFrom(_i2cAddr, (uint8_t)2);
+			data = Wire.read();
+			data <<= 8;
+			data |= Wire.read();
+
+			return data;
+		}
+
+		void VL6180::updateValues()
+		{
+			// Wait for device to be ready for range measurement
+			while (!(read8(_regRangeStatus) & 0x01));
+
+			// Start a range measurement
+			write8(_regRangeStart, 0x01);
+
+			// Poll until bit 2 is set
+			while (!(read8(_regIntStatus) & 0x04));
+
+			// Read range in mm
+			_distance = read8(_regRangeResult);
+
+			// Clear interrupt
+			write8(_regIntClear, 0x07);
+
+			// Read status
+			_status = static_cast<VL6180::Status>(read8(_regRangeStatus) >> 4);
+		}
+
+		uint8_t VL6180::getDistance() const
 		{
 			return _distance;
 		}
 
-		Status VL6180::getStatus() const
+		VL6180::Status VL6180::getStatus() const
 		{
 			return _status;
 		}
@@ -130,7 +202,7 @@ namespace JAFD
 
 		// MyTFMini class - begin
 
-		MyTFMini::MyTFMini(SerialType serialType) : _serialType(serialType) {}
+		/*MyTFMini::MyTFMini(SerialType serialType) : _serialType(serialType) {}
 
 		ReturnCode MyTFMini::setup()
 		{
@@ -165,9 +237,9 @@ namespace JAFD
 			}
 			
 			return ReturnCode::ok;
-		}
+		}*/
 
-		void MyTFMini::updateValues()
+		/*void MyTFMini::updateValues()
 		{
 			_distance = _sensor.getDistance();
 			
@@ -190,18 +262,18 @@ namespace JAFD
 		Status MyTFMini::getStatus() const
 		{
 			return _status;
-		}
+		}*/
 
 		// TFMini class - end
 
-		VL6180 frontLeft;
-		VL6180 frontRight;
-		MyTFMini frontLong(JAFDSettings::DistanceSensors::FrontLong::serialType);
-		MyTFMini backLong(JAFDSettings::DistanceSensors::BackLong::serialType);
-		VL6180 leftFront;
-		VL6180 leftBack;
-		VL6180 rightFront;
-		VL6180 rightBack;
+		VL6180 frontLeft(JAFDSettings::DistanceSensors::FrontLeft::multiplexCh);
+		VL6180 frontRight(JAFDSettings::DistanceSensors::FrontRight::multiplexCh);
+		//MyTFMini frontLong(JAFDSettings::DistanceSensors::FrontLong::serialType);
+		//MyTFMini backLong(JAFDSettings::DistanceSensors::BackLong::serialType);
+		VL6180 leftFront(0);
+		VL6180 leftBack(0);
+		VL6180 rightFront(0);
+		VL6180 rightBack(0);
 
 		ReturnCode setup()
 		{
@@ -209,18 +281,20 @@ namespace JAFD
 			
 			if (frontLeft.setup() != ReturnCode::ok)
 			{
+				Serial.println("left");
 				code = ReturnCode::fatalError;
 			}
 
-			//if (frontRight.setup() != ReturnCode::ok)
+			if (frontRight.setup() != ReturnCode::ok)
+			{
+				Serial.println("right");
+				code = ReturnCode::fatalError;
+			}
+
+			//if (frontLong.setup() != ReturnCode::ok)
 			//{
 			//	code = ReturnCode::fatalError;
 			//}
-
-			if (frontLong.setup() != ReturnCode::ok)
-			{
-				code = ReturnCode::fatalError;
-			}
 
 			//if (backLong.setup() != ReturnCode::ok)
 			//{

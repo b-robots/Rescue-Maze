@@ -86,6 +86,18 @@ namespace JAFDSettings
 
 	namespace DistanceSensors
 	{
+		constexpr uint8_t multiplexerAddr = 0x70;
+
+		namespace FrontLeft
+		{
+			constexpr uint8_t multiplexCh = 0;
+		}
+
+		namespace FrontRight
+		{
+			constexpr uint8_t multiplexCh = 1;
+		}
+
 		namespace FrontLong
 		{
 			constexpr JAFD::SerialType serialType = JAFD::SerialType::three;

@@ -54,6 +54,9 @@
       <Filter>JAFD\Header</Filter>
     </ClInclude>
     <ClInclude Include="__vm\.JAFDProgram.vsarduino.h" />
+    <ClInclude Include="JAFD\header\TCA9548A.h">
+      <Filter>JAFD\Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="JAFD">
@@ -98,6 +101,9 @@
       <Filter>JAFD\Source</Filter>
     </ClCompile>
     <ClCompile Include="JAFD\source\DistanceSensors.cpp">
+      <Filter>JAFD\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="JAFD\source\TCA9548A.cpp">
       <Filter>JAFD\Source</Filter>
     </ClCompile>
   </ItemGroup>
