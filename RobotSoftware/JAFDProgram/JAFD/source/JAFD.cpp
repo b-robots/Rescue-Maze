@@ -21,6 +21,9 @@ namespace JAFD
 	// Just for testing...
 	void robotSetup()
 	{
+		// Setup I2C
+		Wire.begin();
+
 		// Setup the SPI-Bus
 		SPI.begin();
 		SPI.beginTransaction(SPISettings(10e+6, MSBFIRST, SPI_MODE0));
