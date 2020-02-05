@@ -11,7 +11,6 @@ This file is responsible for all distance sensors
 #endif
 
 #include <Wire.h>
-#include <TFMini.h>
 
 #include "../../JAFDSettings.h"
 #include "AllDatatypes.h"
@@ -35,13 +34,12 @@ namespace JAFD
 				rawUnderflow = 12,	// Raw measurement underflow
 				rawOverflow = 13,	// Raw measurement overflow
 				underflow = 14,		// Measurement underflow
-				overflow = 15,		// Measurement overflow
+				overflow = 15		// Measurement overflow
 			};
 
 			VL6180(uint8_t multiplexCh);
 			ReturnCode setup() const;
-			void updateValues();
-			uint8_t getDistance() const;
+			uint8_t getDistance();
 			Status getStatus() const;
 
 		private:
@@ -70,37 +68,51 @@ namespace JAFD
 			static const uint8_t _alsGain20 = 0x00;		// x 20
 			static const uint8_t _alsGain40 = 0x07;		// x 40
 
+			static const uint8_t _i2cAddr = 0x29;
+
+			const uint8_t _multiplexCh;
+			Status _status;
+
 			void loadSettings() const;
 			void write8(uint16_t address, uint8_t data) const;
 			void write16(uint16_t address, uint16_t data) const;
 			uint16_t read16(uint16_t address) const;
 			uint8_t read8(uint16_t address) const;
-
-			static const uint8_t _i2cAddr = 0x29;
-
-			const uint8_t _multiplexCh;
-
-			Status _status;
-			uint8_t _distance;
 		};
 
-		//class MyTFMini
-		//{
-		//public:
-		//	ReturnCode setup();
-		//	void updateValues();
-		//	uint16_t getDistance() const;
-		//	void getStatus() const;
-		//	MyTFMini(SerialType serialType);
-		//private:
-		//	SerialType _serialType;
-		//	TFMini _sensor;
-		//};
+		class TFMini
+		{
+		public:
+			enum class Status : uint8_t
+			{
+				noError,			// Success
+				noSerialHeader,		// No serial header read
+				badChecksum		// Checksum doesn`t match
+			};
+
+			ReturnCode setup();
+			uint16_t getDistance();
+			Status getStatus() const;
+			TFMini(SerialType serialType);
+
+		private:
+			static const uint32_t _baudrate = 115200;
+			static const uint8_t _maxBytesBeforeHeader = 30;
+			static const uint8_t _frameSize = 7;
+			static const uint8_t _maxMeasurementTries = 5;
+
+			const SerialType _serialType;
+			Stream* _streamPtr;
+			uint16_t _distance;
+			Status _status;
+
+			Status takeMeasurement();
+		};
 
 		extern VL6180 frontLeft;	// Front-Left short distance sensor
 		extern VL6180 frontRight;	// Front-Right short distance sensor
-		//extern MyTFMini frontLong;	// Front long distance sensor
-		//extern MyTFMini backLong;	// Back long distance sensor
+		extern TFMini frontLong;	// Front long distance sensor
+		extern TFMini backLong;		// Back long distance sensor
 		extern VL6180 leftFront;	// Left-Front short distance sensor
 		extern VL6180 leftBack;		// Left-Back short distance sensor
 		extern VL6180 rightFront;	// Right-Front short distance sensor

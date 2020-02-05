@@ -16,7 +16,7 @@ namespace JAFD
 		}
 
 		// VL6180 class - begin
-		VL6180::VL6180(uint8_t multiplexCh) : _multiplexCh(multiplexCh) {}
+		VL6180::VL6180(uint8_t multiplexCh) : _multiplexCh(multiplexCh), _status(Status::noError) {}
 
 		ReturnCode VL6180::setup() const
 		{
@@ -167,8 +167,10 @@ namespace JAFD
 			return data;
 		}
 
-		void VL6180::updateValues()
+		uint8_t VL6180::getDistance()
 		{
+			uint8_t distance;
+
 			// Wait for device to be ready for range measurement
 			while (!(read8(_regRangeStatus) & 0x01));
 
@@ -179,18 +181,15 @@ namespace JAFD
 			while (!(read8(_regIntStatus) & 0x04));
 
 			// Read range in mm
-			_distance = read8(_regRangeResult);
+			distance = read8(_regRangeResult);
 
 			// Clear interrupt
 			write8(_regIntClear, 0x07);
 
 			// Read status
 			_status = static_cast<VL6180::Status>(read8(_regRangeStatus) >> 4);
-		}
 
-		uint8_t VL6180::getDistance() const
-		{
-			return _distance;
+			return distance;
 		}
 
 		VL6180::Status VL6180::getStatus() const
@@ -200,76 +199,152 @@ namespace JAFD
 
 		// VL6180 class - end
 
-		// MyTFMini class - begin
+		// TFMini class - begin
 
-		/*MyTFMini::MyTFMini(SerialType serialType) : _serialType(serialType) {}
+		TFMini::TFMini(SerialType serialType) : _serialType(serialType), _status(Status::noError), _distance(0) {}
 
-		ReturnCode MyTFMini::setup()
+		ReturnCode TFMini::setup()
 		{
 			switch (_serialType)
 			{
-			case JAFD::SerialType::software:
-				return ReturnCode::error;
-				break;
-
 			case JAFD::SerialType::zero:
-				Serial.begin(TFMINI_BAUDRATE);
-				_sensor.begin(&Serial);
+				Serial.begin(_baudrate);
+				_streamPtr = &Serial;
 				break;
 
 			case JAFD::SerialType::one:
-				Serial1.begin(TFMINI_BAUDRATE);
-				_sensor.begin(&Serial1);
+				Serial1.begin(_baudrate);
+				_streamPtr = &Serial1;
 				break;
 
 			case JAFD::SerialType::two:
-				Serial2.begin(TFMINI_BAUDRATE);
-				_sensor.begin(&Serial2);
+				Serial2.begin(_baudrate);
+				_streamPtr = &Serial2;
 				break;
 
 			case JAFD::SerialType::three:
-				Serial3.begin(TFMINI_BAUDRATE);
-				_sensor.begin(&Serial3);
+				Serial3.begin(_baudrate);
+				_streamPtr = &Serial3;
 				break;
 
 			default:
 				return ReturnCode::error;
 			}
-			
-			return ReturnCode::ok;
-		}*/
 
-		/*void MyTFMini::updateValues()
+			// Set to "standard" output mode (this is found in the debug documents)
+			_streamPtr->write((uint8_t)0x42);
+			_streamPtr->write((uint8_t)0x57);
+			_streamPtr->write((uint8_t)0x02);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x01);
+			_streamPtr->write((uint8_t)0x06);
+
+			delay(100);
+
+			return ReturnCode::ok;
+		}
+		
+		TFMini::Status TFMini::takeMeasurement()
 		{
-			_distance = _sensor.getDistance();
-			
-			if (_sensor.getState() != MEASUREMENT_OK)
+			uint8_t numCharsRead = 0;
+			uint8_t lastChar = 0x00;
+
+			// Read the serial stream until we see the beginning of the TF Mini header, or we timeout reading too many characters.
+			while (1)
 			{
-				_status = Status::unknownError;
-				Serial.println("Fehler");
+
+				if (_streamPtr->available())
+				{
+					uint8_t curChar = _streamPtr->read();
+
+					if ((lastChar == 0x59) && (curChar == 0x59))
+					{
+						// Header start
+						break;
+					}
+					else
+					{
+						// Continue reading
+						lastChar = curChar;
+						numCharsRead += 1;
+					}
+				}
+
+				// Error detection:  If we read more than X characters without finding a frame header, then it's likely there is an issue with 
+				// the Serial connection, and we should timeout and throw an error. 
+				if (numCharsRead > _maxBytesBeforeHeader)
+				{
+					_status = Status::noSerialHeader;
+					return _status;
+				}
+
 			}
-			else
+
+			// Read one frame from the TFMini
+			uint8_t frame[_frameSize];
+
+			uint8_t checksum = 0x59 + 0x59;
+
+			for (int i = 0; i < _frameSize; i++)
 			{
-				_status = Status::noError;
+				// Whait for character
+				while (!_streamPtr->available());
+
+				// Read character
+				frame[i] = _streamPtr->read();
+
+				// Store running checksum
+				if (i < _frameSize - 2) {
+					checksum += frame[i];
+				}
 			}
+
+			// Compare checksum
+			// Last byte in the frame is an 8-bit checksum 
+			if (checksum != frame[_frameSize - 1])
+			{
+				_status = Status::badChecksum;
+				return _status;
+			}
+
+			// Interpret frame
+			uint16_t st = (frame[3] << 8) + frame[2];
+			uint8_t reserved = frame[4];
+			uint8_t originalSignalQuality = frame[5];
+			_distance = (frame[1] << 8) + frame[0];
+
+			// Return success
+			_status = Status::noError;
+			return _status;
 		}
 
-		uint16_t MyTFMini::getDistance() const
+		uint16_t TFMini::getDistance()
 		{
+			uint8_t numMeasurementAttempts = 0;
+
+			while (takeMeasurement() != Status::noError)
+			{
+				numMeasurementAttempts++;
+
+				if (numMeasurementAttempts > _maxMeasurementTries) return 0;
+			}
+
 			return _distance;
 		}
 
-		Status MyTFMini::getStatus() const
+		TFMini::Status TFMini::getStatus() const
 		{
 			return _status;
-		}*/
+		}
 
 		// TFMini class - end
 
 		VL6180 frontLeft(JAFDSettings::DistanceSensors::FrontLeft::multiplexCh);
 		VL6180 frontRight(JAFDSettings::DistanceSensors::FrontRight::multiplexCh);
-		//MyTFMini frontLong(JAFDSettings::DistanceSensors::FrontLong::serialType);
-		//MyTFMini backLong(JAFDSettings::DistanceSensors::BackLong::serialType);
+		TFMini frontLong(JAFDSettings::DistanceSensors::FrontLong::serialType);
+		TFMini backLong(JAFDSettings::DistanceSensors::BackLong::serialType);
 		VL6180 leftFront(0);
 		VL6180 leftBack(0);
 		VL6180 rightFront(0);
