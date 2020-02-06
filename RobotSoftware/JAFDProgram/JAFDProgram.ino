@@ -5,6 +5,9 @@
 */
 
 #if defined(ARDUINO) && ARDUINO >= 100
+#include <SPI.h>
+#include <Adafruit_VL53L0X.h>	// Adafruit library
+#include <Wire.h>
 #include "arduino.h"
 #else
 #include "WProgram.h"
@@ -39,12 +42,11 @@ void setup()
 // The loop function runs over and over again until power down or reset
 void loop()
 {
-	frontLeft.updateValues();
-	frontRight.updateValues();
+	static uint16_t frontDist = 0;
 
-	Serial.print(frontLeft.getStatus() == VL6180::Status::noError ? frontLeft.getDistance() : -1.0f);
-	Serial.print(", ");
-	Serial.println(frontRight.getStatus() == VL6180::Status::noError ? frontRight.getDistance() : -1.0f);
+	frontDist = frontNew.getDistance();
+
+	Serial.println(frontNew.getStatus() == VL53L0::Status::noError ?  frontDist : "Error: " + String((int)frontNew.getStatus()));
 
 	JAFD::robotLoop();
 

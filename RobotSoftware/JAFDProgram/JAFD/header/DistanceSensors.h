@@ -11,6 +11,7 @@ This file is responsible for all distance sensors
 #endif
 
 #include <Wire.h>
+#include <Adafruit_VL53L0X.h>
 
 #include "../../JAFDSettings.h"
 #include "AllDatatypes.h"
@@ -34,12 +35,13 @@ namespace JAFD
 				rawUnderflow = 12,	// Raw measurement underflow
 				rawOverflow = 13,	// Raw measurement overflow
 				underflow = 14,		// Measurement underflow
-				overflow = 15		// Measurement overflow
+				overflow = 15,		// Measurement overflow
+				outOfRange			// Measurement is out of range
 			};
 
 			VL6180(uint8_t multiplexCh);
 			ReturnCode setup() const;
-			uint8_t getDistance();
+			uint8_t getDistance();		// Get distance in mm
 			Status getStatus() const;
 
 		private:
@@ -70,6 +72,9 @@ namespace JAFD
 
 			static const uint8_t _i2cAddr = 0x29;
 
+			static const uint16_t _minDist = 5;
+			static const uint16_t _maxDist = 150;
+
 			const uint8_t _multiplexCh;
 			Status _status;
 
@@ -85,13 +90,14 @@ namespace JAFD
 		public:
 			enum class Status : uint8_t
 			{
-				noError,			// Success
-				noSerialHeader,		// No serial header read
-				badChecksum		// Checksum doesn`t match
+				noError,		// Success
+				noSerialHeader,	// No serial header read
+				badChecksum,	// Checksum doesn`t match
+				outOfRange		// Range error
 			};
 
 			ReturnCode setup();
-			uint16_t getDistance();
+			uint16_t getDistance();	// Get distance in mm
 			Status getStatus() const;
 			TFMini(SerialType serialType);
 
@@ -101,6 +107,9 @@ namespace JAFD
 			static const uint8_t _frameSize = 7;
 			static const uint8_t _maxMeasurementTries = 5;
 
+			static const uint16_t _minDist = 300;
+			static const uint16_t _maxDist = 12000;
+
 			const SerialType _serialType;
 			Stream* _streamPtr;
 			uint16_t _distance;
@@ -109,6 +118,42 @@ namespace JAFD
 			Status takeMeasurement();
 		};
 
+		class VL53L0
+		{
+		public:
+			enum class Status : uint8_t
+			{
+				noError,				// Success
+				calibrationError,		// Problem with calibration data
+				underflow,				// Value too low -> clipped to min
+				undefinedError,			// Undefined error
+				functionUnavailable,	// Requested functionality is (currently) not available
+				rangeError,				// Ranging error
+				timeOut,				// time out during measurement
+				bufferTooSmall,			// buffer is to small
+				ioError,				// Error with GPIO-Functionality
+				interruptError,			// Error during interrupt clear
+				divisionByZero,			// Division by zero
+				spadInitError,			// Error during SPAD initialization
+				outOfRange				// Out of range
+			};
+
+			ReturnCode setup();
+			uint16_t getDistance();		// Get distance in mm
+			Status getStatus() const;
+			VL53L0(uint8_t multiplexCh);
+
+		private:
+			static const uint16_t _minDist = 50;
+			static const uint16_t _maxDist = 1200;
+
+			const uint8_t _multiplexCh;
+
+			Adafruit_VL53L0X _sensor;
+			Status _status;
+		};
+
+		extern VL53L0 frontNew;
 		extern VL6180 frontLeft;	// Front-Left short distance sensor
 		extern VL6180 frontRight;	// Front-Right short distance sensor
 		extern TFMini frontLong;	// Front long distance sensor

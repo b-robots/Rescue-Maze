@@ -189,6 +189,8 @@ namespace JAFD
 			// Read status
 			_status = static_cast<VL6180::Status>(read8(_regRangeStatus) >> 4);
 
+			if (distance > _maxDist || distance < _minDist) _status = Status::outOfRange;
+
 			return distance;
 		}
 
@@ -231,7 +233,9 @@ namespace JAFD
 				return ReturnCode::error;
 			}
 
-			// Set to "standard" output mode (this is found in the debug documents)
+			// Set to mm mode
+
+			// Start config
 			_streamPtr->write((uint8_t)0x42);
 			_streamPtr->write((uint8_t)0x57);
 			_streamPtr->write((uint8_t)0x02);
@@ -239,7 +243,27 @@ namespace JAFD
 			_streamPtr->write((uint8_t)0x00);
 			_streamPtr->write((uint8_t)0x00);
 			_streamPtr->write((uint8_t)0x01);
-			_streamPtr->write((uint8_t)0x06);
+			_streamPtr->write((uint8_t)0x02);
+
+			// mm Mode
+			_streamPtr->write((uint8_t)0x42);
+			_streamPtr->write((uint8_t)0x57);
+			_streamPtr->write((uint8_t)0x02);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x1A);
+
+			// End config
+			_streamPtr->write((uint8_t)0x42);
+			_streamPtr->write((uint8_t)0x57);
+			_streamPtr->write((uint8_t)0x02);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x02);
 
 			delay(100);
 
@@ -331,6 +355,8 @@ namespace JAFD
 				if (numMeasurementAttempts > _maxMeasurementTries) return 0;
 			}
 
+			if (_distance > _maxDist || _distance < _minDist) _status = Status::outOfRange;
+
 			return _distance;
 		}
 
@@ -341,6 +367,91 @@ namespace JAFD
 
 		// TFMini class - end
 
+		// VL53L0 class - begin
+
+		VL53L0::VL53L0(uint8_t multiplexCh) : _multiplexCh(multiplexCh), _status(Status::undefinedError) {}
+
+		ReturnCode VL53L0::setup()
+		{
+			if (_i2cMultiplexer.getChannel() != _multiplexCh)
+			{
+				_i2cMultiplexer.selectChannel(_multiplexCh);
+			}
+
+			if (_sensor.begin()) return ReturnCode::ok;
+			else return ReturnCode::error;
+		}
+
+		uint16_t VL53L0::getDistance()
+		{
+			static VL53L0X_RangingMeasurementData_t measure;
+
+			if (_i2cMultiplexer.getChannel() != _multiplexCh)
+			{
+				_i2cMultiplexer.selectChannel(_multiplexCh);
+			}
+
+			switch (_sensor.getSingleRangingMeasurement(&measure))
+			{
+			case VL53L0X_ERROR_NONE:
+				_status = Status::noError;
+				break;
+			case VL53L0X_ERROR_CALIBRATION_WARNING:
+				_status = Status::calibrationError;
+				break;
+			case VL53L0X_ERROR_MIN_CLIPPED:
+				_status = Status::calibrationError;
+				break;
+			case VL53L0X_ERROR_UNDEFINED:
+				_status = Status::undefinedError;
+				break;
+			case VL53L0X_ERROR_NOT_IMPLEMENTED:
+			case VL53L0X_ERROR_INVALID_COMMAND:
+			case VL53L0X_ERROR_MODE_NOT_SUPPORTED:
+			case VL53L0X_ERROR_NOT_SUPPORTED:
+			case VL53L0X_ERROR_INVALID_PARAMS:
+				_status = Status::functionUnavailable;
+				break;
+			case VL53L0X_ERROR_RANGE_ERROR:
+				_status = Status::rangeError;
+				break;
+			case VL53L0X_ERROR_TIME_OUT:
+				_status = Status::timeOut;
+				break;
+			case VL53L0X_ERROR_BUFFER_TOO_SMALL:
+				_status = Status::bufferTooSmall;
+				break;
+			case VL53L0X_ERROR_GPIO_NOT_EXISTING:
+			case VL53L0X_ERROR_GPIO_FUNCTIONALITY_NOT_SUPPORTED:
+			case VL53L0X_ERROR_CONTROL_INTERFACE:
+				_status = Status::ioError;
+				break;
+			case VL53L0X_ERROR_INTERRUPT_NOT_CLEARED:
+				_status = Status::interruptError;
+				break;
+			case VL53L0X_ERROR_DIVISION_BY_ZERO:
+				_status = Status::divisionByZero;
+				break;
+			case VL53L0X_ERROR_REF_SPAD_INIT:
+				_status = Status::spadInitError;
+				break;
+			}
+
+			if (measure.RangeStatus == 4) _status = Status::outOfRange;
+
+			if (measure.RangeMilliMeter > _maxDist || measure.RangeMilliMeter < _minDist) _status = Status::outOfRange;
+
+			return measure.RangeMilliMeter;
+		}
+
+		VL53L0::Status VL53L0::getStatus() const
+		{
+			return _status;
+		}
+
+		// VL53L0 class - end
+
+		VL53L0 frontNew(2);
 		VL6180 frontLeft(JAFDSettings::DistanceSensors::FrontLeft::multiplexCh);
 		VL6180 frontRight(JAFDSettings::DistanceSensors::FrontRight::multiplexCh);
 		TFMini frontLong(JAFDSettings::DistanceSensors::FrontLong::serialType);
@@ -354,17 +465,23 @@ namespace JAFD
 		{
 			ReturnCode code = ReturnCode::ok;
 			
-			if (frontLeft.setup() != ReturnCode::ok)
+			if (frontNew.setup() != ReturnCode::ok)
 			{
-				Serial.println("left");
+				Serial.println("new");
 				code = ReturnCode::fatalError;
 			}
 
-			if (frontRight.setup() != ReturnCode::ok)
-			{
-				Serial.println("right");
-				code = ReturnCode::fatalError;
-			}
+			//if (frontLeft.setup() != ReturnCode::ok)
+			//{
+			//	Serial.println("left");
+			//	code = ReturnCode::fatalError;
+			//}
+
+			//if (frontRight.setup() != ReturnCode::ok)
+			//{
+			//	Serial.println("right");
+			//	code = ReturnCode::fatalError;
+			//}
 
 			//if (frontLong.setup() != ReturnCode::ok)
 			//{
