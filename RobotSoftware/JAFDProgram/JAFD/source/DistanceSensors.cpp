@@ -189,7 +189,7 @@ namespace JAFD
 			// Read status
 			_status = static_cast<VL6180::Status>(read8(_regRangeStatus) >> 4);
 
-			if (distance > _maxDist || distance < _minDist) _status = Status::outOfRange;
+			if (distance > maxDist || distance < minDist) _status = Status::outOfRange;
 
 			return distance;
 		}
@@ -355,7 +355,7 @@ namespace JAFD
 				if (numMeasurementAttempts > _maxMeasurementTries) return 0;
 			}
 
-			if (_distance > _maxDist || _distance < _minDist) _status = Status::outOfRange;
+			if (_distance > maxDist || _distance < minDist) _status = Status::outOfRange;
 
 			return _distance;
 		}
@@ -439,7 +439,7 @@ namespace JAFD
 
 			if (measure.RangeStatus == 4) _status = Status::outOfRange;
 
-			if (measure.RangeMilliMeter > _maxDist || measure.RangeMilliMeter < _minDist) _status = Status::outOfRange;
+			if (measure.RangeMilliMeter > maxDist || measure.RangeMilliMeter < minDist) _status = Status::outOfRange;
 
 			return measure.RangeMilliMeter;
 		}
@@ -451,25 +451,18 @@ namespace JAFD
 
 		// VL53L0 class - end
 
-		VL53L0 frontNew(2);
 		VL6180 frontLeft(JAFDSettings::DistanceSensors::FrontLeft::multiplexCh);
 		VL6180 frontRight(JAFDSettings::DistanceSensors::FrontRight::multiplexCh);
 		TFMini frontLong(JAFDSettings::DistanceSensors::FrontLong::serialType);
 		TFMini backLong(JAFDSettings::DistanceSensors::BackLong::serialType);
-		VL6180 leftFront(0);
-		VL6180 leftBack(0);
-		VL6180 rightFront(0);
-		VL6180 rightBack(0);
+		VL6180 leftFront(JAFDSettings::DistanceSensors::LeftFront::multiplexCh);
+		VL6180 leftBack(JAFDSettings::DistanceSensors::LeftBack::multiplexCh);
+		VL6180 rightFront(JAFDSettings::DistanceSensors::RightFront::multiplexCh);
+		VL6180 rightBack(JAFDSettings::DistanceSensors::LeftFront::multiplexCh);
 
 		ReturnCode setup()
 		{
 			ReturnCode code = ReturnCode::ok;
-			
-			if (frontNew.setup() != ReturnCode::ok)
-			{
-				Serial.println("new");
-				code = ReturnCode::fatalError;
-			}
 
 			//if (frontLeft.setup() != ReturnCode::ok)
 			//{

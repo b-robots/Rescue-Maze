@@ -39,6 +39,9 @@ namespace JAFD
 				outOfRange			// Measurement is out of range
 			};
 
+			static const uint16_t minDist = 5;
+			static const uint16_t maxDist = 150;
+
 			VL6180(uint8_t multiplexCh);
 			ReturnCode setup() const;
 			uint8_t getDistance();		// Get distance in mm
@@ -72,9 +75,6 @@ namespace JAFD
 
 			static const uint8_t _i2cAddr = 0x29;
 
-			static const uint16_t _minDist = 5;
-			static const uint16_t _maxDist = 150;
-
 			const uint8_t _multiplexCh;
 			Status _status;
 
@@ -96,6 +96,9 @@ namespace JAFD
 				outOfRange		// Range error
 			};
 
+			static const uint16_t minDist = 300;
+			static const uint16_t maxDist = 12000;
+
 			ReturnCode setup();
 			uint16_t getDistance();	// Get distance in mm
 			Status getStatus() const;
@@ -106,9 +109,6 @@ namespace JAFD
 			static const uint8_t _maxBytesBeforeHeader = 30;
 			static const uint8_t _frameSize = 7;
 			static const uint8_t _maxMeasurementTries = 5;
-
-			static const uint16_t _minDist = 300;
-			static const uint16_t _maxDist = 12000;
 
 			const SerialType _serialType;
 			Stream* _streamPtr;
@@ -138,22 +138,21 @@ namespace JAFD
 				outOfRange				// Out of range
 			};
 
+			static const uint16_t minDist = 50;
+			static const uint16_t maxDist = 1200;
+
 			ReturnCode setup();
 			uint16_t getDistance();		// Get distance in mm
 			Status getStatus() const;
 			VL53L0(uint8_t multiplexCh);
 
 		private:
-			static const uint16_t _minDist = 50;
-			static const uint16_t _maxDist = 1200;
-
 			const uint8_t _multiplexCh;
 
 			Adafruit_VL53L0X _sensor;
 			Status _status;
 		};
 
-		extern VL53L0 frontNew;
 		extern VL6180 frontLeft;	// Front-Left short distance sensor
 		extern VL6180 frontRight;	// Front-Right short distance sensor
 		extern TFMini frontLong;	// Front long distance sensor
