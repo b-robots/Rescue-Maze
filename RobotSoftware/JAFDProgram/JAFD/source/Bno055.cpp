@@ -37,7 +37,7 @@ namespace JAFD
 
 			if (!bno055.begin())
 			{
-				Serial.print("ERROR INIT ");
+				Serial.println("ERROR INIT ");
 			}
 
 			delay(1000);

@@ -3,8 +3,15 @@ This private part of the Library is responsible for the 9 DOF-IMU (BNO055).
 */
 
 #pragma once
-#include "Vector.h"
 
+#if defined(ARDUINO) && ARDUINO >= 100
+#include "arduino.h"
+#else
+#include "WProgram.h"
+#endif
+
+#include "AllDatatypes.h"
+#include "Vector.h"
 
 namespace JAFD
 {
@@ -18,12 +25,5 @@ namespace JAFD
 		Vec3f get_angular_velocity();
 		Vec3f get_absolute_orientation();
 		Vec3f get_gravity_vector();
-
-
-	
-	
-		
-
-
 	}
 }

@@ -5,13 +5,17 @@
 */
 
 #if defined(ARDUINO) && ARDUINO >= 100
-#include <SPI.h>
-#include <Adafruit_VL53L0X.h>	// Adafruit library
-#include <Wire.h>
 #include "arduino.h"
 #else
 #include "WProgram.h"
 #endif
+
+// External Libs
+#include <SPI.h>
+#include <Adafruit_VL53L0X.h>
+#include <Wire.h>
+#include <Adafruit_BNO055.h>
+#include <Adafruit_Sensor.h>
 
 // RobotLibrary
 #include "JAFD/JAFD.h"
@@ -22,12 +26,14 @@
 #include "JAFD/header/AllDatatypes.h"
 #include "JAFD/header/SensorFusion.h"
 #include "JAFD/header/DistanceSensors.h"
+#include "JAFD/header/Bno055.h"
 
 using namespace JAFD::MazeMapping;
 using namespace JAFD::MotorControl;
 using namespace JAFD::SmoothDriving;
 using namespace JAFD::SensorFusion;
 using namespace JAFD::DistanceSensors;
+using namespace JAFD::Bno055;
 using namespace JAFD;
 
 // The setup function runs once when you press reset or power the board

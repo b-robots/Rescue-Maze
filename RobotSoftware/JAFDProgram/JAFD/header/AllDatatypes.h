@@ -152,7 +152,7 @@ namespace JAFD
 		right
 	};
 
-	RelativeDir makeRelative(const HeadingDirection absoluteDir, const HeadingDirection heading)
+	inline RelativeDir makeRelative(const HeadingDirection absoluteDir, const HeadingDirection heading)
 	{
 		switch (absoluteDir)
 		{
@@ -240,6 +240,12 @@ namespace JAFD
 			break;
 		}
 	}
+
+	inline HeadingDirection makeAbsolute(const RelativeDir relativeDir, const HeadingDirection heading)
+	{
+		return -1;
+	}
+
 
 	// State of robot
 	struct RobotState

@@ -16,7 +16,7 @@ namespace JAFD
 {
 	namespace SensorFusion
 	{
-		void timedSensorUpdate(const uint8_t freq);			// Apply filter and calculate robot state
+		void sensorFiltering(const uint8_t freq);			// Apply filter and calculate robot state
 		void untimedSensorUpdate();							// Update sensor values
 		const volatile FusedData& getFusedData();			// Get current robot state
 	}

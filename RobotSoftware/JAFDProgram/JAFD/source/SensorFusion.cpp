@@ -20,7 +20,7 @@ namespace JAFD
 			volatile FusedData _fusedData;	// Fused data
 		}
 
-		void timedSensorUpdate(const uint8_t freq)
+		void sensorFiltering(const uint8_t freq)
 		{
 			_fusedData.robotState.wheelSpeeds = MotorControl::getFloatSpeeds();
 			_fusedData.robotState.angularVel = Vec3f((_fusedData.robotState.wheelSpeeds.right - _fusedData.robotState.wheelSpeeds.left) / JAFDSettings::Mechanics::wheelDistance, 0.0f, 0.0f) / 1.33f;
