@@ -2,159 +2,484 @@
 This file is responsible for all distance sensors
 */
 
+#include "../../JAFDSettings.h"
 #include "../header/DistanceSensors.h"
+#include "../header/TCA9548A.h"
 
 namespace JAFD
 {
 	namespace DistanceSensors
 	{
+		namespace
+		{
+			TCA9548A _i2cMultiplexer(JAFDSettings::DistanceSensors::multiplexerAddr);
+		}
+
 		// VL6180 class - begin
+		VL6180::VL6180(uint8_t multiplexCh) : _multiplexCh(multiplexCh), _status(Status::noError) {}
 
-		ReturnCode VL6180::setup()
+		ReturnCode VL6180::setup() const
 		{
-			if (_sensor.begin()) return ReturnCode::ok;
-			else return ReturnCode::fatalError;
+			if (read8(_regModelID) != 0xB4) {
+				// Retry
+				delay(10);
+
+				if (read8(_regModelID) != 0xB4) {
+					return ReturnCode::error;
+				}
+			}
+
+			loadSettings();
+
+			write8(_regSysFreshOutOfReset, 0x00);
+
+			return ReturnCode::ok;
 		}
 
-		void VL6180::updateValues()
+		void VL6180::loadSettings() const
 		{
-			_distance = _sensor.readRange();
+			// private settings from page 24 of app note
+			write8(0x0207, 0x01);
+			write8(0x0208, 0x01);
+			write8(0x0096, 0x00);
+			write8(0x0097, 0xfd);
+			write8(0x00e3, 0x00);
+			write8(0x00e4, 0x04);
+			write8(0x00e5, 0x02);
+			write8(0x00e6, 0x01);
+			write8(0x00e7, 0x03);
+			write8(0x00f5, 0x02);
+			write8(0x00d9, 0x05);
+			write8(0x00db, 0xce);
+			write8(0x00dc, 0x03);
+			write8(0x00dd, 0xf8);
+			write8(0x009f, 0x00);
+			write8(0x00a3, 0x3c);
+			write8(0x00b7, 0x00);
+			write8(0x00bb, 0x3c);
+			write8(0x00b2, 0x09);
+			write8(0x00ca, 0x09);
+			write8(0x0198, 0x01);
+			write8(0x01b0, 0x17);
+			write8(0x01ad, 0x00);
+			write8(0x00ff, 0x05);
+			write8(0x0100, 0x05);
+			write8(0x0199, 0x05);
+			write8(0x01a6, 0x1b);
+			write8(0x01ac, 0x3e);
+			write8(0x01a7, 0x1f);
+			write8(0x0030, 0x00);
 
-			auto status = _sensor.readRangeStatus();
+			// Recommended : Public registers - See data sheet for more detail
+			write8(0x0011, 0x10);       // Enables polling for 'New Sample ready'
+										// when measurement completes
+			write8(0x010a, 0x30);       // Set the averaging sample period
+										// (compromise between lower noise and
+										// increased execution time)
+			write8(0x003f, 0x46);       // Sets the light and dark gain (upper
+										// nibble). Dark gain should not be
+										// changed.
+			write8(0x0031, 0xFF);       // sets the # of range measurements after
+										// which auto calibration of system is
+										// performed
+			write8(0x0040, 0x63);       // Set ALS integration time to 100ms
+			write8(0x002e, 0x01);       // perform a single temperature calibration
+										// of the ranging sensor
 
-			if ((status >= VL6180X_ERROR_SYSERR_1) && (status <= VL6180X_ERROR_SYSERR_5)) {
-				_status = Status::systemError;
-			}
-			else if (status == VL6180X_ERROR_ECEFAIL) {
-				_status = Status::eceFailure;
-			}
-			else if (status == VL6180X_ERROR_NOCONVERGE) {
-				_status = Status::noConvergence;
-			}
-			else if (status == VL6180X_ERROR_RANGEIGNORE) {
-				_status = Status::ignoringRange;
-			}
-			else if (status == VL6180X_ERROR_SNR) {
-				_status = Status::noiseError;
-			}
-			else if (status == VL6180X_ERROR_RAWUFLOW || status == VL6180X_ERROR_RANGEUFLOW) {
-				_status = Status::underflow;
-			}
-			else if (status == VL6180X_ERROR_RAWOFLOW || status == VL6180X_ERROR_RANGEOFLOW) {
-				_status = Status::overflow;
-			}
-			else
+			// Optional: Public registers - See data sheet for more detail
+			write8(0x001b, 0x09);       // Set default ranging inter-measurement
+										// period to 100ms
+			write8(0x003e, 0x31);       // Set default ALS inter-measurement period
+										// to 500ms
+			write8(0x0014, 0x24);       // Configures interrupt on 'New Sample
+										// Ready threshold event'
+		}
+
+		// Write 1 byte
+		void VL6180::write8(uint16_t address, uint8_t data) const
+		{
+			if (_i2cMultiplexer.getChannel() != _multiplexCh)
 			{
-				_status = Status::noError;
+				_i2cMultiplexer.selectChannel(_multiplexCh);
 			}
+
+			Wire.beginTransmission(_i2cAddr);
+			Wire.write(address >> 8);
+			Wire.write(address);
+			Wire.write(data);
+			Wire.endTransmission();
 		}
 
-		uint16_t VL6180::getDistance() const
+		// Write 2 bytes
+		void VL6180::write16(uint16_t address, uint16_t data) const
 		{
-			return _distance;
+			if (_i2cMultiplexer.getChannel() != _multiplexCh)
+			{
+				_i2cMultiplexer.selectChannel(_multiplexCh);
+			}
+
+			Wire.beginTransmission(_i2cAddr);
+			Wire.write(address >> 8);
+			Wire.write(address);
+			Wire.write(data >> 8);
+			Wire.write(data);
+			Wire.endTransmission();
 		}
 
-		Status VL6180::getStatus() const
+		// Read 1 byte
+		uint8_t VL6180::read8(uint16_t address) const
+		{
+			if (_i2cMultiplexer.getChannel() != _multiplexCh)
+			{
+				_i2cMultiplexer.selectChannel(_multiplexCh);
+			}
+
+			Wire.beginTransmission(_i2cAddr);
+			Wire.write(address >> 8);
+			Wire.write(address);
+			Wire.endTransmission();
+
+			Wire.requestFrom(_i2cAddr, (uint8_t)1);
+			
+			return Wire.read();
+		}
+
+		// Read 2 bytes
+		uint16_t VL6180::read16(uint16_t address) const
+		{
+			if (_i2cMultiplexer.getChannel() != _multiplexCh)
+			{
+				_i2cMultiplexer.selectChannel(_multiplexCh);
+			}
+
+			uint16_t data;
+
+			Wire.beginTransmission(_i2cAddr);
+			Wire.write(address >> 8);
+			Wire.write(address);
+			Wire.endTransmission();
+
+			Wire.requestFrom(_i2cAddr, (uint8_t)2);
+			data = Wire.read();
+			data <<= 8;
+			data |= Wire.read();
+
+			return data;
+		}
+
+		uint8_t VL6180::getDistance()
+		{
+			uint8_t distance;
+
+			// Wait for device to be ready for range measurement
+			while (!(read8(_regRangeStatus) & 0x01));
+
+			// Start a range measurement
+			write8(_regRangeStart, 0x01);
+
+			// Poll until bit 2 is set
+			while (!(read8(_regIntStatus) & 0x04));
+
+			// Read range in mm
+			distance = read8(_regRangeResult);
+
+			// Clear interrupt
+			write8(_regIntClear, 0x07);
+
+			// Read status
+			_status = static_cast<VL6180::Status>(read8(_regRangeStatus) >> 4);
+
+			if (distance > maxDist || distance < minDist) _status = Status::outOfRange;
+
+			return distance;
+		}
+
+		VL6180::Status VL6180::getStatus() const
 		{
 			return _status;
 		}
 
 		// VL6180 class - end
 
-		// MyTFMini class - begin
+		// TFMini class - begin
 
-		MyTFMini::MyTFMini(SerialType serialType) : _serialType(serialType) {}
+		TFMini::TFMini(SerialType serialType) : _serialType(serialType), _status(Status::noError), _distance(0) {}
 
-		ReturnCode MyTFMini::setup()
+		ReturnCode TFMini::setup()
 		{
 			switch (_serialType)
 			{
-			case JAFD::SerialType::software:
-				return ReturnCode::error;
-				break;
-
 			case JAFD::SerialType::zero:
-				Serial.begin(TFMINI_BAUDRATE);
-				_sensor.begin(&Serial);
+				Serial.begin(_baudrate);
+				_streamPtr = &Serial;
 				break;
 
 			case JAFD::SerialType::one:
-				Serial1.begin(TFMINI_BAUDRATE);
-				_sensor.begin(&Serial1);
+				Serial1.begin(_baudrate);
+				_streamPtr = &Serial1;
 				break;
 
 			case JAFD::SerialType::two:
-				Serial2.begin(TFMINI_BAUDRATE);
-				_sensor.begin(&Serial2);
+				Serial2.begin(_baudrate);
+				_streamPtr = &Serial2;
 				break;
 
 			case JAFD::SerialType::three:
-				Serial3.begin(TFMINI_BAUDRATE);
-				_sensor.begin(&Serial3);
+				Serial3.begin(_baudrate);
+				_streamPtr = &Serial3;
 				break;
 
 			default:
 				return ReturnCode::error;
 			}
-			
+
+			// Set to mm mode
+
+			// Start config
+			_streamPtr->write((uint8_t)0x42);
+			_streamPtr->write((uint8_t)0x57);
+			_streamPtr->write((uint8_t)0x02);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x01);
+			_streamPtr->write((uint8_t)0x02);
+
+			// mm Mode
+			_streamPtr->write((uint8_t)0x42);
+			_streamPtr->write((uint8_t)0x57);
+			_streamPtr->write((uint8_t)0x02);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x1A);
+
+			// End config
+			_streamPtr->write((uint8_t)0x42);
+			_streamPtr->write((uint8_t)0x57);
+			_streamPtr->write((uint8_t)0x02);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x00);
+			_streamPtr->write((uint8_t)0x02);
+
+			delay(100);
+
 			return ReturnCode::ok;
 		}
-
-		void MyTFMini::updateValues()
+		
+		TFMini::Status TFMini::takeMeasurement()
 		{
-			_distance = _sensor.getDistance();
-			
-			// TODO: TFMini Klasse selber implementieren und Status hinzufügen!!!
+			uint8_t numCharsRead = 0;
+			uint8_t lastChar = 0x00;
 
-			//if (_sensor.getState() != MEASUREMENT_OK)
-			//{
-			//	_status = Status::unknownError;
-			//}
-			//else
+			// Read the serial stream until we see the beginning of the TF Mini header, or we timeout reading too many characters.
+			while (1)
 			{
-				_status = Status::noError;
+
+				if (_streamPtr->available())
+				{
+					uint8_t curChar = _streamPtr->read();
+
+					if ((lastChar == 0x59) && (curChar == 0x59))
+					{
+						// Header start
+						break;
+					}
+					else
+					{
+						// Continue reading
+						lastChar = curChar;
+						numCharsRead += 1;
+					}
+				}
+
+				// Error detection:  If we read more than X characters without finding a frame header, then it's likely there is an issue with 
+				// the Serial connection, and we should timeout and throw an error. 
+				if (numCharsRead > _maxBytesBeforeHeader)
+				{
+					_status = Status::noSerialHeader;
+					return _status;
+				}
+
 			}
+
+			// Read one frame from the TFMini
+			uint8_t frame[_frameSize];
+
+			uint8_t checksum = 0x59 + 0x59;
+
+			for (int i = 0; i < _frameSize; i++)
+			{
+				// Whait for character
+				while (!_streamPtr->available());
+
+				// Read character
+				frame[i] = _streamPtr->read();
+
+				// Store running checksum
+				if (i < _frameSize - 2) {
+					checksum += frame[i];
+				}
+			}
+
+			// Compare checksum
+			// Last byte in the frame is an 8-bit checksum 
+			if (checksum != frame[_frameSize - 1])
+			{
+				_status = Status::badChecksum;
+				return _status;
+			}
+
+			// Interpret frame
+			uint16_t st = (frame[3] << 8) + frame[2];
+			uint8_t reserved = frame[4];
+			uint8_t originalSignalQuality = frame[5];
+			_distance = (frame[1] << 8) + frame[0];
+
+			// Return success
+			_status = Status::noError;
+			return _status;
 		}
 
-		uint16_t MyTFMini::getDistance() const
+		uint16_t TFMini::getDistance()
 		{
+			uint8_t numMeasurementAttempts = 0;
+
+			while (takeMeasurement() != Status::noError)
+			{
+				numMeasurementAttempts++;
+
+				if (numMeasurementAttempts > _maxMeasurementTries) return 0;
+			}
+
+			if (_distance > maxDist || _distance < minDist) _status = Status::outOfRange;
+
 			return _distance;
 		}
 
-		Status MyTFMini::getStatus() const
+		TFMini::Status TFMini::getStatus() const
 		{
 			return _status;
 		}
 
 		// TFMini class - end
 
-		VL6180 frontLeft;
-		VL6180 frontRight;
-		MyTFMini frontLong(JAFDSettings::DistanceSensors::FrontLong::serialType);
-		MyTFMini backLong(JAFDSettings::DistanceSensors::BackLong::serialType);
-		VL6180 leftFront;
-		VL6180 leftBack;
-		VL6180 rightFront;
-		VL6180 rightBack;
+		// VL53L0 class - begin
+
+		VL53L0::VL53L0(uint8_t multiplexCh) : _multiplexCh(multiplexCh), _status(Status::undefinedError) {}
+
+		ReturnCode VL53L0::setup()
+		{
+			if (_i2cMultiplexer.getChannel() != _multiplexCh)
+			{
+				_i2cMultiplexer.selectChannel(_multiplexCh);
+			}
+
+			if (_sensor.begin()) return ReturnCode::ok;
+			else return ReturnCode::error;
+		}
+
+		uint16_t VL53L0::getDistance()
+		{
+			static VL53L0X_RangingMeasurementData_t measure;
+
+			if (_i2cMultiplexer.getChannel() != _multiplexCh)
+			{
+				_i2cMultiplexer.selectChannel(_multiplexCh);
+			}
+
+			switch (_sensor.getSingleRangingMeasurement(&measure))
+			{
+			case VL53L0X_ERROR_NONE:
+				_status = Status::noError;
+				break;
+			case VL53L0X_ERROR_CALIBRATION_WARNING:
+				_status = Status::calibrationError;
+				break;
+			case VL53L0X_ERROR_MIN_CLIPPED:
+				_status = Status::calibrationError;
+				break;
+			case VL53L0X_ERROR_UNDEFINED:
+				_status = Status::undefinedError;
+				break;
+			case VL53L0X_ERROR_NOT_IMPLEMENTED:
+			case VL53L0X_ERROR_INVALID_COMMAND:
+			case VL53L0X_ERROR_MODE_NOT_SUPPORTED:
+			case VL53L0X_ERROR_NOT_SUPPORTED:
+			case VL53L0X_ERROR_INVALID_PARAMS:
+				_status = Status::functionUnavailable;
+				break;
+			case VL53L0X_ERROR_RANGE_ERROR:
+				_status = Status::rangeError;
+				break;
+			case VL53L0X_ERROR_TIME_OUT:
+				_status = Status::timeOut;
+				break;
+			case VL53L0X_ERROR_BUFFER_TOO_SMALL:
+				_status = Status::bufferTooSmall;
+				break;
+			case VL53L0X_ERROR_GPIO_NOT_EXISTING:
+			case VL53L0X_ERROR_GPIO_FUNCTIONALITY_NOT_SUPPORTED:
+			case VL53L0X_ERROR_CONTROL_INTERFACE:
+				_status = Status::ioError;
+				break;
+			case VL53L0X_ERROR_INTERRUPT_NOT_CLEARED:
+				_status = Status::interruptError;
+				break;
+			case VL53L0X_ERROR_DIVISION_BY_ZERO:
+				_status = Status::divisionByZero;
+				break;
+			case VL53L0X_ERROR_REF_SPAD_INIT:
+				_status = Status::spadInitError;
+				break;
+			}
+
+			if (measure.RangeStatus == 4) _status = Status::outOfRange;
+
+			if (measure.RangeMilliMeter > maxDist || measure.RangeMilliMeter < minDist) _status = Status::outOfRange;
+
+			return measure.RangeMilliMeter;
+		}
+
+		VL53L0::Status VL53L0::getStatus() const
+		{
+			return _status;
+		}
+
+		// VL53L0 class - end
+
+		VL6180 frontLeft(JAFDSettings::DistanceSensors::FrontLeft::multiplexCh);
+		VL6180 frontRight(JAFDSettings::DistanceSensors::FrontRight::multiplexCh);
+		TFMini frontLong(JAFDSettings::DistanceSensors::FrontLong::serialType);
+		TFMini backLong(JAFDSettings::DistanceSensors::BackLong::serialType);
+		VL6180 leftFront(JAFDSettings::DistanceSensors::LeftFront::multiplexCh);
+		VL6180 leftBack(JAFDSettings::DistanceSensors::LeftBack::multiplexCh);
+		VL6180 rightFront(JAFDSettings::DistanceSensors::RightFront::multiplexCh);
+		VL6180 rightBack(JAFDSettings::DistanceSensors::LeftFront::multiplexCh);
 
 		ReturnCode setup()
 		{
 			ReturnCode code = ReturnCode::ok;
-			
-			if (frontLeft.setup() != ReturnCode::ok)
-			{
-				code = ReturnCode::fatalError;
-			}
 
-			//if (frontRight.setup() != ReturnCode::ok)
+			//if (frontLeft.setup() != ReturnCode::ok)
 			//{
+			//	Serial.println("left");
 			//	code = ReturnCode::fatalError;
 			//}
 
-			if (frontLong.setup() != ReturnCode::ok)
-			{
-				code = ReturnCode::fatalError;
-			}
+			//if (frontRight.setup() != ReturnCode::ok)
+			//{
+			//	Serial.println("right");
+			//	code = ReturnCode::fatalError;
+			//}
+
+			//if (frontLong.setup() != ReturnCode::ok)
+			//{
+			//	code = ReturnCode::fatalError;
+			//}
 
 			//if (backLong.setup() != ReturnCode::ok)
 			//{

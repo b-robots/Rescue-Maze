@@ -22,6 +22,9 @@ namespace JAFD
 	// Just for testing...
 	void robotSetup()
 	{
+		// Setup I2C
+		Wire.begin();
+
 		// Setup the SPI-Bus
 		SPI.begin();
 		SPI.beginTransaction(SPISettings(10e+6, MSBFIRST, SPI_MODE0));
@@ -83,6 +86,7 @@ namespace JAFD
 		// Setup of Distance Sensors
 		if (DistanceSensors::setup() != ReturnCode::ok)
 		{
+
 		}
 
 		return;
