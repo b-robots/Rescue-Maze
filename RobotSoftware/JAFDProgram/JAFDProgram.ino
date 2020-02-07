@@ -42,12 +42,6 @@ void setup()
 // The loop function runs over and over again until power down or reset
 void loop()
 {
-	static uint16_t frontDist = 0;
-
-	frontDist = frontNew.getDistance();
-
-	Serial.println(frontNew.getStatus() == VL53L0::Status::noError ?  frontDist : "Error: " + String((int)frontNew.getStatus()));
-
 	JAFD::robotLoop();
 
 	delay(100);
