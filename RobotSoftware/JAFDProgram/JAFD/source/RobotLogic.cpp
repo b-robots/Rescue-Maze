@@ -23,21 +23,21 @@ namespace JAFD
 				{
 					cell = SensorFusion::getFusedData().gridCell;
 
-					if (cell.cellConnections & Direction::north)
+					if (cell.cellConnections & Directions::north)
 					{
-						relativeTurnDir = makeRelative(HeadingDirection::north, SensorFusion::getFusedData().heading);
+						relativeTurnDir = makeRelative(AbsoluteDir::north, SensorFusion::getFusedData().heading);
 					}
-					else if (cell.cellConnections & Direction::east)
+					else if (cell.cellConnections & Directions::east)
 					{
-						relativeTurnDir = makeRelative(HeadingDirection::east, SensorFusion::getFusedData().heading);
+						relativeTurnDir = makeRelative(AbsoluteDir::east, SensorFusion::getFusedData().heading);
 					}
-					else if (cell.cellConnections & Direction::south)
+					else if (cell.cellConnections & Directions::south)
 					{
-						relativeTurnDir = makeRelative(HeadingDirection::south, SensorFusion::getFusedData().heading);
+						relativeTurnDir = makeRelative(AbsoluteDir::south, SensorFusion::getFusedData().heading);
 					}
-					else if (cell.cellConnections & Direction::west)
+					else if (cell.cellConnections & Directions::west)
 					{
-						relativeTurnDir = makeRelative(HeadingDirection::west, SensorFusion::getFusedData().heading);
+						relativeTurnDir = makeRelative(AbsoluteDir::west, SensorFusion::getFusedData().heading);
 					}
 
 					switch (relativeTurnDir)

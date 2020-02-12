@@ -197,22 +197,22 @@ namespace JAFD
 							switch (bfsValueV & ~SolverState::discovered)
 							{
 							case SolverState::north:
-								directions[distance] = Direction::south; // Set the opposite direction
+								directions[distance] = Directions::south; // Set the opposite direction
 								coorV = { coorV.x, coorV.y + 1, coorV.floor };
 								break;
 
 							case SolverState::east:
-								directions[distance] = Direction::west; // Set the opposite direction
+								directions[distance] = Directions::west; // Set the opposite direction
 								coorV = { coorV.x + 1, coorV.y, coorV.floor };
 								break;
 
 							case SolverState::south:
-								directions[distance] = Direction::north; // Set the opposite direction
+								directions[distance] = Directions::north; // Set the opposite direction
 								coorV = { coorV.x, coorV.y - 1, coorV.floor };
 								break;
 
 							case SolverState::west:
-								directions[distance] = Direction::east; // Set the opposite direction
+								directions[distance] = Directions::east; // Set the opposite direction
 								coorV = { coorV.x - 1, coorV.y, coorV.floor };
 								break;
 
@@ -240,7 +240,7 @@ namespace JAFD
 					else
 					{
 						// Check the north
-						if (coorV.y < maxY && (gridCellV.cellConnections & Direction::north))
+						if (coorV.y < maxY && (gridCellV.cellConnections & Directions::north))
 						{
 							coorW = { coorV.x, coorV.y + 1, coorV.floor };
 							getGridCell(&gridCellW, &bfsValueW, coorW);
@@ -260,7 +260,7 @@ namespace JAFD
 						}
 
 						// Check the east
-						if (coorV.x < maxX && (gridCellV.cellConnections & Direction::east))
+						if (coorV.x < maxX && (gridCellV.cellConnections & Directions::east))
 						{
 							coorW = { coorV.x + 1, coorV.y, coorV.floor };
 							getGridCell(&gridCellW, &bfsValueW, coorW);
@@ -280,7 +280,7 @@ namespace JAFD
 						}
 
 						// Check the south
-						if (coorV.y > minY && (gridCellV.cellConnections & Direction::south))
+						if (coorV.y > minY && (gridCellV.cellConnections & Directions::south))
 						{
 							coorW = { coorV.x, coorV.y - 1, coorV.floor };
 							getGridCell(&gridCellW, &bfsValueW, coorW);
@@ -300,7 +300,7 @@ namespace JAFD
 						}
 
 						// Check the west
-						if (coorV.x > minX && (gridCellV.cellConnections & Direction::west))
+						if (coorV.x > minX && (gridCellV.cellConnections & Directions::west))
 						{
 							coorW = { coorV.x - 1, coorV.y, coorV.floor };
 							getGridCell(&gridCellW, &bfsValueW, coorW);
@@ -339,104 +339,20 @@ namespace JAFD
 
 			if ((MapCoordinate)SensorFusion::getFusedData().robotState.mapCoordinate == homePosition)
 			{
-				tempCell.cellConnections = Direction::north;
+				tempCell.cellConnections = Directions::north;
 			}
 			else if ((MapCoordinate)SensorFusion::getFusedData().robotState.mapCoordinate == MapCoordinate{1, 0, 0})
 			{
-				tempCell.cellConnections = Direction::east;
+				tempCell.cellConnections = Directions::east;
 			}
 			else if ((MapCoordinate)SensorFusion::getFusedData().robotState.mapCoordinate == MapCoordinate{ 1, -1, 0 })
 			{
-				tempCell.cellConnections = Direction::south;
+				tempCell.cellConnections = Directions::south;
 			}
 			else if ((MapCoordinate)SensorFusion::getFusedData().robotState.mapCoordinate == MapCoordinate{ 0, -1, 0 })
 			{
-				tempCell.cellConnections = Direction::west;
+				tempCell.cellConnections = Directions::west;
 			}
-
-			/*if (DistanceSensors::frontLong.getDistance() > 30.0f - JAFDSettings::Mechanics::sensorFrontBackDist)
-			{
-				switch (SensorFusion::getFusedData().heading)
-				{
-				case HeadingDirection::north:
-					tempCell.cellConnections |= Direction::north;
-					break;
-				case HeadingDirection::east:
-					tempCell.cellConnections |= Direction::east;
-					break;
-				case HeadingDirection::south:
-					tempCell.cellConnections |= Direction::south;
-					break;
-				case HeadingDirection::west:
-					tempCell.cellConnections |= Direction::west;
-					break;
-				default:
-					break;
-				}
-			}
-
-			if (DistanceSensors::backLong.getDistance() > 30.0f - JAFDSettings::Mechanics::sensorFrontBackDist)
-			{
-				switch (SensorFusion::getFusedData().heading)
-				{
-				case HeadingDirection::north:
-					tempCell.cellConnections |= Direction::south;
-					break;
-				case HeadingDirection::east:
-					tempCell.cellConnections |= Direction::west;
-					break;
-				case HeadingDirection::south:
-					tempCell.cellConnections |= Direction::north;
-					break;
-				case HeadingDirection::west:
-					tempCell.cellConnections |= Direction::east;
-					break;
-				default:
-					break;
-				}
-			}
-
-			if (DistanceSensors::rightFront.getDistance() > 30.0f - JAFDSettings::Mechanics::sensorLeftRightDist)
-			{
-				switch (SensorFusion::getFusedData().heading)
-				{
-				case HeadingDirection::north:
-					tempCell.cellConnections |= Direction::east;
-					break;
-				case HeadingDirection::east:
-					tempCell.cellConnections |= Direction::south;
-					break;
-				case HeadingDirection::south:
-					tempCell.cellConnections |= Direction::west;
-					break;
-				case HeadingDirection::west:
-					tempCell.cellConnections |= Direction::north;
-					break;
-				default:
-					break;
-				}
-			}
-
-			if (DistanceSensors::leftFront.getDistance() > 30.0f - JAFDSettings::Mechanics::sensorLeftRightDist)
-			{
-				switch (SensorFusion::getFusedData().heading)
-				{
-				case HeadingDirection::north:
-					tempCell.cellConnections |= Direction::west;
-					break;
-				case HeadingDirection::east:
-					tempCell.cellConnections |= Direction::north;
-					break;
-				case HeadingDirection::south:
-					tempCell.cellConnections |= Direction::east;
-					break;
-				case HeadingDirection::west:
-					tempCell.cellConnections |= Direction::south;
-					break;
-				default:
-					break;
-				}
-			}*/
 
 			certainty = tempCertainty;
 			cell = tempCell;

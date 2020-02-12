@@ -37,5 +37,11 @@ namespace JAFD
 
 		// Get the current
 		float getCurrent(const Motor motor);
+
+		// Pause PID-Controller
+		void pausePID();
+
+		// Restart PID-Controller
+		void restartPID();
 	}
 }

@@ -37,7 +37,7 @@ void TC3_Handler()
 	TC1->TC_CHANNEL[0].TC_SR;
 }
 
-// 100Hz / 10Hz / 1Hz
+// 100Hz
 void TC4_Handler()
 {
 	static uint8_t i = 0;

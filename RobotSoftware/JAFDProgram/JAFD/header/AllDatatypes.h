@@ -135,7 +135,7 @@ namespace JAFD
 	inline bool operator!=(const MapCoordinate& lhs, const MapCoordinate& rhs) { return !(lhs == rhs); }
 	
 	// Heading direction
-	enum class HeadingDirection : uint8_t
+	enum class AbsoluteDir : uint8_t
 	{
 		north,
 		east,
@@ -152,98 +152,206 @@ namespace JAFD
 		right
 	};
 
-	inline RelativeDir makeRelative(const HeadingDirection absoluteDir, const HeadingDirection heading)
+	inline RelativeDir makeRelative(const AbsoluteDir& absoluteDir, const AbsoluteDir heading)
 	{
 		switch (absoluteDir)
 		{
-		case HeadingDirection::north:
+		case AbsoluteDir::north:
 		{
 			switch (heading)
 			{
-			case HeadingDirection::north:
+			case AbsoluteDir::north:
 				return RelativeDir::forward;
 				break;
-			case HeadingDirection::east:
+			case AbsoluteDir::east:
 				return RelativeDir::left;
 				break;
-			case HeadingDirection::south:
+			case AbsoluteDir::south:
 				return RelativeDir::backward;
 				break;
-			case HeadingDirection::west:
+			case AbsoluteDir::west:
 				return RelativeDir::right;
 				break;
 			default:
 				break;
 			}
+
+			break;
 		}
-		case HeadingDirection::east:
+
+		case AbsoluteDir::east:
 		{
 			switch (heading)
 			{
-			case HeadingDirection::north:
+			case AbsoluteDir::north:
 				return RelativeDir::right;
 				break;
-			case HeadingDirection::east:
+			case AbsoluteDir::east:
 				return RelativeDir::forward;
 				break;
-			case HeadingDirection::south:
+			case AbsoluteDir::south:
 				return RelativeDir::left;
 				break;
-			case HeadingDirection::west:
+			case AbsoluteDir::west:
 				return RelativeDir::backward;
 				break;
 			default:
 				break;
 			}
+
+			break;
 		}
-		case HeadingDirection::south:
+
+		case AbsoluteDir::south:
 		{
 			switch (heading)
 			{
-			case HeadingDirection::north:
+			case AbsoluteDir::north:
 				return RelativeDir::backward;
 				break;
-			case HeadingDirection::east:
+			case AbsoluteDir::east:
 				return RelativeDir::right;
 				break;
-			case HeadingDirection::south:
+			case AbsoluteDir::south:
 				return RelativeDir::forward;
 				break;
-			case HeadingDirection::west:
+			case AbsoluteDir::west:
 				return RelativeDir::left;
 				break;
 			default:
 				break;
 			}
+
+			break;
 		}
-		case HeadingDirection::west:
+
+		case AbsoluteDir::west:
 		{
 			switch (heading)
 			{
-			case HeadingDirection::north:
+			case AbsoluteDir::north:
 				return RelativeDir::left;
 				break;
-			case HeadingDirection::east:
+			case AbsoluteDir::east:
 				return RelativeDir::backward;
 				break;
-			case HeadingDirection::south:
+			case AbsoluteDir::south:
 				return RelativeDir::right;
 				break;
-			case HeadingDirection::west:
+			case AbsoluteDir::west:
 				return RelativeDir::forward;
 				break;
 			default:
 				break;
 			}
+
+			break;
 		}
+
 		default:
 			break;
 		}
 	}
 
-	inline HeadingDirection makeAbsolute(const RelativeDir relativeDir, const HeadingDirection heading)
+	inline AbsoluteDir makeAbsolute(const RelativeDir& relativeDir, const AbsoluteDir heading)
 	{
-		return -1;
+		switch (relativeDir)
+		{
+		case RelativeDir::forward:
+		{
+			switch (heading)
+			{
+			case AbsoluteDir::north:
+				return AbsoluteDir::north;
+				break;
+			case AbsoluteDir::east:
+				return AbsoluteDir::east;
+				break;
+			case AbsoluteDir::south:
+				return AbsoluteDir::south;
+				break;
+			case AbsoluteDir::west:
+				return AbsoluteDir::west;
+				break;
+			default:
+				break;
+			}
+
+			break;
+		}
+
+		case RelativeDir::right:
+		{
+			switch (heading)
+			{
+			case AbsoluteDir::north:
+				return AbsoluteDir::east;
+				break;
+			case AbsoluteDir::east:
+				return AbsoluteDir::south;
+				break;
+			case AbsoluteDir::south:
+				return AbsoluteDir::west;
+				break;
+			case AbsoluteDir::west:
+				return AbsoluteDir::north;
+				break;
+			default:
+				break;
+			}
+
+			break;
+		}
+
+		case RelativeDir::backward:
+		{
+			switch (heading)
+			{
+			case AbsoluteDir::north:
+				return AbsoluteDir::south;
+				break;
+			case AbsoluteDir::east:
+				return AbsoluteDir::west;
+				break;
+			case AbsoluteDir::south:
+				return AbsoluteDir::north;
+				break;
+			case AbsoluteDir::west:
+				return AbsoluteDir::east;
+				break;
+			default:
+				break;
+			}
+
+			break;
+		}
+
+		case RelativeDir::left:
+		{
+			switch (heading)
+			{
+			case AbsoluteDir::north:
+				return AbsoluteDir::west;
+				break;
+			case AbsoluteDir::east:
+				return AbsoluteDir::north;
+				break;
+			case AbsoluteDir::south:
+				return AbsoluteDir::east;
+				break;
+			case AbsoluteDir::west:
+				return AbsoluteDir::south;
+				break;
+			default:
+				break;
+			}
+
+			break;
+		}
+
+		default:
+			break;
+		}
 	}
 
 
@@ -305,7 +413,7 @@ namespace JAFD
 	}
 
 	// Direction flags
-	namespace Direction
+	namespace Directions
 	{
 		constexpr uint8_t north = 1 << 0;
 		constexpr uint8_t east = 1 << 1;
@@ -372,6 +480,6 @@ namespace JAFD
 		RobotState robotState;		// Current state of robot
 		GridCell gridCell;			// Current grid cell
 		float gridCellCertainty;	// Certainty about the grid cell
-		HeadingDirection heading;	// Heading of the robot
+		AbsoluteDir heading;	// Heading of the robot
 	};
 }

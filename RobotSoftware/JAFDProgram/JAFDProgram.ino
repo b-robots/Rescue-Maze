@@ -43,6 +43,8 @@ void setup()
 	Serial.begin(115200);
 
 	JAFD::robotSetup();
+
+	delay(100);
 }
 
 // The loop function runs over and over again until power down or reset
@@ -50,5 +52,5 @@ void loop()
 {
 	JAFD::robotLoop();
 
-	delay(100);
+	delay(300);
 }
