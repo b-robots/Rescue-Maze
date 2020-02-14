@@ -16,28 +16,38 @@ namespace JAFD
 		{
 			static GridCell cell;
 			static RelativeDir relativeTurnDir;
-			
+			static bool found;
+
 			if (SensorFusion::getFusedData().gridCellCertainty >= 0.5f)
 			{
 				if (SmoothDriving::isTaskFinished())
 				{
 					cell = SensorFusion::getFusedData().gridCell;
 
-					if (cell.cellConnections & Directions::north)
+					found = false;
+
+					while (!found)
 					{
-						relativeTurnDir = makeRelative(AbsoluteDir::north, SensorFusion::getFusedData().heading);
-					}
-					else if (cell.cellConnections & Directions::east)
-					{
-						relativeTurnDir = makeRelative(AbsoluteDir::east, SensorFusion::getFusedData().heading);
-					}
-					else if (cell.cellConnections & Directions::south)
-					{
-						relativeTurnDir = makeRelative(AbsoluteDir::south, SensorFusion::getFusedData().heading);
-					}
-					else if (cell.cellConnections & Directions::west)
-					{
-						relativeTurnDir = makeRelative(AbsoluteDir::west, SensorFusion::getFusedData().heading);
+						if ((cell.cellConnections & Directions::north) && random(0, 4) == 0)
+						{
+							found = true;
+							relativeTurnDir = makeRelative(AbsoluteDir::north, SensorFusion::getFusedData().heading);
+						}
+						else if ((cell.cellConnections & Directions::east) && random(0, 4) == 1)
+						{
+							found = true;
+							relativeTurnDir = makeRelative(AbsoluteDir::east, SensorFusion::getFusedData().heading);
+						}
+						else if ((cell.cellConnections & Directions::west) && random(0, 4) == 2)
+						{
+							found = true;
+							relativeTurnDir = makeRelative(AbsoluteDir::west, SensorFusion::getFusedData().heading);
+						}
+						else if ((cell.cellConnections & Directions::south) && random(0, 4) == 3)
+						{
+							found = true;
+							relativeTurnDir = makeRelative(AbsoluteDir::south, SensorFusion::getFusedData().heading);
+						}
 					}
 
 					switch (relativeTurnDir)

@@ -262,5 +262,8 @@ namespace JAFD
 		ReturnCode setNewTask<NewStateType::lastEndState>(const TaskArray& newTask, const bool forceOverride);
 
 		ReturnCode setNewTask(const TaskArray& newTask, RobotState startState, const bool forceOverride = false);
+	
+		// Stop current task
+		void stopTask();
 	}
 }

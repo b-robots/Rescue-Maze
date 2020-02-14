@@ -57,7 +57,7 @@ namespace JAFD
 
 		TC1->TC_CHANNEL[1].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
 
-		// INIT Distance Sensors
+		randomSeed(69420);
 
 		// Setup of MazeMapper
 		if (MazeMapping::setup() != ReturnCode::ok)
@@ -96,7 +96,7 @@ namespace JAFD
 
 	void robotLoop()
 	{
-		SensorFusion::untimedSensorUpdate();
+		SensorFusion::untimedFusion();
 		
 		RobotLogic::loop();
 

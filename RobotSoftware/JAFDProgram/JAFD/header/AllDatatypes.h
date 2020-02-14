@@ -367,7 +367,7 @@ namespace JAFD
 		
 		MapCoordinate mapCoordinate;	// Position on the map; (0, 0, 0) == start
 
-		constexpr RobotState(FloatWheelSpeeds wheelSpeeds = FloatWheelSpeeds(), float forwardVel = 0.0f, Vec3f position = Vec3f(), Vec3f angularVel = Vec3f(), Vec3f rotation = Vec3f()) : wheelSpeeds(wheelSpeeds), forwardVel(forwardVel), position(position), angularVel(angularVel), rotation(rotation) {}
+		constexpr RobotState() : wheelSpeeds(), forwardVel(), position(), angularVel(), rotation() {}
 		RobotState(const volatile RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), rotation(state.rotation) {}
 		constexpr RobotState(const RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), rotation(state.rotation) {}
 
@@ -480,6 +480,19 @@ namespace JAFD
 		RobotState robotState;		// Current state of robot
 		GridCell gridCell;			// Current grid cell
 		float gridCellCertainty;	// Certainty about the grid cell
-		AbsoluteDir heading;	// Heading of the robot
+		AbsoluteDir heading;		// Heading of the robot
+
+		// Results of distance measurement in mm
+		struct
+		{
+			uint16_t frontLeft;
+			uint16_t frontRight;
+			uint16_t frontLong;
+			uint16_t backLong;
+			uint8_t leftFront;
+			uint8_t leftBack;
+			uint8_t rightFront;
+			uint8_t rightBack;
+		} distances;
 	};
 }

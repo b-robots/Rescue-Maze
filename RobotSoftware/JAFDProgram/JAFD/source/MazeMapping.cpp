@@ -331,27 +331,101 @@ namespace JAFD
 		{
 			static MapCoordinate lastPosition;
 			static float tempCertainty;
-			GridCell tempCell;
+			static GridCell tempCell;
 
 			tempCertainty = 1.0f;
+			tempCell.cellConnections = Directions::nowhere;
 
 			lastPosition = MapCoordinate(SensorFusion::getFusedData().robotState.mapCoordinate);
 
-			if ((MapCoordinate)SensorFusion::getFusedData().robotState.mapCoordinate == homePosition)
+			if (fabs((SensorFusion::getFusedData().robotState.rotation.x / 90.0) - static_cast<int64_t>(SensorFusion::getFusedData().robotState.rotation.x / 90.0)) < 0.1f)
 			{
-				tempCell.cellConnections = Directions::north;
-			}
-			else if ((MapCoordinate)SensorFusion::getFusedData().robotState.mapCoordinate == MapCoordinate{1, 0, 0})
-			{
-				tempCell.cellConnections = Directions::east;
-			}
-			else if ((MapCoordinate)SensorFusion::getFusedData().robotState.mapCoordinate == MapCoordinate{ 1, -1, 0 })
-			{
-				tempCell.cellConnections = Directions::south;
-			}
-			else if ((MapCoordinate)SensorFusion::getFusedData().robotState.mapCoordinate == MapCoordinate{ 0, -1, 0 })
-			{
-				tempCell.cellConnections = Directions::west;
+				if (fabs(SensorFusion::getFusedData().robotState.position.x - SensorFusion::getFusedData().robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < 3.0f && fabs(SensorFusion::getFusedData().robotState.position.y - SensorFusion::getFusedData().robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < 3.0f)
+				{
+					if (SensorFusion::getFusedData().distances.frontLeft + SensorFusion::getFusedData().distances.frontRight > 20)
+					{
+						switch (makeAbsolute(RelativeDir::forward, SensorFusion::getFusedData().heading))
+						{
+						case AbsoluteDir::north:
+							tempCell.cellConnections |= Directions::north;
+							break;
+						case AbsoluteDir::east:
+							tempCell.cellConnections |= Directions::east;
+							break;
+						case AbsoluteDir::south:
+							tempCell.cellConnections |= Directions::south;
+							break;
+						case AbsoluteDir::west:
+							tempCell.cellConnections |= Directions::west;
+							break;
+						default:
+							break;
+						}
+					}
+
+					if (SensorFusion::getFusedData().distances.leftFront + SensorFusion::getFusedData().distances.leftBack > 20)
+					{
+						switch (makeAbsolute(RelativeDir::left, SensorFusion::getFusedData().heading))
+						{
+						case AbsoluteDir::north:
+							tempCell.cellConnections |= Directions::north;
+							break;
+						case AbsoluteDir::east:
+							tempCell.cellConnections |= Directions::east;
+							break;
+						case AbsoluteDir::south:
+							tempCell.cellConnections |= Directions::south;
+							break;
+						case AbsoluteDir::west:
+							tempCell.cellConnections |= Directions::west;
+							break;
+						default:
+							break;
+						}
+					}
+
+					if (SensorFusion::getFusedData().distances.rightFront + SensorFusion::getFusedData().distances.rightBack > 20)
+					{
+						switch (makeAbsolute(RelativeDir::right, SensorFusion::getFusedData().heading))
+						{
+						case AbsoluteDir::north:
+							tempCell.cellConnections |= Directions::north;
+							break;
+						case AbsoluteDir::east:
+							tempCell.cellConnections |= Directions::east;
+							break;
+						case AbsoluteDir::south:
+							tempCell.cellConnections |= Directions::south;
+							break;
+						case AbsoluteDir::west:
+							tempCell.cellConnections |= Directions::west;
+							break;
+						default:
+							break;
+						}
+					}
+
+					if (tempCell.cellConnections == Directions::nowhere)
+					{
+						switch (makeAbsolute(RelativeDir::backward, SensorFusion::getFusedData().heading))
+						{
+						case AbsoluteDir::north:
+							tempCell.cellConnections |= Directions::north;
+							break;
+						case AbsoluteDir::east:
+							tempCell.cellConnections |= Directions::east;
+							break;
+						case AbsoluteDir::south:
+							tempCell.cellConnections |= Directions::south;
+							break;
+						case AbsoluteDir::west:
+							tempCell.cellConnections |= Directions::west;
+							break;
+						default:
+							break;
+						}
+					}
+				}
 			}
 
 			certainty = tempCertainty;

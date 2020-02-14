@@ -52,8 +52,6 @@ namespace JAFD
 			volatile FloatWheelSpeeds _speeds = { 0.0f, 0.0f };	// Current motor speeds (cm/s)
 
 			volatile WheelSpeeds _desSpeeds = { 0.0f, 0.0f };	// Desired motor speed (cm/s)
-
-			volatile bool _pausedPID = false;
 		}
 
 		ReturnCode setup()
@@ -172,7 +170,6 @@ namespace JAFD
 		{
 			static int32_t lastLeftCnt = 0;
 			static int32_t lastRightCnt = 0;
-			static FloatWheelSpeeds lastSpeeds;
 
 			// Calculate speeds and apply 
 			_speeds.left = ((_lEncCnt - lastLeftCnt) / (JAFDSettings::MotorControl::pulsePerRev) * JAFDSettings::Mechanics::wheelDiameter * PI * freq);
@@ -180,7 +177,6 @@ namespace JAFD
 
 			lastLeftCnt = _lEncCnt;
 			lastRightCnt = _rEncCnt;
-			lastSpeeds = static_cast<FloatWheelSpeeds>(_speeds);
 		}
 
 		void speedPID(const uint8_t freq)
@@ -192,11 +188,6 @@ namespace JAFD
 			{
 				_leftPID.reset();
 				setSpeed.left = 0.0f;
-			}
-			else if (_pausedPID)
-			{
-				_leftPID.reset();
-				setSpeed.left = _desSpeeds.left;
 			}
 			else
 			{
@@ -211,11 +202,6 @@ namespace JAFD
 			{
 				_rightPID.reset();
 				setSpeed.right = 0.0f;
-			}
-			else if (_pausedPID)
-			{
-				_leftPID.reset();
-				setSpeed.right = _desSpeeds.right;
 			}
 			else
 			{
@@ -332,16 +318,6 @@ namespace JAFD
 			}
 
 			return result / 10.0f;
-		}
-
-		void pausePID()
-		{
-			_pausedPID = true;
-		}
-
-		void restartPID()
-		{
-			_pausedPID = false;
 		}
 	}
 }

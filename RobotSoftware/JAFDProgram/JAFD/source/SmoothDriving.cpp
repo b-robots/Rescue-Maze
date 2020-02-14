@@ -41,6 +41,8 @@ namespace JAFD
 			
 			PIDController _forwardVelPID(JAFDSettings::Controller::SmoothDriving::forwardVelPidSettings);	// PID controller for forward velocity
 			PIDController _angularVelPID(JAFDSettings::Controller::SmoothDriving::angularVelPidSettings);	// PID controller for angular velocity
+		
+			volatile bool _stopped = false;		// Is current task stopped?
 		}
 
 		ITask::ITask() : _finished(false), _endState() {}
@@ -634,7 +636,10 @@ namespace JAFD
 		// Update speeds for both wheels
 		void updateSpeeds(const uint8_t freq)
 		{
-			MotorControl::setSpeeds(_currentTask->updateSpeeds(freq));
+			if (!_stopped)
+			{
+				MotorControl::setSpeeds(_currentTask->updateSpeeds(freq));
+			}
 		}
 
 		// Set new Accelerate task (use last end state to start)
@@ -659,6 +664,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.accelerate)) Accelerate(temp);
+					_stopped = false;
 				}
 			}
 
@@ -685,6 +691,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.accelerate)) Accelerate(temp);
+					_stopped = false;
 				}
 			}
 
@@ -710,6 +717,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.accelerate)) Accelerate(temp);
+					_stopped = false;
 				}
 			}
 
@@ -739,6 +747,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.straight)) DriveStraight(temp);
+					_stopped = false;
 				}
 			}
 
@@ -765,6 +774,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.straight)) DriveStraight(temp);
+					_stopped = false;
 				}
 			}
 
@@ -790,6 +800,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.straight)) DriveStraight(temp);
+					_stopped = false;
 				}
 			}
 
@@ -819,6 +830,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.stop)) Stop(temp);
+					_stopped = false;
 				}
 			}
 
@@ -845,6 +857,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.stop)) Stop(temp);
+					_stopped = false;
 				}
 			}
 
@@ -870,6 +883,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.stop)) Stop(temp);
+					_stopped = false;
 				}
 			}
 
@@ -899,6 +913,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.rotate)) Rotate(temp);
+					_stopped = false;
 				}
 			}
 
@@ -925,6 +940,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.rotate)) Rotate(temp);
+					_stopped = false;
 				}
 			}
 
@@ -950,6 +966,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.rotate)) Rotate(temp);
+					_stopped = false;
 				}
 			}
 
@@ -979,6 +996,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.forceSpeed)) ForceSpeed(temp);
+					_stopped = false;
 				}
 			}
 
@@ -1005,6 +1023,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.forceSpeed)) ForceSpeed(temp);
+					_stopped = false;
 				}
 			}
 
@@ -1030,6 +1049,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.forceSpeed)) ForceSpeed(temp);
+					_stopped = false;
 				}
 			}
 
@@ -1058,6 +1078,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.taskArray)) TaskArray(temp);
+					_stopped = false;
 				}
 			}
 
@@ -1083,6 +1104,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.taskArray)) TaskArray(temp);
+					_stopped = false;
 				}
 			}
 
@@ -1107,6 +1129,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.taskArray)) TaskArray(temp);
+					_stopped = false;
 				}
 			}
 
@@ -1118,6 +1141,12 @@ namespace JAFD
 		bool isTaskFinished()
 		{
 			return _currentTask->isFinished();
+		}
+
+		void stopTask()
+		{
+			_stopped = true;
+			setNewTask<NewStateType::currentState>(Stop(), true);
 		}
 	}
 }

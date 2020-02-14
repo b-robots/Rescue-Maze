@@ -153,8 +153,8 @@ namespace JAFD
 			Status _status;
 		};
 
-		extern VL6180 frontLeft;	// Front-Left short distance sensor
-		extern VL6180 frontRight;	// Front-Right short distance sensor
+		extern VL53L0 frontLeft;	// Front-Left short distance sensor
+		extern VL53L0 frontRight;	// Front-Right short distance sensor
 		extern TFMini frontLong;	// Front long distance sensor
 		extern TFMini backLong;		// Back long distance sensor
 		extern VL6180 leftFront;	// Left-Front short distance sensor

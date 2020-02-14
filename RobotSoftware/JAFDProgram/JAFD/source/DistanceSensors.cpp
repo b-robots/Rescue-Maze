@@ -451,8 +451,8 @@ namespace JAFD
 
 		// VL53L0 class - end
 
-		VL6180 frontLeft(JAFDSettings::DistanceSensors::FrontLeft::multiplexCh);
-		VL6180 frontRight(JAFDSettings::DistanceSensors::FrontRight::multiplexCh);
+		VL53L0 frontLeft(JAFDSettings::DistanceSensors::FrontLeft::multiplexCh);
+		VL53L0 frontRight(JAFDSettings::DistanceSensors::FrontRight::multiplexCh);
 		TFMini frontLong(JAFDSettings::DistanceSensors::FrontLong::serialType);
 		TFMini backLong(JAFDSettings::DistanceSensors::BackLong::serialType);
 		VL6180 leftFront(JAFDSettings::DistanceSensors::LeftFront::multiplexCh);
@@ -464,47 +464,45 @@ namespace JAFD
 		{
 			ReturnCode code = ReturnCode::ok;
 
-			//if (frontLeft.setup() != ReturnCode::ok)
-			//{
-			//	Serial.println("left");
-			//	code = ReturnCode::fatalError;
-			//}
+			if (frontLeft.setup() != ReturnCode::ok)
+			{
+				code = ReturnCode::fatalError;
+			}
 
-			//if (frontRight.setup() != ReturnCode::ok)
-			//{
-			//	Serial.println("right");
-			//	code = ReturnCode::fatalError;
-			//}
+			if (frontRight.setup() != ReturnCode::ok)
+			{
+				code = ReturnCode::fatalError;
+			}
 
-			//if (frontLong.setup() != ReturnCode::ok)
-			//{
-			//	code = ReturnCode::fatalError;
-			//}
+			if (frontLong.setup() != ReturnCode::ok)
+			{
+				code = ReturnCode::fatalError;
+			}
 
-			//if (backLong.setup() != ReturnCode::ok)
-			//{
-			//	code = ReturnCode::fatalError;
-			//}
+			if (backLong.setup() != ReturnCode::ok)
+			{
+				code = ReturnCode::fatalError;
+			}
 
-			//if (leftFront.setup() != ReturnCode::ok)
-			//{
-			//	code = ReturnCode::fatalError;
-			//}
+			if (leftFront.setup() != ReturnCode::ok)
+			{
+				code = ReturnCode::fatalError;
+			}
 
-			//if (leftBack.setup() != ReturnCode::ok)
-			//{
-			//	code = ReturnCode::fatalError;
-			//}
+			if (leftBack.setup() != ReturnCode::ok)
+			{
+				code = ReturnCode::fatalError;
+			}
 
-			//if (rightFront.setup() != ReturnCode::ok)
-			//{
-			//	code = ReturnCode::fatalError;
-			//}
+			if (rightFront.setup() != ReturnCode::ok)
+			{
+				code = ReturnCode::fatalError;
+			}
 
-			//if (rightBack.setup() != ReturnCode::ok)
-			//{
-			//	code = ReturnCode::fatalError;
-			//}
+			if (rightBack.setup() != ReturnCode::ok)
+			{
+				code = ReturnCode::fatalError;
+			}
 
 			return code;
 		}
