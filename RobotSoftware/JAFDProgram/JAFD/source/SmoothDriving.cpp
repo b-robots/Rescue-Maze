@@ -8,7 +8,6 @@ This part of the Library is responsible for driving smoothly.
 #include "WProgram.h"
 #endif
 
-#include <new>
 #include <algorithm>
 
 #include "../header/SmoothDriving.h"
@@ -31,14 +30,19 @@ namespace JAFD
 				DriveStraight straight;
 				Stop stop;
 				Rotate rotate;
+				ForceSpeed forceSpeed;
+				TaskArray taskArray;
 
 				_TaskCopies() : stop() {};
-			} _taskCopies;			
+				~_TaskCopies() {}
+			} _taskCopies;
 
 			ITask* _currentTask = &_taskCopies.stop;	// Current task
 			
 			PIDController _forwardVelPID(JAFDSettings::Controller::SmoothDriving::forwardVelPidSettings);	// PID controller for forward velocity
 			PIDController _angularVelPID(JAFDSettings::Controller::SmoothDriving::angularVelPidSettings);	// PID controller for angular velocity
+		
+			volatile bool _stopped = false;		// Is current task stopped?
 		}
 
 		ITask::ITask() : _finished(false), _endState() {}
@@ -96,15 +100,15 @@ namespace JAFD
 			static float correctedAngularVel;	// Corrected angular velocity
 			static WheelSpeeds output;			// Speed output for both wheels
 
-			currentPosition = (Vec2f)(SensorFusion::getRobotState().position);
-			currentHeading = SensorFusion::getRobotState().rotation.x;
+			currentPosition = (Vec2f)(SensorFusion::getFusedData().robotState.position);
+			currentHeading = SensorFusion::getFusedData().robotState.rotation.x;
 
 			// Calculate driven distance
 			posRelToStart = currentPosition - _startPos;
 			drivenDistance = std::max(posRelToStart.x * _targetDir.x + posRelToStart.y * _targetDir.y, 0.0f);
 
 			// Check if I am there
-			if (drivenDistance >= abs(_distance))
+			if (drivenDistance >= fabs(_distance))
 			{
 				_finished = true;
 
@@ -156,15 +160,28 @@ namespace JAFD
 			desAngularVel = desiredSpeed * desCurvature;
 
 			// Kind of PID - controller
-			correctedForwardVel = desiredSpeed * 0.8f + _forwardVelPID.process(desiredSpeed, SensorFusion::getRobotState().forwardVel, 1.0f / freq);
-			correctedAngularVel = desAngularVel * 0.8f + _angularVelPID.process(desAngularVel, SensorFusion::getRobotState().angularVel.x, 1.0f / freq);
+			correctedForwardVel = desiredSpeed * 0.8f + _forwardVelPID.process(desiredSpeed, SensorFusion::getFusedData().robotState.forwardVel, 1.0f / freq);
+			correctedAngularVel = desAngularVel * 0.8f + _angularVelPID.process(desAngularVel, SensorFusion::getFusedData().robotState.angularVel.x, 1.0f / freq);
 
 			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
 			output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
 
 			// Correct speed if it is too low 
-			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed) output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
-			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed) output.right = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed)
+			{
+				_forwardVelPID.reset();
+				_angularVelPID.reset();
+
+				output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			}
+
+			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed)
+			{
+				_forwardVelPID.reset();
+				_angularVelPID.reset();
+
+				output.right = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			}
 			
 			return output;
 		}
@@ -191,7 +208,7 @@ namespace JAFD
 
 			_endState.wheelSpeeds = FloatWheelSpeeds{ _speeds, _speeds };
 			_endState.forwardVel = static_cast<float>(_speeds);
-			_endState.position = startState.position + (Vec3f)(_targetDir * abs(_distance));
+			_endState.position = startState.position + (Vec3f)(_targetDir * fabs(_distance));
 			_endState.angularVel = Vec3f(0.0f, 0.0f, 0.0f);
 			_endState.rotation = startState.rotation;
 
@@ -216,15 +233,15 @@ namespace JAFD
 			static float correctedForwardVel;	// Corrected forward velocity
 			static float correctedAngularVel;	// Corrected angular velocity
 
-			currentPosition = (Vec2f)(SensorFusion::getRobotState().position);
-			currentHeading = SensorFusion::getRobotState().rotation.x;
+			currentPosition = (Vec2f)(SensorFusion::getFusedData().robotState.position);
+			currentHeading = SensorFusion::getFusedData().robotState.rotation.x;
 
 			// Calculate driven distance
 			posRelToStart = currentPosition - _startPos;
 			absDrivenDist = posRelToStart.length();
 
 			// Check if I am there
-			if (abs(absDrivenDist) >= abs(_distance))
+			if (fabs(absDrivenDist) >= fabs(_distance))
 			{
 				_finished = true;
 			}
@@ -233,7 +250,7 @@ namespace JAFD
 			// Furthermore, the lookahead distance is dynamically adapted to the speed
 			// Calculate goal point
 			lookAheadDistance = JAFDSettings::Controller::PurePursuit::lookAheadGain * _speeds;
-			lookAheadDistance = abs(lookAheadDistance);
+			lookAheadDistance = fabs(lookAheadDistance);
 
 			if (lookAheadDistance < JAFDSettings::Controller::PurePursuit::minLookAheadDist) lookAheadDistance = JAFDSettings::Controller::PurePursuit::minLookAheadDist;
 
@@ -252,15 +269,28 @@ namespace JAFD
 			desAngularVel = _speeds * desCurvature;
 
 			// Kind of PID - controller
-			correctedForwardVel = _speeds * 0.8f + _forwardVelPID.process(_speeds, SensorFusion::getRobotState().forwardVel, 1.0f / freq);
-			correctedAngularVel = desAngularVel * 0.8 + _angularVelPID.process(desAngularVel, SensorFusion::getRobotState().angularVel.x, 1.0f / freq);
+			correctedForwardVel = _speeds * 0.8f + _forwardVelPID.process(_speeds, SensorFusion::getFusedData().robotState.forwardVel, 1.0f / freq);
+			correctedAngularVel = desAngularVel * 0.8f + _angularVelPID.process(desAngularVel, SensorFusion::getFusedData().robotState.angularVel.x, 1.0f / freq);
 
 			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
 			output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
 
 			// Correct speed if it is too low 
-			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed) output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
-			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed) output.right = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed)
+			{
+				_forwardVelPID.reset();
+				_angularVelPID.reset();
+
+				output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			}
+
+			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed)
+			{
+				_forwardVelPID.reset();
+				_angularVelPID.reset();
+
+				output.right = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			}
 
 			return output;
 		}
@@ -330,10 +360,10 @@ namespace JAFD
 			static WheelSpeeds output;			// Output
 
 			// Calculate rotated angle
-			rotatedAngle = SensorFusion::getRobotState().rotation.x - _startAngle;
+			rotatedAngle = SensorFusion::getFusedData().robotState.rotation.x - _startAngle;
 
 			// Check if I am there
-			if (abs(rotatedAngle) >= abs(_angle))
+			if (fabs(rotatedAngle) >= fabs(_angle))
 			{
 				_finished = true;
 
@@ -347,26 +377,28 @@ namespace JAFD
 			if (_accelerate)
 			{
 				// w(t) = w_max * 2 * t / t_ges => a(t) = w_max * t^2 / t_ges => t(a) = sqrt(a * t_ges / w_max); w(a) = w_max * 2 * sqrt(a * t_ges / w_max) / t_ges = sqrt(4 * a * w_max / t_ges)
-				desAngularVel = sqrtf(4.0f * abs(rotatedAngle * _maxAngularVel) / _totalTime) * sgn(_maxAngularVel);
+				desAngularVel = sqrtf(4.0f * fabs(rotatedAngle * _maxAngularVel) / _totalTime) * sgn(_maxAngularVel);
 
-				if (abs(rotatedAngle) >= abs(_angle) / 2.0f) _accelerate = false;
+				if (fabs(rotatedAngle) >= fabs(_angle) / 2.0f)
+				{
+					_accelerate = false;
+				}
 			}
 			else
 			{
-				desAngularVel = _maxAngularVel - sqrtf(4.0f * abs((rotatedAngle - _angle / 2.0f) * _maxAngularVel) / _totalTime) * sgn(_maxAngularVel);
+				desAngularVel = _maxAngularVel - sqrtf(4.0f * fabs((rotatedAngle - _angle / 2.0f) * _maxAngularVel) / _totalTime) * sgn(_maxAngularVel);
 			}
 
-			Serial.println(desAngularVel);
-
 			// Kind of PID - controller
-			correctedAngularVel = desAngularVel * 0.8 + _angularVelPID.process(desAngularVel, SensorFusion::getRobotState().angularVel.x, 1.0f / freq);
-
+			correctedAngularVel = desAngularVel * 0.8f + _angularVelPID.process(desAngularVel, SensorFusion::getFusedData().robotState.angularVel.x, 1.0f / freq);
+	
 			// Compute wheel speeds -- w = (v_r - v_l) / wheelDistance; v_l = -v_r; => v_l = -w * wheelDistance / 2; v_r = w * wheelDistance / 2
 			output = WheelSpeeds{ -JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
 
 			// Correct speed if it is too low
 			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed)
 			{
+				_angularVelPID.reset();
 				output.right = JAFDSettings::MotorControl::minSpeed * sgn(_angle);
 				output.left = -output.right;
 			}
@@ -376,10 +408,238 @@ namespace JAFD
 
 		// Rotate class - end
 
+		// ForceSpeed class - begin
+
+		ForceSpeed::ForceSpeed(int16_t speed, float distance) : ITask(), _speeds(speed), _distance(distance), _targetDir(1.0f, 0.0f) {}
+
+		ReturnCode ForceSpeed::startTask(RobotState startState)
+		{
+			_finished = false;
+			_targetDir = Vec2f(cosf(startState.rotation.x), sinf(startState.rotation.x));
+			_startPos = (Vec2f)(startState.position);
+
+			if (sgn(_speeds) != sgn(_distance)) return ReturnCode::error;
+
+			if (_speeds <= 0)
+			{
+				_targetDir *= -1;
+			}
+
+			_endState.wheelSpeeds = FloatWheelSpeeds{ _speeds, _speeds };
+			_endState.forwardVel = static_cast<float>(_speeds);
+			_endState.position = startState.position + (Vec3f)(_targetDir * fabs(_distance));
+			_endState.angularVel = Vec3f(0.0f, 0.0f, 0.0f);
+			_endState.rotation = startState.rotation;
+
+			return ReturnCode::ok;
+		}
+
+		// Update speeds for both wheels
+		WheelSpeeds ForceSpeed::updateSpeeds(const uint8_t freq)
+		{
+			static Vec2f currentPosition;		// Current position of robot
+			static float currentHeading;		// Current heading of robot;
+			static Vec2f posRelToStart;			// Position relative to start
+			static float absDrivenDist;			// Absolute distance to startpoint
+			static float radiant;				// Needed as temporary value for acceleration/decceleration
+			static float calculatedTime;		// Calculated time based on driven distance
+			static float desAngularVel;			// Desired angular velocity (calculated by pure pursuit algorithm + PID controller)
+			static float lookAheadDistance;		// Lookahead distance for pure pursuit algorithm
+			static Vec2f goalPointGlobal;		// Goal-Point in global coordinate space for pure pursuit algorithm
+			static Vec2f goalPointRobot;		// Goal-Point in robot coordinate space for pure pursuit algorithm
+			static float desCurvature;			// Desired curvature (calculated by pure pursuit algorithm)
+			static WheelSpeeds output;			// Speed output for both wheels
+			static float correctedForwardVel;	// Corrected forward velocity
+			static float correctedAngularVel;	// Corrected angular velocity
+
+			currentPosition = (Vec2f)(SensorFusion::getFusedData().robotState.position);
+			currentHeading = SensorFusion::getFusedData().robotState.rotation.x;
+
+			// Calculate driven distance
+			posRelToStart = currentPosition - _startPos;
+			absDrivenDist = posRelToStart.length();
+
+			// Check if I am there
+			if (fabs(absDrivenDist) >= fabs(_distance))
+			{
+				_finished = true;
+			}
+
+			// A variation of pure pursuits controller where the goal point is a lookahead distance on the path away (not a lookahead distance from the robot).
+			// Furthermore, the lookahead distance is dynamically adapted to the speed
+			// Calculate goal point
+			lookAheadDistance = JAFDSettings::Controller::PurePursuit::lookAheadGain * _speeds;
+			lookAheadDistance = fabs(lookAheadDistance);
+
+			if (lookAheadDistance < JAFDSettings::Controller::PurePursuit::minLookAheadDist) lookAheadDistance = JAFDSettings::Controller::PurePursuit::minLookAheadDist;
+
+			goalPointGlobal = _startPos + _targetDir * (absDrivenDist + lookAheadDistance);
+
+			// Transform goal point to robot coordinates
+			goalPointRobot.x = (goalPointGlobal.x - currentPosition.x)  * cosf(currentHeading) + (goalPointGlobal.y - currentPosition.y) * sinf(currentHeading);
+			goalPointRobot.y = -(goalPointGlobal.x - currentPosition.x) * sinf(currentHeading) + (goalPointGlobal.y - currentPosition.y) * cosf(currentHeading);
+
+			// Calculate curvature and angular velocity
+			desCurvature = 2.0f * goalPointRobot.y / (goalPointRobot.x * goalPointRobot.x + goalPointRobot.y * goalPointRobot.y);
+
+			if (desCurvature > JAFDSettings::Controller::PurePursuit::maxCurvature) desCurvature = JAFDSettings::Controller::PurePursuit::maxCurvature;
+			else if (desCurvature < -JAFDSettings::Controller::PurePursuit::maxCurvature) desCurvature = -JAFDSettings::Controller::PurePursuit::maxCurvature;
+
+			desAngularVel = _speeds * desCurvature;
+
+			// Kind of PID - controller
+			correctedForwardVel = _speeds * 0.8f + _forwardVelPID.process(_speeds, SensorFusion::getFusedData().robotState.forwardVel, 1.0f / freq);
+			correctedAngularVel = desAngularVel * 0.8f + _angularVelPID.process(desAngularVel, SensorFusion::getFusedData().robotState.angularVel.x, 1.0f / freq);
+
+			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
+			output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
+
+			// Correct speed if it is too low 
+			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed)
+			{
+				_forwardVelPID.reset();
+				_angularVelPID.reset();
+
+				output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			}
+
+			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed)
+			{
+				_forwardVelPID.reset();
+				_angularVelPID.reset();
+
+				output.right = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			}
+
+			return output;
+		}
+
+		// ForceSpeed class - end
+
+		// TaskArray class - begin
+
+		TaskArray::TaskArray(const TaskArray& taskArray) : ITask(), _numTasks(taskArray._numTasks), _currentTaskNum(taskArray._numTasks - 1)
+		{
+			_endState = taskArray._endState;
+
+			for (uint8_t i = 0; i < _numTasks; i++)
+			{
+				_taskTypes[i] = taskArray._taskTypes[i];
+
+				switch (_taskTypes[i])
+				{
+				case _TaskType::accelerate:
+					_taskArray[i] = new (&(_taskCopies[i].accelerate)) Accelerate(taskArray._taskCopies[i].accelerate);
+					break;
+				case _TaskType::straight:
+					_taskArray[i] = new (&(_taskCopies[i].straight)) DriveStraight(taskArray._taskCopies[i].straight);
+					break;
+				case _TaskType::stop:
+					_taskArray[i] = new (&(_taskCopies[i].stop)) Stop(taskArray._taskCopies[i].stop);
+					break;
+				case _TaskType::rotate:
+					_taskArray[i] = new (&(_taskCopies[i].rotate)) Rotate(taskArray._taskCopies[i].rotate);
+					break;
+				case _TaskType::forceSpeed:
+					_taskArray[i] = new (&(_taskCopies[i].forceSpeed)) ForceSpeed(taskArray._taskCopies[i].forceSpeed);
+				default:
+					break;
+				}
+			}
+		}
+
+		TaskArray::TaskArray(const Accelerate& task) : ITask()
+		{
+			_taskTypes[_numTasks] = _TaskType::accelerate;
+			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].accelerate)) Accelerate(task);
+			_currentTaskNum = _numTasks;
+			_numTasks++;
+		}
+
+		TaskArray::TaskArray(const DriveStraight& task) : ITask()
+		{
+			_taskTypes[_numTasks] = _TaskType::straight;
+			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].straight)) DriveStraight(task);
+			_currentTaskNum = _numTasks;
+			_numTasks++;
+		}
+
+		TaskArray::TaskArray(const Stop& task) : ITask()
+		{
+			_taskTypes[_numTasks] = _TaskType::stop;
+			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].stop)) Stop(task);
+			_currentTaskNum = _numTasks;
+			_numTasks++;
+		}
+
+		TaskArray::TaskArray(const Rotate& task) : ITask()
+		{
+			_taskTypes[_numTasks] = _TaskType::rotate;
+			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].rotate)) Rotate(task);
+			_currentTaskNum = _numTasks;
+			_numTasks++;
+		}
+
+		TaskArray::TaskArray(const ForceSpeed& task) : ITask()
+		{
+			_taskTypes[_numTasks] = _TaskType::forceSpeed;
+			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].forceSpeed)) ForceSpeed(task);
+			_currentTaskNum = _numTasks;
+			_numTasks++;
+		}
+
+		ReturnCode TaskArray::startTask(RobotState startState)
+		{
+			ReturnCode code = ReturnCode::ok;
+			RobotState state = startState;
+
+			for (int16_t i = _numTasks - 1; i >= 0; i--)
+			{
+				if (_taskArray[i]->startTask(state) != ReturnCode::ok)
+				{
+					code = ReturnCode::error;
+				}
+				else
+				{
+				}
+
+				state = _taskArray[i]->getEndState();
+			}
+
+			_endState = state;
+			
+			return code;
+		}
+
+		WheelSpeeds TaskArray::updateSpeeds(const uint8_t freq)
+		{
+			WheelSpeeds speeds = _taskArray[_currentTaskNum]->updateSpeeds(freq);
+
+			if (_taskArray[_currentTaskNum]->isFinished())
+			{
+				if (_currentTaskNum <= 0)
+				{
+					_finished = true;
+					return speeds;
+				}
+
+				_currentTaskNum--;
+
+				_taskArray[_currentTaskNum]->startTask(_taskArray[_currentTaskNum + 1]->getEndState());
+			}
+
+			return speeds;
+		}
+
+		// TaskArray class - end
+
 		// Update speeds for both wheels
 		void updateSpeeds(const uint8_t freq)
 		{
-			MotorControl::setSpeeds(_currentTask->updateSpeeds(freq));
+			if (!_stopped)
+			{
+				MotorControl::setSpeeds(_currentTask->updateSpeeds(freq));
+			}
 		}
 
 		// Set new Accelerate task (use last end state to start)
@@ -404,6 +664,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.accelerate)) Accelerate(temp);
+					_stopped = false;
 				}
 			}
 
@@ -425,11 +686,12 @@ namespace JAFD
 			if (_currentTask->isFinished() || forceOverride)
 			{
 				temp = newTask;
-				returnCode = temp.startTask(SensorFusion::getRobotState());
+				returnCode = temp.startTask(SensorFusion::getFusedData().robotState);
 
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.accelerate)) Accelerate(temp);
+					_stopped = false;
 				}
 			}
 
@@ -455,6 +717,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.accelerate)) Accelerate(temp);
+					_stopped = false;
 				}
 			}
 
@@ -484,6 +747,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.straight)) DriveStraight(temp);
+					_stopped = false;
 				}
 			}
 
@@ -505,11 +769,12 @@ namespace JAFD
 			if (_currentTask->isFinished() || forceOverride)
 			{
 				temp = newTask;
-				returnCode = temp.startTask(SensorFusion::getRobotState());
+				returnCode = temp.startTask(SensorFusion::getFusedData().robotState);
 
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.straight)) DriveStraight(temp);
+					_stopped = false;
 				}
 			}
 
@@ -535,6 +800,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.straight)) DriveStraight(temp);
+					_stopped = false;
 				}
 			}
 
@@ -564,6 +830,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.stop)) Stop(temp);
+					_stopped = false;
 				}
 			}
 
@@ -585,11 +852,12 @@ namespace JAFD
 			if (_currentTask->isFinished() || forceOverride)
 			{
 				temp = newTask;
-				returnCode = temp.startTask(SensorFusion::getRobotState());
+				returnCode = temp.startTask(SensorFusion::getFusedData().robotState);
 
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.stop)) Stop(temp);
+					_stopped = false;
 				}
 			}
 
@@ -615,6 +883,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.stop)) Stop(temp);
+					_stopped = false;
 				}
 			}
 
@@ -644,6 +913,7 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.rotate)) Rotate(temp);
+					_stopped = false;
 				}
 			}
 
@@ -665,11 +935,12 @@ namespace JAFD
 			if (_currentTask->isFinished() || forceOverride)
 			{
 				temp = newTask;
-				returnCode = temp.startTask(SensorFusion::getRobotState());
+				returnCode = temp.startTask(SensorFusion::getFusedData().robotState);
 
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.rotate)) Rotate(temp);
+					_stopped = false;
 				}
 			}
 
@@ -695,6 +966,170 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.rotate)) Rotate(temp);
+					_stopped = false;
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new ForceSpeed task (use last end state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const ForceSpeed& newTask, const bool forceOverride)
+		{
+			static RobotState endState;
+			static ReturnCode returnCode;
+			static ForceSpeed temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				endState = static_cast<RobotState>(_currentTask->getEndState());
+
+				temp = newTask;
+				returnCode = temp.startTask(endState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.forceSpeed)) ForceSpeed(temp);
+					_stopped = false;
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new ForceSpeed task (use current state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const ForceSpeed& newTask, const bool forceOverride)
+		{
+			static ReturnCode returnCode;
+			static ForceSpeed temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				temp = newTask;
+				returnCode = temp.startTask(SensorFusion::getFusedData().robotState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.forceSpeed)) ForceSpeed(temp);
+					_stopped = false;
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new ForceSpeed task (use specified state to start)
+		ReturnCode setNewTask(const ForceSpeed& newTask, RobotState startState, const bool forceOverride)
+		{
+			static ReturnCode returnCode;
+			static ForceSpeed temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				temp = newTask;
+				returnCode = temp.startTask(startState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.forceSpeed)) ForceSpeed(temp);
+					_stopped = false;
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new TaskArray task (use last end state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const TaskArray& newTask, const bool forceOverride)
+		{
+			static RobotState endState;
+			static ReturnCode returnCode;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				endState = static_cast<RobotState>(_currentTask->getEndState());
+
+				TaskArray temp = newTask;
+				returnCode = temp.startTask(endState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.taskArray)) TaskArray(temp);
+					_stopped = false;
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new TaskArray task (use current state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const TaskArray& newTask, const bool forceOverride)
+		{
+			static ReturnCode returnCode;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				TaskArray temp = newTask;
+				returnCode = temp.startTask(SensorFusion::getFusedData().robotState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.taskArray)) TaskArray(temp);
+					_stopped = false;
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new TaskArray task (use specified state to start)
+		ReturnCode setNewTask(const TaskArray& newTask, RobotState startState, const bool forceOverride)
+		{
+			static ReturnCode returnCode;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				TaskArray temp = newTask;
+				returnCode = temp.startTask(startState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.taskArray)) TaskArray(temp);
+					_stopped = false;
 				}
 			}
 
@@ -706,6 +1141,12 @@ namespace JAFD
 		bool isTaskFinished()
 		{
 			return _currentTask->isFinished();
+		}
+
+		void stopTask()
+		{
+			_stopped = true;
+			setNewTask<NewStateType::currentState>(Stop(), true);
 		}
 	}
 }

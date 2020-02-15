@@ -22,7 +22,7 @@ namespace JAFD
 				wrr = 0b00000001,	// Write Mode Register 
 			};
 
-			constexpr auto _ssPin = PinMapping::MappedPins[JAFDSettings::SpiEeprom::ssPin];		// Slave-Select Pin
+			constexpr auto _ssPin = PinMapping::MappedPins[JAFDSettings::SpiNVSRAM::ssPin];		// Slave-Select Pin
 		}
 
 		ReturnCode setup()

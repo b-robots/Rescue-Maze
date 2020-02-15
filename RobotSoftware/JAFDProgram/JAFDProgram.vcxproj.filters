@@ -50,10 +50,13 @@
     <ClInclude Include="JAFD\header\PIDController.h">
       <Filter>JAFD\Header</Filter>
     </ClInclude>
-    <ClInclude Include="__vm\.JAFDProgram.vsarduino.h" />
     <ClInclude Include="JAFD\header\DistanceSensors.h">
       <Filter>JAFD\Header</Filter>
     </ClInclude>
+    <ClInclude Include="JAFD\header\RobotLogic.h">
+      <Filter>JAFD\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="__vm\.JAFDProgram.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="JAFD">
@@ -98,6 +101,12 @@
       <Filter>JAFD\Source</Filter>
     </ClCompile>
     <ClCompile Include="JAFD\source\DistanceSensors.cpp">
+      <Filter>JAFD\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="JAFD\source\RobotLogic.cpp">
+      <Filter>JAFD\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="JAFD\source\TCA9548A.cpp">
       <Filter>JAFD\Source</Filter>
     </ClCompile>
   </ItemGroup>

@@ -5,6 +5,8 @@ This part of the Library is responsible for mapping the maze and finding the sho
 #include "../header/MazeMapping.h"
 #include "../header/SpiNVSRAM.h"
 #include "../header/StaticQueue.h"
+#include "../header/DistanceSensors.h"
+#include "../header/SensorFusion.h"
 
 #include <algorithm>
 
@@ -153,7 +155,7 @@ namespace JAFD
 			{
 				static uint8_t lowerFloorID = 0;
 				static uint8_t upperFloorID = 0;
-				const uint8_t currentID = (start.floor == 0) ? lowerFloorID++ : upperFloorID++;
+				//const uint8_t currentID = (start.floor == 0) ? lowerFloorID++ : upperFloorID++;
 
 				StaticQueue<MapCoordinate, 64> queue; // MaxSize = 64, because this is enough for a normal labyrinth (4*63 would be maximum)
 
@@ -195,22 +197,22 @@ namespace JAFD
 							switch (bfsValueV & ~SolverState::discovered)
 							{
 							case SolverState::north:
-								directions[distance] = Direction::south; // Set the opposite direction
+								directions[distance] = Directions::south; // Set the opposite direction
 								coorV = { coorV.x, coorV.y + 1, coorV.floor };
 								break;
 
 							case SolverState::east:
-								directions[distance] = Direction::west; // Set the opposite direction
+								directions[distance] = Directions::west; // Set the opposite direction
 								coorV = { coorV.x + 1, coorV.y, coorV.floor };
 								break;
 
 							case SolverState::south:
-								directions[distance] = Direction::north; // Set the opposite direction
+								directions[distance] = Directions::north; // Set the opposite direction
 								coorV = { coorV.x, coorV.y - 1, coorV.floor };
 								break;
 
 							case SolverState::west:
-								directions[distance] = Direction::east; // Set the opposite direction
+								directions[distance] = Directions::east; // Set the opposite direction
 								coorV = { coorV.x - 1, coorV.y, coorV.floor };
 								break;
 
@@ -238,7 +240,7 @@ namespace JAFD
 					else
 					{
 						// Check the north
-						if (coorV.y < maxY && (gridCellV.cellConnections & Direction::north))
+						if (coorV.y < maxY && (gridCellV.cellConnections & Directions::north))
 						{
 							coorW = { coorV.x, coorV.y + 1, coorV.floor };
 							getGridCell(&gridCellW, &bfsValueW, coorW);
@@ -258,7 +260,7 @@ namespace JAFD
 						}
 
 						// Check the east
-						if (coorV.x < maxX && (gridCellV.cellConnections & Direction::east))
+						if (coorV.x < maxX && (gridCellV.cellConnections & Directions::east))
 						{
 							coorW = { coorV.x + 1, coorV.y, coorV.floor };
 							getGridCell(&gridCellW, &bfsValueW, coorW);
@@ -278,7 +280,7 @@ namespace JAFD
 						}
 
 						// Check the south
-						if (coorV.y > minY && (gridCellV.cellConnections & Direction::south))
+						if (coorV.y > minY && (gridCellV.cellConnections & Directions::south))
 						{
 							coorW = { coorV.x, coorV.y - 1, coorV.floor };
 							getGridCell(&gridCellW, &bfsValueW, coorW);
@@ -298,7 +300,7 @@ namespace JAFD
 						}
 
 						// Check the west
-						if (coorV.x > minX && (gridCellV.cellConnections & Direction::west))
+						if (coorV.x > minX && (gridCellV.cellConnections & Directions::west))
 						{
 							coorW = { coorV.x - 1, coorV.y, coorV.floor };
 							getGridCell(&gridCellW, &bfsValueW, coorW);
@@ -322,6 +324,112 @@ namespace JAFD
 				resetBFSValues(start.floor);
 				return ReturnCode::error;
 			}
+		}
+
+		// Update current GridCell
+		void updateCurrentCell(volatile float& certainty, volatile GridCell& cell)
+		{
+			static MapCoordinate lastPosition;
+			static float tempCertainty;
+			static GridCell tempCell;
+
+			tempCertainty = 1.0f;
+			tempCell.cellConnections = Directions::nowhere;
+
+			lastPosition = MapCoordinate(SensorFusion::getFusedData().robotState.mapCoordinate);
+
+			if (fabs((SensorFusion::getFusedData().robotState.rotation.x / 90.0) - static_cast<int64_t>(SensorFusion::getFusedData().robotState.rotation.x / 90.0)) < 0.1f)
+			{
+				if (fabs(SensorFusion::getFusedData().robotState.position.x - SensorFusion::getFusedData().robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < 3.0f && fabs(SensorFusion::getFusedData().robotState.position.y - SensorFusion::getFusedData().robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < 3.0f)
+				{
+					if (SensorFusion::getFusedData().distances.frontLeft + SensorFusion::getFusedData().distances.frontRight > 20)
+					{
+						switch (makeAbsolute(RelativeDir::forward, SensorFusion::getFusedData().heading))
+						{
+						case AbsoluteDir::north:
+							tempCell.cellConnections |= Directions::north;
+							break;
+						case AbsoluteDir::east:
+							tempCell.cellConnections |= Directions::east;
+							break;
+						case AbsoluteDir::south:
+							tempCell.cellConnections |= Directions::south;
+							break;
+						case AbsoluteDir::west:
+							tempCell.cellConnections |= Directions::west;
+							break;
+						default:
+							break;
+						}
+					}
+
+					if (SensorFusion::getFusedData().distances.leftFront + SensorFusion::getFusedData().distances.leftBack > 20)
+					{
+						switch (makeAbsolute(RelativeDir::left, SensorFusion::getFusedData().heading))
+						{
+						case AbsoluteDir::north:
+							tempCell.cellConnections |= Directions::north;
+							break;
+						case AbsoluteDir::east:
+							tempCell.cellConnections |= Directions::east;
+							break;
+						case AbsoluteDir::south:
+							tempCell.cellConnections |= Directions::south;
+							break;
+						case AbsoluteDir::west:
+							tempCell.cellConnections |= Directions::west;
+							break;
+						default:
+							break;
+						}
+					}
+
+					if (SensorFusion::getFusedData().distances.rightFront + SensorFusion::getFusedData().distances.rightBack > 20)
+					{
+						switch (makeAbsolute(RelativeDir::right, SensorFusion::getFusedData().heading))
+						{
+						case AbsoluteDir::north:
+							tempCell.cellConnections |= Directions::north;
+							break;
+						case AbsoluteDir::east:
+							tempCell.cellConnections |= Directions::east;
+							break;
+						case AbsoluteDir::south:
+							tempCell.cellConnections |= Directions::south;
+							break;
+						case AbsoluteDir::west:
+							tempCell.cellConnections |= Directions::west;
+							break;
+						default:
+							break;
+						}
+					}
+
+					if (tempCell.cellConnections == Directions::nowhere)
+					{
+						switch (makeAbsolute(RelativeDir::backward, SensorFusion::getFusedData().heading))
+						{
+						case AbsoluteDir::north:
+							tempCell.cellConnections |= Directions::north;
+							break;
+						case AbsoluteDir::east:
+							tempCell.cellConnections |= Directions::east;
+							break;
+						case AbsoluteDir::south:
+							tempCell.cellConnections |= Directions::south;
+							break;
+						case AbsoluteDir::west:
+							tempCell.cellConnections |= Directions::west;
+							break;
+						default:
+							break;
+						}
+					}
+				}
+			}
+
+			certainty = tempCertainty;
+			cell = tempCell;
 		}
 	}
 }

@@ -7,6 +7,7 @@ In this part are all interrupt handler
 #include "../header/MotorControl.h"
 #include "../header/SmoothDriving.h"
 #include "../header/SensorFusion.h"
+#include "../header/Bno055.h"
 
 void PIOA_Handler()
 {
@@ -36,7 +37,7 @@ void TC3_Handler()
 	TC1->TC_CHANNEL[0].TC_SR;
 }
 
-// 100Hz / 10Hz / 1Hz
+// 100Hz
 void TC4_Handler()
 {
 	static uint8_t i = 0;
@@ -54,18 +55,20 @@ void TC4_Handler()
 	if (i % 5 == 0)
 	{
 		// 20Hz:
-		JAFD::SensorFusion::updateSensorValues(20);
+		JAFD::MotorControl::calcMotorSpeed(20);
+		JAFD::SensorFusion::sensorFiltering(20);
 		JAFD::SmoothDriving::updateSpeeds(20);
+		JAFD::MotorControl::speedPID(20);
 
 		if (i % 10 == 0)
 		{
 			// 10Hz:
-			JAFD::MotorControl::calcMotorSpeed(10);
-			JAFD::MotorControl::speedPID(10);
+			JAFD::Bno055::update_sensorreadings();
 
 			if (i % 20 == 0)
 			{
 				// 5Hz:
+				JAFD::SensorFusion::updateDistSensor();
 
 				if (i % 100 == 0)
 				{

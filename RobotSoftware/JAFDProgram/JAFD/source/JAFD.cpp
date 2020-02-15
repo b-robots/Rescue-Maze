@@ -13,6 +13,7 @@
 #include "../header/SpiNVSRAM.h"
 #include "../header/DistanceSensors.h"
 #include "../header/AllDatatypes.h"
+#include "../header/RobotLogic.h"
 
 #include <SPI.h>
 
@@ -21,6 +22,9 @@ namespace JAFD
 	// Just for testing...
 	void robotSetup()
 	{
+		// Setup I2C
+		Wire.begin();
+
 		// Setup the SPI-Bus
 		SPI.begin();
 		SPI.beginTransaction(SPISettings(10e+6, MSBFIRST, SPI_MODE0));
@@ -53,7 +57,7 @@ namespace JAFD
 
 		TC1->TC_CHANNEL[1].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
 
-		// INIT Distance Sensors
+		randomSeed(69420);
 
 		// Setup of MazeMapper
 		if (MazeMapping::setup() != ReturnCode::ok)
@@ -82,14 +86,20 @@ namespace JAFD
 		// Setup of Distance Sensors
 		if (DistanceSensors::setup() != ReturnCode::ok)
 		{
-			Serial.println("Error!!");
+
 		}
+
+		JAFD::Bno055::init();
 
 		return;
 	}
 
 	void robotLoop()
 	{
+		SensorFusion::untimedFusion();
+		
+		RobotLogic::loop();
+
 		return;
 	}
 }

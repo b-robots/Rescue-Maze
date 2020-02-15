@@ -15,41 +15,48 @@ In this file are all settings needed for the robot
 
 namespace JAFDSettings
 {
+	namespace Field
+	{
+		constexpr float cellWidth = 30.0f;	// Cell width in cm
+	}
+
 	namespace Mechanics
 	{
 		constexpr float wheelDiameter = 8.0f;
-		constexpr float wheelDistance = 15.0f;
+		constexpr float wheelDistance = 15.5f;
+		constexpr float sensorLeftRightDist = 17.0f;
+		constexpr float sensorFrontBackDist = 16.0f;
 	}
 
-	namespace SpiEeprom
+	namespace SpiNVSRAM
 	{
 		constexpr uint8_t ssPin = 13;
 	}
 
 	namespace MotorControl
 	{
-		constexpr float cmPSToPerc = 0.0075f;			// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed. It is ideal for about 100cm/s)
+		constexpr float cmPSToPerc = 1.0f / (97.0f / 60.0f * 3.1415f * Mechanics::wheelDiameter);		// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed. It is ideal for about 100cm/s)
 
-		constexpr int16_t minSpeed = 15;				// Minimum speed for motor to rotate
+		constexpr int16_t minSpeed = 5;			// Minimum speed for motor to rotate
 
-		constexpr float pulsePerRev = 11.0f * 34.0f;	// Rotary-Encoder pulses per revolution
+		constexpr float pulsePerRev = 4741.44f / 4.0f;		// Rotary-Encoder pulses per revolution
 
 		namespace Left
 		{
 			constexpr uint8_t pwmPin = 34;	// PWM pin left motor
 			constexpr uint8_t dirPin = 53;	// Direction pin left motor
 			constexpr uint8_t fbPin = A11;	// Current feedback output left motor
-			constexpr uint8_t encA = 22;	// Encoder Pin A
-			constexpr uint8_t encB = 23;	// Encoder Pin B
+			constexpr uint8_t encA = 23;	// Encoder Pin A
+			constexpr uint8_t encB = 22;	// Encoder Pin B
 		}
 
 		namespace Right
 		{
 			constexpr uint8_t pwmPin = 36;	// PWM pin left motor
-			constexpr uint8_t dirPin = A7;	// Direction pin left motor
+			constexpr uint8_t dirPin = 43;	// Direction pin left motor
 			constexpr uint8_t fbPin = A10;	// Current feedback output left motor
-			constexpr uint8_t encA = 10;	// Encoder Pin A
-			constexpr uint8_t encB = 11;	// Encoder Pin B
+			constexpr uint8_t encA = 11;	// Encoder Pin A
+			constexpr uint8_t encB = 10;	// Encoder Pin B
 		}
 	}
 
@@ -57,26 +64,26 @@ namespace JAFDSettings
 	{
 		namespace Motor
 		{
-			constexpr JAFD::PIDSettings pidSettings(0.85f, 5.5f, 0.08f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
+			constexpr JAFD::PIDSettings pidSettings(0.85f, 5.2f, 0.01f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
 		}
 
 		namespace PurePursuit
 		{
-			constexpr float lookAheadGain = 0.7f;
-			constexpr float minLookAheadDist = 10.0f;
+			constexpr float lookAheadGain = 0.9f;
+			constexpr float minLookAheadDist = 12.0f;
 			constexpr float maxCurvature = 0.02f;
 		}
 
 		namespace SmoothDriving
 		{
-			constexpr JAFD::PIDSettings forwardVelPidSettings(0.3f, 1.3f, 0.0f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
-			constexpr JAFD::PIDSettings angularVelPidSettings(0.5f, 0.5f, 0.0f, 10.0f, 5.0f, -10.0f, 10.0f);
+			constexpr JAFD::PIDSettings forwardVelPidSettings(0.3f, 1.5f, 0.0f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
+			constexpr JAFD::PIDSettings angularVelPidSettings(0.25f, 1.2f, 0.0f, 10.0f, 5.0f, -10.0f, 10.0f);
 		}
 	}
 
 	namespace SmoothDriving
 	{
-
+		constexpr uint8_t maxArrrayedTasks = 5;
 	}
 
 	namespace Dispenser
@@ -86,14 +93,46 @@ namespace JAFDSettings
 
 	namespace DistanceSensors
 	{
+		constexpr uint8_t multiplexerAddr = 0x70;
+
+		namespace LeftFront
+		{
+			constexpr uint8_t multiplexCh = 0;
+		}
+
+		namespace LeftBack
+		{
+			constexpr uint8_t multiplexCh = 1;
+		}
+
+		namespace RightFront
+		{
+			constexpr uint8_t multiplexCh = 2;
+		}
+
+		namespace RightBack
+		{
+			constexpr uint8_t multiplexCh = 3;
+		}
+
+		namespace FrontLeft
+		{
+			constexpr uint8_t multiplexCh = 4;
+		}
+
+		namespace FrontRight
+		{
+			constexpr uint8_t multiplexCh = 5;
+		}
+
 		namespace FrontLong
 		{
-			constexpr JAFD::SerialType serialType = JAFD::SerialType::one;
+			constexpr JAFD::SerialType serialType = JAFD::SerialType::three;
 		}
 
 		namespace BackLong
 		{
-			constexpr JAFD::SerialType serialType = JAFD::SerialType::two;
+			constexpr JAFD::SerialType serialType = JAFD::SerialType::one;
 		}
 	}
 }
