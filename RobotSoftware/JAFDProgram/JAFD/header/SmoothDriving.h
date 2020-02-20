@@ -97,6 +97,16 @@ namespace JAFD
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
 
+		class AlignFront : public ITask
+		{
+		private:
+			uint16_t _alignDist;		// Distance to align to wall in mm
+		public:
+			explicit AlignFront(uint16_t alignDist = 30);
+			ReturnCode startTask(RobotState startState);
+			WheelSpeeds updateSpeeds(const uint8_t freq);
+		};
+
 		class TaskArray : public ITask
 		{
 		private:
@@ -106,7 +116,8 @@ namespace JAFD
 				straight,
 				stop,
 				rotate,
-				forceSpeed
+				forceSpeed,
+				alignFront
 			} _taskTypes[JAFDSettings::SmoothDriving::maxArrrayedTasks];
 
 			union _TaskCopies
@@ -116,6 +127,7 @@ namespace JAFD
 				Stop stop;
 				Rotate rotate;
 				ForceSpeed forceSpeed;
+				AlignFront alignFront;
 
 				_TaskCopies() : stop() {};
 				~_TaskCopies() {}
@@ -136,10 +148,11 @@ namespace JAFD
 			TaskArray(const Stop& task);
 			TaskArray(const Rotate& task);
 			TaskArray(const ForceSpeed& task);
+			TaskArray(const AlignFront& task);
 
 			// Uses SFINAE to prohibit more than maximum arguments.
-			template<typename ...Rest, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rest)]>
-			TaskArray(const Accelerate& task, const Rest&... rest) : TaskArray(rest...)
+			template<typename ...Rem, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rem)]>
+			TaskArray(const Accelerate& task, const Rem&... rem) : TaskArray(rem...)
 			{
 				_taskTypes[_numTasks] = _TaskType::accelerate;
 				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].accelerate)) Accelerate(task);
@@ -147,8 +160,8 @@ namespace JAFD
 			}
 
 			// Uses SFINAE to prohibit more than maximum arguments.
-			template<typename ...Rest, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rest)]>
-			TaskArray(const DriveStraight& task, const Rest&... rest) : TaskArray(rest...)
+			template<typename ...Rem, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rem)]>
+			TaskArray(const DriveStraight& task, const Rem&... rem) : TaskArray(rem...)
 			{
 				_taskTypes[_numTasks] = _TaskType::straight;
 				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].straight)) DriveStraight(task);
@@ -156,8 +169,8 @@ namespace JAFD
 			}
 
 			// Uses SFINAE to prohibit more than maximum arguments.
-			template<typename ...Rest, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rest)]>
-			TaskArray(const Stop& task, const Rest&... rest) : TaskArray(rest...)
+			template<typename ...Rem, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rem)]>
+			TaskArray(const Stop& task, const Rem&... rem) : TaskArray(rem...)
 			{
 				_taskTypes[_numTasks] = _TaskType::stop;
 				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].stop)) Stop(task);
@@ -165,8 +178,8 @@ namespace JAFD
 			}
 
 			// Uses SFINAE to prohibit more than maximum arguments.
-			template<typename ...Rest, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rest)]>
-			TaskArray(const Rotate& task, const Rest&... rest) : TaskArray(rest...)
+			template<typename ...Rem, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rem)]>
+			TaskArray(const Rotate& task, const Rem&... rem) : TaskArray(rem...)
 			{
 				_taskTypes[_numTasks] = _TaskType::rotate;
 				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].rotate)) Rotate(task);
@@ -174,11 +187,20 @@ namespace JAFD
 			}
 
 			// Uses SFINAE to prohibit more than maximum arguments.
-			template<typename ...Rest, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rest)]>
-			TaskArray(const ForceSpeed& task, const Rest&... rest) : TaskArray(rest...)
+			template<typename ...Rem, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rem)]>
+			TaskArray(const ForceSpeed& task, const Rem&... rem) : TaskArray(rem...)
 			{
 				_taskTypes[_numTasks] = _TaskType::forceSpeed;
 				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].forceSpeed)) ForceSpeed(task);
+				_numTasks++;
+			}
+
+			// Uses SFINAE to prohibit more than maximum arguments.
+			template<typename ...Rem, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rem)]>
+			TaskArray(const AlignFront& task, const Rem&... rem) : TaskArray(rem...)
+			{
+				_taskTypes[_numTasks] = _TaskType::alignFront;
+				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].alignFront)) ForceSpeed(task);
 				_numTasks++;
 			}
 
@@ -250,6 +272,17 @@ namespace JAFD
 
 		ReturnCode setNewTask(const ForceSpeed& newTask, RobotState startState, const bool forceOverride = false);
 
+		// Set new AlignFront task
+		template<NewStateType stateType>
+		ReturnCode setNewTask(const AlignFront& newTask, const bool forceOverride = false);
+
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const AlignFront& newTask, const bool forceOverride);
+
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const AlignFront& newTask, const bool forceOverride);
+
+		ReturnCode setNewTask(const AlignFront& newTask, RobotState startState, const bool forceOverride = false);
 
 		// Set new TaskArray task
 		template<NewStateType stateType>

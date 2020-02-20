@@ -16,13 +16,44 @@ namespace JAFD
 		{
 			static GridCell cell;
 			static RelativeDir relativeTurnDir;
-			static bool found;
+			static bool found = false;
+			static bool aligned = false;
+			static bool frontIsWall = false;
 
 			if (SensorFusion::getFusedData().gridCellCertainty >= 0.5f)
 			{
 				if (SmoothDriving::isTaskFinished())
 				{
 					cell = SensorFusion::getFusedData().gridCell;
+
+					switch (makeAbsolute(RelativeDir::forward, SensorFusion::getFusedData().heading))
+					{
+					case AbsoluteDir::north:
+						if (cell.cellConnections & Directions::north) frontIsWall = false;
+						else frontIsWall = true;
+						break;
+					case AbsoluteDir::east:
+						if (cell.cellConnections & Directions::east) frontIsWall = false;
+						else frontIsWall = true;
+						break;
+					case AbsoluteDir::south:
+						if (cell.cellConnections & Directions::south) frontIsWall = false;
+						else frontIsWall = true;
+						break;
+					case AbsoluteDir::west:
+						if (cell.cellConnections & Directions::west) frontIsWall = false;
+						else frontIsWall = true;
+						break;
+					default:
+						break;
+					}
+
+					if (frontIsWall && !aligned)
+					{
+						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::AlignFront());
+						aligned = true;
+						return;
+					}
 
 					found = false;
 
@@ -82,6 +113,8 @@ namespace JAFD
 					default:
 						break;
 					}
+
+					aligned = false;
 				}
 			}
 		}

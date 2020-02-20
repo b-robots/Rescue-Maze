@@ -18,6 +18,7 @@ namespace JAFDSettings
 	namespace Field
 	{
 		constexpr float cellWidth = 30.0f;	// Cell width in cm
+		constexpr float minObstacleSpace = 20.0f;	// Minimum available space between obstacle and border
 	}
 
 	namespace Mechanics
@@ -37,7 +38,7 @@ namespace JAFDSettings
 	{
 		constexpr float cmPSToPerc = 1.0f / (97.0f / 60.0f * 3.1415f * Mechanics::wheelDiameter);		// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed. It is ideal for about 100cm/s)
 
-		constexpr int16_t minSpeed = 5;			// Minimum speed for motor to rotate
+		constexpr uint8_t minSpeed = 5;			// Minimum speed for motor to rotate
 
 		constexpr float pulsePerRev = 4741.44f / 4.0f;		// Rotary-Encoder pulses per revolution
 
@@ -83,12 +84,22 @@ namespace JAFDSettings
 
 	namespace SmoothDriving
 	{
-		constexpr uint8_t maxArrrayedTasks = 5;
+		constexpr uint8_t maxArrrayedTasks = 5;		// Maximum number of tasks in TaskArray
+		constexpr uint16_t maxAlignDistError = 8;	// Maximum deviation from perfect aligned distance (mm)
+		constexpr uint16_t maxAlignStartDist = 50;	// Maximum deviation from aligned distance at beginning to start (mm)
+		constexpr uint16_t alignSpeed = MotorControl::minSpeed;		// Minimum speed to align to wall
 	}
 
 	namespace Dispenser
 	{
 
+	}
+
+	namespace MazeMapping
+	{
+		constexpr float maxAngleFromStraight = 0.1f;	// Maximum angle (rad) deviation from straight
+		constexpr float maxDistFromMiddle = 3.0f;		// Maximum position deviation (x and y) from filed middle
+		constexpr uint16_t distLongerThanBorder = 50;	// Distance longer than border from which next field is empty (mm)
 	}
 
 	namespace DistanceSensors

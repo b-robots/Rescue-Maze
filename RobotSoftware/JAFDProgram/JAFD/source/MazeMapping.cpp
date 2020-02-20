@@ -338,11 +338,11 @@ namespace JAFD
 
 			lastPosition = MapCoordinate(SensorFusion::getFusedData().robotState.mapCoordinate);
 
-			if (fabs((SensorFusion::getFusedData().robotState.rotation.x / 90.0) - static_cast<int64_t>(SensorFusion::getFusedData().robotState.rotation.x / 90.0)) < 0.1f)
+			if (fabs((SensorFusion::getFusedData().robotState.rotation.x / M_PI_2) - static_cast<int64_t>(SensorFusion::getFusedData().robotState.rotation.x / M_PI_2)) < JAFDSettings::MazeMapping::maxAngleFromStraight)
 			{
-				if (fabs(SensorFusion::getFusedData().robotState.position.x - SensorFusion::getFusedData().robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < 3.0f && fabs(SensorFusion::getFusedData().robotState.position.y - SensorFusion::getFusedData().robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < 3.0f)
+				if (fabs(SensorFusion::getFusedData().robotState.position.x - SensorFusion::getFusedData().robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::maxDistFromMiddle && fabs(SensorFusion::getFusedData().robotState.position.y - SensorFusion::getFusedData().robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::maxDistFromMiddle)
 				{
-					if (SensorFusion::getFusedData().distances.frontLeft + SensorFusion::getFusedData().distances.frontRight > 20)
+					if ((SensorFusion::getFusedData().distances.frontLeft + SensorFusion::getFusedData().distances.frontRight) / 2 > (uint16_t)((JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::sensorFrontBackDist) * 10 / 2) + JAFDSettings::MazeMapping::distLongerThanBorder)
 					{
 						switch (makeAbsolute(RelativeDir::forward, SensorFusion::getFusedData().heading))
 						{
@@ -363,7 +363,7 @@ namespace JAFD
 						}
 					}
 
-					if (SensorFusion::getFusedData().distances.leftFront + SensorFusion::getFusedData().distances.leftBack > 20)
+					if ((SensorFusion::getFusedData().distances.leftFront + SensorFusion::getFusedData().distances.leftBack) / 2 > (uint16_t)((JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::sensorLeftRightDist) * 10 / 2) + JAFDSettings::MazeMapping::distLongerThanBorder)
 					{
 						switch (makeAbsolute(RelativeDir::left, SensorFusion::getFusedData().heading))
 						{
@@ -384,7 +384,7 @@ namespace JAFD
 						}
 					}
 
-					if (SensorFusion::getFusedData().distances.rightFront + SensorFusion::getFusedData().distances.rightBack > 20)
+					if ((SensorFusion::getFusedData().distances.rightFront + SensorFusion::getFusedData().distances.rightBack) / 2 > (uint16_t)((JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::sensorLeftRightDist) * 10 / 2) + JAFDSettings::MazeMapping::distLongerThanBorder)
 					{
 						switch (makeAbsolute(RelativeDir::right, SensorFusion::getFusedData().heading))
 						{

@@ -32,6 +32,7 @@ namespace JAFD
 				Rotate rotate;
 				ForceSpeed forceSpeed;
 				TaskArray taskArray;
+				AlignFront alignFront;
 
 				_TaskCopies() : stop() {};
 				~_TaskCopies() {}
@@ -516,6 +517,72 @@ namespace JAFD
 
 		// ForceSpeed class - end
 
+		// AlignFront class - begin
+
+		AlignFront::AlignFront(uint16_t alignDist) : ITask(), _alignDist(alignDist) {}
+
+		ReturnCode AlignFront::startTask(RobotState startState)
+		{
+			_finished = false;
+
+			_angularVelPID.reset();
+			_forwardVelPID.reset();
+
+			if (SensorFusion::getFusedData().distances.frontLeft > _alignDist + JAFDSettings::SmoothDriving::maxAlignStartDist || SensorFusion::getFusedData().distances.frontRight > _alignDist + JAFDSettings::SmoothDriving::maxAlignStartDist) return ReturnCode::error;
+
+			_endState.wheelSpeeds = FloatWheelSpeeds{ 0.0f, 0.0f };
+			_endState.forwardVel = static_cast<float>(0.0f);
+			_endState.position = startState.position;					// TODO: Zielposition ausrechnen
+			_endState.angularVel = Vec3f(0.0f, 0.0f, 0.0f);
+			_endState.rotation = startState.rotation;
+
+			return ReturnCode::ok;
+		}
+
+		// Update speeds for both wheels
+		WheelSpeeds AlignFront::updateSpeeds(const uint8_t freq)
+		{
+			static WheelSpeeds output;
+
+			if (abs(SensorFusion::getFusedData().distances.frontLeft - _alignDist) < JAFDSettings::SmoothDriving::maxAlignDistError && abs(SensorFusion::getFusedData().distances.frontRight - _alignDist) < JAFDSettings::SmoothDriving::maxAlignDistError)
+			{
+				_finished = true;
+				return WheelSpeeds{ 0,0 };
+			}
+			else
+			{
+				if (SensorFusion::getFusedData().distances.frontLeft > _alignDist + JAFDSettings::SmoothDriving::maxAlignDistError)
+				{
+					output.left = JAFDSettings::SmoothDriving::alignSpeed;
+				}
+				else if ((int32_t)SensorFusion::getFusedData().distances.frontLeft < (int32_t)_alignDist - (int32_t)JAFDSettings::SmoothDriving::maxAlignDistError)
+				{
+					output.left = -JAFDSettings::SmoothDriving::alignSpeed;
+				}
+				else
+				{
+					output.left = 0;
+				}
+
+				if (SensorFusion::getFusedData().distances.frontRight > _alignDist + JAFDSettings::SmoothDriving::maxAlignDistError)
+				{
+					output.right = JAFDSettings::SmoothDriving::alignSpeed;
+				}
+				else if ((int32_t)SensorFusion::getFusedData().distances.frontRight < (int32_t)_alignDist - (int32_t)JAFDSettings::SmoothDriving::maxAlignDistError)
+				{
+					output.right = -JAFDSettings::SmoothDriving::alignSpeed;
+				}
+				else
+				{
+					output.right = 0;
+				}
+			}
+
+			return output;
+		}
+
+		// AlignFront class - end
+
 		// TaskArray class - begin
 
 		TaskArray::TaskArray(const TaskArray& taskArray) : ITask(), _numTasks(taskArray._numTasks), _currentTaskNum(taskArray._numTasks - 1)
@@ -588,6 +655,14 @@ namespace JAFD
 			_numTasks++;
 		}
 
+		TaskArray::TaskArray(const AlignFront& task) : ITask()
+		{
+			_taskTypes[_numTasks] = _TaskType::alignFront;
+			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].alignFront)) AlignFront(task);
+			_currentTaskNum = _numTasks;
+			_numTasks++;
+		}
+
 		ReturnCode TaskArray::startTask(RobotState startState)
 		{
 			ReturnCode code = ReturnCode::ok;
@@ -639,6 +714,11 @@ namespace JAFD
 			if (!_stopped)
 			{
 				MotorControl::setSpeeds(_currentTask->updateSpeeds(freq));
+			}
+			else
+			{
+				_angularVelPID.reset();
+				_forwardVelPID.reset();
 			}
 		}
 
@@ -1049,6 +1129,89 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.forceSpeed)) ForceSpeed(temp);
+					_stopped = false;
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new AlignFront task (use last end state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const AlignFront& newTask, const bool forceOverride)
+		{
+			static RobotState endState;
+			static ReturnCode returnCode;
+			static AlignFront temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				endState = static_cast<RobotState>(_currentTask->getEndState());
+
+				temp = newTask;
+				returnCode = temp.startTask(endState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.alignFront)) AlignFront(temp);
+					_stopped = false;
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new AlignFront task (use current state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const AlignFront& newTask, const bool forceOverride)
+		{
+			static ReturnCode returnCode;
+			static AlignFront temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				temp = newTask;
+				returnCode = temp.startTask(SensorFusion::getFusedData().robotState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.alignFront)) AlignFront(temp);
+					_stopped = false;
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new AlignFront task (use specified state to start)
+		ReturnCode setNewTask(const AlignFront& newTask, RobotState startState, const bool forceOverride)
+		{
+			static ReturnCode returnCode;
+			static AlignFront temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				temp = newTask;
+				returnCode = temp.startTask(startState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.alignFront)) AlignFront(temp);
 					_stopped = false;
 				}
 			}
