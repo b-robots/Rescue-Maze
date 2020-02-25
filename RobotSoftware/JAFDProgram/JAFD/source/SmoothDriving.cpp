@@ -542,24 +542,24 @@ namespace JAFD
 			if (_endState.rotation.x > 315.0f * DEG_TO_RAD || _endState.rotation.x < 45.0f * DEG_TO_RAD)
 			{
 				_endState.rotation.x = 0.0f;
-				_endState.position.x += JAFDSettings::Field::cellWidth / 2.0f - _alignDist - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+				_endState.position.x += JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
 			}
 			else if (_endState.rotation.x > 45.0f * DEG_TO_RAD && _endState.rotation.x < 135.0f * DEG_TO_RAD)
 			{
 				_endState.rotation.x = 90.0f * DEG_TO_RAD;
-				_endState.position.y += JAFDSettings::Field::cellWidth / 2.0f - _alignDist - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+				_endState.position.y += JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
 
 			}
 			else if (_endState.rotation.x > 135.0f * DEG_TO_RAD && _endState.rotation.x < 225.0f * DEG_TO_RAD)
 			{
 				_endState.rotation.x = 180.0f * DEG_TO_RAD;
-				_endState.position.x -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+				_endState.position.x -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
 
 			}
 			else
 			{
 				_endState.rotation.x = 270.0f * DEG_TO_RAD;
-				_endState.position.y -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+				_endState.position.y -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
 
 			}
 
@@ -567,7 +567,6 @@ namespace JAFD
 			_endState.forwardVel = static_cast<float>(0.0f);
 			_endState.angularVel = Vec3f(0.0f, 0.0f, 0.0f);
 			
-
 			return ReturnCode::ok;
 		}
 
