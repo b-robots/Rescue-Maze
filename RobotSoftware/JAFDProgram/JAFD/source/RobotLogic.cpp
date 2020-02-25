@@ -50,7 +50,7 @@ namespace JAFD
 
 					if (frontIsWall && !aligned)
 					{
-						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::AlignFront());
+						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::AlignFront(30));
 						aligned = true;
 						return;
 					}
@@ -79,6 +79,11 @@ namespace JAFD
 							found = true;
 							relativeTurnDir = makeRelative(AbsoluteDir::south, SensorFusion::getFusedData().heading);
 						}
+					}
+
+					if (aligned)
+					{
+
 					}
 
 					switch (relativeTurnDir)

@@ -31,14 +31,12 @@ namespace JAFD
 			_fusedData.robotState.mapCoordinate.y = roundf(_fusedData.robotState.position.y / JAFDSettings::Field::cellWidth);
 			_fusedData.robotState.mapCoordinate.floor = 0;
 
-			float positiveAngle = RAD_TO_DEG * _fusedData.robotState.rotation.x;
+			while (_fusedData.robotState.rotation.x < 0.0f) _fusedData.robotState.rotation.x += M_TWOPI;
+			while (_fusedData.robotState.rotation.x > M_TWOPI) _fusedData.robotState.rotation.x -= M_TWOPI;
 
-			while (positiveAngle < 0.0f) positiveAngle += 360.0f;
-			while (positiveAngle > 360.0f) positiveAngle -= 360.0f;
-
-			if (positiveAngle > 315.0f || positiveAngle < 45.0f) _fusedData.heading = AbsoluteDir::north;
-			else if (positiveAngle > 45.0f && positiveAngle < 135.0f) _fusedData.heading = AbsoluteDir::west;
-			else if (positiveAngle > 135.0f && positiveAngle < 225.0f) _fusedData.heading = AbsoluteDir::south;
+			if (RAD_TO_DEG * _fusedData.robotState.rotation.x > 315.0f || RAD_TO_DEG * _fusedData.robotState.rotation.x < 45.0f) _fusedData.heading = AbsoluteDir::north;
+			else if (RAD_TO_DEG * _fusedData.robotState.rotation.x > 45.0f && RAD_TO_DEG * _fusedData.robotState.rotation.x < 135.0f) _fusedData.heading = AbsoluteDir::west;
+			else if (RAD_TO_DEG * _fusedData.robotState.rotation.x > 135.0f && RAD_TO_DEG * _fusedData.robotState.rotation.x < 225.0f) _fusedData.heading = AbsoluteDir::south;
 			else _fusedData.heading = AbsoluteDir::east;
 		}
 
@@ -57,6 +55,24 @@ namespace JAFD
 			_fusedData.distances.leftFront = DistanceSensors::leftFront.getDistance();
 			_fusedData.distances.rightBack = DistanceSensors::rightBack.getDistance();
 			_fusedData.distances.rightFront = DistanceSensors::rightFront.getDistance();
+		}
+
+		void setCertainRobotPosition(Vec3f pos, Vec3f rotation)
+		{
+			_fusedData.robotState.position = pos;
+			_fusedData.robotState.rotation = rotation;
+
+			_fusedData.robotState.mapCoordinate.x = roundf(_fusedData.robotState.position.x / JAFDSettings::Field::cellWidth);
+			_fusedData.robotState.mapCoordinate.y = roundf(_fusedData.robotState.position.y / JAFDSettings::Field::cellWidth);
+			_fusedData.robotState.mapCoordinate.floor = 0;
+
+			while (_fusedData.robotState.rotation.x < 0.0f) _fusedData.robotState.rotation.x += M_TWOPI;
+			while (_fusedData.robotState.rotation.x > M_TWOPI) _fusedData.robotState.rotation.x -= M_TWOPI;
+
+			if (RAD_TO_DEG * _fusedData.robotState.rotation.x > 315.0f || RAD_TO_DEG * _fusedData.robotState.rotation.x < 45.0f) _fusedData.heading = AbsoluteDir::north;
+			else if (RAD_TO_DEG * _fusedData.robotState.rotation.x > 45.0f && RAD_TO_DEG * _fusedData.robotState.rotation.x < 135.0f) _fusedData.heading = AbsoluteDir::west;
+			else if (RAD_TO_DEG * _fusedData.robotState.rotation.x > 135.0f && RAD_TO_DEG * _fusedData.robotState.rotation.x < 225.0f) _fusedData.heading = AbsoluteDir::south;
+			else _fusedData.heading = AbsoluteDir::east;
 		}
 
 		const volatile FusedData& getFusedData()
