@@ -200,7 +200,7 @@ namespace JAFD
 			TaskArray(const AlignFront& task, const Rem&... rem) : TaskArray(rem...)
 			{
 				_taskTypes[_numTasks] = _TaskType::alignFront;
-				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].alignFront)) ForceSpeed(task);
+				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].alignFront)) AlignFront(task);
 				_numTasks++;
 			}
 

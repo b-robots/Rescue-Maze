@@ -44,20 +44,20 @@ namespace JAFDSettings
 
 		namespace Left
 		{
-			constexpr uint8_t pwmPin = 34;	// PWM pin left motor
-			constexpr uint8_t dirPin = 53;	// Direction pin left motor
+			constexpr uint8_t pwmPin = 43;	// PWM pin left motor
+			constexpr uint8_t dirPin = 47;	// Direction pin left motor
 			constexpr uint8_t fbPin = A11;	// Current feedback output left motor
-			constexpr uint8_t encA = 23;	// Encoder Pin A
-			constexpr uint8_t encB = 22;	// Encoder Pin B
+			constexpr uint8_t encA = 4;		// Encoder Pin A
+			constexpr uint8_t encB = 5;		// Encoder Pin B
 		}
 
 		namespace Right
 		{
-			constexpr uint8_t pwmPin = 36;	// PWM pin left motor
-			constexpr uint8_t dirPin = 43;	// Direction pin left motor
+			constexpr uint8_t pwmPin = 41;	// PWM pin left motor
+			constexpr uint8_t dirPin = 46;	// Direction pin left motor
 			constexpr uint8_t fbPin = A10;	// Current feedback output left motor
-			constexpr uint8_t encA = 11;	// Encoder Pin A
-			constexpr uint8_t encB = 10;	// Encoder Pin B
+			constexpr uint8_t encA = 6;		// Encoder Pin A
+			constexpr uint8_t encB = 9;		// Encoder Pin B
 		}
 	}
 

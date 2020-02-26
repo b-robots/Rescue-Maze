@@ -68,7 +68,7 @@ void TC4_Handler()
 			if (i % 20 == 0)
 			{
 				// 5Hz:
-				JAFD::SensorFusion::updateDistSensor();
+				//JAFD::SensorFusion::updateDistSensor();
 
 				if (i % 100 == 0)
 				{
