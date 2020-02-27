@@ -24,6 +24,7 @@ namespace JAFD
 			{
 				if (SmoothDriving::isTaskFinished())
 				{
+					Serial.println("finished");
 					cell = SensorFusion::getFusedData().gridCell;
 
 					switch (makeAbsolute(RelativeDir::forward, SensorFusion::getFusedData().heading))
@@ -50,103 +51,113 @@ namespace JAFD
 
 					if (frontIsWall && !aligned)
 					{
-						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::AlignFront(30));
+						//SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::AlignFront(30));
 						aligned = true;
 						return;
 					}
 
 					found = false;
 
+					if (cell.cellConnections == Directions::nowhere) Serial.println("Nowhere");
+
 					while (!found)
 					{
-						if ((cell.cellConnections & Directions::north) && random(0, 4) == 0)
+						uint8_t rand = random(0, 4);
+
+						if ((cell.cellConnections & Directions::north) && rand == 0)
 						{
 							found = true;
 							relativeTurnDir = makeRelative(AbsoluteDir::north, SensorFusion::getFusedData().heading);
 						}
-						else if ((cell.cellConnections & Directions::east) && random(0, 4) == 1)
+						else if ((cell.cellConnections & Directions::east) && rand == 1)
 						{
 							found = true;
 							relativeTurnDir = makeRelative(AbsoluteDir::east, SensorFusion::getFusedData().heading);
 						}
-						else if ((cell.cellConnections & Directions::west) && random(0, 4) == 2)
+						else if ((cell.cellConnections & Directions::west) && rand == 2)
 						{
 							found = true;
 							relativeTurnDir = makeRelative(AbsoluteDir::west, SensorFusion::getFusedData().heading);
 						}
-						else if ((cell.cellConnections & Directions::south) && random(0, 4) == 3)
+						else if ((cell.cellConnections & Directions::south) && rand == 3)
 						{
 							found = true;
 							relativeTurnDir = makeRelative(AbsoluteDir::south, SensorFusion::getFusedData().heading);
 						}
 					}
 
-					if (aligned)
-					{
-						Vec3f position = SensorFusion::getFusedData().robotState.position;
-						Vec3f rotation = SensorFusion::getFusedData().robotState.rotation;
+					//if (aligned)
+					//{
+					//	Vec3f position = SensorFusion::getFusedData().robotState.position;
+					//	Vec3f rotation = SensorFusion::getFusedData().robotState.rotation;
 
-						position.x = roundf(position.x / JAFDSettings::Field::cellWidth) * JAFDSettings::Field::cellWidth;
-						position.y = roundf(position.y / JAFDSettings::Field::cellWidth) * JAFDSettings::Field::cellWidth;
+					//	position.x = roundf(position.x / JAFDSettings::Field::cellWidth) * JAFDSettings::Field::cellWidth;
+					//	position.y = roundf(position.y / JAFDSettings::Field::cellWidth) * JAFDSettings::Field::cellWidth;
 
-						while (rotation.x < 0.0f) rotation.x += M_TWOPI;
-						while (rotation.x > M_TWOPI) rotation.x -= M_TWOPI;
+					//	while (rotation.x < 0.0f) rotation.x += M_TWOPI;
+					//	while (rotation.x > M_TWOPI) rotation.x -= M_TWOPI;
 
-						if (rotation.x > 315.0f * DEG_TO_RAD || rotation.x < 45.0f * DEG_TO_RAD)
-						{
-							rotation.x = 0.0f;
-							position.x += JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
-						}
-						else if (rotation.x > 45.0f * DEG_TO_RAD && rotation.x < 135.0f * DEG_TO_RAD)
-						{
-							rotation.x = 90.0f * DEG_TO_RAD;
-							position.y += JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+					//	if (rotation.x > 315.0f * DEG_TO_RAD || rotation.x < 45.0f * DEG_TO_RAD)
+					//	{
+					//		rotation.x = 0.0f;
+					//		position.x += JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+					//	}
+					//	else if (rotation.x > 45.0f * DEG_TO_RAD && rotation.x < 135.0f * DEG_TO_RAD)
+					//	{
+					//		rotation.x = 90.0f * DEG_TO_RAD;
+					//		position.y += JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
 
-						}
-						else if (rotation.x > 135.0f * DEG_TO_RAD && rotation.x < 225.0f * DEG_TO_RAD)
-						{
-							rotation.x = 180.0f * DEG_TO_RAD;
-							position.x -= JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+					//	}
+					//	else if (rotation.x > 135.0f * DEG_TO_RAD && rotation.x < 225.0f * DEG_TO_RAD)
+					//	{
+					//		rotation.x = 180.0f * DEG_TO_RAD;
+					//		position.x -= JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
 
-						}
-						else
-						{
-							rotation.x = 270.0f * DEG_TO_RAD;
-							position.y -= JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+					//	}
+					//	else
+					//	{
+					//		rotation.x = 270.0f * DEG_TO_RAD;
+					//		position.y -= JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
 
-						}
+					//	}
 
-						SensorFusion::setCertainRobotPosition(position, rotation);
-					}
+					//	SensorFusion::setCertainRobotPosition(position, rotation);
+					//}
 
 					switch (relativeTurnDir)
 					{
 					case RelativeDir::forward:
-						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
-																														SmoothDriving::Accelerate(20, 15.0f),
-																														SmoothDriving::Accelerate(0, 15.0f),
-																														SmoothDriving::Stop()));
+						Serial.println("forward");
+						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
+							SmoothDriving::Accelerate(20, 15.0f),
+							SmoothDriving::Accelerate(0, 15.0f),
+							SmoothDriving::Stop()));
+
 						break;
 					case RelativeDir::right:
-						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
-																														SmoothDriving::Rotate(-2.0f, -90.0f),
-																														SmoothDriving::Accelerate(20, 15.0f),
-																														SmoothDriving::Accelerate(0, 15.0f),
-																														SmoothDriving::Stop()));
+						Serial.println("right");
+						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
+							SmoothDriving::Rotate(-2.0f, -90.0f),
+							SmoothDriving::Accelerate(20, 15.0f),
+							SmoothDriving::Accelerate(0, 15.0f),
+							SmoothDriving::Stop()));
+
 						break;
 					case RelativeDir::backward:
-						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
-																														SmoothDriving::Rotate(3.0f, 180.0f),
-																														SmoothDriving::Accelerate(20, 15.0f),
-																														SmoothDriving::Accelerate(0, 15.0f),
-																														SmoothDriving::Stop()));
+						Serial.println("backward");
+						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
+							SmoothDriving::Rotate(3.0f, 180.0f),
+							SmoothDriving::Accelerate(20, 15.0f),
+							SmoothDriving::Accelerate(0, 15.0f),
+							SmoothDriving::Stop()));
 						break;
 					case RelativeDir::left:
-						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(	SmoothDriving::Stop(),
-																														SmoothDriving::Rotate(2.0f, 90.0f),
-																														SmoothDriving::Accelerate(20, 15.0f),
-																														SmoothDriving::Accelerate(0, 15.0f),
-																														SmoothDriving::Stop()));
+						Serial.println("left");
+						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
+							SmoothDriving::Rotate(2.0f, 90.0f),
+							SmoothDriving::Accelerate(20, 15.0f),
+							SmoothDriving::Accelerate(0, 15.0f),
+							SmoothDriving::Stop()));
 						break;
 					default:
 						break;

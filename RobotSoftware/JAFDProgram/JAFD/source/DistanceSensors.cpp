@@ -140,7 +140,7 @@ namespace JAFD
 			Wire.endTransmission();
 
 			Wire.requestFrom(_i2cAddr, (uint8_t)1);
-			
+
 			return Wire.read();
 		}
 
@@ -464,44 +464,44 @@ namespace JAFD
 		{
 			ReturnCode code = ReturnCode::ok;
 
-			//if (frontLeft.setup() != ReturnCode::ok)
-			//{
-			//	code = ReturnCode::fatalError;
-			//}
+			if (frontLeft.setup() != ReturnCode::ok)
+			{
+				return ReturnCode::fatalError;
+			}
 
-			//if (frontRight.setup() != ReturnCode::ok)
-			//{
-			//	code = ReturnCode::fatalError;
-			//}
+			if (frontRight.setup() != ReturnCode::ok)
+			{
+				return ReturnCode::fatalError;
+			}
 
 			//if (frontLong.setup() != ReturnCode::ok)
 			//{
-			//	code = ReturnCode::fatalError;
+			//	return ReturnCode::fatalError;
 			//}
 
 			//if (backLong.setup() != ReturnCode::ok)
 			//{
-			//	code = ReturnCode::fatalError;
+			//	return ReturnCode::fatalError;
 			//}
 
-			//if (leftFront.setup() != ReturnCode::ok)
-			//{
-			//	code = ReturnCode::fatalError;
-			//}
+			if (leftFront.setup() != ReturnCode::ok)
+			{
+				return ReturnCode::fatalError;
+			}
 
 			//if (leftBack.setup() != ReturnCode::ok)
 			//{
-			//	code = ReturnCode::fatalError;
+			//	return ReturnCode::fatalError;
 			//}
 
-			//if (rightFront.setup() != ReturnCode::ok)
-			//{
-			//	code = ReturnCode::fatalError;
-			//}
+			if (rightFront.setup() != ReturnCode::ok)
+			{
+				return ReturnCode::fatalError;
+			}
 
 			//if (rightBack.setup() != ReturnCode::ok)
 			//{
-			//	code = ReturnCode::fatalError;
+			//	return ReturnCode::fatalError;
 			//}
 
 			return code;

@@ -73,9 +73,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="JAFD\source\Bno055.cpp">
-      <Filter>JAFD\Source</Filter>
-    </ClCompile>
     <ClCompile Include="JAFD\source\Dispenser.cpp">
       <Filter>JAFD\Source</Filter>
     </ClCompile>
@@ -110,6 +107,9 @@
       <Filter>JAFD\Source</Filter>
     </ClCompile>
     <ClCompile Include="JAFD\source\TCA9548A.cpp">
+      <Filter>JAFD\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="JAFD\source\Bno055.cpp">
       <Filter>JAFD\Source</Filter>
     </ClCompile>
   </ItemGroup>

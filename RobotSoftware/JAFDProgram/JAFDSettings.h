@@ -38,7 +38,7 @@ namespace JAFDSettings
 	{
 		constexpr float cmPSToPerc = 1.0f / (97.0f / 60.0f * 3.1415f * Mechanics::wheelDiameter);		// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed. It is ideal for about 100cm/s)
 
-		constexpr uint8_t minSpeed = 5;			// Minimum speed for motor to rotate
+		constexpr uint8_t minSpeed = 10;			// Minimum speed for motor to rotate
 
 		constexpr float pulsePerRev = 4741.44f / 4.0f;		// Rotary-Encoder pulses per revolution
 
@@ -97,9 +97,9 @@ namespace JAFDSettings
 
 	namespace MazeMapping
 	{
-		constexpr float maxAngleFromStraight = 0.1f;	// Maximum angle (rad) deviation from straight
-		constexpr float maxDistFromMiddle = 3.0f;		// Maximum position deviation (x and y) from filed middle
-		constexpr uint16_t distLongerThanBorder = 50;	// Distance longer than border from which next field is empty (mm)
+		constexpr float maxAngleFromStraight = 0.2f;	// Maximum angle (rad) deviation from straight
+		constexpr float maxDistFromMiddle = 5.0f;		// Maximum position deviation (x and y) from filed middle
+		constexpr uint16_t distLongerThanBorder = 70;	// Distance longer than border from which next field is empty (mm)
 	}
 
 	namespace DistanceSensors
@@ -108,12 +108,12 @@ namespace JAFDSettings
 
 		namespace LeftFront
 		{
-			constexpr uint8_t multiplexCh = 0;
+			constexpr uint8_t multiplexCh = 3;
 		}
 
 		namespace LeftBack
 		{
-			constexpr uint8_t multiplexCh = 1;
+			constexpr uint8_t multiplexCh = -1;
 		}
 
 		namespace RightFront
@@ -123,7 +123,7 @@ namespace JAFDSettings
 
 		namespace RightBack
 		{
-			constexpr uint8_t multiplexCh = 3;
+			constexpr uint8_t multiplexCh = -1;
 		}
 
 		namespace FrontLeft

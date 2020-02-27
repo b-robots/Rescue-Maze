@@ -31,6 +31,40 @@ namespace JAFD
 
 		PMC->PMC_PCER0 = 1 << ID_PIOA | 1 << ID_PIOB | 1 << ID_PIOC | 1 << ID_PIOD;
 
+		randomSeed(69420);
+
+		// Setup of MazeMapper
+		if (MazeMapping::setup() != ReturnCode::ok)
+		{
+			Serial.println("error");
+		}
+
+		// Setup of Dispenser
+		if (Dispenser::setup() != ReturnCode::ok)
+		{
+			Serial.println("error");
+		}
+
+		// Setup of Motor Control
+		if (MotorControl::setup() != ReturnCode::ok)
+		{
+			Serial.println("error");
+		}
+
+		// Setup of SPI NVSRAM
+		if (SpiNVSRAM::setup() != ReturnCode::ok)
+		{
+			Serial.println("error");
+		}
+
+		// Setup of Distance Sensors
+		if (DistanceSensors::setup() != ReturnCode::ok)
+		{
+			Serial.println("error");
+		}
+
+		JAFD::Bno055::init();
+
 		// Setup TC3 for an interrupt every ms -> 1kHz (MCK / 32 / 2625)
 		PMC->PMC_PCER0 = 1 << ID_TC3;
 
@@ -56,40 +90,6 @@ namespace JAFD
 		NVIC_EnableIRQ(TC4_IRQn);
 
 		TC1->TC_CHANNEL[1].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
-
-		randomSeed(69420);
-
-		// Setup of MazeMapper
-		if (MazeMapping::setup() != ReturnCode::ok)
-		{
-
-		}
-
-		// Setup of Dispenser
-		if (Dispenser::setup() != ReturnCode::ok)
-		{
-
-		}
-
-		// Setup of Motor Control
-		if (MotorControl::setup() != ReturnCode::ok)
-		{
-
-		}
-
-		// Setup of SPI NVSRAM
-		if (SpiNVSRAM::setup() != ReturnCode::ok)
-		{
-
-		}
-
-		// Setup of Distance Sensors
-		if (DistanceSensors::setup() != ReturnCode::ok)
-		{
-
-		}
-
-		JAFD::Bno055::init();
 
 		return;
 	}

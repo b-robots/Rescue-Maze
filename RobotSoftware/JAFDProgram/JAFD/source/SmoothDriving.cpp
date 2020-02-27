@@ -536,6 +536,8 @@ namespace JAFD
 			_endState.position.y = roundf(startState.position.y / JAFDSettings::Field::cellWidth) * JAFDSettings::Field::cellWidth;
 			_endState.position.z = 0;
 
+			// Endwinkelberechnung gehört verbessert und getestet.
+			/*
 			while (_endState.rotation.x < 0.0f) _endState.rotation.x += M_TWOPI;
 			while (_endState.rotation.x > M_TWOPI) _endState.rotation.x -= M_TWOPI;
 
@@ -561,7 +563,7 @@ namespace JAFD
 				_endState.rotation.x = 270.0f * DEG_TO_RAD;
 				_endState.position.y -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
 
-			}
+			}*/
 
 			_endState.wheelSpeeds = FloatWheelSpeeds{ 0.0f, 0.0f };
 			_endState.forwardVel = static_cast<float>(0.0f);
