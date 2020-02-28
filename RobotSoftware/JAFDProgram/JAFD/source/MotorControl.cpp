@@ -124,9 +124,6 @@ namespace JAFD
 			// TODO: je nach L oder H pin unterscheiden und CPOL setzen
 
 			// Setup PWM - Controller (20kHz)
-			PMC->PMC_PCER1 = PMC_PCER1_PID36;
-
-			PWM->PWM_CLK = PWM_CLK_PREA(0) | PWM_CLK_DIVA(1);
 			PWM->PWM_ENA = 1 << _lPWMCh | 1 << _rPWMCh;
 
 			PWM->PWM_CH_NUM[_lPWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
