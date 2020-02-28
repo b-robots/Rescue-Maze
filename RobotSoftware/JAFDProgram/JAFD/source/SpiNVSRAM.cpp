@@ -93,7 +93,7 @@ namespace JAFD
 			disable();
 		}
 
-		void readPage(const uint16_t numPage, uint8_t* buffer)
+		void readPage(const uint16_t numPage, uint8_t buffer[pageSize])
 		{
 			// Set Page Mode
 			enable();
@@ -114,15 +114,15 @@ namespace JAFD
 			SPI.transfer((uint8_t)(address >> 8));
 			SPI.transfer((uint8_t)(address));
 
-			for (uint8_t i = 0; i < pageSize; i++)
+			for (uint16_t i = 0; i < pageSize; i++)
 			{
-				*(buffer++) = SPI.transfer(0x00);
+				buffer[i]= SPI.transfer(0x00);
 			}
 
 			disable();
 		}
 
-		void writePage(const uint16_t numPage, uint8_t* buffer)
+		void writePage(const uint16_t numPage, uint8_t buffer[pageSize])
 		{
 			// Set Page Mode
 			enable();
@@ -132,6 +132,7 @@ namespace JAFD
 
 			disable();
 
+			delay(1);
 			// Write Data
 			enable();
 
@@ -143,9 +144,11 @@ namespace JAFD
 			SPI.transfer((uint8_t)(address >> 8));
 			SPI.transfer((uint8_t)(address));
 
-			for (uint8_t i = 0; i < pageSize; i++)
+			for (uint16_t i = 0; i < pageSize; i++)
 			{
-				SPI.transfer(*(buffer++));
+				
+				SPI.transfer(buffer[i]);
+				
 			}
 
 			disable();
@@ -161,6 +164,8 @@ namespace JAFD
 
 			disable();
 
+			delay(1);
+
 			// Read Data
 			enable();
 
@@ -170,7 +175,7 @@ namespace JAFD
 			SPI.transfer((uint8_t)(address >> 8));
 			SPI.transfer((uint8_t)(address));
 
-			for (uint16_t i = 0; i < length; i++)
+			for (uint32_t i = 0; i < length; i++)
 			{
 				*(buffer++) = SPI.transfer(0x00);
 			}
