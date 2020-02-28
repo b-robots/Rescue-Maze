@@ -17,8 +17,8 @@ namespace JAFD
 {
 	namespace Bno055
 	{
-		void init();
-		void calibration();
+		ReturnCode init();
+		ReturnCode calibration();
 		void update_sensorreadings();		//Funktn aus Bno055 aufrufen
 
 		Vec3f get_linear_acceleration();

@@ -24,7 +24,6 @@ namespace JAFD
 			{
 				if (SmoothDriving::isTaskFinished())
 				{
-					Serial.println("finished");
 					cell = SensorFusion::getFusedData().gridCell;
 
 					switch (makeAbsolute(RelativeDir::forward, SensorFusion::getFusedData().heading))
@@ -127,7 +126,6 @@ namespace JAFD
 					switch (relativeTurnDir)
 					{
 					case RelativeDir::forward:
-						Serial.println("forward");
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
 							SmoothDriving::Accelerate(20, 15.0f),
 							SmoothDriving::Accelerate(0, 15.0f),
@@ -135,7 +133,6 @@ namespace JAFD
 
 						break;
 					case RelativeDir::right:
-						Serial.println("right");
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
 							SmoothDriving::Rotate(-2.0f, -90.0f),
 							SmoothDriving::Accelerate(20, 15.0f),
@@ -144,7 +141,6 @@ namespace JAFD
 
 						break;
 					case RelativeDir::backward:
-						Serial.println("backward");
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
 							SmoothDriving::Rotate(3.0f, 180.0f),
 							SmoothDriving::Accelerate(20, 15.0f),
@@ -152,7 +148,6 @@ namespace JAFD
 							SmoothDriving::Stop()));
 						break;
 					case RelativeDir::left:
-						Serial.println("left");
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
 							SmoothDriving::Rotate(2.0f, 90.0f),
 							SmoothDriving::Accelerate(20, 15.0f),

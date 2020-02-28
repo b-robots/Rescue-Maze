@@ -14,9 +14,8 @@
 #ifndef _VSARDUINO_H_
 #define _VSARDUINO_H_
 #define _VMDEBUG 1
-#define printf iprintf
 #define F_CPU 84000000L
-#define ARDUINO 10805
+#define ARDUINO 10807
 #define ARDUINO_SAM_DUE
 #define ARDUINO_ARCH_SAM
 #define __SAM3X8E__

@@ -50,8 +50,5 @@ void setup()
 // The loop function runs over and over again until power down or reset
 void loop()
 {
-	JAFD::SensorFusion::updateDistSensor();
 	JAFD::robotLoop();
-
-	delay(300);
 }
