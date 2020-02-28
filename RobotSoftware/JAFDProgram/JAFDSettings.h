@@ -31,7 +31,7 @@ namespace JAFDSettings
 
 	namespace SpiNVSRAM
 	{
-		constexpr uint8_t ssPin = 13;
+		constexpr uint8_t ssPin = 6;
 	}
 
 	namespace MotorControl

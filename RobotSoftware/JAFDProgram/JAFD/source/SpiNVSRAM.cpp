@@ -93,67 +93,6 @@ namespace JAFD
 			disable();
 		}
 
-		void readPage(const uint16_t numPage, uint8_t buffer[pageSize])
-		{
-			// Set Page Mode
-			enable();
-
-			SPI.transfer((uint8_t)Instruction::wrr);
-			SPI.transfer(0b10000000);
-
-			disable();
-
-			// Read Data
-			enable();
-
-			SPI.transfer((uint8_t)Instruction::read);
-
-			uint32_t address = numPage * pageSize;
-
-			SPI.transfer((uint8_t)(address >> 16));
-			SPI.transfer((uint8_t)(address >> 8));
-			SPI.transfer((uint8_t)(address));
-
-			for (uint16_t i = 0; i < pageSize; i++)
-			{
-				buffer[i]= SPI.transfer(0x00);
-			}
-
-			disable();
-		}
-
-		void writePage(const uint16_t numPage, uint8_t buffer[pageSize])
-		{
-			// Set Page Mode
-			enable();
-
-			SPI.transfer((uint8_t)Instruction::wrr);
-			SPI.transfer(0b10000000);
-
-			disable();
-
-			delay(1);
-			// Write Data
-			enable();
-
-			SPI.transfer((uint8_t)Instruction::write);
-
-			uint32_t address = numPage * pageSize;
-
-			SPI.transfer((uint8_t)(address >> 16));
-			SPI.transfer((uint8_t)(address >> 8));
-			SPI.transfer((uint8_t)(address));
-
-			for (uint16_t i = 0; i < pageSize; i++)
-			{
-				
-				SPI.transfer(buffer[i]);
-				
-			}
-
-			disable();
-		}
-
 		void readStream(const uint32_t address, uint8_t* buffer, const uint32_t length)
 		{
 			// Set Stream Mode
@@ -177,7 +116,8 @@ namespace JAFD
 
 			for (uint32_t i = 0; i < length; i++)
 			{
-				*(buffer++) = SPI.transfer(0x00);
+				*buffer = SPI.transfer(0x00);
+				buffer++;
 			}
 
 			disable();
@@ -192,6 +132,8 @@ namespace JAFD
 			SPI.transfer(0b01000000);
 
 			disable();
+
+			delay(1);
 
 			// Write Data
 			enable();
@@ -210,10 +152,13 @@ namespace JAFD
 				if (++address % pageSize == 0)
 				{
 					disable();
+
+					delay(1);
+
 					enable();
 
 					// Write address
-					SPI.transfer((uint8_t)Instruction::read);
+					SPI.transfer((uint8_t)Instruction::write);
 
 					SPI.transfer((uint8_t)(address >> 16));
 					SPI.transfer((uint8_t)(address >> 8));

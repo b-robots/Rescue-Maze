@@ -27,7 +27,9 @@
 #include "JAFD/header/SensorFusion.h"
 #include "JAFD/header/DistanceSensors.h"
 #include "JAFD/header/Bno055.h"
+#include "JAFD/header/SpiNVSRAM.h"
 
+using namespace JAFD::SpiNVSRAM;
 using namespace JAFD::MazeMapping;
 using namespace JAFD::MotorControl;
 using namespace JAFD::SmoothDriving;
@@ -51,4 +53,6 @@ void setup()
 void loop()
 {
 	JAFD::robotLoop();
+
+	delay(500);
 }
