@@ -7,17 +7,12 @@ This part is responsible for dispensing the rescue packages.
 #include "../header/SmoothDriving.h"
 #include "../header/DuePinMapping.h"
 
-#include <Servo.h>
-
 namespace JAFD
 {
 	namespace Dispenser
 	{
 		namespace
 		{
-			Servo rightServo;
-			Servo leftServo;
-
 			constexpr auto _rightPWMPin = PinMapping::MappedPins[JAFDSettings::Dispenser::right::servoPinRight];
 			constexpr auto _leftPWMPin = PinMapping::MappedPins[JAFDSettings::Dispenser::left::servoPinLeft];
 			constexpr auto _rightPWMCh = PinMapping::getPWMChannel(_rightPWMPin);
