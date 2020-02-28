@@ -21,9 +21,9 @@
 #include <Adafruit_BNO055.h>
 #include <Adafruit_Sensor.h>
 #include <utility/imumaths.h>
+#include "JAFD/header/SpiNVSRAM.h"
 
-
-
+using namespace JAFD::SpiNVSRAM;
 using namespace JAFD::MotorControl;
 using namespace JAFD;
 using namespace JAFD::Bno055;
@@ -38,7 +38,25 @@ void setup() {
 
 	JAFD::robotSetup();
 
-	JAFD::Bno055::calibration();
+	uint8_t page[256];
+	uint8_t readp[256];
+
+	page[0] = 42;
+	page[1] = 69;
+	page[2] = 33; //schauen ob die Werte invertiert das ausgegebene ergeben!!!
+
+	writePage(3,page);
+
+	Serial.println("Hello");
+	
+	readPage(3,readp);
+
+	Serial.println(readp[0]);
+	Serial.println(readp[1]);
+	Serial.println(readp[2]);
+
+
+
 }
 
 // The loop function runs over and over again until power down or reset
@@ -46,47 +64,7 @@ void loop() {
 
 	JAFD::robotLoop();
 
-	JAFD::Bno055::update_sensorreadings();
-
-	delay(500);
-
-	auto absolute_orientation = JAFD::Bno055::get_absolute_orientation();
-
-	auto linear_accel = JAFD::Bno055::get_linear_acceleration();
-
-	auto  ang_velo = JAFD::Bno055::get_angular_velocity();
-
-	auto grav_vec = JAFD::Bno055::get_gravity_vector();
-
-
-	/*Serial.println("absolute_orientation.x");
-	Serial.println(absolute_orientation.x);
-	Serial.println("absolute_orientation.y");
-	Serial.println(absolute_orientation.y);
-	Serial.println("absolute_orientation.z");
-	Serial.println(absolute_orientation.z);*/
-
-
-	/*Serial.println("linear_Acceleration");
-	Serial.println(linear_accel.x);
-	Serial.println("linear_Acceleration.y");
-	Serial.println(linear_accel.y);
-	Serial.println("linear_Acceleration.z");
-	Serial.println(linear_accel.z);*/
-
-	/*Serial.println("ang_velocity.x");
-	Serial.println(ang_velo.x);
-	Serial.println("ang_velocity.y");
-	Serial.println(ang_velo.y);
-	Serial.println("ang_velocity.z");
-	Serial.println(ang_velo.z);*/
-
-	Serial.println("grav_vec.x");
-	Serial.println(grav_vec.x);
-	Serial.println("grav_vec.y");
-	Serial.println(grav_vec.y);
-	Serial.println("grav_vec.z");
-	Serial.println(grav_vec.z);
+	
 
 }
 

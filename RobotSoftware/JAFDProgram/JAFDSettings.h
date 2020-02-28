@@ -21,7 +21,7 @@ namespace JAFDSettings
 
 	namespace SpiEeprom
 	{
-		constexpr uint8_t ssPin = 10;
+		constexpr uint8_t ssPin = 6;
 	}
 
 	namespace MotorControl
