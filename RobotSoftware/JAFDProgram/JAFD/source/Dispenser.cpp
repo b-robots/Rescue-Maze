@@ -35,9 +35,19 @@ namespace JAFD
 			PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD = 13125; //  13125
 			PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTY = 0;
 
+			if (PinMapping::getPWMStartState(_rightPWMPin) == PinMapping::PWMStartState::high)
+			{
+				PWM->PWM_CH_NUM[_rightPWMCh].PWM_CMR |= PWM_CMR_CPOL;
+			}
+
 			PWM->PWM_CH_NUM[_leftPWMCh].PWM_CMR = PWM_CMR_CPRE_MCK_DIV_128;
 			PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD = 13125;//  13125
 			PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTY = 0;
+
+			if (PinMapping::getPWMStartState(_leftPWMPin) == PinMapping::PWMStartState::high)
+			{
+				PWM->PWM_CH_NUM[_leftPWMCh].PWM_CMR |= PWM_CMR_CPOL;
+			}
 
 			_leftPWMPin.port->PIO_PDR = _leftPWMPin.pin;
 			_rightPWMPin.port->PIO_PDR = _rightPWMPin.pin;
@@ -155,12 +165,12 @@ namespace JAFD
 			{
 				for (int i = 0; i < num; i++)
 				{
-					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = (uint16_t)(JAFDSettings::Dispenser::left::startDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD);
-					PWM->PWM_SCUC = 1; //PWM_SCUC_UPDULOCK;;
+					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::left::startDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
+					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 					Serial.println(PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTY);
 					delay(2000);
 					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::left::endDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
-					PWM->PWM_SCUC = 1; //PWM_SCUC_UPDULOCK;S;
+					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 					Serial.println(PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTY);
 					delay(2000);
 				}

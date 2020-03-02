@@ -462,14 +462,32 @@ namespace JAFD
 
 		ReturnCode setup()
 		{
-			ReturnCode code = ReturnCode::ok;
-
 			if (frontLeft.setup() != ReturnCode::ok)
 			{
 				return ReturnCode::fatalError;
 			}
 
 			if (frontRight.setup() != ReturnCode::ok)
+			{
+				return ReturnCode::fatalError;
+			}
+
+			if (leftFront.setup() != ReturnCode::ok)
+			{
+				return ReturnCode::fatalError;
+			}
+
+			if (leftBack.setup() != ReturnCode::ok)
+			{
+				return ReturnCode::fatalError;
+			}
+
+			if (rightFront.setup() != ReturnCode::ok)
+			{
+				return ReturnCode::fatalError;
+			}
+
+			if (rightBack.setup() != ReturnCode::ok)
 			{
 				return ReturnCode::fatalError;
 			}
@@ -484,27 +502,7 @@ namespace JAFD
 			//	return ReturnCode::fatalError;
 			//}
 
-			if (leftFront.setup() != ReturnCode::ok)
-			{
-				return ReturnCode::fatalError;
-			}
-
-			//if (leftBack.setup() != ReturnCode::ok)
-			//{
-			//	return ReturnCode::fatalError;
-			//}
-
-			if (rightFront.setup() != ReturnCode::ok)
-			{
-				return ReturnCode::fatalError;
-			}
-
-			//if (rightBack.setup() != ReturnCode::ok)
-			//{
-			//	return ReturnCode::fatalError;
-			//}
-
-			return code;
+			return ReturnCode::ok;
 		}
 	}
 }

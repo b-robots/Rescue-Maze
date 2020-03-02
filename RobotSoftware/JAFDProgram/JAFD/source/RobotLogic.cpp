@@ -57,8 +57,6 @@ namespace JAFD
 
 					found = false;
 
-					if (cell.cellConnections == Directions::nowhere) Serial.println("Nowhere");
-
 					while (!found)
 					{
 						uint8_t rand = random(0, 4);

@@ -119,32 +119,32 @@ namespace JAFDSettings
 
 		namespace LeftFront
 		{
-			constexpr uint8_t multiplexCh = 3;
+			constexpr uint8_t multiplexCh = 4;
 		}
 
 		namespace LeftBack
 		{
-			constexpr uint8_t multiplexCh = -1;
+			constexpr uint8_t multiplexCh = 7;
 		}
 
 		namespace RightFront
 		{
-			constexpr uint8_t multiplexCh = 2;
+			constexpr uint8_t multiplexCh = 5;
 		}
 
 		namespace RightBack
 		{
-			constexpr uint8_t multiplexCh = -1;
+			constexpr uint8_t multiplexCh = 6;
 		}
 
 		namespace FrontLeft
 		{
-			constexpr uint8_t multiplexCh = 4;
+			constexpr uint8_t multiplexCh = 3;
 		}
 
 		namespace FrontRight
 		{
-			constexpr uint8_t multiplexCh = 5;
+			constexpr uint8_t multiplexCh = 2;
 		}
 
 		namespace FrontLong
