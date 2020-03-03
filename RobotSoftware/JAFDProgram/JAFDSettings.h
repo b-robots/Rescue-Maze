@@ -139,12 +139,12 @@ namespace JAFDSettings
 
 		namespace FrontLeft
 		{
-			constexpr uint8_t multiplexCh = 3;
+			constexpr uint8_t multiplexCh = 2;
 		}
 
 		namespace FrontRight
 		{
-			constexpr uint8_t multiplexCh = 2;
+			constexpr uint8_t multiplexCh = 3;
 		}
 
 		namespace FrontLong

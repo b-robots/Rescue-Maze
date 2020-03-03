@@ -128,7 +128,7 @@ namespace JAFD
 							SmoothDriving::Accelerate(20, 15.0f),
 							SmoothDriving::Accelerate(0, 15.0f),
 							SmoothDriving::Stop()));
-
+						Serial.println("forward");
 						break;
 					case RelativeDir::right:
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
@@ -136,7 +136,7 @@ namespace JAFD
 							SmoothDriving::Accelerate(20, 15.0f),
 							SmoothDriving::Accelerate(0, 15.0f),
 							SmoothDriving::Stop()));
-
+						Serial.println("right");
 						break;
 					case RelativeDir::backward:
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
@@ -144,6 +144,7 @@ namespace JAFD
 							SmoothDriving::Accelerate(20, 15.0f),
 							SmoothDriving::Accelerate(0, 15.0f),
 							SmoothDriving::Stop()));
+						Serial.println("backward");
 						break;
 					case RelativeDir::left:
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
@@ -151,6 +152,7 @@ namespace JAFD
 							SmoothDriving::Accelerate(20, 15.0f),
 							SmoothDriving::Accelerate(0, 15.0f),
 							SmoothDriving::Stop()));
+						Serial.println("left");
 						break;
 					default:
 						break;

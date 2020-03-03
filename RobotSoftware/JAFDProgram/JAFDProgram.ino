@@ -46,6 +46,9 @@ void setup()
 
 	JAFD::robotSetup();
 
+	while (!isTaskFinished());
+	setNewTask<NewStateType::lastEndState>(ForceSpeed(30, 100.0));
+
 	delay(100);
 }
 
@@ -54,5 +57,7 @@ void loop()
 {
 	JAFD::robotLoop();
 
-	delay(500);
+	Serial.print(getDistance(Motor::left));
+	Serial.print(", ");
+	Serial.println(getDistance(Motor::right));
 }

@@ -49,13 +49,13 @@ namespace JAFD
 
 		void updateDistSensor()
 		{
+			//_fusedData.distances.frontLong = DistanceSensors::frontLong.getDistance();
 			//_fusedData.distances.backLong = DistanceSensors::backLong.getDistance();
 			_fusedData.distances.frontLeft = DistanceSensors::frontLeft.getDistance();
-			//_fusedData.distances.frontLong = DistanceSensors::frontLong.getDistance();
 			_fusedData.distances.frontRight = DistanceSensors::frontRight.getDistance();
-			//_fusedData.distances.leftBack = DistanceSensors::leftBack.getDistance();
+			_fusedData.distances.leftBack = DistanceSensors::leftBack.getDistance();
 			_fusedData.distances.leftFront = DistanceSensors::leftFront.getDistance();
-			//_fusedData.distances.rightBack = DistanceSensors::rightBack.getDistance();
+			_fusedData.distances.rightBack = DistanceSensors::rightBack.getDistance();
 			_fusedData.distances.rightFront = DistanceSensors::rightFront.getDistance();
 		}
 

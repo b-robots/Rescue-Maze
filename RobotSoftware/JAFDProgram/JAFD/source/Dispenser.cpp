@@ -27,8 +27,6 @@ namespace JAFD
 				return ReturnCode::fatalError;
 			}
 
-			PWM->PWM_CLK =PWM_CLK_PREB(0b111) | PWM_CLK_DIVB(1);
-
 			PWM->PWM_ENA = 1 << _rightPWMCh | 1 << _leftPWMCh;
 
 			PWM->PWM_CH_NUM[_rightPWMCh].PWM_CMR = PWM_CMR_CPRE_MCK_DIV_128;

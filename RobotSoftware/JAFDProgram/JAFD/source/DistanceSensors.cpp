@@ -179,7 +179,7 @@ namespace JAFD
 
 			// Poll until bit 2 is set
 			while (!(read8(_regIntStatus) & 0x04));
-
+			
 			// Read range in mm
 			distance = read8(_regRangeResult);
 
@@ -464,32 +464,38 @@ namespace JAFD
 		{
 			if (frontLeft.setup() != ReturnCode::ok)
 			{
-				return ReturnCode::fatalError;
+				Serial.println("FL");
+				//return ReturnCode::fatalError;
 			}
 
 			if (frontRight.setup() != ReturnCode::ok)
 			{
-				return ReturnCode::fatalError;
+				Serial.println("FR");
+				//return ReturnCode::fatalError;
 			}
 
 			if (leftFront.setup() != ReturnCode::ok)
 			{
-				return ReturnCode::fatalError;
+				Serial.println("LF");
+				//return ReturnCode::fatalError;
 			}
 
 			if (leftBack.setup() != ReturnCode::ok)
 			{
-				return ReturnCode::fatalError;
+				Serial.println("LB");
+				//return ReturnCode::fatalError;
 			}
 
 			if (rightFront.setup() != ReturnCode::ok)
 			{
-				return ReturnCode::fatalError;
+				Serial.println("RF");
+				//return ReturnCode::fatalError;
 			}
 
 			if (rightBack.setup() != ReturnCode::ok)
 			{
-				return ReturnCode::fatalError;
+				Serial.println("RB");
+				//return ReturnCode::fatalError;
 			}
 
 			//if (frontLong.setup() != ReturnCode::ok)
