@@ -523,6 +523,8 @@ namespace JAFD
 
 		ReturnCode AlignFront::startTask(RobotState startState)
 		{
+			float headingOffset;
+
 			_finished = false;
 
 			_angularVelPID.reset();
@@ -536,34 +538,37 @@ namespace JAFD
 			_endState.position.y = roundf(startState.position.y / JAFDSettings::Field::cellWidth) * JAFDSettings::Field::cellWidth;
 			_endState.position.z = 0;
 
-			// Endwinkelberechnung gehört verbessert und getestet.
-			/*
-			while (_endState.rotation.x < 0.0f) _endState.rotation.x += M_TWOPI;
-			while (_endState.rotation.x > M_TWOPI) _endState.rotation.x -= M_TWOPI;
+			_endState.rotation = startState.rotation;
 
-			if (_endState.rotation.x > 315.0f * DEG_TO_RAD || _endState.rotation.x < 45.0f * DEG_TO_RAD)
+			if (_endState.rotation.x > 315.0f * DEG_TO_RAD || _endState.rotation.x <= 45.0f * DEG_TO_RAD)
 			{
-				_endState.rotation.x = 0.0f;
+				headingOffset = startState.rotation.x;
+
 				_endState.position.x += JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
 			}
-			else if (_endState.rotation.x > 45.0f * DEG_TO_RAD && _endState.rotation.x < 135.0f * DEG_TO_RAD)
+			else if (_endState.rotation.x > 45.0f * DEG_TO_RAD && _endState.rotation.x <= 135.0f * DEG_TO_RAD)
 			{
-				_endState.rotation.x = 90.0f * DEG_TO_RAD;
+				headingOffset = startState.rotation.x - M_PI_2;
+
 				_endState.position.y += JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
-
 			}
-			else if (_endState.rotation.x > 135.0f * DEG_TO_RAD && _endState.rotation.x < 225.0f * DEG_TO_RAD)
+			else if (_endState.rotation.x > 135.0f * DEG_TO_RAD && _endState.rotation.x <= 225.0f * DEG_TO_RAD)
 			{
-				_endState.rotation.x = 180.0f * DEG_TO_RAD;
-				_endState.position.x -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+				headingOffset = startState.rotation.x - M_PI;
 
+				_endState.position.x -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
 			}
 			else
 			{
-				_endState.rotation.x = 270.0f * DEG_TO_RAD;
-				_endState.position.y -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+				headingOffset = startState.rotation.x - M_PI_2 * 3;
 
-			}*/
+				_endState.position.y -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+			}
+
+			while (headingOffset < 0.0f) headingOffset += M_TWOPI;
+			while (headingOffset > M_PI) headingOffset -= M_TWOPI;
+
+			_endState.rotation.x -= headingOffset;
 
 			_endState.wheelSpeeds = FloatWheelSpeeds{ 0.0f, 0.0f };
 			_endState.forwardVel = static_cast<float>(0.0f);
