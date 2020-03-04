@@ -50,7 +50,7 @@ namespace JAFD
 
 					if (frontIsWall && !aligned)
 					{
-						//SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::AlignFront(30));
+						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::AlignFront(30));
 						aligned = true;
 						return;
 					}

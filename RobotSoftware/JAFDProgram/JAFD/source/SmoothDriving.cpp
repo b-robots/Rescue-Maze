@@ -539,19 +539,24 @@ namespace JAFD
 
 			_endState.rotation = startState.rotation;
 
-			if (_endState.rotation.x > 315.0f * DEG_TO_RAD || _endState.rotation.x <= 45.0f * DEG_TO_RAD)
+			float positiveAngle = startState.rotation.x;
+
+			while (positiveAngle < 0.0f) positiveAngle += M_TWOPI;
+			while (positiveAngle > M_TWOPI) positiveAngle -= M_TWOPI;
+
+			if (positiveAngle > 315.0f * DEG_TO_RAD || positiveAngle <= 45.0f * DEG_TO_RAD)
 			{
 				headingOffset = startState.rotation.x;
 
 				_endState.position.x += JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
 			}
-			else if (_endState.rotation.x > 45.0f * DEG_TO_RAD && _endState.rotation.x <= 135.0f * DEG_TO_RAD)
+			else if (positiveAngle > 45.0f * DEG_TO_RAD && positiveAngle <= 135.0f * DEG_TO_RAD)
 			{
 				headingOffset = startState.rotation.x - M_PI_2;
 
 				_endState.position.y += JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
 			}
-			else if (_endState.rotation.x > 135.0f * DEG_TO_RAD && _endState.rotation.x <= 225.0f * DEG_TO_RAD)
+			else if (positiveAngle > 135.0f * DEG_TO_RAD && positiveAngle <= 225.0f * DEG_TO_RAD)
 			{
 				headingOffset = startState.rotation.x - M_PI;
 
