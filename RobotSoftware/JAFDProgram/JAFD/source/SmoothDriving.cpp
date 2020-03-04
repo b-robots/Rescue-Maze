@@ -16,6 +16,7 @@ This part of the Library is responsible for driving smoothly.
 #include "../../JAFDSettings.h"
 #include "../header/Math.h"
 #include "../header/PIDController.h"
+#include "../header/DistanceSensors.h"
 
 namespace JAFD
 {
@@ -530,8 +531,6 @@ namespace JAFD
 			_angularVelPID.reset();
 			_forwardVelPID.reset();
 
-			if (SensorFusion::getFusedData().distances.frontLeft > _alignDist + JAFDSettings::SmoothDriving::maxAlignStartDist || SensorFusion::getFusedData().distances.frontRight > _alignDist + JAFDSettings::SmoothDriving::maxAlignStartDist) return ReturnCode::error;
-
 			_endState.rotation = startState.rotation;
 
 			_endState.position.x = roundf(startState.position.x / JAFDSettings::Field::cellWidth) * JAFDSettings::Field::cellWidth;
@@ -582,6 +581,11 @@ namespace JAFD
 		{
 			static WheelSpeeds output;
 
+			if (_finished)
+			{
+				return WheelSpeeds{ 0,0 };
+			}
+
 			if (abs(SensorFusion::getFusedData().distances.frontLeft - _alignDist) < JAFDSettings::SmoothDriving::maxAlignDistError && abs(SensorFusion::getFusedData().distances.frontRight - _alignDist) < JAFDSettings::SmoothDriving::maxAlignDistError)
 			{
 				_finished = true;
@@ -589,26 +593,40 @@ namespace JAFD
 			}
 			else
 			{
-				if (SensorFusion::getFusedData().distances.frontLeft > _alignDist + JAFDSettings::SmoothDriving::maxAlignDistError)
+				if (DistanceSensors::frontLeft.getStatus() == DistanceSensors::VL53L0::Status::noError)
 				{
-					output.left = JAFDSettings::SmoothDriving::alignSpeed;
-				}
-				else if ((int32_t)SensorFusion::getFusedData().distances.frontLeft < (int32_t)_alignDist - (int32_t)JAFDSettings::SmoothDriving::maxAlignDistError)
-				{
-					output.left = -JAFDSettings::SmoothDriving::alignSpeed;
+					if (SensorFusion::getFusedData().distances.frontLeft > _alignDist + JAFDSettings::SmoothDriving::maxAlignDistError)
+					{
+						output.left = JAFDSettings::SmoothDriving::alignSpeed;
+					}
+					else if ((int32_t)SensorFusion::getFusedData().distances.frontLeft < (int32_t)_alignDist - (int32_t)JAFDSettings::SmoothDriving::maxAlignDistError)
+					{
+						output.left = -JAFDSettings::SmoothDriving::alignSpeed;
+					}
+					else
+					{
+						output.left = 0;
+					}
 				}
 				else
 				{
 					output.left = 0;
 				}
 
-				if (SensorFusion::getFusedData().distances.frontRight > _alignDist + JAFDSettings::SmoothDriving::maxAlignDistError)
+				if (DistanceSensors::frontRight.getStatus() == DistanceSensors::VL53L0::Status::noError)
 				{
-					output.right = JAFDSettings::SmoothDriving::alignSpeed;
-				}
-				else if ((int32_t)SensorFusion::getFusedData().distances.frontRight < (int32_t)_alignDist - (int32_t)JAFDSettings::SmoothDriving::maxAlignDistError)
-				{
-					output.right = -JAFDSettings::SmoothDriving::alignSpeed;
+					if (SensorFusion::getFusedData().distances.frontRight > _alignDist + JAFDSettings::SmoothDriving::maxAlignDistError)
+					{
+						output.right = JAFDSettings::SmoothDriving::alignSpeed;
+					}
+					else if ((int32_t)SensorFusion::getFusedData().distances.frontRight < (int32_t)_alignDist - (int32_t)JAFDSettings::SmoothDriving::maxAlignDistError)
+					{
+						output.right = -JAFDSettings::SmoothDriving::alignSpeed;
+					}
+					else
+					{
+						output.right = 0;
+					}
 				}
 				else
 				{

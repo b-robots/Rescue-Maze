@@ -121,7 +121,7 @@ namespace JAFD
 					//	SensorFusion::setCertainRobotPosition(position, rotation);
 					//}
 
-					switch (relativeTurnDir)
+					/*switch (relativeTurnDir)
 					{
 					case RelativeDir::forward:
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
@@ -156,7 +156,7 @@ namespace JAFD
 						break;
 					default:
 						break;
-					}
+					}*/
 
 					aligned = false;
 				}

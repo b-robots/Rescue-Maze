@@ -46,10 +46,9 @@ void setup()
 
 	JAFD::robotSetup();
 
-	while (!isTaskFinished());
-	setNewTask<NewStateType::lastEndState>(ForceSpeed(30, 100.0));
-
 	delay(100);
+
+	setNewTask<NewStateType::lastEndState>(AlignFront(100));
 }
 
 // The loop function runs over and over again until power down or reset
@@ -57,7 +56,7 @@ void loop()
 {
 	JAFD::robotLoop();
 
-	Serial.print(getDistance(Motor::left));
+	Serial.print(getFusedData().distances.frontLeft);
 	Serial.print(", ");
-	Serial.println(getDistance(Motor::right));
+	Serial.println(getFusedData().distances.frontRight);
 }
