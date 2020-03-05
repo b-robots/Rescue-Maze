@@ -46,6 +46,8 @@ void setup()
 
 	JAFD::robotSetup();
 
+	setNewTask<NewStateType::lastEndState>(ForceSpeed(15, 100), true);
+
 	delay(100);
 }
 
@@ -53,4 +55,5 @@ void setup()
 void loop()
 {
 	JAFD::robotLoop();
+	delay(300);
 }

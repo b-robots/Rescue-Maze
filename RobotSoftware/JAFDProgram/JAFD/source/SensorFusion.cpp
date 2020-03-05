@@ -33,7 +33,7 @@ namespace JAFD
 			
 			if (distSensSpeedTrust)
 			{
-				_fusedData.robotState.forwardVel = (((_fusedData.robotState.wheelSpeeds.left + _fusedData.robotState.wheelSpeeds.right) / 2.0f / 1.05f) + distSensSpeed) / 2.0f;
+				_fusedData.robotState.forwardVel = (((_fusedData.robotState.wheelSpeeds.left + _fusedData.robotState.wheelSpeeds.right) / 2.0f / 1.05f) * 2.0f + distSensSpeed * 0.0) / 2.0f;
 			}
 			else
 			{
@@ -142,7 +142,7 @@ namespace JAFD
 
 				if (hitPointIsOk)
 				{
-					if (lastLeftDist != 0 && lastTime != 0)
+					if (lastRightDist != 0 && lastTime != 0)
 					{
 						tempDistSensSpeed += (_fusedData.distances.frontRight - lastRightDist) / 10.0f * 1000.0f / (now - lastTime);
 						validDistSpeedSamples++;
@@ -160,23 +160,28 @@ namespace JAFD
 				lastRightDist = 0;
 			}
 
-			lastTime = now;
-
-			if (validDistSpeedSamples == 0)
+			if (validDistSpeedSamples == 1)
+			{
+				distSensSpeedTrust = true;
+				distSensSpeed = tempDistSensSpeed;
+				Serial.print((_fusedData.robotState.wheelSpeeds.left + _fusedData.robotState.wheelSpeeds.right) / 2.0f / 1.05f);
+				Serial.print(", ");
+				Serial.println(distSensSpeed);
+			}
+			else if (validDistSpeedSamples == 2)
+			{
+				distSensSpeedTrust = true;
+				distSensSpeed = tempDistSensSpeed / 2.0f;
+				Serial.print((_fusedData.robotState.wheelSpeeds.left + _fusedData.robotState.wheelSpeeds.right) / 2.0f / 1.05f);
+				Serial.print(", ");
+				Serial.println(distSensSpeed);
+			}
+			else
 			{
 				distSensSpeedTrust = false;
 			}
-			else if (validDistSpeedSamples == 1)
-			{
-				distSensSpeedTrust = true;
-				distSensSpeed = tempDistSensSpeed;
-			}
-			else if (distSensSpeedTrust == 2)
-			{
-				distSensSpeedTrust = true;
-				tempDistSensSpeed /= 2.0f;
-				distSensSpeed = tempDistSensSpeed;
-			}
+
+			lastTime = now;
 		}
 
 		void updateDistSensor()

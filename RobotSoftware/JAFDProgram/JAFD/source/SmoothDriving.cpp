@@ -499,17 +499,11 @@ namespace JAFD
 			// Correct speed if it is too low 
 			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed)
 			{
-				_forwardVelPID.reset();
-				_angularVelPID.reset();
-
 				output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
 			}
 
 			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed)
 			{
-				_forwardVelPID.reset();
-				_angularVelPID.reset();
-
 				output.right = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
 			}
 
