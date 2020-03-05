@@ -97,24 +97,24 @@ namespace JAFD
 					//	if (rotation.x > 315.0f * DEG_TO_RAD || rotation.x < 45.0f * DEG_TO_RAD)
 					//	{
 					//		rotation.x = 0.0f;
-					//		position.x += JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+					//		position.x += JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
 					//	}
 					//	else if (rotation.x > 45.0f * DEG_TO_RAD && rotation.x < 135.0f * DEG_TO_RAD)
 					//	{
 					//		rotation.x = 90.0f * DEG_TO_RAD;
-					//		position.y += JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+					//		position.y += JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
 
 					//	}
 					//	else if (rotation.x > 135.0f * DEG_TO_RAD && rotation.x < 225.0f * DEG_TO_RAD)
 					//	{
 					//		rotation.x = 180.0f * DEG_TO_RAD;
-					//		position.x -= JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+					//		position.x -= JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
 
 					//	}
 					//	else
 					//	{
 					//		rotation.x = 270.0f * DEG_TO_RAD;
-					//		position.y -= JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+					//		position.y -= JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
 
 					//	}
 

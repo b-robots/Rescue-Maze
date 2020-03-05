@@ -93,10 +93,10 @@ namespace JAFD
 
 		void update_sensorreadings()					//gets values from the sensors
 		{
-			bno055.getEvent(&orientationEvent, Adafruit_BNO055::VECTOR_EULER);
-			bno055.getEvent(&angVelEvent, Adafruit_BNO055::VECTOR_GYROSCOPE);
-			bno055.getEvent(&linearAccelEvent, Adafruit_BNO055::VECTOR_LINEARACCEL);
-			bno055.getEvent(&gravityVecEvent, Adafruit_BNO055::VECTOR_GRAVITY);
+			//bno055.getEvent(&orientationEvent, Adafruit_BNO055::VECTOR_EULER);
+			//bno055.getEvent(&angVelEvent, Adafruit_BNO055::VECTOR_GYROSCOPE);
+			//bno055.getEvent(&linearAccelEvent, Adafruit_BNO055::VECTOR_LINEARACCEL);
+			//bno055.getEvent(&gravityVecEvent, Adafruit_BNO055::VECTOR_GRAVITY);
 		}
 
 		Vec3f get_linear_acceleration()

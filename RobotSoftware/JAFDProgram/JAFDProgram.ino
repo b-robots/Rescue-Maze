@@ -47,16 +47,10 @@ void setup()
 	JAFD::robotSetup();
 
 	delay(100);
-
-	setNewTask<NewStateType::lastEndState>(AlignFront(100));
 }
 
 // The loop function runs over and over again until power down or reset
 void loop()
 {
 	JAFD::robotLoop();
-
-	Serial.print(getFusedData().distances.frontLeft);
-	Serial.print(", ");
-	Serial.println(getFusedData().distances.frontRight);
 }

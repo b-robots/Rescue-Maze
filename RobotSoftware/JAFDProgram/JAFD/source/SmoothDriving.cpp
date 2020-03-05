@@ -548,25 +548,25 @@ namespace JAFD
 			{
 				headingOffset = startState.rotation.x;
 
-				_endState.position.x += JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+				_endState.position.x += JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
 			}
 			else if (positiveAngle > 45.0f * DEG_TO_RAD && positiveAngle <= 135.0f * DEG_TO_RAD)
 			{
 				headingOffset = startState.rotation.x - M_PI_2;
 
-				_endState.position.y += JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+				_endState.position.y += JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
 			}
 			else if (positiveAngle > 135.0f * DEG_TO_RAD && positiveAngle <= 225.0f * DEG_TO_RAD)
 			{
 				headingOffset = startState.rotation.x - M_PI;
 
-				_endState.position.x -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+				_endState.position.x -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
 			}
 			else
 			{
 				headingOffset = startState.rotation.x - M_PI_2 * 3;
 
-				_endState.position.y -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+				_endState.position.y -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
 			}
 
 			while (headingOffset < 0.0f) headingOffset += M_TWOPI;

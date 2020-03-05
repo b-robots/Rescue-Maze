@@ -25,8 +25,11 @@ namespace JAFDSettings
 	{
 		constexpr float wheelDiameter = 8.0f;
 		constexpr float wheelDistance = 15.5f;
-		constexpr float sensorLeftRightDist = 17.0f;
-		constexpr float sensorFrontBackDist = 16.0f;
+		constexpr float distSensLeftRightDist = 17.0f;
+		constexpr float distSensFrontBackDist = 16.0f;
+		constexpr float distSensFrontSpacing = 10.0f;
+		constexpr float distSensDistToMiddle = 9.4f;		// !!! ALWAYS = sqrt(distSensFrontBackDist^2 + distSensFrontSpacing^2) / 2
+		constexpr float distSensAngleToMiddle = 0.5586f;	// !!! ALWAYS = arctan(distSensFrontSpacing / distSensFrontBackDist)
 	}
 
 	namespace SpiNVSRAM
@@ -109,6 +112,7 @@ namespace JAFDSettings
 	namespace MazeMapping
 	{
 		constexpr uint16_t distLongerThanBorder = 70;	// Distance longer than border from which next field is empty (mm)
+		constexpr float widthSecureDetectFactor = 0.7f;	// Factor of cell width in which bordr the distance measurement safely hits the front wall
 	}
 
 	namespace DistanceSensors

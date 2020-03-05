@@ -341,7 +341,7 @@ namespace JAFD
 
 			if (SmoothDriving::isTaskFinished())
 			{
-				if ((SensorFusion::getFusedData().distances.frontLeft + SensorFusion::getFusedData().distances.frontRight) / 2 > (uint16_t)((JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::sensorFrontBackDist) * 10 / 2) + JAFDSettings::MazeMapping::distLongerThanBorder)
+				if ((SensorFusion::getFusedData().distances.frontLeft + SensorFusion::getFusedData().distances.frontRight) / 2 > (uint16_t)((JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::distSensFrontBackDist) * 10 / 2) + JAFDSettings::MazeMapping::distLongerThanBorder)
 				{
 					switch (makeAbsolute(RelativeDir::forward, SensorFusion::getFusedData().heading))
 					{
@@ -362,7 +362,7 @@ namespace JAFD
 					}
 				}
 
-				if ((SensorFusion::getFusedData().distances.leftFront + SensorFusion::getFusedData().distances.leftFront) / 2 > (uint16_t)((JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::sensorLeftRightDist) * 10 / 2) + JAFDSettings::MazeMapping::distLongerThanBorder)
+				if ((SensorFusion::getFusedData().distances.leftFront + SensorFusion::getFusedData().distances.leftFront) / 2 > (uint16_t)((JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::distSensLeftRightDist) * 10 / 2) + JAFDSettings::MazeMapping::distLongerThanBorder)
 				{
 					switch (makeAbsolute(RelativeDir::left, SensorFusion::getFusedData().heading))
 					{
@@ -383,7 +383,7 @@ namespace JAFD
 					}
 				}
 
-				if ((SensorFusion::getFusedData().distances.rightFront + SensorFusion::getFusedData().distances.rightFront) / 2 > (uint16_t)((JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::sensorLeftRightDist) * 10 / 2) + JAFDSettings::MazeMapping::distLongerThanBorder)
+				if ((SensorFusion::getFusedData().distances.rightFront + SensorFusion::getFusedData().distances.rightFront) / 2 > (uint16_t)((JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::distSensLeftRightDist) * 10 / 2) + JAFDSettings::MazeMapping::distLongerThanBorder)
 				{
 					switch (makeAbsolute(RelativeDir::right, SensorFusion::getFusedData().heading))
 					{
