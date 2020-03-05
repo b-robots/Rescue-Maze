@@ -16,6 +16,7 @@ This part of the Library is responsible for driving smoothly.
 #include "../../JAFDSettings.h"
 #include "../header/Math.h"
 #include "../header/PIDController.h"
+#include "../header/DistanceSensors.h"
 
 namespace JAFD
 {
@@ -523,12 +524,12 @@ namespace JAFD
 
 		ReturnCode AlignFront::startTask(RobotState startState)
 		{
+			float headingOffset;
+
 			_finished = false;
 
 			_angularVelPID.reset();
 			_forwardVelPID.reset();
-
-			if (SensorFusion::getFusedData().distances.frontLeft > _alignDist + JAFDSettings::SmoothDriving::maxAlignStartDist || SensorFusion::getFusedData().distances.frontRight > _alignDist + JAFDSettings::SmoothDriving::maxAlignStartDist) return ReturnCode::error;
 
 			_endState.rotation = startState.rotation;
 
@@ -536,34 +537,42 @@ namespace JAFD
 			_endState.position.y = roundf(startState.position.y / JAFDSettings::Field::cellWidth) * JAFDSettings::Field::cellWidth;
 			_endState.position.z = 0;
 
-			// Endwinkelberechnung gehört verbessert und getestet.
-			/*
-			while (_endState.rotation.x < 0.0f) _endState.rotation.x += M_TWOPI;
-			while (_endState.rotation.x > M_TWOPI) _endState.rotation.x -= M_TWOPI;
+			_endState.rotation = startState.rotation;
 
-			if (_endState.rotation.x > 315.0f * DEG_TO_RAD || _endState.rotation.x < 45.0f * DEG_TO_RAD)
+			float positiveAngle = startState.rotation.x;
+
+			while (positiveAngle < 0.0f) positiveAngle += M_TWOPI;
+			while (positiveAngle > M_TWOPI) positiveAngle -= M_TWOPI;
+
+			if (positiveAngle > 315.0f * DEG_TO_RAD || positiveAngle <= 45.0f * DEG_TO_RAD)
 			{
-				_endState.rotation.x = 0.0f;
+				headingOffset = startState.rotation.x;
+
 				_endState.position.x += JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
 			}
-			else if (_endState.rotation.x > 45.0f * DEG_TO_RAD && _endState.rotation.x < 135.0f * DEG_TO_RAD)
+			else if (positiveAngle > 45.0f * DEG_TO_RAD && positiveAngle <= 135.0f * DEG_TO_RAD)
 			{
-				_endState.rotation.x = 90.0f * DEG_TO_RAD;
+				headingOffset = startState.rotation.x - M_PI_2;
+
 				_endState.position.y += JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
-
 			}
-			else if (_endState.rotation.x > 135.0f * DEG_TO_RAD && _endState.rotation.x < 225.0f * DEG_TO_RAD)
+			else if (positiveAngle > 135.0f * DEG_TO_RAD && positiveAngle <= 225.0f * DEG_TO_RAD)
 			{
-				_endState.rotation.x = 180.0f * DEG_TO_RAD;
-				_endState.position.x -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+				headingOffset = startState.rotation.x - M_PI;
 
+				_endState.position.x -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
 			}
 			else
 			{
-				_endState.rotation.x = 270.0f * DEG_TO_RAD;
-				_endState.position.y -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+				headingOffset = startState.rotation.x - M_PI_2 * 3;
 
-			}*/
+				_endState.position.y -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::sensorFrontBackDist / 2.0f;
+			}
+
+			while (headingOffset < 0.0f) headingOffset += M_TWOPI;
+			while (headingOffset > M_PI) headingOffset -= M_TWOPI;
+
+			_endState.rotation.x -= headingOffset;
 
 			_endState.wheelSpeeds = FloatWheelSpeeds{ 0.0f, 0.0f };
 			_endState.forwardVel = static_cast<float>(0.0f);
@@ -577,6 +586,11 @@ namespace JAFD
 		{
 			static WheelSpeeds output;
 
+			if (_finished)
+			{
+				return WheelSpeeds{ 0,0 };
+			}
+
 			if (abs(SensorFusion::getFusedData().distances.frontLeft - _alignDist) < JAFDSettings::SmoothDriving::maxAlignDistError && abs(SensorFusion::getFusedData().distances.frontRight - _alignDist) < JAFDSettings::SmoothDriving::maxAlignDistError)
 			{
 				_finished = true;
@@ -584,26 +598,40 @@ namespace JAFD
 			}
 			else
 			{
-				if (SensorFusion::getFusedData().distances.frontLeft > _alignDist + JAFDSettings::SmoothDriving::maxAlignDistError)
+				if (DistanceSensors::frontLeft.getStatus() == DistanceSensors::VL53L0::Status::noError)
 				{
-					output.left = JAFDSettings::SmoothDriving::alignSpeed;
-				}
-				else if ((int32_t)SensorFusion::getFusedData().distances.frontLeft < (int32_t)_alignDist - (int32_t)JAFDSettings::SmoothDriving::maxAlignDistError)
-				{
-					output.left = -JAFDSettings::SmoothDriving::alignSpeed;
+					if (SensorFusion::getFusedData().distances.frontLeft > _alignDist + JAFDSettings::SmoothDriving::maxAlignDistError)
+					{
+						output.left = JAFDSettings::SmoothDriving::alignSpeed;
+					}
+					else if ((int32_t)SensorFusion::getFusedData().distances.frontLeft < (int32_t)_alignDist - (int32_t)JAFDSettings::SmoothDriving::maxAlignDistError)
+					{
+						output.left = -JAFDSettings::SmoothDriving::alignSpeed;
+					}
+					else
+					{
+						output.left = 0;
+					}
 				}
 				else
 				{
 					output.left = 0;
 				}
 
-				if (SensorFusion::getFusedData().distances.frontRight > _alignDist + JAFDSettings::SmoothDriving::maxAlignDistError)
+				if (DistanceSensors::frontRight.getStatus() == DistanceSensors::VL53L0::Status::noError)
 				{
-					output.right = JAFDSettings::SmoothDriving::alignSpeed;
-				}
-				else if ((int32_t)SensorFusion::getFusedData().distances.frontRight < (int32_t)_alignDist - (int32_t)JAFDSettings::SmoothDriving::maxAlignDistError)
-				{
-					output.right = -JAFDSettings::SmoothDriving::alignSpeed;
+					if (SensorFusion::getFusedData().distances.frontRight > _alignDist + JAFDSettings::SmoothDriving::maxAlignDistError)
+					{
+						output.right = JAFDSettings::SmoothDriving::alignSpeed;
+					}
+					else if ((int32_t)SensorFusion::getFusedData().distances.frontRight < (int32_t)_alignDist - (int32_t)JAFDSettings::SmoothDriving::maxAlignDistError)
+					{
+						output.right = -JAFDSettings::SmoothDriving::alignSpeed;
+					}
+					else
+					{
+						output.right = 0;
+					}
 				}
 				else
 				{

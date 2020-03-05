@@ -63,7 +63,7 @@ void TC4_Handler()
 		if (i % 10 == 0)
 		{
 			// 10Hz:
-			JAFD::Bno055::update_sensorreadings();
+			// JAFD::Bno055::update_sensorreadings();
 
 			if (i % 20 == 0)
 			{

@@ -31,6 +31,13 @@ namespace JAFD
 			noPWM
 		};
 
+		// PWM start state
+		enum class PWMStartState : uint8_t
+		{
+			low,
+			high
+		};
+
 		// ADC Channels
 		enum class ADCChannel : uint8_t
 		{
@@ -380,6 +387,19 @@ namespace JAFD
 		constexpr uint8_t getPWMChannel(PinInformation pin)
 		{
 			return static_cast<uint8_t>(pin.pwmChannel);
+		}
+
+		constexpr PWMStartState getPWMStartState(PinInformation pin)
+		{
+			return (pin.pin == PIO_PC6 ||
+					pin.pin == PIO_PC8 ||
+					pin.pin == PIO_PA20 ||
+					pin.pin == PIO_PC4 ||
+					pin.pin == PIO_PC2 ||
+					pin.pin == PIO_PC21 ||
+					pin.pin == PIO_PC22 || 
+					pin.pin == PIO_PC23 || 
+					pin.pin == PIO_PC24) ? PWMStartState::low : PWMStartState::high;
 		}
 
 		constexpr uint8_t getADCChannel(PinInformation pin)

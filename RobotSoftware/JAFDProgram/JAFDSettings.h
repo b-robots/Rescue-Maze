@@ -31,12 +31,12 @@ namespace JAFDSettings
 
 	namespace SpiNVSRAM
 	{
-		constexpr uint8_t ssPin = 13;
+		constexpr uint8_t ssPin = 10;
 	}
 
 	namespace MotorControl
 	{
-		constexpr float cmPSToPerc = 1.0f / (97.0f / 60.0f * 3.1415f * Mechanics::wheelDiameter);		// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed. It is ideal for about 100cm/s)
+		constexpr float cmPSToPerc = 1.0f / (97.0f / 60.0f * 3.1415f * Mechanics::wheelDiameter);		// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed.)
 
 		constexpr uint8_t minSpeed = 10;			// Minimum speed for motor to rotate
 
@@ -85,20 +85,29 @@ namespace JAFDSettings
 	namespace SmoothDriving
 	{
 		constexpr uint8_t maxArrrayedTasks = 5;		// Maximum number of tasks in TaskArray
-		constexpr uint16_t maxAlignDistError = 8;	// Maximum deviation from perfect aligned distance (mm)
+		constexpr uint16_t maxAlignDistError = 10;	// Maximum deviation from perfect aligned distance (mm)
 		constexpr uint16_t maxAlignStartDist = 50;	// Maximum deviation from aligned distance at beginning to start (mm)
 		constexpr uint16_t alignSpeed = MotorControl::minSpeed;		// Minimum speed to align to wall
 	}
 
 	namespace Dispenser
 	{
-
+		namespace left
+		{
+			constexpr float  startDYC = 0.06f; // duty cylce for start
+			constexpr float  endDYC = 0.09f; // duty cylce for start
+			constexpr uint8_t servoPinLeft = 39;
+		}
+		namespace right
+		{
+			constexpr float  startDYC = 0.06f; // duty cylce for start
+			constexpr float  endDYC = 0.09f; // duty cylce for start
+			constexpr uint8_t servoPinRight = 41;
+		}
 	}
 
 	namespace MazeMapping
 	{
-		constexpr float maxAngleFromStraight = 0.2f;	// Maximum angle (rad) deviation from straight
-		constexpr float maxDistFromMiddle = 5.0f;		// Maximum position deviation (x and y) from filed middle
 		constexpr uint16_t distLongerThanBorder = 70;	// Distance longer than border from which next field is empty (mm)
 	}
 
@@ -108,32 +117,32 @@ namespace JAFDSettings
 
 		namespace LeftFront
 		{
-			constexpr uint8_t multiplexCh = 3;
+			constexpr uint8_t multiplexCh = 4;
 		}
 
 		namespace LeftBack
 		{
-			constexpr uint8_t multiplexCh = -1;
+			constexpr uint8_t multiplexCh = 7;
 		}
 
 		namespace RightFront
 		{
-			constexpr uint8_t multiplexCh = 2;
+			constexpr uint8_t multiplexCh = 5;
 		}
 
 		namespace RightBack
 		{
-			constexpr uint8_t multiplexCh = -1;
+			constexpr uint8_t multiplexCh = 6;
 		}
 
 		namespace FrontLeft
 		{
-			constexpr uint8_t multiplexCh = 4;
+			constexpr uint8_t multiplexCh = 2;
 		}
 
 		namespace FrontRight
 		{
-			constexpr uint8_t multiplexCh = 5;
+			constexpr uint8_t multiplexCh = 3;
 		}
 
 		namespace FrontLong

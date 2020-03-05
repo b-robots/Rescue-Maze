@@ -31,22 +31,24 @@ namespace JAFD
 			sensors_event_t	orientationEvent, angVelEvent, linearAccelEvent, gravityVecEvent;
 		}
 
-		void init()		//vorne steht das was die init Funktion zurückgibt und hinten das was wir ihr übergeben
+		ReturnCode init()		//vorne steht das was die init Funktion zurückgibt und hinten das was wir ihr übergeben
 		{
 			bno055 = Adafruit_BNO055(55,0x28);
 
 			if (!bno055.begin())
 			{
-				Serial.println("ERROR INIT ");
+				return ReturnCode::error;
 			}
 
-			delay(1000);
+			delay(100);
 
 			bno055.setExtCrystalUse(true);
+
+			return ReturnCode::ok;
 		}
 
 
-		void calibration()								// how to calibrate
+		ReturnCode calibration()								// how to calibrate
 		{
 			bno055.setMode(bno055.OPERATION_MODE_NDOF_FMC_OFF);
 
@@ -63,10 +65,7 @@ namespace JAFD
 
 				bno055.getCalibration(&system, &gyro, &accel, &mag);
 
-			} while (!accel ); 
-
-			Serial.print("accel:");
-			Serial.println(accel);
+			} while (accel < 2); 
 
 			//Calibration magnetometer
 
@@ -78,9 +77,6 @@ namespace JAFD
 
 			} while (mag < 2);
 
-			Serial.print("mag:");
-			Serial.println(mag);
-
 			//Calibration gyro
 
 			Serial.println("Calibration gyro:");
@@ -91,26 +87,7 @@ namespace JAFD
 
 			} while (gyro < 2);
 
-			Serial.print("gyro:");
-			Serial.println(gyro);
-
 			Serial.println("Calibration complete!");
-
-
-			//Values 
-
-	/*		Serial.print("gyro: ");
-			Serial.println(gyro);*/
-			/*
-			Serial.print("accel: ");
-			Serial.println(accel);*/
-
-			//Serial.print("magn: ");
-			//Serial.println(mag);
-
-
-
-
 		}
 
 
@@ -184,16 +161,11 @@ namespace JAFD
 			return gravity_vector_values;
 		}
 
-
-
-
-
 		void Write_to_RAM()								//save Offsets
 		{
 			adafruit_bno055_offsets_t calib_data;	//Calibration data of bno055 structure
 
 			bno055.getSensorOffsets(calib_data);		//write values in structure calib_data
-
 
 			auto accel_offset_x = calib_data.accel_offset_x;
 			auto accel_offset_y = calib_data.accel_offset_y;
@@ -241,7 +213,6 @@ namespace JAFD
 
 			SpiNVSRAM::writeByte(startAddress + 20, (mag_radius >> 8));
 			SpiNVSRAM::writeByte(startAddress + 21, (mag_radius & 0xFF));
-
 		}
 
 
@@ -249,8 +220,6 @@ namespace JAFD
 		{
 
 			adafruit_bno055_offsets_t calib_data;
-
-
 
 			calib_data.accel_offset_x = (SpiNVSRAM::readByte(startAddress) << 8) + SpiNVSRAM::readByte(startAddress + 1);
 			calib_data.accel_offset_y = (SpiNVSRAM::readByte(startAddress + 2) << 8) + SpiNVSRAM::readByte(startAddress + 3);
@@ -267,12 +236,7 @@ namespace JAFD
 			calib_data.mag_offset_z = (SpiNVSRAM::readByte(startAddress + 18) << 8) + SpiNVSRAM::readByte(startAddress + 19);
 			calib_data.mag_radius = (SpiNVSRAM::readByte(startAddress + 20) << 8) + SpiNVSRAM::readByte(startAddress + 21);
 
-
 			bno055.setSensorOffsets(calib_data);	//write values to sensor offsets
-
 		}
-
-
-
 	}
 }

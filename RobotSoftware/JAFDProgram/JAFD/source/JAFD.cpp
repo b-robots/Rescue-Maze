@@ -29,41 +29,48 @@ namespace JAFD
 		SPI.begin();
 		SPI.beginTransaction(SPISettings(10e+6, MSBFIRST, SPI_MODE0));
 
+		// Setup PWM
 		PMC->PMC_PCER0 = 1 << ID_PIOA | 1 << ID_PIOB | 1 << ID_PIOC | 1 << ID_PIOD;
+		PMC->PMC_PCER1 = PMC_PCER1_PID36;
+		PWM->PWM_CLK = PWM_CLK_PREB(0b111) | PWM_CLK_DIVB(1) | PWM_CLK_PREA(0) | PWM_CLK_DIVA(1);
 
 		randomSeed(69420);
 
 		// Setup of MazeMapper
 		if (MazeMapping::setup() != ReturnCode::ok)
 		{
-			Serial.println("error");
+			Serial.println("Error Maze Mapping");
 		}
 
 		// Setup of Dispenser
 		if (Dispenser::setup() != ReturnCode::ok)
 		{
-			Serial.println("error");
+			Serial.println("Error Dispenser");
 		}
 
 		// Setup of Motor Control
 		if (MotorControl::setup() != ReturnCode::ok)
 		{
-			Serial.println("error");
+			Serial.println("Error Motor Control");
 		}
 
 		// Setup of SPI NVSRAM
 		if (SpiNVSRAM::setup() != ReturnCode::ok)
 		{
-			Serial.println("error");
+			Serial.println("Error SPI NVSRAM");
 		}
 
 		// Setup of Distance Sensors
 		if (DistanceSensors::setup() != ReturnCode::ok)
 		{
-			Serial.println("error");
+			Serial.println("Error Distance Sensors");
 		}
 
-		JAFD::Bno055::init();
+		// Setup of Bno055
+		if (Bno055::init() != ReturnCode::ok)
+		{
+			Serial.println("Error Bno055");
+		}
 
 		// Setup TC3 for an interrupt every ms -> 1kHz (MCK / 32 / 2625)
 		PMC->PMC_PCER0 = 1 << ID_TC3;
@@ -96,6 +103,7 @@ namespace JAFD
 
 	void robotLoop()
 	{
+		JAFD::SensorFusion::updateDistSensor();
 		SensorFusion::untimedFusion();
 		
 		RobotLogic::loop();

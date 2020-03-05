@@ -7,6 +7,7 @@ This part of the Library is responsible for mapping the maze and finding the sho
 #include "../header/StaticQueue.h"
 #include "../header/DistanceSensors.h"
 #include "../header/SensorFusion.h"
+#include "../header/SmoothDriving.h"
 
 #include <algorithm>
 
@@ -338,92 +339,89 @@ namespace JAFD
 
 			lastPosition = MapCoordinate(SensorFusion::getFusedData().robotState.mapCoordinate);
 
-			if (fabs((SensorFusion::getFusedData().robotState.rotation.x / M_PI_2) - static_cast<int64_t>(SensorFusion::getFusedData().robotState.rotation.x / M_PI_2)) < JAFDSettings::MazeMapping::maxAngleFromStraight)
+			if (SmoothDriving::isTaskFinished())
 			{
-				if (fabs(SensorFusion::getFusedData().robotState.position.x - SensorFusion::getFusedData().robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::maxDistFromMiddle && fabs(SensorFusion::getFusedData().robotState.position.y - SensorFusion::getFusedData().robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::maxDistFromMiddle)
+				if ((SensorFusion::getFusedData().distances.frontLeft + SensorFusion::getFusedData().distances.frontRight) / 2 > (uint16_t)((JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::sensorFrontBackDist) * 10 / 2) + JAFDSettings::MazeMapping::distLongerThanBorder)
 				{
-					if ((SensorFusion::getFusedData().distances.frontLeft + SensorFusion::getFusedData().distances.frontRight) / 2 > (uint16_t)((JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::sensorFrontBackDist) * 10 / 2) + JAFDSettings::MazeMapping::distLongerThanBorder)
+					switch (makeAbsolute(RelativeDir::forward, SensorFusion::getFusedData().heading))
 					{
-						switch (makeAbsolute(RelativeDir::forward, SensorFusion::getFusedData().heading))
-						{
-						case AbsoluteDir::north:
-							tempCell.cellConnections |= Directions::north;
-							break;
-						case AbsoluteDir::east:
-							tempCell.cellConnections |= Directions::east;
-							break;
-						case AbsoluteDir::south:
-							tempCell.cellConnections |= Directions::south;
-							break;
-						case AbsoluteDir::west:
-							tempCell.cellConnections |= Directions::west;
-							break;
-						default:
-							break;
-						}
+					case AbsoluteDir::north:
+						tempCell.cellConnections |= Directions::north;
+						break;
+					case AbsoluteDir::east:
+						tempCell.cellConnections |= Directions::east;
+						break;
+					case AbsoluteDir::south:
+						tempCell.cellConnections |= Directions::south;
+						break;
+					case AbsoluteDir::west:
+						tempCell.cellConnections |= Directions::west;
+						break;
+					default:
+						break;
 					}
+				}
 
-					if ((SensorFusion::getFusedData().distances.leftFront + SensorFusion::getFusedData().distances.leftFront) / 2 > (uint16_t)((JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::sensorLeftRightDist) * 10 / 2) + JAFDSettings::MazeMapping::distLongerThanBorder)
+				if ((SensorFusion::getFusedData().distances.leftFront + SensorFusion::getFusedData().distances.leftFront) / 2 > (uint16_t)((JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::sensorLeftRightDist) * 10 / 2) + JAFDSettings::MazeMapping::distLongerThanBorder)
+				{
+					switch (makeAbsolute(RelativeDir::left, SensorFusion::getFusedData().heading))
 					{
-						switch (makeAbsolute(RelativeDir::left, SensorFusion::getFusedData().heading))
-						{
-						case AbsoluteDir::north:
-							tempCell.cellConnections |= Directions::north;
-							break;
-						case AbsoluteDir::east:
-							tempCell.cellConnections |= Directions::east;
-							break;
-						case AbsoluteDir::south:
-							tempCell.cellConnections |= Directions::south;
-							break;
-						case AbsoluteDir::west:
-							tempCell.cellConnections |= Directions::west;
-							break;
-						default:
-							break;
-						}
+					case AbsoluteDir::north:
+						tempCell.cellConnections |= Directions::north;
+						break;
+					case AbsoluteDir::east:
+						tempCell.cellConnections |= Directions::east;
+						break;
+					case AbsoluteDir::south:
+						tempCell.cellConnections |= Directions::south;
+						break;
+					case AbsoluteDir::west:
+						tempCell.cellConnections |= Directions::west;
+						break;
+					default:
+						break;
 					}
+				}
 
-					if ((SensorFusion::getFusedData().distances.rightFront + SensorFusion::getFusedData().distances.rightFront) / 2 > (uint16_t)((JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::sensorLeftRightDist) * 10 / 2) + JAFDSettings::MazeMapping::distLongerThanBorder)
+				if ((SensorFusion::getFusedData().distances.rightFront + SensorFusion::getFusedData().distances.rightFront) / 2 > (uint16_t)((JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::sensorLeftRightDist) * 10 / 2) + JAFDSettings::MazeMapping::distLongerThanBorder)
+				{
+					switch (makeAbsolute(RelativeDir::right, SensorFusion::getFusedData().heading))
 					{
-						switch (makeAbsolute(RelativeDir::right, SensorFusion::getFusedData().heading))
-						{
-						case AbsoluteDir::north:
-							tempCell.cellConnections |= Directions::north;
-							break;
-						case AbsoluteDir::east:
-							tempCell.cellConnections |= Directions::east;
-							break;
-						case AbsoluteDir::south:
-							tempCell.cellConnections |= Directions::south;
-							break;
-						case AbsoluteDir::west:
-							tempCell.cellConnections |= Directions::west;
-							break;
-						default:
-							break;
-						}
+					case AbsoluteDir::north:
+						tempCell.cellConnections |= Directions::north;
+						break;
+					case AbsoluteDir::east:
+						tempCell.cellConnections |= Directions::east;
+						break;
+					case AbsoluteDir::south:
+						tempCell.cellConnections |= Directions::south;
+						break;
+					case AbsoluteDir::west:
+						tempCell.cellConnections |= Directions::west;
+						break;
+					default:
+						break;
 					}
+				}
 
-					if (tempCell.cellConnections == Directions::nowhere)
+				if (tempCell.cellConnections == Directions::nowhere)
+				{
+					switch (makeAbsolute(RelativeDir::backward, SensorFusion::getFusedData().heading))
 					{
-						switch (makeAbsolute(RelativeDir::backward, SensorFusion::getFusedData().heading))
-						{
-						case AbsoluteDir::north:
-							tempCell.cellConnections |= Directions::north;
-							break;
-						case AbsoluteDir::east:
-							tempCell.cellConnections |= Directions::east;
-							break;
-						case AbsoluteDir::south:
-							tempCell.cellConnections |= Directions::south;
-							break;
-						case AbsoluteDir::west:
-							tempCell.cellConnections |= Directions::west;
-							break;
-						default:
-							break;
-						}
+					case AbsoluteDir::north:
+						tempCell.cellConnections |= Directions::north;
+						break;
+					case AbsoluteDir::east:
+						tempCell.cellConnections |= Directions::east;
+						break;
+					case AbsoluteDir::south:
+						tempCell.cellConnections |= Directions::south;
+						break;
+					case AbsoluteDir::west:
+						tempCell.cellConnections |= Directions::west;
+						break;
+					default:
+						break;
 					}
 				}
 			}

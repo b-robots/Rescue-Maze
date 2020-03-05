@@ -24,7 +24,6 @@ namespace JAFD
 			{
 				if (SmoothDriving::isTaskFinished())
 				{
-					Serial.println("finished");
 					cell = SensorFusion::getFusedData().gridCell;
 
 					switch (makeAbsolute(RelativeDir::forward, SensorFusion::getFusedData().heading))
@@ -51,14 +50,12 @@ namespace JAFD
 
 					if (frontIsWall && !aligned)
 					{
-						//SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::AlignFront(30));
+						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::AlignFront(30));
 						aligned = true;
 						return;
 					}
 
 					found = false;
-
-					if (cell.cellConnections == Directions::nowhere) Serial.println("Nowhere");
 
 					while (!found)
 					{
@@ -124,44 +121,42 @@ namespace JAFD
 					//	SensorFusion::setCertainRobotPosition(position, rotation);
 					//}
 
-					switch (relativeTurnDir)
+					/*switch (relativeTurnDir)
 					{
 					case RelativeDir::forward:
-						Serial.println("forward");
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
 							SmoothDriving::Accelerate(20, 15.0f),
 							SmoothDriving::Accelerate(0, 15.0f),
 							SmoothDriving::Stop()));
-
+						Serial.println("forward");
 						break;
 					case RelativeDir::right:
-						Serial.println("right");
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
 							SmoothDriving::Rotate(-2.0f, -90.0f),
 							SmoothDriving::Accelerate(20, 15.0f),
 							SmoothDriving::Accelerate(0, 15.0f),
 							SmoothDriving::Stop()));
-
+						Serial.println("right");
 						break;
 					case RelativeDir::backward:
-						Serial.println("backward");
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
 							SmoothDriving::Rotate(3.0f, 180.0f),
 							SmoothDriving::Accelerate(20, 15.0f),
 							SmoothDriving::Accelerate(0, 15.0f),
 							SmoothDriving::Stop()));
+						Serial.println("backward");
 						break;
 					case RelativeDir::left:
-						Serial.println("left");
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
 							SmoothDriving::Rotate(2.0f, 90.0f),
 							SmoothDriving::Accelerate(20, 15.0f),
 							SmoothDriving::Accelerate(0, 15.0f),
 							SmoothDriving::Stop()));
+						Serial.println("left");
 						break;
 					default:
 						break;
-					}
+					}*/
 
 					aligned = false;
 				}

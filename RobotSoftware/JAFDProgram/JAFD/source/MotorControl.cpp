@@ -121,21 +121,26 @@ namespace JAFD
 			NVIC_EnableIRQ(static_cast<IRQn_Type>(_lEncA.portID));
 			NVIC_EnableIRQ(static_cast<IRQn_Type>(_rEncA.portID));
 
-			// TODO: je nach L oder H pin unterscheiden und CPOL setzen
-
 			// Setup PWM - Controller (20kHz)
-			PMC->PMC_PCER1 = PMC_PCER1_PID36;
-
-			PWM->PWM_CLK = PWM_CLK_PREA(0) | PWM_CLK_DIVA(1);
 			PWM->PWM_ENA = 1 << _lPWMCh | 1 << _rPWMCh;
 
 			PWM->PWM_CH_NUM[_lPWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
 			PWM->PWM_CH_NUM[_lPWMCh].PWM_CPRD = 4200;
 			PWM->PWM_CH_NUM[_lPWMCh].PWM_CDTY = 0;
 
-			PWM->PWM_CH_NUM[_rPWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA | PWM_CMR_CPOL;	// Nur fürs schnelle Testen.
+			if (PinMapping::getPWMStartState(_lPWM) == PinMapping::PWMStartState::high)
+			{
+				PWM->PWM_CH_NUM[_lPWMCh].PWM_CMR |= PWM_CMR_CPOL;
+			}
+
+			PWM->PWM_CH_NUM[_rPWMCh].PWM_CMR = PWM_CMR_CPRE_CLKA;
 			PWM->PWM_CH_NUM[_rPWMCh].PWM_CPRD = 4200;
 			PWM->PWM_CH_NUM[_rPWMCh].PWM_CDTY = 0;
+
+			if (PinMapping::getPWMStartState(_rPWM) == PinMapping::PWMStartState::high)
+			{
+				PWM->PWM_CH_NUM[_rPWMCh].PWM_CMR |= PWM_CMR_CPOL;
+			}
 
 			_lPWM.port->PIO_PDR = _lPWM.pin;
 			_rPWM.port->PIO_PDR = _rPWM.pin;

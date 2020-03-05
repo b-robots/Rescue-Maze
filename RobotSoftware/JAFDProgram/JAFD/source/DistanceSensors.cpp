@@ -179,7 +179,7 @@ namespace JAFD
 
 			// Poll until bit 2 is set
 			while (!(read8(_regIntStatus) & 0x04));
-
+			
 			// Read range in mm
 			distance = read8(_regRangeResult);
 
@@ -462,16 +462,40 @@ namespace JAFD
 
 		ReturnCode setup()
 		{
-			ReturnCode code = ReturnCode::ok;
-
 			if (frontLeft.setup() != ReturnCode::ok)
 			{
-				return ReturnCode::fatalError;
+				Serial.println("FL");
+				//return ReturnCode::fatalError;
 			}
 
 			if (frontRight.setup() != ReturnCode::ok)
 			{
-				return ReturnCode::fatalError;
+				Serial.println("FR");
+				//return ReturnCode::fatalError;
+			}
+
+			if (leftFront.setup() != ReturnCode::ok)
+			{
+				Serial.println("LF");
+				//return ReturnCode::fatalError;
+			}
+
+			if (leftBack.setup() != ReturnCode::ok)
+			{
+				Serial.println("LB");
+				//return ReturnCode::fatalError;
+			}
+
+			if (rightFront.setup() != ReturnCode::ok)
+			{
+				Serial.println("RF");
+				//return ReturnCode::fatalError;
+			}
+
+			if (rightBack.setup() != ReturnCode::ok)
+			{
+				Serial.println("RB");
+				//return ReturnCode::fatalError;
 			}
 
 			//if (frontLong.setup() != ReturnCode::ok)
@@ -484,27 +508,7 @@ namespace JAFD
 			//	return ReturnCode::fatalError;
 			//}
 
-			if (leftFront.setup() != ReturnCode::ok)
-			{
-				return ReturnCode::fatalError;
-			}
-
-			//if (leftBack.setup() != ReturnCode::ok)
-			//{
-			//	return ReturnCode::fatalError;
-			//}
-
-			if (rightFront.setup() != ReturnCode::ok)
-			{
-				return ReturnCode::fatalError;
-			}
-
-			//if (rightBack.setup() != ReturnCode::ok)
-			//{
-			//	return ReturnCode::fatalError;
-			//}
-
-			return code;
+			return ReturnCode::ok;
 		}
 	}
 }

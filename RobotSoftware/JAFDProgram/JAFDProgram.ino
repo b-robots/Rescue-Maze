@@ -27,7 +27,9 @@
 #include "JAFD/header/SensorFusion.h"
 #include "JAFD/header/DistanceSensors.h"
 #include "JAFD/header/Bno055.h"
+#include "JAFD/header/SpiNVSRAM.h"
 
+using namespace JAFD::SpiNVSRAM;
 using namespace JAFD::MazeMapping;
 using namespace JAFD::MotorControl;
 using namespace JAFD::SmoothDriving;
@@ -45,13 +47,16 @@ void setup()
 	JAFD::robotSetup();
 
 	delay(100);
+
+	setNewTask<NewStateType::lastEndState>(AlignFront(100));
 }
 
 // The loop function runs over and over again until power down or reset
 void loop()
 {
-	JAFD::SensorFusion::updateDistSensor();
 	JAFD::robotLoop();
 
-	delay(300);
+	Serial.print(getFusedData().distances.frontLeft);
+	Serial.print(", ");
+	Serial.println(getFusedData().distances.frontRight);
 }
