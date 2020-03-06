@@ -50,7 +50,7 @@ namespace JAFD
 
 					if (frontIsWall && !aligned)
 					{
-						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::AlignFront(30));
+						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::AlignFront());
 						aligned = true;
 						return;
 					}
@@ -83,52 +83,48 @@ namespace JAFD
 						}
 					}
 
-					//if (aligned)
-					//{
-					//	Vec3f position = SensorFusion::getFusedData().robotState.position;
-					//	Vec3f rotation = SensorFusion::getFusedData().robotState.rotation;
+					if (aligned)
+					{
+						Vec3f position = SensorFusion::getFusedData().robotState.position;
+						Vec3f rotation = SensorFusion::getFusedData().robotState.rotation;
 
-					//	position.x = roundf(position.x / JAFDSettings::Field::cellWidth) * JAFDSettings::Field::cellWidth;
-					//	position.y = roundf(position.y / JAFDSettings::Field::cellWidth) * JAFDSettings::Field::cellWidth;
+						position.x = roundf(position.x / JAFDSettings::Field::cellWidth) * JAFDSettings::Field::cellWidth;
+						position.y = roundf(position.y / JAFDSettings::Field::cellWidth) * JAFDSettings::Field::cellWidth;
 
-					//	while (rotation.x < 0.0f) rotation.x += M_TWOPI;
-					//	while (rotation.x > M_TWOPI) rotation.x -= M_TWOPI;
+						while (rotation.x < 0.0f) rotation.x += M_TWOPI;
+						while (rotation.x > M_TWOPI) rotation.x -= M_TWOPI;
 
-					//	if (rotation.x > 315.0f * DEG_TO_RAD || rotation.x < 45.0f * DEG_TO_RAD)
-					//	{
-					//		rotation.x = 0.0f;
-					//		position.x += JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
-					//	}
-					//	else if (rotation.x > 45.0f * DEG_TO_RAD && rotation.x < 135.0f * DEG_TO_RAD)
-					//	{
-					//		rotation.x = 90.0f * DEG_TO_RAD;
-					//		position.y += JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
+						if (rotation.x > 315.0f * DEG_TO_RAD || rotation.x < 45.0f * DEG_TO_RAD)
+						{
+							rotation.x = 0.0f;
+							position.x += JAFDSettings::Field::cellWidth / 2.0f - JAFDSettings::SmoothDriving::minAlignDist / 10.0f - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
+						}
+						else if (rotation.x > 45.0f * DEG_TO_RAD && rotation.x < 135.0f * DEG_TO_RAD)
+						{
+							rotation.x = 90.0f * DEG_TO_RAD;
+							position.y += JAFDSettings::Field::cellWidth / 2.0f - JAFDSettings::SmoothDriving::minAlignDist / 10.0f - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
+						}
+						else if (rotation.x > 135.0f * DEG_TO_RAD && rotation.x < 225.0f * DEG_TO_RAD)
+						{
+							rotation.x = 180.0f * DEG_TO_RAD;
+							position.x -= JAFDSettings::Field::cellWidth / 2.0f - JAFDSettings::SmoothDriving::minAlignDist / 10.0f - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
+						}
+						else
+						{
+							rotation.x = 270.0f * DEG_TO_RAD;
+							position.y -= JAFDSettings::Field::cellWidth / 2.0f - JAFDSettings::SmoothDriving::minAlignDist / 10.0f - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
+						}
 
-					//	}
-					//	else if (rotation.x > 135.0f * DEG_TO_RAD && rotation.x < 225.0f * DEG_TO_RAD)
-					//	{
-					//		rotation.x = 180.0f * DEG_TO_RAD;
-					//		position.x -= JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
+						SensorFusion::setCertainRobotPosition(position, rotation);
+					}
 
-					//	}
-					//	else
-					//	{
-					//		rotation.x = 270.0f * DEG_TO_RAD;
-					//		position.y -= JAFDSettings::Field::cellWidth / 2.0f - 3 - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
-
-					//	}
-
-					//	SensorFusion::setCertainRobotPosition(position, rotation);
-					//}
-
-					/*switch (relativeTurnDir)
+					switch (relativeTurnDir)
 					{
 					case RelativeDir::forward:
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
 							SmoothDriving::Accelerate(20, 15.0f),
 							SmoothDriving::Accelerate(0, 15.0f),
 							SmoothDriving::Stop()));
-						Serial.println("forward");
 						break;
 					case RelativeDir::right:
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
@@ -136,7 +132,6 @@ namespace JAFD
 							SmoothDriving::Accelerate(20, 15.0f),
 							SmoothDriving::Accelerate(0, 15.0f),
 							SmoothDriving::Stop()));
-						Serial.println("right");
 						break;
 					case RelativeDir::backward:
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
@@ -144,7 +139,6 @@ namespace JAFD
 							SmoothDriving::Accelerate(20, 15.0f),
 							SmoothDriving::Accelerate(0, 15.0f),
 							SmoothDriving::Stop()));
-						Serial.println("backward");
 						break;
 					case RelativeDir::left:
 						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
@@ -152,11 +146,10 @@ namespace JAFD
 							SmoothDriving::Accelerate(20, 15.0f),
 							SmoothDriving::Accelerate(0, 15.0f),
 							SmoothDriving::Stop()));
-						Serial.println("left");
 						break;
 					default:
 						break;
-					}*/
+					}
 
 					aligned = false;
 				}

@@ -46,14 +46,11 @@ void setup()
 
 	JAFD::robotSetup();
 
-	setNewTask<NewStateType::lastEndState>(ForceSpeed(15, 100), true);
-
 	delay(100);
 }
 
 // The loop function runs over and over again until power down or reset
 void loop()
 {
-	JAFD::robotLoop();
 	delay(300);
 }

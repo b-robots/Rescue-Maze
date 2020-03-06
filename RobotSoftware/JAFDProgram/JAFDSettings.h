@@ -91,6 +91,7 @@ namespace JAFDSettings
 		constexpr uint16_t maxAlignDistError = 10;	// Maximum deviation from perfect aligned distance (mm)
 		constexpr uint16_t maxAlignStartDist = 50;	// Maximum deviation from aligned distance at beginning to start (mm)
 		constexpr uint16_t alignSpeed = MotorControl::minSpeed;		// Minimum speed to align to wall
+		constexpr uint16_t minAlignDist = 70;						// Minimum align distance, is default
 	}
 
 	namespace Dispenser

@@ -522,6 +522,8 @@ namespace JAFD
 
 			_finished = false;
 
+			if (_alignDist < JAFDSettings::SmoothDriving::minAlignDist) return ReturnCode::fatalError;
+
 			_angularVelPID.reset();
 			_forwardVelPID.reset();
 

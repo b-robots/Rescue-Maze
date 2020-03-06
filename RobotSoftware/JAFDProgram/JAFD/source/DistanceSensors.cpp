@@ -462,53 +462,49 @@ namespace JAFD
 
 		ReturnCode setup()
 		{
+			ReturnCode code = ReturnCode::ok;
+
 			if (frontLeft.setup() != ReturnCode::ok)
 			{
-				Serial.println("FL");
-				//return ReturnCode::fatalError;
+				code = ReturnCode::fatalError;
 			}
 
 			if (frontRight.setup() != ReturnCode::ok)
 			{
-				Serial.println("FR");
-				//return ReturnCode::fatalError;
+				code = ReturnCode::fatalError;
 			}
 
 			if (leftFront.setup() != ReturnCode::ok)
 			{
-				Serial.println("LF");
-				//return ReturnCode::fatalError;
+				code = ReturnCode::fatalError;
 			}
 
 			if (leftBack.setup() != ReturnCode::ok)
 			{
-				Serial.println("LB");
-				//return ReturnCode::fatalError;
+				code = ReturnCode::fatalError;
 			}
 
 			if (rightFront.setup() != ReturnCode::ok)
 			{
-				Serial.println("RF");
-				//return ReturnCode::fatalError;
+				code = ReturnCode::fatalError;
 			}
 
 			if (rightBack.setup() != ReturnCode::ok)
 			{
-				Serial.println("RB");
-				//return ReturnCode::fatalError;
+				code = ReturnCode::fatalError;
 			}
 
 			//if (frontLong.setup() != ReturnCode::ok)
 			//{
-			//	return ReturnCode::fatalError;
+			//	code = ReturnCode::fatalError;
 			//}
 
 			//if (backLong.setup() != ReturnCode::ok)
 			//{
-			//	return ReturnCode::fatalError;
+			//	code = ReturnCode::fatalError;
 			//}
 
-			return ReturnCode::ok;
+			return code;
 		}
 	}
 }

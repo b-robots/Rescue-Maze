@@ -102,12 +102,9 @@ namespace JAFD
 				{
 					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::right::startDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					Serial.print(PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTY);
-					Serial.print(", ");
 					delay(2000);
 					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::right::endDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					Serial.println(PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTY);
 					delay(2000);
 				}
 
@@ -165,11 +162,9 @@ namespace JAFD
 				{
 					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::left::startDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					Serial.println(PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTY);
 					delay(2000);
 					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::left::endDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					Serial.println(PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTY);
 					delay(2000);
 				}
 

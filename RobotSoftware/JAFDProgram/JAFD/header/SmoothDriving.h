@@ -102,7 +102,7 @@ namespace JAFD
 		private:
 			uint16_t _alignDist;		// Distance to align to wall in mm
 		public:
-			explicit AlignFront(uint16_t alignDist = 30);
+			explicit AlignFront(uint16_t alignDist = JAFDSettings::SmoothDriving::minAlignDist);
 			ReturnCode startTask(RobotState startState);
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};

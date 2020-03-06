@@ -164,17 +164,11 @@ namespace JAFD
 			{
 				distSensSpeedTrust = true;
 				distSensSpeed = tempDistSensSpeed;
-				Serial.print((_fusedData.robotState.wheelSpeeds.left + _fusedData.robotState.wheelSpeeds.right) / 2.0f / 1.05f);
-				Serial.print(", ");
-				Serial.println(distSensSpeed);
 			}
 			else if (validDistSpeedSamples == 2)
 			{
 				distSensSpeedTrust = true;
 				distSensSpeed = tempDistSensSpeed / 2.0f;
-				Serial.print((_fusedData.robotState.wheelSpeeds.left + _fusedData.robotState.wheelSpeeds.right) / 2.0f / 1.05f);
-				Serial.print(", ");
-				Serial.println(distSensSpeed);
 			}
 			else
 			{
