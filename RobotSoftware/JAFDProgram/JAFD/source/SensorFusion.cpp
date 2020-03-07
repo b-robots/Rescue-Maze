@@ -68,9 +68,9 @@ namespace JAFD
 			uint8_t validDistSpeedSamples = 0;	// Number of valid speed measurements by distance sensor
 			static uint16_t lastLeftDist = 0;	// Last distance left
 			static uint16_t lastRightDist = 0;	// Last distance right
-			float tempDistSensSpeed = 0.0f;		// Measured speed
-			
-			if (DistanceSensors::frontLeft.getStatus() == DistanceSensors::VL53L0::Status::noError)
+			float tempDistSensSpeed = 0.0f;		// Measured speed 
+
+			if (_fusedData.distances.frontLeft != 0)
 			{
 				bool hitPointIsOk = false;
 
@@ -115,7 +115,7 @@ namespace JAFD
 				lastLeftDist = 0;
 			}
 
-			if (DistanceSensors::frontRight.getStatus() == DistanceSensors::VL53L0::Status::noError)
+			if (_fusedData.distances.frontRight != 0)
 			{
 				bool hitPointIsOk = false;
 
@@ -180,12 +180,147 @@ namespace JAFD
 
 		void updateDistSensor()
 		{
+			float tempDist = 0.0f;
+			float tempAverageDist = 0.0f;
+			uint8_t numCorrectSamples = 0;
+
+			for (uint8_t i = 0; i < JAFDSettings::DistanceSensors::averagingNumSamples; i++)
+			{
+				tempDist = DistanceSensors::frontLeft.getDistance();
+
+				if (DistanceSensors::frontLeft.getStatus() == decltype(DistanceSensors::frontLeft)::Status::noError)
+				{
+					numCorrectSamples++;
+					tempAverageDist += tempDist;
+				}
+			}
+
+			if (numCorrectSamples != 0)
+			{
+				_fusedData.distances.frontLeft = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
+			}
+			else
+			{
+				_fusedData.distances.frontLeft = 0;
+			}
+
+			numCorrectSamples = 0;
+			tempAverageDist = 0.0f;
+
+			for (uint8_t i = 0; i < JAFDSettings::DistanceSensors::averagingNumSamples; i++)
+			{
+				tempDist = DistanceSensors::frontRight.getDistance();
+
+				if (DistanceSensors::frontRight.getStatus() == decltype(DistanceSensors::frontRight)::Status::noError)
+				{
+					numCorrectSamples++;
+					tempAverageDist += tempDist;
+				}
+			}
+
+			if (numCorrectSamples != 0)
+			{
+				_fusedData.distances.frontRight = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
+			}
+			else
+			{
+				_fusedData.distances.frontRight = 0;
+			}
+
+			numCorrectSamples = 0;
+			tempAverageDist = 0.0f;
+
+			for (uint8_t i = 0; i < JAFDSettings::DistanceSensors::averagingNumSamples; i++)
+			{
+				tempDist = DistanceSensors::leftBack.getDistance();
+
+				if (DistanceSensors::leftBack.getStatus() == decltype(DistanceSensors::leftBack)::Status::noError)
+				{
+					numCorrectSamples++;
+					tempAverageDist += tempDist;
+				}
+			}
+
+			if (numCorrectSamples != 0)
+			{
+				_fusedData.distances.leftBack = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
+			}
+			else
+			{
+				_fusedData.distances.leftBack = 0;
+			}
+
+			numCorrectSamples = 0;
+			tempAverageDist = 0.0f;
+
+			for (uint8_t i = 0; i < JAFDSettings::DistanceSensors::averagingNumSamples; i++)
+			{
+				tempDist = DistanceSensors::leftFront.getDistance();
+
+				if (DistanceSensors::leftFront.getStatus() == decltype(DistanceSensors::leftFront)::Status::noError)
+				{
+					numCorrectSamples++;
+					tempAverageDist += tempDist;
+				}
+			}
+
+			if (numCorrectSamples != 0)
+			{
+				_fusedData.distances.leftFront = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
+			}
+			else
+			{
+				_fusedData.distances.leftFront = 0;
+			}
+
+			numCorrectSamples = 0;
+			tempAverageDist = 0.0f;
+
+			for (uint8_t i = 0; i < JAFDSettings::DistanceSensors::averagingNumSamples; i++)
+			{
+				tempDist = DistanceSensors::rightBack.getDistance();
+
+				if (DistanceSensors::rightBack.getStatus() == decltype(DistanceSensors::rightBack)::Status::noError)
+				{
+					numCorrectSamples++;
+					tempAverageDist += tempDist;
+				}
+			}
+
+			if (numCorrectSamples != 0)
+			{
+				_fusedData.distances.rightBack = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
+			}
+			else
+			{
+				_fusedData.distances.rightBack = 0;
+			}
+
+			numCorrectSamples = 0;
+			tempAverageDist = 0.0f;
+
+			for (uint8_t i = 0; i < JAFDSettings::DistanceSensors::averagingNumSamples; i++)
+			{
+				tempDist = DistanceSensors::rightFront.getDistance();
+
+				if (DistanceSensors::rightFront.getStatus() == decltype(DistanceSensors::rightFront)::Status::noError)
+				{
+					numCorrectSamples++;
+					tempAverageDist += tempDist;
+				}
+			}
+
+			if (numCorrectSamples != 0)
+			{
+				_fusedData.distances.rightFront = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
+			}
+			else
+			{
+				_fusedData.distances.rightFront = 0;
+			}
+
 			//_fusedData.distances.frontLong = DistanceSensors::frontLong.getDistance();
 			//_fusedData.distances.backLong = DistanceSensors::backLong.getDistance();
-			_fusedData.distances.frontLeft = DistanceSensors::frontLeft.getDistance();
-			_fusedData.distances.frontRight = DistanceSensors::frontRight.getDistance();
-			_fusedData.distances.leftBack = DistanceSensors::leftBack.getDistance();
-			_fusedData.distances.leftFront = DistanceSensors::leftFront.getDistance();
 			_fusedData.distances.rightBack = DistanceSensors::rightBack.getDistance();
 			_fusedData.distances.rightFront = DistanceSensors::rightFront.getDistance();
 		}

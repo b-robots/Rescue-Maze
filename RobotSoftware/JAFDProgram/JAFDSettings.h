@@ -118,6 +118,8 @@ namespace JAFDSettings
 
 	namespace DistanceSensors
 	{
+		constexpr uint8_t averagingNumSamples = 3;
+
 		constexpr uint8_t multiplexerAddr = 0x70;
 
 		namespace LeftFront
