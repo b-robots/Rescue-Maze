@@ -26,7 +26,7 @@ namespace JAFD
 				{
 					cell = SensorFusion::getFusedData().gridCell;
 
-					switch (makeAbsolute(RelativeDir::forward, SensorFusion::getFusedData().heading))
+					switch (makeAbsolute(RelativeDir::forward, SensorFusion::getFusedData().robotState.heading))
 					{
 					case AbsoluteDir::north:
 						if (cell.cellConnections & Directions::north) frontIsWall = false;
@@ -64,22 +64,22 @@ namespace JAFD
 						if ((cell.cellConnections & Directions::north) && rand == 0)
 						{
 							found = true;
-							relativeTurnDir = makeRelative(AbsoluteDir::north, SensorFusion::getFusedData().heading);
+							relativeTurnDir = makeRelative(AbsoluteDir::north, SensorFusion::getFusedData().robotState.heading);
 						}
 						else if ((cell.cellConnections & Directions::east) && rand == 1)
 						{
 							found = true;
-							relativeTurnDir = makeRelative(AbsoluteDir::east, SensorFusion::getFusedData().heading);
+							relativeTurnDir = makeRelative(AbsoluteDir::east, SensorFusion::getFusedData().robotState.heading);
 						}
 						else if ((cell.cellConnections & Directions::west) && rand == 2)
 						{
 							found = true;
-							relativeTurnDir = makeRelative(AbsoluteDir::west, SensorFusion::getFusedData().heading);
+							relativeTurnDir = makeRelative(AbsoluteDir::west, SensorFusion::getFusedData().robotState.heading);
 						}
 						else if ((cell.cellConnections & Directions::south) && rand == 3)
 						{
 							found = true;
-							relativeTurnDir = makeRelative(AbsoluteDir::south, SensorFusion::getFusedData().heading);
+							relativeTurnDir = makeRelative(AbsoluteDir::south, SensorFusion::getFusedData().robotState.heading);
 						}
 					}
 

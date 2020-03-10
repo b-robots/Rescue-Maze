@@ -330,20 +330,22 @@ namespace JAFD
 		// Update current GridCell
 		void updateCurrentCell(volatile float& certainty, volatile GridCell& cell)
 		{
-			static MapCoordinate lastPosition;
-			static float tempCertainty;
-			static GridCell tempCell;
+			static MapCoordinate lastPosition = homePosition;
+			static uint16_t lastDistLF = 0;
+			static uint16_t lastDistLB = 0;
+			static uint16_t lastDistRF = 0;
+			static uint16_t lastDistRB = 0;
+			float tempCertainty;
+			GridCell tempCell;
 
 			tempCertainty = 1.0f;
 			tempCell.cellConnections = Directions::nowhere;
 
-			lastPosition = MapCoordinate(SensorFusion::getFusedData().robotState.mapCoordinate);
-
-			if (SmoothDriving::isTaskFinished())
+			/*if (SmoothDriving::isTaskFinished())
 			{
 				if ((SensorFusion::getFusedData().distances.frontLeft + SensorFusion::getFusedData().distances.frontRight) / 2 > (uint16_t)((JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::distSensFrontBackDist) * 10 / 2) + JAFDSettings::MazeMapping::distLongerThanBorder)
 				{
-					switch (makeAbsolute(RelativeDir::forward, SensorFusion::getFusedData().heading))
+					switch (makeAbsolute(RelativeDir::forward, SensorFusion::getFusedData().robotState.heading))
 					{
 					case AbsoluteDir::north:
 						tempCell.cellConnections |= Directions::north;
@@ -364,7 +366,7 @@ namespace JAFD
 
 				if ((SensorFusion::getFusedData().distances.leftFront + SensorFusion::getFusedData().distances.leftFront) / 2 > (uint16_t)((JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::distSensLeftRightDist) * 10 / 2) + JAFDSettings::MazeMapping::distLongerThanBorder)
 				{
-					switch (makeAbsolute(RelativeDir::left, SensorFusion::getFusedData().heading))
+					switch (makeAbsolute(RelativeDir::left, SensorFusion::getFusedData().robotState.heading))
 					{
 					case AbsoluteDir::north:
 						tempCell.cellConnections |= Directions::north;
@@ -385,7 +387,7 @@ namespace JAFD
 
 				if ((SensorFusion::getFusedData().distances.rightFront + SensorFusion::getFusedData().distances.rightFront) / 2 > (uint16_t)((JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::distSensLeftRightDist) * 10 / 2) + JAFDSettings::MazeMapping::distLongerThanBorder)
 				{
-					switch (makeAbsolute(RelativeDir::right, SensorFusion::getFusedData().heading))
+					switch (makeAbsolute(RelativeDir::right, SensorFusion::getFusedData().robotState.heading))
 					{
 					case AbsoluteDir::north:
 						tempCell.cellConnections |= Directions::north;
@@ -406,7 +408,7 @@ namespace JAFD
 
 				if (tempCell.cellConnections == Directions::nowhere)
 				{
-					switch (makeAbsolute(RelativeDir::backward, SensorFusion::getFusedData().heading))
+					switch (makeAbsolute(RelativeDir::backward, SensorFusion::getFusedData().robotState.heading))
 					{
 					case AbsoluteDir::north:
 						tempCell.cellConnections |= Directions::north;
@@ -424,8 +426,13 @@ namespace JAFD
 						break;
 					}
 				}
-			}
+			}*/
 
+			lastDistLF = SensorFusion::getFusedData().distances.leftFront;
+			lastDistLB = SensorFusion::getFusedData().distances.leftBack;
+			lastDistRF = SensorFusion::getFusedData().distances.rightFront;
+			lastDistRB = SensorFusion::getFusedData().distances.rightBack;
+			lastPosition = MapCoordinate(SensorFusion::getFusedData().robotState.mapCoordinate);
 			certainty = tempCertainty;
 			cell = tempCell;
 		}

@@ -366,10 +366,11 @@ namespace JAFD
 		Vec3f rotation;					// Current Rotation as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad)
 		
 		MapCoordinate mapCoordinate;	// Position on the map; (0, 0, 0) == start
+		AbsoluteDir heading;			// Heading of the robot
 
-		constexpr RobotState() : wheelSpeeds(), forwardVel(), position(), angularVel(), rotation() {}
-		RobotState(const volatile RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), rotation(state.rotation) {}
-		constexpr RobotState(const RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), rotation(state.rotation) {}
+		constexpr RobotState() : wheelSpeeds(), forwardVel(), position(), angularVel(), rotation(), heading() {}
+		RobotState(const volatile RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), rotation(state.rotation), heading(state.heading) {}
+		constexpr RobotState(const RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), rotation(state.rotation), heading(state.heading) {}
 
 		inline const volatile RobotState& operator=(const volatile RobotState state) volatile
 		{
@@ -378,6 +379,7 @@ namespace JAFD
 			position = state.position;
 			angularVel = state.angularVel;
 			rotation = state.rotation;
+			heading = state.heading;
 
 			return *this;
 		}
@@ -389,6 +391,7 @@ namespace JAFD
 			position = state.position;
 			angularVel = state.angularVel;
 			rotation = state.rotation;
+			heading = state.heading;
 
 			return *this;
 		}
@@ -474,25 +477,112 @@ namespace JAFD
 		}
 	};
 
+	// Status of distance sensor
+	enum class DistSensorStatus : uint8_t
+	{
+		ok,
+		overflow,
+		underflow,
+		error
+	};
+
+	// All distance sensor states in one structure
+	struct DistSensorStates
+	{
+		DistSensorStatus frontLeft;
+		DistSensorStatus frontRight;
+		DistSensorStatus frontLong;
+		DistSensorStatus backLong;
+		DistSensorStatus leftFront;
+		DistSensorStatus leftBack;
+		DistSensorStatus rightFront;
+		DistSensorStatus rightBack;
+
+		constexpr DistSensorStates(DistSensorStatus frontLeft = DistSensorStatus::ok, DistSensorStatus frontRight = DistSensorStatus::ok, uiDistSensorStatus::oknt8_t frontLong = DistSensorStatus::ok, DistSensorStatus::ok backLong = DistSensorStatus::ok, DistSensorStatus::ok leftFront = DistSensorStatus::ok, DistSensorStatus::ok leftBack = DistSensorStatus::ok, DistSensorStatus::ok rightFront = DistSensorStatus::ok, DistSensorStatus::ok rightBack = DistSensorStatus::ok) : frontLeft(frontLeft), frontRight(frontRight), frontLong(frontLong), backLong(backLong), leftFront(leftFront), leftBack(leftBack), rightFront(rightFront), rightBack(rightBack) {}
+		DistSensorStates(const volatile DistSensorStates& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), backLong(dist.backLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
+		constexpr DistSensorStates(const DistSensorStates& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), backLong(dist.backLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
+
+		inline const volatile DistSensorStates& operator=(const volatile DistSensorStates dist) volatile
+		{
+			frontLeft = dist.frontLeft;
+			frontRight = dist.frontRight;
+			frontLong = dist.frontLong;
+			backLong = dist.backLong;
+			leftFront = dist.leftFront;
+			leftBack = dist.leftBack;
+			rightFront = dist.rightFront;
+			rightBack = dist.rightBack;
+
+			return *this;
+		}
+
+		inline const DistSensorStates& operator=(const DistSensorStates& dist)
+		{
+			frontLeft = dist.frontLeft;
+			frontRight = dist.frontRight;
+			frontLong = dist.frontLong;
+			backLong = dist.backLong;
+			leftFront = dist.leftFront;
+			leftBack = dist.leftBack;
+			rightFront = dist.rightFront;
+			rightBack = dist.rightBack;
+
+			return *this;
+		}
+	};
+
+	// All distances in one structure
+	struct Distances
+	{
+		uint8_t frontLeft;
+		uint8_t frontRight;
+		uint8_t frontLong;
+		uint8_t backLong;
+		uint8_t leftFront;
+		uint8_t leftBack;
+		uint8_t rightFront;
+		uint8_t rightBack;
+
+		constexpr Distances(uint8_t frontLeft = 0, uint8_t frontRight = 0, uint8_t frontLong = 0, uint8_t backLong = 0, uint8_t leftFront = 0, uint8_t leftBack = 0, uint8_t rightFront = 0, uint8_t rightBack = 0) : frontLeft(frontLeft), frontRight(frontRight), frontLong(frontLong), backLong(backLong), leftFront(leftFront), leftBack(leftBack), rightFront(rightFront), rightBack(rightBack) {}
+		Distances(const volatile Distances& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), backLong(dist.backLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
+		constexpr Distances(const Distances& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), backLong(dist.backLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
+
+		inline const volatile Distances& operator=(const volatile Distances dist) volatile
+		{
+			frontLeft = dist.frontLeft;
+			frontRight = dist.frontRight;
+			frontLong = dist.frontLong;
+			backLong = dist.backLong;
+			leftFront = dist.leftFront;
+			leftBack = dist.leftBack;
+			rightFront = dist.rightFront;
+			rightBack = dist.rightBack;
+
+			return *this;
+		}
+
+		inline const Distances& operator=(const Distances& dist)
+		{
+			frontLeft = dist.frontLeft;
+			frontRight = dist.frontRight;
+			frontLong = dist.frontLong;
+			backLong = dist.backLong;
+			leftFront = dist.leftFront;
+			leftBack = dist.leftBack;
+			rightFront = dist.rightFront;
+			rightBack = dist.rightBack;
+
+			return *this;
+		}
+	};
+
 	// Data fused by SensorFusion
 	struct FusedData
 	{
 		RobotState robotState;		// Current state of robot
 		GridCell gridCell;			// Current grid cell
 		float gridCellCertainty;	// Certainty about the grid cell
-		AbsoluteDir heading;		// Heading of the robot
-
-		// Results of distance measurement in mm
-		struct
-		{
-			uint16_t frontLeft;
-			uint16_t frontRight;
-			uint16_t frontLong;
-			uint16_t backLong;
-			uint8_t leftFront;
-			uint8_t leftBack;
-			uint8_t rightFront;
-			uint8_t rightBack;
-		} distances;
+		Distances distances; 		// Results of distance measurement in mm
+		DistSensorStates distSensorState;	// States of all distance sensors
 	};
 }

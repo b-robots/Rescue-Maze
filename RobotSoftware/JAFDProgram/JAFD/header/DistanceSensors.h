@@ -36,7 +36,6 @@ namespace JAFD
 				rawOverflow = 13,	// Raw measurement overflow
 				underflow = 14,		// Measurement underflow
 				overflow = 15,		// Measurement overflow
-				outOfRange			// Measurement is out of range
 			};
 
 			static const uint16_t minDist = 5;
@@ -44,7 +43,7 @@ namespace JAFD
 
 			VL6180(uint8_t multiplexCh);
 			ReturnCode setup() const;
-			uint8_t getDistance();		// Get distance in mm
+			uint16_t getDistance();		// Get distance in mm
 			Status getStatus() const;
 
 		private:
@@ -93,7 +92,8 @@ namespace JAFD
 				noError,		// Success
 				noSerialHeader,	// No serial header read
 				badChecksum,	// Checksum doesn`t match
-				outOfRange		// Range error
+				overflow,		// Overflow
+				underflow		// Underflow
 			};
 
 			static const uint16_t minDist = 300;
@@ -135,7 +135,7 @@ namespace JAFD
 				interruptError,			// Error during interrupt clear
 				divisionByZero,			// Division by zero
 				spadInitError,			// Error during SPAD initialization
-				outOfRange				// Out of range
+				overflow				// Overflow
 			};
 
 			static const uint16_t minDist = 50;

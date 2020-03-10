@@ -167,7 +167,7 @@ namespace JAFD
 			return data;
 		}
 
-		uint8_t VL6180::getDistance()
+		uint16_t VL6180::getDistance()
 		{
 			uint8_t distance;
 
@@ -188,8 +188,12 @@ namespace JAFD
 
 			// Read status
 			_status = static_cast<VL6180::Status>(read8(_regRangeStatus) >> 4);
-
-			if (distance > maxDist || distance < minDist) _status = Status::outOfRange;
+			
+			if (_status == VL6180::Status::noError)
+			{
+				if (distance > maxDist) _status = Status::overflow;
+				else if (distance < minDist) _status = Status::underflow;
+			}
 
 			return distance;
 		}
@@ -355,7 +359,11 @@ namespace JAFD
 				if (numMeasurementAttempts > _maxMeasurementTries) return 0;
 			}
 
-			if (_distance > maxDist || _distance < minDist) _status = Status::outOfRange;
+			if (_status == Status::noError)
+			{
+				if (_distance > maxDist) _status = Status::overflow;
+				else if (_distance < minDist) _status = Status::underflow;
+			}
 
 			return _distance;
 		}
@@ -437,9 +445,11 @@ namespace JAFD
 				break;
 			}
 
-			if (measure.RangeStatus == 4) _status = Status::outOfRange;
-
-			if (measure.RangeMilliMeter > maxDist || measure.RangeMilliMeter < minDist) _status = Status::outOfRange;
+			if (measure.RangeStatus == 4 || _status == Status::rangeError || _status == Status::noError)
+			{
+				if (measure.RangeMilliMeter > maxDist) _status == Status::overflow;
+				else if (measure.RangeMilliMeter < minDist)	_status == Status::underflow;
+			}
 
 			return measure.RangeMilliMeter;
 		}

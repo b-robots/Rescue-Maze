@@ -17,6 +17,7 @@ This part of the Library is responsible for driving smoothly.
 #include "../header/Math.h"
 #include "../header/PIDController.h"
 #include "../header/DistanceSensors.h"
+#include "../header/SensorFusion.h"
 
 namespace JAFD
 {
