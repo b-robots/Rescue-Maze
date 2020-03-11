@@ -64,6 +64,12 @@ namespace JAFDSettings
 		}
 	}
 
+	namespace SensorFusion
+	{
+		constexpr float maxPitchForDistSensor = DEG_TO_RAD * 10.0f;		// Maximum pitch of robot for correct front distance measurements
+		constexpr uint16_t minDeltaDistForEdge = 30;					// Minimum change in distance that corresponds to an edge (in mm)
+	}
+
 	namespace Controller
 	{
 		namespace Motor
@@ -96,13 +102,13 @@ namespace JAFDSettings
 
 	namespace Dispenser
 	{
-		namespace left
+		namespace Left
 		{
 			constexpr float  startDYC = 0.06f; // duty cylce for start
 			constexpr float  endDYC = 0.09f; // duty cylce for start
 			constexpr uint8_t servoPinLeft = 39;
 		}
-		namespace right
+		namespace Right
 		{
 			constexpr float  startDYC = 0.06f; // duty cylce for start
 			constexpr float  endDYC = 0.09f; // duty cylce for start
@@ -113,7 +119,7 @@ namespace JAFDSettings
 	namespace MazeMapping
 	{
 		constexpr uint16_t distLongerThanBorder = 70;	// Distance longer than border from which next field is empty (mm)
-		constexpr float widthSecureDetectFactor = 0.7f;	// Factor of cell width in which bordr the distance measurement safely hits the front wall
+		constexpr float widthSecureDetectFactor = 0.7f;	// Factor of cell width in which border the distance measurement safely hits the front wall	
 	}
 
 	namespace DistanceSensors

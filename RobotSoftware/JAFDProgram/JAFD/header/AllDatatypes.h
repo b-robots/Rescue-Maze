@@ -534,14 +534,14 @@ namespace JAFD
 	// All distances in one structure
 	struct Distances
 	{
-		uint8_t frontLeft;
-		uint8_t frontRight;
-		uint8_t frontLong;
-		uint8_t backLong;
-		uint8_t leftFront;
-		uint8_t leftBack;
-		uint8_t rightFront;
-		uint8_t rightBack;
+		uint16_t frontLeft;
+		uint16_t frontRight;
+		uint16_t frontLong;
+		uint16_t backLong;
+		uint16_t leftFront;
+		uint16_t leftBack;
+		uint16_t rightFront;
+		uint16_t rightBack;
 
 		constexpr Distances(uint8_t frontLeft = 0, uint8_t frontRight = 0, uint8_t frontLong = 0, uint8_t backLong = 0, uint8_t leftFront = 0, uint8_t leftBack = 0, uint8_t rightFront = 0, uint8_t rightBack = 0) : frontLeft(frontLeft), frontRight(frontRight), frontLong(frontLong), backLong(backLong), leftFront(leftFront), leftBack(leftBack), rightFront(rightFront), rightBack(rightBack) {}
 		Distances(const volatile Distances& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), backLong(dist.backLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}

@@ -331,12 +331,68 @@ namespace JAFD
 		void updateCurrentCell(volatile float& certainty, volatile GridCell& cell)
 		{
 			static MapCoordinate lastPosition = homePosition;
-			static uint16_t lastDistLF = 0;
-			static uint16_t lastDistLB = 0;
-			static uint16_t lastDistRF = 0;
-			static uint16_t lastDistRB = 0;
+			static Distances lastDistances(0, 0, 0, 0, 0, 0, 0, 0);
+			static DistSensorStates lastDistSensStates(DistSensorStatus::error, DistSensorStatus::error, DistSensorStatus::error, DistSensorStatus::error, DistSensorStatus::error, DistSensorStatus::error, DistSensorStatus::error, DistSensorStatus::error);
+			Distances currentDistances = SensorFusion::getFusedData().distances;
+			DistSensorStates currentDistSensStates = SensorFusion::getFusedData().distSensorState;
 			float tempCertainty;
 			GridCell tempCell;
+			int8_t lfDistSensorEdgeDetect = 0;	// 0 = no edge; 1 = long to short distance edge; -1 = short to long distance edge
+			int8_t lbDistSensorEdgeDetect = 0;	// 0 = no edge; 1 = long to short distance edge; -1 = short to long distance edge
+			int8_t rfDistSensorEdgeDetect = 0;	// 0 = no edge; 1 = long to short distance edge; -1 = short to long distance edge
+			int8_t rbDistSensorEdgeDetect = 0;	// 0 = no edge; 1 = long to short distance edge; -1 = short to long distance edge
+
+			if ((lastDistSensStates.leftFront == DistSensorStatus::overflow && currentDistSensStates.leftFront == DistSensorStatus::ok) ||
+				(lastDistSensStates.leftFront == DistSensorStatus::overflow && currentDistSensStates.leftFront == DistSensorStatus::underflow) ||
+				(lastDistSensStates.leftFront == DistSensorStatus::ok && currentDistSensStates.leftFront == DistSensorStatus::ok && ((int32_t)currentDistances.leftFront - (int32_t)lastDistances.leftFront) < (int32_t)-JAFDSettings::SensorFusion::minDeltaDistForEdge))
+			{
+				lfDistSensorEdgeDetect = 1;
+			}
+			else if ((lastDistSensStates.leftFront == DistSensorStatus::underflow && currentDistSensStates.leftFront == DistSensorStatus::ok) ||
+					 (lastDistSensStates.leftFront == DistSensorStatus::underflow && currentDistSensStates.leftFront == DistSensorStatus::overflow) ||
+					 (lastDistSensStates.leftFront == DistSensorStatus::ok && currentDistSensStates.leftFront == DistSensorStatus::ok && ((int32_t)currentDistances.leftFront - (int32_t)lastDistances.leftFront) > JAFDSettings::SensorFusion::minDeltaDistForEdge))
+			{
+				lfDistSensorEdgeDetect = -1;
+			}
+
+			if ((lastDistSensStates.leftBack == DistSensorStatus::overflow && currentDistSensStates.leftBack == DistSensorStatus::ok) ||
+				(lastDistSensStates.leftBack == DistSensorStatus::overflow && currentDistSensStates.leftBack == DistSensorStatus::underflow) ||
+				(lastDistSensStates.leftBack == DistSensorStatus::ok && currentDistSensStates.leftBack == DistSensorStatus::ok && ((int32_t)currentDistances.leftBack - (int32_t)lastDistances.leftBack) < (int32_t)-JAFDSettings::SensorFusion::minDeltaDistForEdge))
+			{
+				lbDistSensorEdgeDetect = 1;
+			}
+			else if ((lastDistSensStates.leftBack == DistSensorStatus::underflow && currentDistSensStates.leftBack == DistSensorStatus::ok) ||
+				(lastDistSensStates.leftBack == DistSensorStatus::underflow && currentDistSensStates.leftBack == DistSensorStatus::overflow) ||
+				(lastDistSensStates.leftBack == DistSensorStatus::ok && currentDistSensStates.leftBack == DistSensorStatus::ok && ((int32_t)currentDistances.leftBack - (int32_t)lastDistances.leftBack) > JAFDSettings::SensorFusion::minDeltaDistForEdge))
+			{
+				lbDistSensorEdgeDetect = -1;
+			}
+
+			if ((lastDistSensStates.rightFront == DistSensorStatus::overflow && currentDistSensStates.rightFront == DistSensorStatus::ok) ||
+				(lastDistSensStates.rightFront == DistSensorStatus::overflow && currentDistSensStates.rightFront == DistSensorStatus::underflow) ||
+				(lastDistSensStates.rightFront == DistSensorStatus::ok && currentDistSensStates.rightFront == DistSensorStatus::ok && ((int32_t)currentDistances.rightFront - (int32_t)lastDistances.rightFront) < (int32_t)-JAFDSettings::SensorFusion::minDeltaDistForEdge))
+			{
+				rfDistSensorEdgeDetect = 1;
+			}
+			else if ((lastDistSensStates.rightFront == DistSensorStatus::underflow && currentDistSensStates.rightFront == DistSensorStatus::ok) ||
+				(lastDistSensStates.rightFront == DistSensorStatus::underflow && currentDistSensStates.rightFront == DistSensorStatus::overflow) ||
+				(lastDistSensStates.rightFront == DistSensorStatus::ok && currentDistSensStates.rightFront == DistSensorStatus::ok && ((int32_t)currentDistances.rightFront - (int32_t)lastDistances.rightFront) > JAFDSettings::SensorFusion::minDeltaDistForEdge))
+			{
+				rfDistSensorEdgeDetect = -1;
+			}
+
+			if ((lastDistSensStates.rightBack == DistSensorStatus::overflow && currentDistSensStates.rightBack == DistSensorStatus::ok) ||
+				(lastDistSensStates.rightBack == DistSensorStatus::overflow && currentDistSensStates.rightBack == DistSensorStatus::underflow) ||
+				(lastDistSensStates.rightBack == DistSensorStatus::ok && currentDistSensStates.rightBack == DistSensorStatus::ok && ((int32_t)currentDistances.rightBack - (int32_t)lastDistances.rightBack) < (int32_t)-JAFDSettings::SensorFusion::minDeltaDistForEdge))
+			{
+				rbDistSensorEdgeDetect = 1;
+			}
+			else if ((lastDistSensStates.rightBack == DistSensorStatus::underflow && currentDistSensStates.rightBack == DistSensorStatus::ok) ||
+				(lastDistSensStates.rightBack == DistSensorStatus::underflow && currentDistSensStates.rightBack == DistSensorStatus::overflow) ||
+				(lastDistSensStates.rightBack == DistSensorStatus::ok && currentDistSensStates.rightBack == DistSensorStatus::ok && ((int32_t)currentDistances.rightBack - (int32_t)lastDistances.rightBack) > JAFDSettings::SensorFusion::minDeltaDistForEdge))
+			{
+				rbDistSensorEdgeDetect = -1;
+			}
 
 			tempCertainty = 1.0f;
 			tempCell.cellConnections = Directions::nowhere;
@@ -428,10 +484,8 @@ namespace JAFD
 				}
 			}*/
 
-			lastDistLF = SensorFusion::getFusedData().distances.leftFront;
-			lastDistLB = SensorFusion::getFusedData().distances.leftBack;
-			lastDistRF = SensorFusion::getFusedData().distances.rightFront;
-			lastDistRB = SensorFusion::getFusedData().distances.rightBack;
+			lastDistances = currentDistances;
+			lastDistSensStates = currentDistSensStates;
 			lastPosition = MapCoordinate(SensorFusion::getFusedData().robotState.mapCoordinate);
 			certainty = tempCertainty;
 			cell = tempCell;

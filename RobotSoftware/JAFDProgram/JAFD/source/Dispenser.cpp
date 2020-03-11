@@ -13,8 +13,8 @@ namespace JAFD
 	{
 		namespace
 		{
-			constexpr auto _rightPWMPin = PinMapping::MappedPins[JAFDSettings::Dispenser::right::servoPinRight];
-			constexpr auto _leftPWMPin = PinMapping::MappedPins[JAFDSettings::Dispenser::left::servoPinLeft];
+			constexpr auto _rightPWMPin = PinMapping::MappedPins[JAFDSettings::Dispenser::Right::servoPinRight];
+			constexpr auto _leftPWMPin = PinMapping::MappedPins[JAFDSettings::Dispenser::Left::servoPinLeft];
 			constexpr auto _rightPWMCh = PinMapping::getPWMChannel(_rightPWMPin);
 			constexpr auto _leftPWMCh = PinMapping::getPWMChannel(_leftPWMPin);
 		}
@@ -100,10 +100,10 @@ namespace JAFD
 			{
 				for (int i = 0; i < num; i++)
 				{
-					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::right::startDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::startDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 					delay(2000);
-					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::right::endDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::endDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 					delay(2000);
 				}
@@ -116,10 +116,10 @@ namespace JAFD
 				
 				for (int i = 0; i < getRightCubeCount(); i++)
 				{
-					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::right::startDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::startDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 					delay(500);
-					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::right::endDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::endDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 					delay(500);
 				}
@@ -132,10 +132,10 @@ namespace JAFD
 
 				for (int i = 0; i < remainPacks; i++)
 				{
-					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::left::startDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::startDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 					delay(2000);
-					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::left::endDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::endDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 					delay(2000);
 				}
@@ -160,10 +160,10 @@ namespace JAFD
 			{
 				for (int i = 0; i < num; i++)
 				{
-					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::left::startDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::startDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 					delay(2000);
-					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::left::endDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::endDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 					delay(2000);
 				}
@@ -176,10 +176,10 @@ namespace JAFD
 
 				for (int i = 0; i < getRightCubeCount(); i++)
 				{
-					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::left::startDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::startDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 					delay(2000);
-					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::left::endDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::endDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 					delay(2000);
 				}
@@ -192,10 +192,10 @@ namespace JAFD
 
 				for (int i = 0; i < remainPacks; i++)
 				{
-					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::right::startDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::startDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 					delay(2000);
-					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::right::endDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::endDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 					delay(2000);
 				}
