@@ -11,7 +11,7 @@ This file is responsible for all distance sensors
 #endif
 
 #include <Wire.h>
-#include <Adafruit_VL53L0X.h>
+#include <VL53L0X.h>
 
 #include "../../JAFDSettings.h"
 #include "AllDatatypes.h"
@@ -123,22 +123,14 @@ namespace JAFD
 		public:
 			enum class Status : uint8_t
 			{
-				noError,				// Success
-				calibrationError,		// Problem with calibration data
-				underflow,				// Value too low -> clipped to min
-				undefinedError,			// Undefined error
-				functionUnavailable,	// Requested functionality is (currently) not available
-				rangeError,				// Ranging error
-				timeOut,				// time out during measurement
-				bufferTooSmall,			// buffer is to small
-				ioError,				// Error with GPIO-Functionality
-				interruptError,			// Error during interrupt clear
-				divisionByZero,			// Division by zero
-				spadInitError,			// Error during SPAD initialization
-				overflow				// Overflow
+				noError,		// Success
+				underflow,		// Value too low -> clipped to min
+				overflow,		// Overflow
+				timeOut,		// time out during measurement
+				undefinedError	// Undefined error
 			};
 
-			static const uint16_t minDist = 50;
+			static const uint16_t minDist = 40;
 			static const uint16_t maxDist = 1200;
 
 			ReturnCode setup();
@@ -149,7 +141,7 @@ namespace JAFD
 		private:
 			const uint8_t _multiplexCh;
 
-			Adafruit_VL53L0X _sensor;
+			VL53L0X _sensor;
 			Status _status;
 		};
 

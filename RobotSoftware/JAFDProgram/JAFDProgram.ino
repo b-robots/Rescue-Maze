@@ -12,7 +12,7 @@
 
 // External Libs
 #include <SPI.h>
-#include <Adafruit_VL53L0X.h>
+#include <VL53L0X.h>
 #include <Wire.h>
 #include <Adafruit_BNO055.h>
 #include <Adafruit_Sensor.h>

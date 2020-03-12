@@ -386,72 +386,31 @@ namespace JAFD
 				_i2cMultiplexer.selectChannel(_multiplexCh);
 			}
 
-			if (_sensor.begin()) return ReturnCode::ok;
+			_sensor.setTimeout(500);
+			if (_sensor.init()) return ReturnCode::ok;
 			else return ReturnCode::error;
 		}
 
 		uint16_t VL53L0::getDistance()
 		{
-			static VL53L0X_RangingMeasurementData_t measure;
-
 			if (_i2cMultiplexer.getChannel() != _multiplexCh)
 			{
 				_i2cMultiplexer.selectChannel(_multiplexCh);
 			}
 
-			switch (_sensor.getSingleRangingMeasurement(&measure))
+			uint16_t distance = _sensor.readRangeSingleMillimeters();
+
+			_status = Status::noError;
+
+			if (_sensor.timeoutOccurred()) _status == Status::timeOut;
+
+			if (_status == Status::noError)
 			{
-			case VL53L0X_ERROR_NONE:
-				_status = Status::noError;
-				break;
-			case VL53L0X_ERROR_CALIBRATION_WARNING:
-				_status = Status::calibrationError;
-				break;
-			case VL53L0X_ERROR_MIN_CLIPPED:
-				_status = Status::calibrationError;
-				break;
-			case VL53L0X_ERROR_UNDEFINED:
-				_status = Status::undefinedError;
-				break;
-			case VL53L0X_ERROR_NOT_IMPLEMENTED:
-			case VL53L0X_ERROR_INVALID_COMMAND:
-			case VL53L0X_ERROR_MODE_NOT_SUPPORTED:
-			case VL53L0X_ERROR_NOT_SUPPORTED:
-			case VL53L0X_ERROR_INVALID_PARAMS:
-				_status = Status::functionUnavailable;
-				break;
-			case VL53L0X_ERROR_RANGE_ERROR:
-				_status = Status::rangeError;
-				break;
-			case VL53L0X_ERROR_TIME_OUT:
-				_status = Status::timeOut;
-				break;
-			case VL53L0X_ERROR_BUFFER_TOO_SMALL:
-				_status = Status::bufferTooSmall;
-				break;
-			case VL53L0X_ERROR_GPIO_NOT_EXISTING:
-			case VL53L0X_ERROR_GPIO_FUNCTIONALITY_NOT_SUPPORTED:
-			case VL53L0X_ERROR_CONTROL_INTERFACE:
-				_status = Status::ioError;
-				break;
-			case VL53L0X_ERROR_INTERRUPT_NOT_CLEARED:
-				_status = Status::interruptError;
-				break;
-			case VL53L0X_ERROR_DIVISION_BY_ZERO:
-				_status = Status::divisionByZero;
-				break;
-			case VL53L0X_ERROR_REF_SPAD_INIT:
-				_status = Status::spadInitError;
-				break;
+				if (distance > maxDist) _status == Status::overflow;
+				else if (distance < minDist)	_status == Status::underflow;
 			}
 
-			if (measure.RangeStatus == 4 || _status == Status::rangeError || _status == Status::noError)
-			{
-				if (measure.RangeMilliMeter > maxDist) _status == Status::overflow;
-				else if (measure.RangeMilliMeter < minDist)	_status == Status::underflow;
-			}
-
-			return measure.RangeMilliMeter;
+			return distance;
 		}
 
 		VL53L0::Status VL53L0::getStatus() const
@@ -474,34 +433,40 @@ namespace JAFD
 		{
 			ReturnCode code = ReturnCode::ok;
 
-			if (frontLeft.setup() != ReturnCode::ok)
-			{
-				code = ReturnCode::fatalError;
-			}
-
-			if (frontRight.setup() != ReturnCode::ok)
-			{
-				code = ReturnCode::fatalError;
-			}
-
 			if (leftFront.setup() != ReturnCode::ok)
 			{
 				code = ReturnCode::fatalError;
+				Serial.println("LF");
 			}
 
 			if (leftBack.setup() != ReturnCode::ok)
 			{
 				code = ReturnCode::fatalError;
+				Serial.println("LB");
 			}
 
 			if (rightFront.setup() != ReturnCode::ok)
 			{
 				code = ReturnCode::fatalError;
+				Serial.println("RF");
 			}
 
 			if (rightBack.setup() != ReturnCode::ok)
 			{
 				code = ReturnCode::fatalError;
+				Serial.println("RB");
+			}
+
+			if (frontLeft.setup() != ReturnCode::ok)
+			{
+				code = ReturnCode::fatalError;
+				Serial.println("FL");
+			}
+
+			if (frontRight.setup() != ReturnCode::ok)
+			{
+				code = ReturnCode::fatalError;
+				Serial.println("FR");
 			}
 
 			//if (frontLong.setup() != ReturnCode::ok)

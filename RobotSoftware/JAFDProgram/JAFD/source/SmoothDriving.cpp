@@ -595,7 +595,7 @@ namespace JAFD
 			}
 			else
 			{
-				if (getFusedData().distances.frontLeft != 0)
+				if (SensorFusion::getFusedData().distances.frontLeft != 0)
 				{
 					if (SensorFusion::getFusedData().distances.frontLeft > _alignDist + JAFDSettings::SmoothDriving::maxAlignDistError)
 					{
@@ -615,7 +615,7 @@ namespace JAFD
 					output.left = 0;
 				}
 
-				if (getFusedData().distances.frontRight != 0)
+				if (SensorFusion::getFusedData().distances.frontRight != 0)
 				{
 					if (SensorFusion::getFusedData().distances.frontRight > _alignDist + JAFDSettings::SmoothDriving::maxAlignDistError)
 					{

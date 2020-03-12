@@ -59,10 +59,11 @@ namespace JAFD
 		void untimedFusion()
 		{
 			static uint32_t lastTime = 0;
-
 			uint32_t now = millis();
 
-			MazeMapping::updateCurrentCell(_fusedData.gridCellCertainty, _fusedData.gridCell);
+			FusedData fusedData = _fusedData;
+
+			MazeMapping::updateCurrentCell(fusedData.gridCellCertainty, fusedData.gridCell);
 
 			// Speed measurement with distances
 			uint8_t validDistSpeedSamples = 0;	// Number of valid speed measurements by distance sensor
@@ -70,28 +71,28 @@ namespace JAFD
 			static uint16_t lastRightDist = 0;	// Last distance right
 			float tempDistSensSpeed = 0.0f;		// Measured speed 
 
-			if (fabs(_fusedData.robotState.rotation.y) < JAFDSettings::SensorFusion::maxPitchForDistSensor)
+			if (fabs(fusedData.robotState.rotation.y) < JAFDSettings::SensorFusion::maxPitchForDistSensor)
 			{
-				if (_fusedData.distSensorState.frontLeft == DistSensorStatus::ok)
+				if (fusedData.distSensorState.frontLeft == DistSensorStatus::ok)
 				{
 					bool hitPointIsOk = false;
 
 					// Measurement is ok
 					// Check if resulting hit point is a 90° wall in front of us
-					if (_fusedData.robotState.heading == AbsoluteDir::north || _fusedData.robotState.heading == AbsoluteDir::south)
+					if (fusedData.robotState.heading == AbsoluteDir::north || fusedData.robotState.heading == AbsoluteDir::south)
 					{
-						float hitY = sinf(_fusedData.robotState.rotation.x) * _fusedData.distances.frontLeft / 10.0f + _fusedData.robotState.position.y + sinf(_fusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensAngleToMiddle) * JAFDSettings::Mechanics::distSensDistToMiddle;
+						float hitY = sinf(fusedData.robotState.rotation.x) * fusedData.distances.frontLeft / 10.0f + fusedData.robotState.position.y + sinf(fusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensFrontAngleToMiddle) * JAFDSettings::Mechanics::distSensFrontDistToMiddle;
 
-						if (fabs(hitY - _fusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+						if (fabs(hitY - fusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
 						{
 							hitPointIsOk = true;
 						}
 					}
 					else
 					{
-						float hitX = cosf(_fusedData.robotState.rotation.x) * _fusedData.distances.frontLeft / 10.0f + _fusedData.robotState.position.x + cosf(_fusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensAngleToMiddle) * JAFDSettings::Mechanics::distSensDistToMiddle;;
+						float hitX = cosf(fusedData.robotState.rotation.x) * fusedData.distances.frontLeft / 10.0f + fusedData.robotState.position.x + cosf(fusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensFrontAngleToMiddle) * JAFDSettings::Mechanics::distSensFrontDistToMiddle;;
 
-						if (fabs(hitX - _fusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+						if (fabs(hitX - fusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
 						{
 							hitPointIsOk = true;
 						}
@@ -101,11 +102,11 @@ namespace JAFD
 					{
 						if (lastLeftDist != 0 && lastTime != 0)
 						{
-							tempDistSensSpeed = (_fusedData.distances.frontLeft - lastLeftDist) / 10.0f * 1000.0f / (now - lastTime);
+							tempDistSensSpeed = (fusedData.distances.frontLeft - lastLeftDist) / 10.0f * 1000.0f / (now - lastTime);
 							validDistSpeedSamples++;
 						}
 
-						lastLeftDist = _fusedData.distances.frontLeft;
+						lastLeftDist = fusedData.distances.frontLeft;
 					}
 					else
 					{
@@ -117,26 +118,26 @@ namespace JAFD
 					lastLeftDist = 0;
 				}
 
-				if (_fusedData.distSensorState.frontRight != DistSensorStatus::ok)
+				if (fusedData.distSensorState.frontRight != DistSensorStatus::ok)
 				{
 					bool hitPointIsOk = false;
 
 					// Measurement is ok
 					// Check if resulting hit point is a 90° wall in front of us
-					if (_fusedData.robotState.heading == AbsoluteDir::north || _fusedData.robotState.heading == AbsoluteDir::south)
+					if (fusedData.robotState.heading == AbsoluteDir::north || fusedData.robotState.heading == AbsoluteDir::south)
 					{
-						float hitY = sinf(_fusedData.robotState.rotation.x) * _fusedData.distances.frontRight / 10.0f + _fusedData.robotState.position.y - sinf(_fusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensAngleToMiddle) * JAFDSettings::Mechanics::distSensDistToMiddle;
+						float hitY = sinf(fusedData.robotState.rotation.x) * fusedData.distances.frontRight / 10.0f + fusedData.robotState.position.y - sinf(fusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensFrontAngleToMiddle) * JAFDSettings::Mechanics::distSensFrontDistToMiddle;
 
-						if (fabs(hitY - _fusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+						if (fabs(hitY - fusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
 						{
 							hitPointIsOk = true;
 						}
 					}
 					else
 					{
-						float hitX = cosf(_fusedData.robotState.rotation.x) * _fusedData.distances.frontRight / 10.0f + _fusedData.robotState.position.x - cosf(_fusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensAngleToMiddle) * JAFDSettings::Mechanics::distSensDistToMiddle;;
+						float hitX = cosf(fusedData.robotState.rotation.x) * fusedData.distances.frontRight / 10.0f + fusedData.robotState.position.x - cosf(fusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensFrontAngleToMiddle) * JAFDSettings::Mechanics::distSensFrontDistToMiddle;;
 
-						if (fabs(hitX - _fusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+						if (fabs(hitX - fusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
 						{
 							hitPointIsOk = true;
 						}
@@ -146,11 +147,11 @@ namespace JAFD
 					{
 						if (lastRightDist != 0 && lastTime != 0)
 						{
-							tempDistSensSpeed += (_fusedData.distances.frontRight - lastRightDist) / 10.0f * 1000.0f / (now - lastTime);
+							tempDistSensSpeed += (fusedData.distances.frontRight - lastRightDist) / 10.0f * 1000.0f / (now - lastTime);
 							validDistSpeedSamples++;
 						}
 
-						lastRightDist = _fusedData.distances.frontRight;
+						lastRightDist = fusedData.distances.frontRight;
 					}
 					else
 					{
@@ -184,6 +185,8 @@ namespace JAFD
 			}
 
 			lastTime = now;
+
+			_fusedData = fusedData;
 		}
 
 		void updateDistSensor()

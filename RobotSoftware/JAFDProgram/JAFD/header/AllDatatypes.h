@@ -498,7 +498,7 @@ namespace JAFD
 		DistSensorStatus rightFront;
 		DistSensorStatus rightBack;
 
-		constexpr DistSensorStates(DistSensorStatus frontLeft = DistSensorStatus::ok, DistSensorStatus frontRight = DistSensorStatus::ok, uiDistSensorStatus::oknt8_t frontLong = DistSensorStatus::ok, DistSensorStatus::ok backLong = DistSensorStatus::ok, DistSensorStatus::ok leftFront = DistSensorStatus::ok, DistSensorStatus::ok leftBack = DistSensorStatus::ok, DistSensorStatus::ok rightFront = DistSensorStatus::ok, DistSensorStatus::ok rightBack = DistSensorStatus::ok) : frontLeft(frontLeft), frontRight(frontRight), frontLong(frontLong), backLong(backLong), leftFront(leftFront), leftBack(leftBack), rightFront(rightFront), rightBack(rightBack) {}
+		constexpr DistSensorStates() : frontLeft(DistSensorStatus::error), frontRight(DistSensorStatus::error), frontLong(DistSensorStatus::error), backLong(DistSensorStatus::error), leftFront(DistSensorStatus::error), leftBack(DistSensorStatus::error), rightFront(DistSensorStatus::error), rightBack(DistSensorStatus::error) {}
 		DistSensorStates(const volatile DistSensorStates& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), backLong(dist.backLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
 		constexpr DistSensorStates(const DistSensorStates& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), backLong(dist.backLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
 
@@ -543,7 +543,7 @@ namespace JAFD
 		uint16_t rightFront;
 		uint16_t rightBack;
 
-		constexpr Distances(uint8_t frontLeft = 0, uint8_t frontRight = 0, uint8_t frontLong = 0, uint8_t backLong = 0, uint8_t leftFront = 0, uint8_t leftBack = 0, uint8_t rightFront = 0, uint8_t rightBack = 0) : frontLeft(frontLeft), frontRight(frontRight), frontLong(frontLong), backLong(backLong), leftFront(leftFront), leftBack(leftBack), rightFront(rightFront), rightBack(rightBack) {}
+		constexpr Distances() : frontLeft(0), frontRight(0), frontLong(0), backLong(0), leftFront(0), leftBack(0), rightFront(0), rightBack(0) {}
 		Distances(const volatile Distances& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), backLong(dist.backLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
 		constexpr Distances(const Distances& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), backLong(dist.backLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
 
@@ -584,5 +584,31 @@ namespace JAFD
 		float gridCellCertainty;	// Certainty about the grid cell
 		Distances distances; 		// Results of distance measurement in mm
 		DistSensorStates distSensorState;	// States of all distance sensors
+
+		constexpr FusedData() : robotState(), gridCell(), gridCellCertainty(0.0f), distances(), distSensorState() {}
+		FusedData(const volatile FusedData& data) : robotState(data.robotState), gridCell(data.gridCell), gridCellCertainty(data.gridCellCertainty), distances(data.distances), distSensorState(data.distSensorState){}
+		constexpr FusedData(const FusedData& data) : robotState(data.robotState), gridCell(data.gridCell), gridCellCertainty(data.gridCellCertainty), distances(data.distances), distSensorState(data.distSensorState){}
+
+		inline const volatile FusedData& operator=(const volatile FusedData data) volatile
+		{
+			robotState = data.robotState;
+			gridCell = data.gridCell;
+			gridCellCertainty = data.gridCellCertainty;
+			distances = data.distances;
+			distSensorState = data.distSensorState;
+
+			return *this;
+		}
+
+		inline const FusedData& operator=(const FusedData& data)
+		{
+			robotState = data.robotState;
+			gridCell = data.gridCell;
+			gridCellCertainty = data.gridCellCertainty;
+			distances = data.distances;
+			distSensorState = data.distSensorState;
+
+			return *this;
+		}
 	};
 }

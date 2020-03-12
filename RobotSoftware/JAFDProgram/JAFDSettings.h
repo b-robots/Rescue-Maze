@@ -28,8 +28,11 @@ namespace JAFDSettings
 		constexpr float distSensLeftRightDist = 17.0f;
 		constexpr float distSensFrontBackDist = 16.0f;
 		constexpr float distSensFrontSpacing = 10.0f;
-		constexpr float distSensDistToMiddle = 9.4f;		// !!! ALWAYS = sqrt(distSensFrontBackDist^2 + distSensFrontSpacing^2) / 2
-		constexpr float distSensAngleToMiddle = 0.5586f;	// !!! ALWAYS = arctan(distSensFrontSpacing / distSensFrontBackDist)
+		constexpr float distSensFrontDistToMiddle = 9.4f;		// !!! ALWAYS = sqrt(distSensFrontBackDist^2 + distSensFrontSpacing^2) / 2
+		constexpr float distSensFrontAngleToMiddle = 0.5586f;	// !!! ALWAYS = arctan(distSensFrontSpacing / distSensFrontBackDist)
+		constexpr float distSensLRSpacing = 12.5f;
+		constexpr float distSensLRDistToMiddle = 10.6f;		// !!! ALWAYS = sqrt(distSensLeftRightDist^2 + distSensLRSpacing^2) / 2
+		constexpr float distSensLRAngleToMiddle = 0.634f;	// !!! ALWAYS = arctan(distSensLRSpacing / distSensLeftRightDist)
 	}
 
 	namespace SpiNVSRAM
