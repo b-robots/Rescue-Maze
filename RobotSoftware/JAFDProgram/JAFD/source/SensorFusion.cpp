@@ -191,8 +191,8 @@ namespace JAFD
 
 		void updateDistSensor()
 		{
-			float tempDist = 0.0f;
-			float tempAverageDist = 0.0f;
+			uint16_t tempDist = 0.0f;
+			uint32_t tempAverageDist = 0.0f;
 			uint8_t numCorrectSamples = 0;
 			uint8_t numOverflowSamples = 0;
 			uint8_t numUnderflowSamples = 0;
@@ -216,18 +216,18 @@ namespace JAFD
 				}
 			}
 
-			if (numCorrectSamples > 1)
+			if (numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numCorrectSamples))
 			{
 				_fusedData.distances.frontLeft = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
 				_fusedData.distSensorState.frontLeft = DistSensorStatus::ok;
 			}
 			else
 			{
-				if (numOverflowSamples > numUnderflowSamples && numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples - numCorrectSamples) && numOverflowSamples > 1)
+				if (numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples))
 				{
 					_fusedData.distSensorState.frontLeft = DistSensorStatus::overflow;
 				}
-				else if (numOverflowSamples < numUnderflowSamples && numUnderflowSamples >(JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples - numCorrectSamples) && numUnderflowSamples > 1)
+				else if (numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples))
 				{
 					_fusedData.distSensorState.frontLeft = DistSensorStatus::underflow;
 				}
@@ -263,18 +263,18 @@ namespace JAFD
 				}
 			}
 
-			if (numCorrectSamples > 1)
+			if (numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numCorrectSamples))
 			{
 				_fusedData.distances.frontRight = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
 				_fusedData.distSensorState.frontRight = DistSensorStatus::ok;
 			}
 			else
 			{
-				if (numOverflowSamples > numUnderflowSamples&& numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples - numCorrectSamples) && numOverflowSamples > 1)
+				if (numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples))
 				{
 					_fusedData.distSensorState.frontRight = DistSensorStatus::overflow;
 				}
-				else if (numOverflowSamples < numUnderflowSamples && numUnderflowSamples >(JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples - numCorrectSamples) && numUnderflowSamples > 1)
+				else if (numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples))
 				{
 					_fusedData.distSensorState.frontRight = DistSensorStatus::underflow;
 				}
@@ -310,18 +310,18 @@ namespace JAFD
 				}
 			}
 
-			if (numCorrectSamples > 1)
+			if (numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numCorrectSamples))
 			{
 				_fusedData.distances.leftBack = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
 				_fusedData.distSensorState.leftBack = DistSensorStatus::ok;
 			}
 			else
 			{
-				if (numOverflowSamples > numUnderflowSamples&& numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples - numCorrectSamples) && numOverflowSamples > 1)
+				if (numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples))
 				{
 					_fusedData.distSensorState.leftBack = DistSensorStatus::overflow;
 				}
-				else if (numOverflowSamples < numUnderflowSamples && numUnderflowSamples >(JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples - numCorrectSamples) && numUnderflowSamples > 1)
+				else if (numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples))
 				{
 					_fusedData.distSensorState.leftBack = DistSensorStatus::underflow;
 				}
@@ -357,18 +357,18 @@ namespace JAFD
 				}
 			}
 
-			if (numCorrectSamples > 1)
+			if (numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numCorrectSamples))
 			{
 				_fusedData.distances.leftFront = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
 				_fusedData.distSensorState.leftFront = DistSensorStatus::ok;
 			}
 			else
 			{
-				if (numOverflowSamples > numUnderflowSamples&& numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples - numCorrectSamples) && numOverflowSamples > 1)
+				if (numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples))
 				{
 					_fusedData.distSensorState.leftFront = DistSensorStatus::overflow;
 				}
-				else if (numOverflowSamples < numUnderflowSamples && numUnderflowSamples >(JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples - numCorrectSamples) && numUnderflowSamples > 1)
+				else if (numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples))
 				{
 					_fusedData.distSensorState.leftFront = DistSensorStatus::underflow;
 				}
@@ -404,18 +404,18 @@ namespace JAFD
 				}
 			}
 
-			if (numCorrectSamples > 1)
+			if (numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numCorrectSamples))
 			{
 				_fusedData.distances.rightBack = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
 				_fusedData.distSensorState.rightBack = DistSensorStatus::ok;
 			}
 			else
 			{
-				if (numOverflowSamples > numUnderflowSamples&& numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples - numCorrectSamples) && numOverflowSamples > 1)
+				if (numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples))
 				{
 					_fusedData.distSensorState.rightBack = DistSensorStatus::overflow;
 				}
-				else if (numOverflowSamples < numUnderflowSamples && numUnderflowSamples >(JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples - numCorrectSamples) && numUnderflowSamples > 1)
+				else if (numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples))
 				{
 					_fusedData.distSensorState.rightBack = DistSensorStatus::underflow;
 				}
@@ -451,19 +451,18 @@ namespace JAFD
 				}
 			}
 
-			if (numCorrectSamples > 1)
+			if (numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numCorrectSamples))
 			{
 				_fusedData.distances.rightFront = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
 				_fusedData.distSensorState.rightFront = DistSensorStatus::ok;
 			}
-
 			else
 			{
-				if (numOverflowSamples > numUnderflowSamples&& numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples - numCorrectSamples) && numOverflowSamples > 1)
+				if (numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples))
 				{
 					_fusedData.distSensorState.rightFront = DistSensorStatus::overflow;
 				}
-				else if (numOverflowSamples < numUnderflowSamples && numUnderflowSamples >(JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples - numCorrectSamples) && numUnderflowSamples > 1)
+				else if (numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples))
 				{
 					_fusedData.distSensorState.rightFront = DistSensorStatus::underflow;
 				}

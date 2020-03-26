@@ -68,6 +68,7 @@ namespace JAFDSettings
 	}
 
 	namespace SensorFusion
+
 	{
 		constexpr float maxPitchForDistSensor = DEG_TO_RAD * 10.0f;		// Maximum pitch of robot for correct front distance measurements
 		constexpr uint16_t minDeltaDistForEdge = 30;					// Minimum change in distance that corresponds to an edge (in mm)
@@ -127,7 +128,7 @@ namespace JAFDSettings
 
 	namespace DistanceSensors
 	{
-		constexpr uint8_t averagingNumSamples = 3;
+		constexpr uint8_t averagingNumSamples = 2;
 
 		constexpr uint8_t multiplexerAddr = 0x70;
 

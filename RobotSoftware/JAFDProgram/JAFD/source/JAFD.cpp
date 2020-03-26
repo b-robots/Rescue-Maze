@@ -24,6 +24,7 @@ namespace JAFD
 	{
 		// Setup I2C
 		Wire.begin();
+		Wire1.begin();
 
 		// Setup the SPI-Bus
 		SPI.begin();

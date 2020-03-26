@@ -20,6 +20,11 @@ namespace JAFD
 
 		ReturnCode VL6180::setup() const
 		{
+			if (_i2cMultiplexer.getChannel() != _multiplexCh)
+			{
+				_i2cMultiplexer.selectChannel(_multiplexCh);
+			}
+
 			if (read8(_regModelID) != 0xB4) {
 				// Retry
 				delay(10);
@@ -38,6 +43,11 @@ namespace JAFD
 
 		void VL6180::loadSettings() const
 		{
+			if (_i2cMultiplexer.getChannel() != _multiplexCh)
+			{
+				_i2cMultiplexer.selectChannel(_multiplexCh);
+			}
+
 			// private settings from page 24 of app note
 			write8(0x0207, 0x01);
 			write8(0x0208, 0x01);
@@ -98,11 +108,6 @@ namespace JAFD
 		// Write 1 byte
 		void VL6180::write8(uint16_t address, uint8_t data) const
 		{
-			if (_i2cMultiplexer.getChannel() != _multiplexCh)
-			{
-				_i2cMultiplexer.selectChannel(_multiplexCh);
-			}
-
 			Wire.beginTransmission(_i2cAddr);
 			Wire.write(address >> 8);
 			Wire.write(address);
@@ -113,11 +118,6 @@ namespace JAFD
 		// Write 2 bytes
 		void VL6180::write16(uint16_t address, uint16_t data) const
 		{
-			if (_i2cMultiplexer.getChannel() != _multiplexCh)
-			{
-				_i2cMultiplexer.selectChannel(_multiplexCh);
-			}
-
 			Wire.beginTransmission(_i2cAddr);
 			Wire.write(address >> 8);
 			Wire.write(address);
@@ -129,11 +129,6 @@ namespace JAFD
 		// Read 1 byte
 		uint8_t VL6180::read8(uint16_t address) const
 		{
-			if (_i2cMultiplexer.getChannel() != _multiplexCh)
-			{
-				_i2cMultiplexer.selectChannel(_multiplexCh);
-			}
-
 			Wire.beginTransmission(_i2cAddr);
 			Wire.write(address >> 8);
 			Wire.write(address);
@@ -147,11 +142,6 @@ namespace JAFD
 		// Read 2 bytes
 		uint16_t VL6180::read16(uint16_t address) const
 		{
-			if (_i2cMultiplexer.getChannel() != _multiplexCh)
-			{
-				_i2cMultiplexer.selectChannel(_multiplexCh);
-			}
-
 			uint16_t data;
 
 			Wire.beginTransmission(_i2cAddr);
@@ -171,6 +161,11 @@ namespace JAFD
 		{
 			uint8_t distance;
 
+			if (_i2cMultiplexer.getChannel() != _multiplexCh)
+			{
+				_i2cMultiplexer.selectChannel(_multiplexCh);
+			}
+
 			// Wait for device to be ready for range measurement
 			while (!(read8(_regRangeStatus) & 0x01));
 
@@ -187,12 +182,20 @@ namespace JAFD
 			write8(_regIntClear, 0x07);
 
 			// Read status
-			_status = static_cast<VL6180::Status>(read8(_regRangeStatus) >> 4);
+			_status = static_cast<Status>(read8(_regRangeStatus) >> 4);
 			
-			if (_status == VL6180::Status::noError)
+			if (_status == Status::noError || _status == Status::eceFailure || _status == Status::noiseError)
 			{
 				if (distance > maxDist) _status = Status::overflow;
 				else if (distance < minDist) _status = Status::underflow;
+			}
+			else if (_status == Status::rawOverflow || _status == Status::overflow)
+			{
+				_status = Status::overflow;
+			}
+			else if (_status == Status::rawUnderflow || _status == Status::underflow)
+			{
+				_status = Status::underflow;
 			}
 
 			return distance;
@@ -401,13 +404,15 @@ namespace JAFD
 			uint16_t distance = _sensor.readRangeSingleMillimeters();
 
 			_status = Status::noError;
-
-			if (_sensor.timeoutOccurred()) _status == Status::timeOut;
-
-			if (_status == Status::noError)
+			
+			if (_sensor.timeoutOccurred())
 			{
-				if (distance > maxDist) _status == Status::overflow;
-				else if (distance < minDist)	_status == Status::underflow;
+				_status = Status::timeOut;
+			}
+			else
+			{
+				if (distance > maxDist) _status = Status::overflow;
+				else if (distance < minDist) _status = Status::underflow;
 			}
 
 			return distance;
@@ -436,37 +441,31 @@ namespace JAFD
 			if (leftFront.setup() != ReturnCode::ok)
 			{
 				code = ReturnCode::fatalError;
-				Serial.println("LF");
 			}
 
 			if (leftBack.setup() != ReturnCode::ok)
 			{
 				code = ReturnCode::fatalError;
-				Serial.println("LB");
 			}
 
 			if (rightFront.setup() != ReturnCode::ok)
 			{
 				code = ReturnCode::fatalError;
-				Serial.println("RF");
 			}
 
 			if (rightBack.setup() != ReturnCode::ok)
 			{
 				code = ReturnCode::fatalError;
-				Serial.println("RB");
 			}
 
 			if (frontLeft.setup() != ReturnCode::ok)
 			{
 				code = ReturnCode::fatalError;
-				Serial.println("FL");
 			}
 
 			if (frontRight.setup() != ReturnCode::ok)
 			{
 				code = ReturnCode::fatalError;
-				Serial.println("FR");
 			}
 
 			//if (frontLong.setup() != ReturnCode::ok)

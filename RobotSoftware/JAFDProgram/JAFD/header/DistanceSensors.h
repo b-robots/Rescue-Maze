@@ -38,7 +38,7 @@ namespace JAFD
 				overflow = 15,		// Measurement overflow
 			};
 
-			static const uint16_t minDist = 5;
+			static const uint16_t minDist = 10;
 			static const uint16_t maxDist = 150;
 
 			VL6180(uint8_t multiplexCh);
@@ -130,7 +130,7 @@ namespace JAFD
 				undefinedError	// Undefined error
 			};
 
-			static const uint16_t minDist = 40;
+			static const uint16_t minDist = 30;
 			static const uint16_t maxDist = 1200;
 
 			ReturnCode setup();

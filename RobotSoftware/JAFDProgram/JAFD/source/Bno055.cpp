@@ -33,7 +33,7 @@ namespace JAFD
 
 		ReturnCode init()		//vorne steht das was die init Funktion zurückgibt und hinten das was wir ihr übergeben
 		{
-			bno055 = Adafruit_BNO055(55,0x28);
+			bno055 = Adafruit_BNO055(55,0x28, &Wire1);
 
 			if (!bno055.begin())
 			{

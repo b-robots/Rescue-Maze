@@ -36,7 +36,6 @@ using namespace JAFD::SmoothDriving;
 using namespace JAFD::SensorFusion;
 using namespace JAFD::DistanceSensors;
 using namespace JAFD::Bno055;
-using namespace JAFD;
 
 // The setup function runs once when you press reset or power the board
 void setup()
@@ -52,5 +51,6 @@ void setup()
 // The loop function runs over and over again until power down or reset
 void loop()
 {
-	delay(300);
+	JAFD::robotLoop();
+	delay(400);
 }
