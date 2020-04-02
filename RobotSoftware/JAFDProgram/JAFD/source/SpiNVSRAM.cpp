@@ -103,8 +103,6 @@ namespace JAFD
 
 			disable();
 
-			delay(1);
-
 			// Read Data
 			enable();
 
@@ -132,8 +130,6 @@ namespace JAFD
 			SPI.transfer(0b01000000);
 
 			disable();
-
-			delay(1);
 
 			// Write Data
 			enable();

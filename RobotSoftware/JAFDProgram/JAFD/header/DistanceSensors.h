@@ -38,13 +38,17 @@ namespace JAFD
 				overflow = 15,		// Measurement overflow
 			};
 
-			static const uint16_t minDist = 10;
+			static const uint16_t minDist = 30;
 			static const uint16_t maxDist = 150;
 
-			VL6180(uint8_t multiplexCh);
+			VL6180(uint8_t multiplexCh, uint8_t id);
 			ReturnCode setup() const;
 			uint16_t getDistance();		// Get distance in mm
 			Status getStatus() const;
+			void calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure);
+			void storeCalibData();
+			void restoreCalibData();
+			void resetCalibData();
 
 		private:
 			// Register addresses
@@ -73,9 +77,15 @@ namespace JAFD
 			static const uint8_t _alsGain40 = 0x07;		// x 40
 
 			static const uint8_t _i2cAddr = 0x29;
-
 			const uint8_t _multiplexCh;
+
+			const uint8_t _id;
+
 			Status _status;
+
+			// Calibration data
+			float _k = 1.0f;
+			int16_t _d = 0;
 
 			void loadSettings() const;
 			void write8(uint16_t address, uint8_t data) const;
@@ -99,16 +109,23 @@ namespace JAFD
 			static const uint16_t minDist = 300;
 			static const uint16_t maxDist = 12000;
 
+			TFMini(SerialType serialType);
 			ReturnCode setup();
 			uint16_t getDistance();	// Get distance in mm
 			Status getStatus() const;
-			TFMini(SerialType serialType);
+			void calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure);
+			void storeCalibData();
+			void restoreCalibData();
 
 		private:
 			static const uint32_t _baudrate = 115200;
 			static const uint8_t _maxBytesBeforeHeader = 30;
 			static const uint8_t _frameSize = 7;
 			static const uint8_t _maxMeasurementTries = 5;
+
+			// Calibration data
+			float _k = 1.0f;
+			float _d = 0.0f;
 
 			const SerialType _serialType;
 			Stream* _streamPtr;
@@ -130,13 +147,20 @@ namespace JAFD
 				undefinedError	// Undefined error
 			};
 
-			static const uint16_t minDist = 30;
+			static const uint16_t minDist = 40;
 			static const uint16_t maxDist = 1200;
 
+			// Calibration data
+			const float _k = 1.0f;
+			const float _d = 0.0f;
+
+			VL53L0(uint8_t multiplexCh);
 			ReturnCode setup();
 			uint16_t getDistance();		// Get distance in mm
 			Status getStatus() const;
-			VL53L0(uint8_t multiplexCh);
+			void calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure);
+			void storeCalibData();
+			void restoreCalibData();
 
 		private:
 			const uint8_t _multiplexCh;
@@ -152,7 +176,7 @@ namespace JAFD
 		extern VL6180 leftFront;	// Left-Front short distance sensor
 		extern VL6180 leftBack;		// Left-Back short distance sensor
 		extern VL6180 rightFront;	// Right-Front short distance sensor
-		extern VL6180 rightBack;	// Right-Front short distance sensor
+		extern VL6180 rightBack;	// Right-Back short distance sensor
 		extern VL6180 packsRight;
 		extern VL6180 packsLeft;
 

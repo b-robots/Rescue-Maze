@@ -8,6 +8,7 @@ This part of the Library is responsible for mapping the maze and finding the sho
 #include "../header/DistanceSensors.h"
 #include "../header/SensorFusion.h"
 #include "../header/SmoothDriving.h"
+#include "../../JAFDSettings.h"
 
 #include <algorithm>
 
@@ -25,10 +26,10 @@ namespace JAFD
 		void setGridCell(const GridCell gridCell, const MapCoordinate coor)
 		{
 			// Memory address
-			uint32_t address;
+			uint32_t address = JAFDSettings::SpiNVSRAM::mazeMappingStartAddr;
 			
 			// Calculate address
-			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
+			address += ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
 			address += ((coor.y + 0x20) & 0x3f) << 9;	// Bit 10 - 15 = y-Axis / 0 = 0x20
 			address += ((coor.floor & 0x1) << 15);		// MSB (16.Bit) = floor
 
@@ -43,10 +44,10 @@ namespace JAFD
 		void getGridCell(GridCell* gridCell, const MapCoordinate coor)
 		{
 			// Memory address
-			uint32_t address;
+			uint32_t address = JAFDSettings::SpiNVSRAM::mazeMappingStartAddr;
 
 			// Calculate address
-			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
+			address += ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
 			address += ((coor.y + 0x20) & 0x3f) << 9;	// Bit 10 - 15 = y-Axis / 0 = 0x20
 			address += ((coor.floor & 0x1) << 15);		// MSB (16.Bit) = floor
 
@@ -65,10 +66,10 @@ namespace JAFD
 		void setGridCell(const uint8_t bfsValue, const MapCoordinate coor)
 		{
 			// Memory address
-			uint32_t address;
+			uint32_t address = JAFDSettings::SpiNVSRAM::mazeMappingStartAddr;
 			
 			// Calculate address
-			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
+			address += ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
 			address += ((coor.y + 0x20) & 0x3f) << 9;	// Bit 10 - 15 = y-Axis / 0 = 0x20
 			address += ((coor.floor & 0x1) << 15);		// MSB (16.Bit) = floor
 			address += 2;								// Go to the solver value
@@ -81,10 +82,10 @@ namespace JAFD
 		void getGridCell(uint8_t* bfsValue, const MapCoordinate coor)
 		{
 			// Memory address
-			uint32_t address;
+			uint32_t address = JAFDSettings::SpiNVSRAM::mazeMappingStartAddr;
 
 			// Calculate address
-			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
+			address += ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
 			address += ((coor.y + 0x20) & 0x3f) << 9;	// Bit 10 - 15 = y-Axis / 0 = 0x20
 			address += ((coor.floor & 0x1) << 15);		// MSB (16.Bit) = floor
 			address += 2;								// Go to the solver value
@@ -100,10 +101,10 @@ namespace JAFD
 		void setGridCell(const GridCell gridCell, const uint8_t bfsValue, const MapCoordinate coor)
 		{
 			// Memory address
-			uint32_t address;
+			uint32_t address = JAFDSettings::SpiNVSRAM::mazeMappingStartAddr;
 
 			// Calculate address
-			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
+			address += ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
 			address += ((coor.y + 0x20) & 0x3f) << 9;	// Bit 10 - 15 = y-Axis / 0 = 0x20
 			address += ((coor.floor & 0x1) << 15);		// MSB (16.Bit) = floor
 
@@ -118,10 +119,10 @@ namespace JAFD
 		void getGridCell(GridCell* gridCell, uint8_t* bfsValue, const MapCoordinate coor)
 		{
 			// Memory address
-			uint32_t address;
+			uint32_t address = JAFDSettings::SpiNVSRAM::mazeMappingStartAddr;
 
 			// Calculate address
-			address = ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
+			address += ((coor.x + 0x20) & 0x3f) << 3;	// Bit 4 - 9 = x-Axis / 0 = 0x20
 			address += ((coor.y + 0x20) & 0x3f) << 9;	// Bit 10 - 15 = y-Axis / 0 = 0x20
 			address += ((coor.floor & 0x1) << 15);		// MSB (16.Bit) = floor
 

@@ -37,7 +37,10 @@ namespace JAFDSettings
 
 	namespace SpiNVSRAM
 	{
-		constexpr uint8_t ssPin = 10;
+		constexpr uint8_t ssPin = 32;
+		constexpr uint32_t mazeMappingStartAddr = 0;
+		constexpr uint32_t bno055StartAddr = 64 * 1024;
+		constexpr uint32_t distSensStartAddr = 64 * 1024 + 32;
 	}
 
 	namespace MotorControl
@@ -128,6 +131,9 @@ namespace JAFDSettings
 
 	namespace DistanceSensors
 	{
+		constexpr uint16_t minCalibDataDiff = 20;		// Minimum difference in calibration data
+		constexpr uint8_t bytesPerCalibData = 8;
+
 		constexpr uint8_t averagingNumSamples = 2;
 
 		constexpr uint8_t multiplexerAddr = 0x70;

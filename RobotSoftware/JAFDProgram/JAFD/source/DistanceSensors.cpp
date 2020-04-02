@@ -5,6 +5,7 @@ This file is responsible for all distance sensors
 #include "../../JAFDSettings.h"
 #include "../header/DistanceSensors.h"
 #include "../header/TCA9548A.h"
+#include "../header/SpiNVSRAM.h"
 
 namespace JAFD
 {
@@ -16,7 +17,7 @@ namespace JAFD
 		}
 
 		// VL6180 class - begin
-		VL6180::VL6180(uint8_t multiplexCh) : _multiplexCh(multiplexCh), _status(Status::noError) {}
+		VL6180::VL6180(uint8_t multiplexCh, uint8_t id) : _multiplexCh(multiplexCh), _status(Status::noError), _id(id) {}
 
 		ReturnCode VL6180::setup() const
 		{
@@ -39,6 +40,60 @@ namespace JAFD
 			write8(_regSysFreshOutOfReset, 0x00);
 
 			return ReturnCode::ok;
+		}
+
+		void VL6180::calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure)
+		{
+			if (abs((int32_t)secondMeasure - firstMeasure) < JAFDSettings::DistanceSensors::minCalibDataDiff)
+			{
+				_k = 1.0f;
+			}
+			else
+			{
+				_k = (float)((int32_t)secondTrue - firstTrue) / (float)((int32_t)secondMeasure - firstMeasure);
+
+				if (_k < 0.0f) _k = 1.0f;
+			}
+
+			_d = (int16_t)(((firstTrue - _k * firstMeasure) + (secondTrue - _k * secondMeasure)) / 2.0f);
+		}
+
+		void VL6180::storeCalibData()
+		{
+			Serial.print(_k);
+			Serial.print(", ");
+			Serial.println(_d);
+
+			uint32_t startAddr = JAFDSettings::SpiNVSRAM::distSensStartAddr + JAFDSettings::DistanceSensors::bytesPerCalibData * _id;
+
+			uint16_t storeK = _k * 100.0f;
+			uint16_t storeD = ((uint16_t)(abs(_d)) & 0x7fff) | ((_d < 0) ? 1 << 15 : 0);
+
+			SpiNVSRAM::writeByte(startAddr, storeK & 0xff);
+			SpiNVSRAM::writeByte(startAddr + 1, storeK >> 8);
+			SpiNVSRAM::writeByte(startAddr + 2, storeD & 0xff);
+			SpiNVSRAM::writeByte(startAddr + 3, storeD >> 8);
+		}
+
+		void VL6180::restoreCalibData()
+		{
+			uint32_t startAddr = JAFDSettings::SpiNVSRAM::distSensStartAddr + JAFDSettings::DistanceSensors::bytesPerCalibData * _id;
+
+			uint16_t storeK = SpiNVSRAM::readByte(startAddr) | (SpiNVSRAM::readByte(startAddr + 1) << 8);
+			_k = storeK / 100.0f;
+
+			uint16_t storeD = SpiNVSRAM::readByte(startAddr + 2) | ((uint16_t)SpiNVSRAM::readByte(startAddr + 3) << 8);
+			_d = (storeD & 0x7fff) * ((storeD >> 15) ? -1 : 1);
+
+			Serial.print(_k);
+			Serial.print(", ");
+			Serial.println(_d);
+		}
+
+		void VL6180::resetCalibData()
+		{
+			_k = 1.0f;
+			_d = 0;
 		}
 
 		void VL6180::loadSettings() const
@@ -159,7 +214,7 @@ namespace JAFD
 
 		uint16_t VL6180::getDistance()
 		{
-			uint8_t distance;
+			uint16_t distance;
 
 			if (_i2cMultiplexer.getChannel() != _multiplexCh)
 			{
@@ -176,7 +231,10 @@ namespace JAFD
 			while (!(read8(_regIntStatus) & 0x04));
 			
 			// Read range in mm
-			distance = read8(_regRangeResult);
+			float tempDist = read8(_regRangeResult) * _k + _d;
+
+			if (tempDist < 0.0f) distance = 0;
+			else distance = (uint16_t)roundf(tempDist);
 
 			// Clear interrupt
 			write8(_regIntClear, 0x07);
@@ -388,8 +446,8 @@ namespace JAFD
 			{
 				_i2cMultiplexer.selectChannel(_multiplexCh);
 			}
-
 			_sensor.setTimeout(500);
+
 			if (_sensor.init()) return ReturnCode::ok;
 			else return ReturnCode::error;
 		}
@@ -429,10 +487,10 @@ namespace JAFD
 		VL53L0 frontRight(JAFDSettings::DistanceSensors::FrontRight::multiplexCh);
 		TFMini frontLong(JAFDSettings::DistanceSensors::FrontLong::serialType);
 		TFMini backLong(JAFDSettings::DistanceSensors::BackLong::serialType);
-		VL6180 leftFront(JAFDSettings::DistanceSensors::LeftFront::multiplexCh);
-		VL6180 leftBack(JAFDSettings::DistanceSensors::LeftBack::multiplexCh);
-		VL6180 rightFront(JAFDSettings::DistanceSensors::RightFront::multiplexCh);
-		VL6180 rightBack(JAFDSettings::DistanceSensors::LeftFront::multiplexCh);
+		VL6180 leftFront(JAFDSettings::DistanceSensors::LeftFront::multiplexCh, 0);
+		VL6180 leftBack(JAFDSettings::DistanceSensors::LeftBack::multiplexCh, 1);
+		VL6180 rightFront(JAFDSettings::DistanceSensors::RightFront::multiplexCh, 2);
+		VL6180 rightBack(JAFDSettings::DistanceSensors::RightBack::multiplexCh, 3);
 
 		ReturnCode setup()
 		{
@@ -467,6 +525,10 @@ namespace JAFD
 			{
 				code = ReturnCode::fatalError;
 			}
+
+			rightFront.calcCalibData(60, 50 ,130, 100);
+			rightFront.storeCalibData();
+			rightFront.restoreCalibData();
 
 			//if (frontLong.setup() != ReturnCode::ok)
 			//{

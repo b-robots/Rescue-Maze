@@ -192,7 +192,7 @@ namespace JAFD
 		void updateDistSensor()
 		{
 			uint16_t tempDist = 0.0f;
-			uint32_t tempAverageDist = 0.0f;
+			uint32_t tempAverageDist = 0;
 			uint8_t numCorrectSamples = 0;
 			uint8_t numOverflowSamples = 0;
 			uint8_t numUnderflowSamples = 0;
@@ -240,7 +240,7 @@ namespace JAFD
 			}
 
 			numCorrectSamples = 0;
-			tempAverageDist = 0.0f;
+			tempAverageDist = 0;
 			numOverflowSamples = 0;
 			numUnderflowSamples = 0;
 
@@ -287,7 +287,7 @@ namespace JAFD
 			}
 
 			numCorrectSamples = 0;
-			tempAverageDist = 0.0f;
+			tempAverageDist = 0;
 			numOverflowSamples = 0;
 			numUnderflowSamples = 0;
 
@@ -334,14 +334,14 @@ namespace JAFD
 			}
 
 			numCorrectSamples = 0;
-			tempAverageDist = 0.0f;
+			tempAverageDist = 0;
 			numOverflowSamples = 0;
 			numUnderflowSamples = 0;
 
 			for (uint8_t i = 0; i < JAFDSettings::DistanceSensors::averagingNumSamples; i++)
 			{
 				tempDist = DistanceSensors::leftFront.getDistance();
-
+				
 				if (DistanceSensors::leftFront.getStatus() == decltype(DistanceSensors::leftFront)::Status::noError)
 				{
 					numCorrectSamples++;
@@ -381,7 +381,7 @@ namespace JAFD
 			}
 
 			numCorrectSamples = 0;
-			tempAverageDist = 0.0f;
+			tempAverageDist = 0;
 			numOverflowSamples = 0;
 			numUnderflowSamples = 0;
 
@@ -428,7 +428,7 @@ namespace JAFD
 			}
 
 			numCorrectSamples = 0;
-			tempAverageDist = 0.0f;
+			tempAverageDist = 0;
 			numOverflowSamples = 0;
 			numUnderflowSamples = 0;
 

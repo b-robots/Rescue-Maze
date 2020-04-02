@@ -8,6 +8,7 @@ This part of the Library is responsible for the 9 DOF-IMU (BNO055).
 #include "WProgram.h"
 #endif
 
+#include "../../JAFDSettings.h"
 #include "../header/SpiNVSRAM.h"
 #include <Adafruit_Sensor.h>
 #include "../header/Bno055.h"
@@ -22,8 +23,6 @@ namespace JAFD
 	{
 		namespace
 		{
-			constexpr uint32_t startAddress = 64 * 1024;
-
 			Adafruit_BNO055 bno055;
 
 			//Variables for getting the sensor values
@@ -93,10 +92,10 @@ namespace JAFD
 
 		void update_sensorreadings()					//gets values from the sensors
 		{
-			//bno055.getEvent(&orientationEvent, Adafruit_BNO055::VECTOR_EULER);
-			//bno055.getEvent(&angVelEvent, Adafruit_BNO055::VECTOR_GYROSCOPE);
-			//bno055.getEvent(&linearAccelEvent, Adafruit_BNO055::VECTOR_LINEARACCEL);
-			//bno055.getEvent(&gravityVecEvent, Adafruit_BNO055::VECTOR_GRAVITY);
+			bno055.getEvent(&orientationEvent, Adafruit_BNO055::VECTOR_EULER);
+			bno055.getEvent(&angVelEvent, Adafruit_BNO055::VECTOR_GYROSCOPE);
+			bno055.getEvent(&linearAccelEvent, Adafruit_BNO055::VECTOR_LINEARACCEL);
+			bno055.getEvent(&gravityVecEvent, Adafruit_BNO055::VECTOR_GRAVITY);
 		}
 
 		Vec3f get_linear_acceleration()
@@ -116,7 +115,7 @@ namespace JAFD
 
 		Vec3f get_angular_velocity()
 		{
-			Vec3f angular_velocity_values(100.0f, 100.0f, 100.0f);
+			Vec3f angular_velocity_values(0.0f, 0.0f, 0.0f);
 
 			if (angVelEvent.type == SENSOR_TYPE_ROTATION_VECTOR)
 			{
@@ -146,7 +145,7 @@ namespace JAFD
 
 		Vec3f get_gravity_vector()
 		{
-			Vec3f gravity_vector_values(100.0f, 100.0f, 100.0f);
+			Vec3f gravity_vector_values(0.0f, 0.0f, 0.0f);
 
 			// Why the f**k is the gravity measurement an accelerometer sensor and not a gravity sensor?
 			if (gravityVecEvent.type == SENSOR_TYPE_ACCELEROMETER)
@@ -181,38 +180,38 @@ namespace JAFD
 			auto mag_offset_z = calib_data.mag_offset_z;
 			auto mag_radius = calib_data.mag_radius;
 
-			SpiNVSRAM::writeByte(startAddress, (accel_offset_x >> 8));		//schreibt obere tetrade des 16 Bit int auf Startaddresse
-			SpiNVSRAM::writeByte(startAddress + 1, (accel_offset_x & 0xFF));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr, (accel_offset_x >> 8));		//schreibt obere tetrade des 16 Bit int auf Startaddresse
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 1, (accel_offset_x & 0xFF));
 
-			SpiNVSRAM::writeByte(startAddress + 2, (accel_offset_y >> 8));
-			SpiNVSRAM::writeByte(startAddress + 3, (accel_offset_y & 0xFF));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 2, (accel_offset_y >> 8));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 3, (accel_offset_y & 0xFF));
 
-			SpiNVSRAM::writeByte(startAddress + 4, (accel_offset_z >> 8));
-			SpiNVSRAM::writeByte(startAddress + 5, (accel_offset_z & 0xFF));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 4, (accel_offset_z >> 8));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 5, (accel_offset_z & 0xFF));
 
-			SpiNVSRAM::writeByte(startAddress + 6, (accel_radius >> 8));
-			SpiNVSRAM::writeByte(startAddress + 7, (accel_radius & 0xFF));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 6, (accel_radius >> 8));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 7, (accel_radius & 0xFF));
 
-			SpiNVSRAM::writeByte(startAddress + 8, (gyro_offset_x >> 8));		//schreibt obere tetrade des 16 Bit int auf Startaddresse
-			SpiNVSRAM::writeByte(startAddress + 9, (gyro_offset_x & 0xFF));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 8, (gyro_offset_x >> 8));		//schreibt obere tetrade des 16 Bit int auf Startaddresse
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 9, (gyro_offset_x & 0xFF));
 
-			SpiNVSRAM::writeByte(startAddress + 10, (gyro_offset_y >> 8));
-			SpiNVSRAM::writeByte(startAddress + 11, (gyro_offset_y & 0xFF));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 10, (gyro_offset_y >> 8));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 11, (gyro_offset_y & 0xFF));
 
-			SpiNVSRAM::writeByte(startAddress + 12, (gyro_offset_z >> 8));
-			SpiNVSRAM::writeByte(startAddress + 13, (gyro_offset_z & 0xFF));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 12, (gyro_offset_z >> 8));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 13, (gyro_offset_z & 0xFF));
 
-			SpiNVSRAM::writeByte(startAddress + 14, (mag_offset_x >> 8));
-			SpiNVSRAM::writeByte(startAddress + 15, (mag_offset_x & 0xFF));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 14, (mag_offset_x >> 8));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 15, (mag_offset_x & 0xFF));
 
-			SpiNVSRAM::writeByte(startAddress + 16, (mag_offset_y >> 8));
-			SpiNVSRAM::writeByte(startAddress + 17, (mag_offset_y & 0xFF));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 16, (mag_offset_y >> 8));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 17, (mag_offset_y & 0xFF));
 
-			SpiNVSRAM::writeByte(startAddress + 18, (mag_offset_z >> 8));
-			SpiNVSRAM::writeByte(startAddress + 19, (mag_offset_z & 0xFF));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 18, (mag_offset_z >> 8));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 19, (mag_offset_z & 0xFF));
 
-			SpiNVSRAM::writeByte(startAddress + 20, (mag_radius >> 8));
-			SpiNVSRAM::writeByte(startAddress + 21, (mag_radius & 0xFF));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 20, (mag_radius >> 8));
+			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 21, (mag_radius & 0xFF));
 		}
 
 
@@ -221,20 +220,20 @@ namespace JAFD
 
 			adafruit_bno055_offsets_t calib_data;
 
-			calib_data.accel_offset_x = (SpiNVSRAM::readByte(startAddress) << 8) + SpiNVSRAM::readByte(startAddress + 1);
-			calib_data.accel_offset_y = (SpiNVSRAM::readByte(startAddress + 2) << 8) + SpiNVSRAM::readByte(startAddress + 3);
-			calib_data.accel_offset_z = (SpiNVSRAM::readByte(startAddress + 4) << 8) + SpiNVSRAM::readByte(startAddress + 5);
-			calib_data.accel_radius = (SpiNVSRAM::readByte(startAddress + 6) << 8) + SpiNVSRAM::readByte(startAddress + 7);
+			calib_data.accel_offset_x = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 1);
+			calib_data.accel_offset_y = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 2) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 3);
+			calib_data.accel_offset_z = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 4) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 5);
+			calib_data.accel_radius = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 6) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 7);
 
 
-			calib_data.gyro_offset_x = (SpiNVSRAM::readByte(startAddress + 8) << 8) + SpiNVSRAM::readByte(startAddress + 9);
-			calib_data.gyro_offset_y = (SpiNVSRAM::readByte(startAddress + 10) << 8) + SpiNVSRAM::readByte(startAddress + 11);
-			calib_data.gyro_offset_z = (SpiNVSRAM::readByte(startAddress + 12) << 8) + SpiNVSRAM::readByte(startAddress + 13);
+			calib_data.gyro_offset_x = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 8) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 9);
+			calib_data.gyro_offset_y = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 10) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 11);
+			calib_data.gyro_offset_z = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 12) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 13);
 
-			calib_data.mag_offset_x = (SpiNVSRAM::readByte(startAddress + 14) << 8) + SpiNVSRAM::readByte(startAddress + 15);
-			calib_data.mag_offset_y = (SpiNVSRAM::readByte(startAddress + 16) << 8) + SpiNVSRAM::readByte(startAddress + 17);
-			calib_data.mag_offset_z = (SpiNVSRAM::readByte(startAddress + 18) << 8) + SpiNVSRAM::readByte(startAddress + 19);
-			calib_data.mag_radius = (SpiNVSRAM::readByte(startAddress + 20) << 8) + SpiNVSRAM::readByte(startAddress + 21);
+			calib_data.mag_offset_x = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 14) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 15);
+			calib_data.mag_offset_y = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 16) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 17);
+			calib_data.mag_offset_z = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 18) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 19);
+			calib_data.mag_radius = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 20) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 21);
 
 			bno055.setSensorOffsets(calib_data);	//write values to sensor offsets
 		}

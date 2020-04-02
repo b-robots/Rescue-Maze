@@ -52,5 +52,6 @@ void setup()
 void loop()
 {
 	JAFD::robotLoop();
-	delay(400);
+	delay(100);
+	Serial.println(getFusedData().distSensorState.rightFront == JAFD::DistSensorStatus::ok ? (float)getFusedData().distances.rightFront : (float)-1);
 }
