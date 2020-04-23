@@ -39,8 +39,8 @@ namespace JAFDSettings
 	{
 		constexpr uint8_t ssPin = 32;
 		constexpr uint32_t mazeMappingStartAddr = 0;
-		constexpr uint32_t bno055StartAddr = 64 * 1024;
-		constexpr uint32_t distSensStartAddr = 64 * 1024 + 32;
+		constexpr uint32_t bno055StartAddr = mazeMappingStartAddr + 64 * 1024;
+		constexpr uint32_t distSensStartAddr = bno055StartAddr + 32;
 	}
 
 	namespace MotorControl
@@ -75,6 +75,7 @@ namespace JAFDSettings
 	{
 		constexpr float maxPitchForDistSensor = DEG_TO_RAD * 10.0f;		// Maximum pitch of robot for correct front distance measurements
 		constexpr uint16_t minDeltaDistForEdge = 30;					// Minimum change in distance that corresponds to an edge (in mm)
+		constexpr float distSensSpeedIIRFactor = 0.3;					// Factor used for IIR-Filter for speed measured by distance sensors.
 	}
 
 	namespace Controller
@@ -175,7 +176,7 @@ namespace JAFDSettings
 
 		namespace BackLong
 		{
-			constexpr JAFD::SerialType serialType = JAFD::SerialType::one;
+			constexpr JAFD::SerialType serialType = JAFD::SerialType::software;
 		}
 	}
 }

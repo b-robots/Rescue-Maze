@@ -109,19 +109,22 @@ namespace JAFD
 			static const uint16_t minDist = 300;
 			static const uint16_t maxDist = 12000;
 
-			TFMini(SerialType serialType);
+			TFMini(SerialType serialType, uint8_t id);
 			ReturnCode setup();
 			uint16_t getDistance();	// Get distance in mm
 			Status getStatus() const;
 			void calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure);
 			void storeCalibData();
 			void restoreCalibData();
+			void resetCalibData();
 
 		private:
 			static const uint32_t _baudrate = 115200;
 			static const uint8_t _maxBytesBeforeHeader = 30;
 			static const uint8_t _frameSize = 7;
-			static const uint8_t _maxMeasurementTries = 5;
+			static const uint8_t _maxMeasurementTries = 3;
+
+			const uint8_t _id;
 
 			// Calibration data
 			float _k = 1.0f;
@@ -150,20 +153,23 @@ namespace JAFD
 			static const uint16_t minDist = 40;
 			static const uint16_t maxDist = 1200;
 
-			// Calibration data
-			const float _k = 1.0f;
-			const float _d = 0.0f;
-
-			VL53L0(uint8_t multiplexCh);
+			VL53L0(uint8_t multiplexCh, uint8_t id);
 			ReturnCode setup();
 			uint16_t getDistance();		// Get distance in mm
 			Status getStatus() const;
 			void calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure);
 			void storeCalibData();
 			void restoreCalibData();
+			void resetCalibData();
 
 		private:
 			const uint8_t _multiplexCh;
+
+			const uint8_t _id;
+
+			// Calibration data
+			float _k = 1.0f;
+			float _d = 0.0f;
 
 			VL53L0X _sensor;
 			Status _status;

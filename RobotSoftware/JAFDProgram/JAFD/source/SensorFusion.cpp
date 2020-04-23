@@ -33,7 +33,8 @@ namespace JAFD
 			
 			if (distSensSpeedTrust)
 			{
-				_fusedData.robotState.forwardVel = (((_fusedData.robotState.wheelSpeeds.left + _fusedData.robotState.wheelSpeeds.right) / 2.0f / 1.05f) * 2.0f + distSensSpeed * 0.0) / 2.0f;
+				// !!! Faktoren sind nur num Testen
+				_fusedData.robotState.forwardVel = (((_fusedData.robotState.wheelSpeeds.left + _fusedData.robotState.wheelSpeeds.right) / 2.0f / 1.05f) * 0.0f + distSensSpeed * 2.0) / 2.0f;
 			}
 			else
 			{
@@ -63,13 +64,15 @@ namespace JAFD
 
 			FusedData fusedData = _fusedData;
 
-			MazeMapping::updateCurrentCell(fusedData.gridCellCertainty, fusedData.gridCell);
-
 			// Speed measurement with distances
 			uint8_t validDistSpeedSamples = 0;	// Number of valid speed measurements by distance sensor
 			static uint16_t lastLeftDist = 0;	// Last distance left
 			static uint16_t lastRightDist = 0;	// Last distance right
+			static uint16_t lastMiddleFrontDist = 0;	// Last distance middle front
+			static uint16_t lastMiddleBackDist = 0;		// Last distance middle back
 			float tempDistSensSpeed = 0.0f;		// Measured speed 
+
+			MazeMapping::updateCurrentCell(fusedData.gridCellCertainty, fusedData.gridCell);
 
 			if (fabs(fusedData.robotState.rotation.y) < JAFDSettings::SensorFusion::maxPitchForDistSensor)
 			{
@@ -90,7 +93,7 @@ namespace JAFD
 					}
 					else
 					{
-						float hitX = cosf(fusedData.robotState.rotation.x) * fusedData.distances.frontLeft / 10.0f + fusedData.robotState.position.x + cosf(fusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensFrontAngleToMiddle) * JAFDSettings::Mechanics::distSensFrontDistToMiddle;;
+						float hitX = cosf(fusedData.robotState.rotation.x) * fusedData.distances.frontLeft / 10.0f + fusedData.robotState.position.x + cosf(fusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensFrontAngleToMiddle) * JAFDSettings::Mechanics::distSensFrontDistToMiddle;
 
 						if (fabs(hitX - fusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
 						{
@@ -118,7 +121,7 @@ namespace JAFD
 					lastLeftDist = 0;
 				}
 
-				if (fusedData.distSensorState.frontRight != DistSensorStatus::ok)
+				if (fusedData.distSensorState.frontRight == DistSensorStatus::ok)
 				{
 					bool hitPointIsOk = false;
 
@@ -135,7 +138,7 @@ namespace JAFD
 					}
 					else
 					{
-						float hitX = cosf(fusedData.robotState.rotation.x) * fusedData.distances.frontRight / 10.0f + fusedData.robotState.position.x - cosf(fusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensFrontAngleToMiddle) * JAFDSettings::Mechanics::distSensFrontDistToMiddle;;
+						float hitX = cosf(fusedData.robotState.rotation.x) * fusedData.distances.frontRight / 10.0f + fusedData.robotState.position.x - cosf(fusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensFrontAngleToMiddle) * JAFDSettings::Mechanics::distSensFrontDistToMiddle;
 
 						if (fabs(hitX - fusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
 						{
@@ -162,22 +165,110 @@ namespace JAFD
 				{
 					lastRightDist = 0;
 				}
+
+				if (fusedData.distSensorState.frontLong == DistSensorStatus::ok)
+				{
+					bool hitPointIsOk = false;
+
+					// Measurement is ok
+					// Check if resulting hit point is a 90° wall in front of us
+					if (fusedData.robotState.heading == AbsoluteDir::north || fusedData.robotState.heading == AbsoluteDir::south)
+					{
+						float hitY = sinf(fusedData.robotState.rotation.x) * (fusedData.distances.frontLong / 10.0f + JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f) + fusedData.robotState.position.y;
+
+						if (fabs(hitY - fusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+						{
+							hitPointIsOk = true;
+						}
+					}
+					else
+					{
+						float hitX = cosf(fusedData.robotState.rotation.x) * (fusedData.distances.frontRight / 10.0f + JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f) + fusedData.robotState.position.x;
+
+						if (fabs(hitX - fusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+						{
+							hitPointIsOk = true;
+						}
+					}
+
+					if (hitPointIsOk)
+					{
+						if (lastMiddleFrontDist != 0 && lastTime != 0)
+						{
+							Serial.println((float)lastMiddleFrontDist);
+							tempDistSensSpeed += (fusedData.distances.frontLong - lastMiddleFrontDist) / 10.0f * 1000.0f / (now - lastTime);
+							validDistSpeedSamples++;
+						}
+
+						lastMiddleFrontDist = fusedData.distances.frontLong;
+					}
+					else
+					{
+						lastMiddleFrontDist = 0;
+					}
+				}
+				else
+				{
+					lastMiddleFrontDist = 0;
+				}
+
+				//if (fusedData.distSensorState.backLong == DistSensorStatus::ok)
+				//{
+				//	bool hitPointIsOk = false;
+
+				//	// Measurement is ok
+				//	// Check if resulting hit point is a 90° wall in front of us
+				//	if (fusedData.robotState.heading == AbsoluteDir::north || fusedData.robotState.heading == AbsoluteDir::south)
+				//	{
+				//		float hitY = -sinf(fusedData.robotState.rotation.x) * (fusedData.distances.frontLong / 10.0f + JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f) + fusedData.robotState.position.y;
+
+				//		if (fabs(hitY - fusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+				//		{
+				//			hitPointIsOk = true;
+				//		}
+				//	}
+				//	else
+				//	{
+				//		float hitX = -cosf(fusedData.robotState.rotation.x) * (fusedData.distances.frontRight / 10.0f + JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f) + fusedData.robotState.position.x;
+
+				//		if (fabs(hitX - fusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+				//		{
+				//			hitPointIsOk = true;
+				//		}
+				//	}
+
+				//	if (hitPointIsOk)
+				//	{
+				//		if (lastMiddleBackDist != 0 && lastTime != 0)
+				//		{
+				//			tempDistSensSpeed -= (fusedData.distances.backLong - lastMiddleBackDist) / 10.0f * 1000.0f / (now - lastTime); // Negative, because it is the back-sensor
+				//			validDistSpeedSamples++;
+				//		}
+
+				//		lastMiddleBackDist = fusedData.distances.backLong;
+				//	}
+				//	else
+				//	{
+				//		lastMiddleBackDist = 0;
+				//	}
+				//}
+				//else
+				//{
+				//	lastMiddleBackDist = 0;
+				//}
 			}
 			else
 			{
 				lastLeftDist = 0;
 				lastRightDist = 0;
+				lastMiddleFrontDist = 0;
+				lastMiddleBackDist = 0;
 			}
 
-			if (validDistSpeedSamples == 1)
+			if (validDistSpeedSamples > 0)
 			{
 				distSensSpeedTrust = true;
-				distSensSpeed = tempDistSensSpeed;
-			}
-			else if (validDistSpeedSamples == 2)
-			{
-				distSensSpeedTrust = true;
-				distSensSpeed = tempDistSensSpeed / 2.0f;
+				distSensSpeed = (-tempDistSensSpeed / (float)(validDistSpeedSamples)) * JAFDSettings::SensorFusion::distSensSpeedIIRFactor + distSensSpeed * (1 - JAFDSettings::SensorFusion::distSensSpeedIIRFactor);	// Negative, because increasing distance means driving away; 
 			}
 			else
 			{
@@ -474,8 +565,99 @@ namespace JAFD
 				_fusedData.distances.rightFront = 0;
 			}
 
-			//_fusedData.distances.frontLong = DistanceSensors::frontLong.getDistance();
-			//_fusedData.distances.backLong = DistanceSensors::backLong.getDistance();
+			numCorrectSamples = 0;
+			tempAverageDist = 0;
+			numOverflowSamples = 0;
+			numUnderflowSamples = 0;
+
+			for (uint8_t i = 0; i < JAFDSettings::DistanceSensors::averagingNumSamples; i++)
+			{
+				tempDist = DistanceSensors::frontLong.getDistance();
+
+				if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::noError)
+				{
+					numCorrectSamples++;
+					tempAverageDist += tempDist;
+				}
+				else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::overflow)
+				{
+					numOverflowSamples++;
+				}
+				else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::underflow)
+				{
+					numUnderflowSamples++;
+				}
+			}
+
+			if (numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numCorrectSamples))
+			{
+				_fusedData.distances.frontLong = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
+				_fusedData.distSensorState.frontLong = DistSensorStatus::ok;
+			}
+			else
+			{
+				if (numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples))
+				{
+					_fusedData.distSensorState.frontLong = DistSensorStatus::overflow;
+				}
+				else if (numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples))
+				{
+					_fusedData.distSensorState.frontLong = DistSensorStatus::underflow;
+				}
+				else
+				{
+					_fusedData.distSensorState.frontLong = DistSensorStatus::error;
+				}
+
+				_fusedData.distances.frontLong = 0;
+			}
+
+			numCorrectSamples = 0;
+			tempAverageDist = 0;
+			numOverflowSamples = 0;
+			numUnderflowSamples = 0;
+
+			//for (uint8_t i = 0; i < JAFDSettings::DistanceSensors::averagingNumSamples; i++)
+			//{
+			//	tempDist = DistanceSensors::backLong.getDistance();
+
+			//	if (DistanceSensors::backLong.getStatus() == decltype(DistanceSensors::backLong)::Status::noError)
+			//	{
+			//		numCorrectSamples++;
+			//		tempAverageDist += tempDist;
+			//	}
+			//	else if (DistanceSensors::backLong.getStatus() == decltype(DistanceSensors::backLong)::Status::overflow)
+			//	{
+			//		numOverflowSamples++;
+			//	}
+			//	else if (DistanceSensors::backLong.getStatus() == decltype(DistanceSensors::backLong)::Status::underflow)
+			//	{
+			//		numUnderflowSamples++;
+			//	}
+			//}
+
+			//if (numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numCorrectSamples))
+			//{
+			//	_fusedData.distances.backLong = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
+			//	_fusedData.distSensorState.backLong = DistSensorStatus::ok;
+			//}
+			//else
+			//{
+			//	if (numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples))
+			//	{
+			//		_fusedData.distSensorState.backLong = DistSensorStatus::overflow;
+			//	}
+			//	else if (numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples))
+			//	{
+			//		_fusedData.distSensorState.backLong = DistSensorStatus::underflow;
+			//	}
+			//	else
+			//	{
+			//		_fusedData.distSensorState.backLong = DistSensorStatus::error;
+			//	}
+
+			//	_fusedData.distances.backLong = 0;
+			//}
 		}
 
 		void setCertainRobotPosition(Vec3f pos, Vec3f rotation)
