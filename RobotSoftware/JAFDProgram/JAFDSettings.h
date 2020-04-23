@@ -71,11 +71,12 @@ namespace JAFDSettings
 	}
 
 	namespace SensorFusion
-
 	{
 		constexpr float maxPitchForDistSensor = DEG_TO_RAD * 10.0f;		// Maximum pitch of robot for correct front distance measurements
 		constexpr uint16_t minDeltaDistForEdge = 30;					// Minimum change in distance that corresponds to an edge (in mm)
-		constexpr float distSensSpeedIIRFactor = 0.3;					// Factor used for IIR-Filter for speed measured by distance sensors.
+		constexpr float distSensSpeedIIRFactor = 0.4;					// Factor used for IIR-Filter for speed measured by distance sensors
+		constexpr float longDistSensIIRFactor = 0.4;					// Factor used for IIR-Filter for high range distance measurements
+		constexpr float shortDistSensIIRFactor = 0.4;					// Factor used for IIR-Filter for short range distance measurements
 	}
 
 	namespace Controller
