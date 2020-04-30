@@ -74,9 +74,9 @@ namespace JAFDSettings
 	{
 		constexpr float maxPitchForDistSensor = DEG_TO_RAD * 10.0f;		// Maximum pitch of robot for correct front distance measurements
 		constexpr uint16_t minDeltaDistForEdge = 30;					// Minimum change in distance that corresponds to an edge (in mm)
-		constexpr float distSensSpeedIIRFactor = 0.4;					// Factor used for IIR-Filter for speed measured by distance sensors
-		constexpr float longDistSensIIRFactor = 0.4;					// Factor used for IIR-Filter for high range distance measurements
-		constexpr float shortDistSensIIRFactor = 0.4;					// Factor used for IIR-Filter for short range distance measurements
+		constexpr float distSensSpeedIIRFactor = 0.4f;					// Factor used for IIR-Filter for speed measured by distance sensors
+		constexpr float longDistSensIIRFactor = 0.9f;					// Factor used for IIR-Filter for high range distance measurements
+		constexpr float shortDistSensIIRFactor = 0.7f;					// Factor used for IIR-Filter for short range distance measurements
 	}
 
 	namespace Controller
@@ -127,7 +127,7 @@ namespace JAFDSettings
 
 	namespace MazeMapping
 	{
-		constexpr uint16_t distLongerThanBorder = 70;	// Distance longer than border from which next field is empty (mm)
+		constexpr float distLongerThanBorder = 7.0f;	// Distance longer than border from which next field is empty (cm)
 		constexpr float widthSecureDetectFactor = 0.7f;	// Factor of cell width in which border the distance measurement safely hits the front wall	
 	}
 

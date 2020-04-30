@@ -72,7 +72,9 @@ namespace JAFD
 			static uint16_t lastMiddleBackDist = 0;		// Last distance middle back
 			float tempDistSensSpeed = 0.0f;		// Measured speed 
 
-			MazeMapping::updateCurrentCell(tempFusedData.gridCellCertainty, tempFusedData.gridCell);
+			uint8_t frontWallsDetected = 0;		// How many times did a wall in front of us get detected
+			uint8_t leftWallsDetected = 0;		// How many times did a wall left of us get detected
+			uint8_t rightWallsDetected = 0;		// How many times did a wall right of us get detected
 
 			if (fabs(tempFusedData.robotState.rotation.y) < JAFDSettings::SensorFusion::maxPitchForDistSensor)
 			{
@@ -89,6 +91,14 @@ namespace JAFD
 						if (fabs(hitY - tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
 						{
 							hitPointIsOk = true;
+
+							float hitX = cosf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.frontLeft / 10.0f + tempFusedData.robotState.position.y + cosf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensFrontAngleToMiddle) * JAFDSettings::Mechanics::distSensFrontDistToMiddle;
+
+							if (fabs(hitX - tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) > JAFDSettings::Field::cellWidth + JAFDSettings::MazeMapping::distLongerThanBorder)
+							{
+								// Wall is directly in front of us
+								frontWallsDetected++;
+							}
 						}
 					}
 					else
@@ -98,6 +108,14 @@ namespace JAFD
 						if (fabs(hitX - tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
 						{
 							hitPointIsOk = true;
+
+							float hitY = sinf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.frontLeft / 10.0f + tempFusedData.robotState.position.y + sinf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensFrontAngleToMiddle) * JAFDSettings::Mechanics::distSensFrontDistToMiddle;
+
+							if (fabs(hitY - tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) > JAFDSettings::Field::cellWidth + JAFDSettings::MazeMapping::distLongerThanBorder)
+							{
+								// Wall is directly in front of us
+								frontWallsDetected++;
+							}
 						}
 					}
 
@@ -119,6 +137,11 @@ namespace JAFD
 				else
 				{
 					lastLeftDist = 0;
+
+					if (tempFusedData.distSensorState.frontLeft == DistSensorStatus::underflow)
+					{
+						frontWallsDetected++;
+					}
 				}
 
 				if (tempFusedData.distSensorState.frontRight == DistSensorStatus::ok)
@@ -134,6 +157,14 @@ namespace JAFD
 						if (fabs(hitY - tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
 						{
 							hitPointIsOk = true;
+
+							float hitX = cosf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.frontRight / 10.0f + tempFusedData.robotState.position.x - cosf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensFrontAngleToMiddle) * JAFDSettings::Mechanics::distSensFrontDistToMiddle;
+
+							if (fabs(hitX - tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) > JAFDSettings::Field::cellWidth + JAFDSettings::MazeMapping::distLongerThanBorder)
+							{
+								// Wall is directly in front of us
+								frontWallsDetected++;
+							}
 						}
 					}
 					else
@@ -143,6 +174,14 @@ namespace JAFD
 						if (fabs(hitX - tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
 						{
 							hitPointIsOk = true;
+
+							float hitY = sinf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.frontRight / 10.0f + tempFusedData.robotState.position.y - sinf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensFrontAngleToMiddle) * JAFDSettings::Mechanics::distSensFrontDistToMiddle;
+
+							if (fabs(hitY - tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) > JAFDSettings::Field::cellWidth + JAFDSettings::MazeMapping::distLongerThanBorder)
+							{
+								// Wall is directly in front of us
+								frontWallsDetected++;
+							}
 						}
 					}
 
@@ -164,6 +203,171 @@ namespace JAFD
 				else
 				{
 					lastRightDist = 0;
+
+					if (tempFusedData.distSensorState.frontRight == DistSensorStatus::underflow)
+					{
+						frontWallsDetected++;
+					}
+				}
+
+				if (tempFusedData.distSensorState.leftFront == DistSensorStatus::ok)
+				{
+					// Measurement is ok
+					// Check if resulting hit point is a 90° wall in front of us
+					if (tempFusedData.robotState.heading == AbsoluteDir::north || tempFusedData.robotState.heading == AbsoluteDir::south)
+					{
+						float hitX = -sinf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.leftFront / 10.0f + tempFusedData.robotState.position.x + cosf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+						if (fabs(hitX - tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+						{
+							float hitY = -cosf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.leftFront / 10.0f + tempFusedData.robotState.position.x + sinf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+							if (fabs(hitY - tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) > JAFDSettings::Field::cellWidth + JAFDSettings::MazeMapping::distLongerThanBorder)
+							{
+								// Wall is directly in front of us
+								leftWallsDetected++;
+							}
+						}
+					}
+					else
+					{
+						float hitY = -cosf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.leftFront / 10.0f + tempFusedData.robotState.position.x - sinf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+						if (fabs(hitY - tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+						{
+							float hitX = -sinf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.leftFront / 10.0f + tempFusedData.robotState.position.x - cosf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+							if (fabs(hitX - tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) > JAFDSettings::Field::cellWidth + JAFDSettings::MazeMapping::distLongerThanBorder)
+							{
+								// Wall is directly in front of us
+								leftWallsDetected++;
+							}
+						}
+					}		
+				}
+				else if (tempFusedData.distSensorState.leftFront == DistSensorStatus::underflow)
+				{
+					leftWallsDetected++;
+				}
+
+				if (tempFusedData.distSensorState.leftBack == DistSensorStatus::ok)
+				{
+					// Measurement is ok
+					// Check if resulting hit point is a 90° wall in front of us
+					if (tempFusedData.robotState.heading == AbsoluteDir::north || tempFusedData.robotState.heading == AbsoluteDir::south)
+					{
+						float hitX = -sinf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.leftBack / 10.0f + tempFusedData.robotState.position.x - cosf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+						if (fabs(hitX - tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+						{
+							float hitY = -cosf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.leftBack / 10.0f + tempFusedData.robotState.position.x - sinf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+							if (fabs(hitY - tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) > JAFDSettings::Field::cellWidth + JAFDSettings::MazeMapping::distLongerThanBorder)
+							{
+								// Wall is directly in front of us
+								leftWallsDetected++;
+							}
+						}
+					}
+					else
+					{
+						float hitY = -cosf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.leftBack / 10.0f + tempFusedData.robotState.position.x + sinf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+						if (fabs(hitY - tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+						{
+							float hitX = -sinf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.leftBack / 10.0f + tempFusedData.robotState.position.x + cosf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+							if (fabs(hitX - tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) > JAFDSettings::Field::cellWidth + JAFDSettings::MazeMapping::distLongerThanBorder)
+							{
+								// Wall is directly in front of us
+								leftWallsDetected++;
+							}
+						}
+					}
+				}
+				else if (tempFusedData.distSensorState.leftBack == DistSensorStatus::underflow)
+				{
+					leftWallsDetected++;
+				}
+
+				if (tempFusedData.distSensorState.rightFront == DistSensorStatus::ok)
+				{
+					// Measurement is ok
+					// Check if resulting hit point is a 90° wall in front of us
+					if (tempFusedData.robotState.heading == AbsoluteDir::north || tempFusedData.robotState.heading == AbsoluteDir::south)
+					{
+						float hitX = sinf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.rightFront / 10.0f + tempFusedData.robotState.position.x + cosf(tempFusedData.robotState.rotation.x - JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+						if (fabs(hitX - tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+						{
+							float hitY = cosf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.rightFront / 10.0f + tempFusedData.robotState.position.x + sinf(tempFusedData.robotState.rotation.x - JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+							if (fabs(hitY - tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) > JAFDSettings::Field::cellWidth + JAFDSettings::MazeMapping::distLongerThanBorder)
+							{
+								// Wall is directly in front of us
+								rightWallsDetected++;
+							}
+						}
+					}
+					else
+					{
+						float hitY = cosf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.rightFront / 10.0f + tempFusedData.robotState.position.x - sinf(tempFusedData.robotState.rotation.x - JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+						if (fabs(hitY - tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+						{
+							float hitX = sinf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.rightFront / 10.0f + tempFusedData.robotState.position.x - cosf(tempFusedData.robotState.rotation.x - JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+							if (fabs(hitX - tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) > JAFDSettings::Field::cellWidth + JAFDSettings::MazeMapping::distLongerThanBorder)
+							{
+								// Wall is directly in front of us
+								rightWallsDetected++;
+							}
+						}
+					}
+				}
+				else if (tempFusedData.distSensorState.rightFront == DistSensorStatus::underflow)
+				{
+					rightWallsDetected++;
+				}
+
+				if (tempFusedData.distSensorState.rightBack == DistSensorStatus::ok)
+				{
+					// Measurement is ok
+					// Check if resulting hit point is a 90° wall in front of us
+					if (tempFusedData.robotState.heading == AbsoluteDir::north || tempFusedData.robotState.heading == AbsoluteDir::south)
+					{
+						float hitX = sinf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.rightBack / 10.0f + tempFusedData.robotState.position.x + cosf(tempFusedData.robotState.rotation.x - JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+						if (fabs(hitX - tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+						{
+							float hitY = cosf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.rightBack / 10.0f + tempFusedData.robotState.position.x + sinf(tempFusedData.robotState.rotation.x - JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+							if (fabs(hitY - tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) > JAFDSettings::Field::cellWidth + JAFDSettings::MazeMapping::distLongerThanBorder)
+							{
+								// Wall is directly in front of us
+								rightWallsDetected++;
+							}
+						}
+					}
+					else
+					{
+						float hitY = cosf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.rightBack / 10.0f + tempFusedData.robotState.position.x - sinf(tempFusedData.robotState.rotation.x - JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+						if (fabs(hitY - tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+						{
+							float hitX = sinf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.rightBack / 10.0f + tempFusedData.robotState.position.x - cosf(tempFusedData.robotState.rotation.x - JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+							if (fabs(hitX - tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) > JAFDSettings::Field::cellWidth + JAFDSettings::MazeMapping::distLongerThanBorder)
+							{
+								// Wall is directly in front of us
+								rightWallsDetected++;
+							}
+						}
+					}
+				}
+				else if (tempFusedData.distSensorState.rightBack == DistSensorStatus::underflow)
+				{
+					rightWallsDetected++;
 				}
 
 				if (tempFusedData.distSensorState.frontLong == DistSensorStatus::ok)
@@ -179,6 +383,14 @@ namespace JAFD
 						if (fabs(hitY - tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
 						{
 							hitPointIsOk = true;
+
+							float hitX = cosf(tempFusedData.robotState.rotation.x) * (tempFusedData.distances.frontRight / 10.0f + JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f) + tempFusedData.robotState.position.x;
+
+							if (fabs(hitX - tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) > JAFDSettings::Field::cellWidth + JAFDSettings::MazeMapping::distLongerThanBorder)
+							{
+								// Wall is directly in front of us
+								frontWallsDetected++;
+							}
 						}
 					}
 					else
@@ -188,6 +400,14 @@ namespace JAFD
 						if (fabs(hitX - tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
 						{
 							hitPointIsOk = true;
+							
+							float hitY = sinf(tempFusedData.robotState.rotation.x) * (tempFusedData.distances.frontLong / 10.0f + JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f) + tempFusedData.robotState.position.y;
+
+							if (fabs(hitY - tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) > JAFDSettings::Field::cellWidth + JAFDSettings::MazeMapping::distLongerThanBorder)
+							{
+								// Wall is directly in front of us
+								frontWallsDetected++;
+							}
 						}
 					}
 
@@ -206,10 +426,6 @@ namespace JAFD
 					{
 						lastMiddleFrontDist = 0;
 					}
-				}
-				else
-				{
-					lastMiddleFrontDist = 0;
 				}
 
 				//if (tempFusedData.distSensorState.backLong == DistSensorStatus::ok)
@@ -279,6 +495,144 @@ namespace JAFD
 
 			fusedData = tempFusedData;
 		}
+
+		// Nur zum "abschreiben"
+		//void updateCurrentCell(volatile float& certainty, volatile GridCell& cell)
+		//{
+		//	static MapCoordinate lastPosition = homePosition;
+		//	static Distances lastDistances;
+		//	static DistSensorStates lastDistSensStates;
+
+		//	const FusedData tempFusedData = SensorFusion::getFusedData();
+		//	const Distances currentDistances = tempFusedData.distances;
+		//	const DistSensorStates currentDistSensStates = tempFusedData.distSensorState;
+
+		//	float tempCertainty;
+		//	GridCell tempCell;
+
+		//	if (lastPosition != MapCoordinate(tempFusedData.robotState.mapCoordinate))
+		//	{
+		//		tempCertainty = 0.0f;
+		//		tempCell.cellConnections = Directions::nowhere;
+		//		tempCell.cellState = 0;
+		//	}
+		//	else
+		//	{
+		//		tempCertainty = certainty;
+		//		tempCell = cell;
+		//	}
+
+		//	if (fabs(tempFusedData.robotState.rotation.y) < JAFDSettings::SensorFusion::maxPitchForDistSensor)
+		//	{
+		//		if (currentDistSensStates.leftFront == DistSensorStatus::ok)
+		//		{
+		//			// Measurement is ok
+		//			// Check if resulting hit point is a 90° wall on left side of us
+		//			if (tempFusedData.robotState.heading == AbsoluteDir::north || tempFusedData.robotState.heading == AbsoluteDir::south)
+		//			{
+		//				float hitX = sinf(tempFusedData.robotState.rotation.x) * currentDistances.leftFront / 10.0f + tempFusedData.robotState.position.x + cosf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+		//				if (fabs(hitX - tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+		//				{
+		//					if ()
+		//				}
+		//			}
+		//			else
+		//			{
+		//				float hitY = cosf(tempFusedData.robotState.rotation.x) * currentDistances.leftFront / 10.0f + tempFusedData.robotState.position.y + sinf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;;
+
+		//				if (fabs(hitY - tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+		//				{
+		//					hitPointIsOk = true;
+		//				}
+		//			}
+		//		}
+
+		//		if (tempFusedData.distSensorState.leftBack == DistSensorStatus::ok)
+		//		{
+		//			bool hitPointIsOk = false;
+
+		//			// Measurement is ok
+		//			// Check if resulting hit point is a 90° wall on left side of us
+		//			if (tempFusedData.robotState.heading == AbsoluteDir::north || tempFusedData.robotState.heading == AbsoluteDir::south)
+		//			{
+		//				float hitX = sinf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.leftBack / 10.0f + tempFusedData.robotState.position.x - cosf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+		//				if (fabs(hitX - tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+		//				{
+		//					hitPointIsOk = true;
+		//				}
+		//			}
+		//			else
+		//			{
+		//				float hitY = cosf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.leftBack / 10.0f + tempFusedData.robotState.position.y - sinf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;;
+
+		//				if (fabs(hitY - tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+		//				{
+		//					hitPointIsOk = true;
+		//				}
+		//			}
+		//		}
+
+		//		if (tempFusedData.distSensorState.rightFront == DistSensorStatus::ok)
+		//		{
+		//			bool hitPointIsOk = false;
+
+		//			// Measurement is ok
+		//			// Check if resulting hit point is a 90° wall on left side of us
+		//			if (tempFusedData.robotState.heading == AbsoluteDir::north || tempFusedData.robotState.heading == AbsoluteDir::south)
+		//			{
+		//				float hitX = -sinf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.rightFront / 10.0f + tempFusedData.robotState.position.x + cosf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+		//				if (fabs(hitX - tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+		//				{
+		//					hitPointIsOk = true;
+		//				}
+		//			}
+		//			else
+		//			{
+		//				float hitY = -cosf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.rightFront / 10.0f + tempFusedData.robotState.position.y + sinf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;;
+
+		//				if (fabs(hitY - tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+		//				{
+		//					hitPointIsOk = true;
+		//				}
+		//			}
+		//		}
+
+		//		if (tempFusedData.distSensorState.rightBack == DistSensorStatus::ok)
+		//		{
+		//			bool hitPointIsOk = false;
+
+		//			// Measurement is ok
+		//			// Check if resulting hit point is a 90° wall on left side of us
+		//			if (tempFusedData.robotState.heading == AbsoluteDir::north || tempFusedData.robotState.heading == AbsoluteDir::south)
+		//			{
+		//				float hitX = -sinf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.rightBack / 10.0f + tempFusedData.robotState.position.x - cosf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;
+
+		//				if (fabs(hitX - tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+		//				{
+		//					hitPointIsOk = true;
+		//				}
+		//			}
+		//			else
+		//			{
+		//				float hitY = -cosf(tempFusedData.robotState.rotation.x) * tempFusedData.distances.rightBack / 10.0f + tempFusedData.robotState.position.y - sinf(tempFusedData.robotState.rotation.x + JAFDSettings::Mechanics::distSensLRAngleToMiddle) * JAFDSettings::Mechanics::distSensLRDistToMiddle;;
+
+		//				if (fabs(hitY - tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth) < JAFDSettings::MazeMapping::widthSecureDetectFactor * JAFDSettings::Field::cellWidth)
+		//				{
+		//					hitPointIsOk = true;
+		//				}
+		//			}
+		//		}
+		//	}
+
+		//	lastDistances = currentDistances;
+		//	lastDistSensStates = currentDistSensStates;
+		//	lastPosition = tempFusedData.robotState.mapCoordinate;
+		//	certainty = tempCertainty;
+		//	cell = tempCell;
+		//}
 
 		void updateDistSensor()
 		{
