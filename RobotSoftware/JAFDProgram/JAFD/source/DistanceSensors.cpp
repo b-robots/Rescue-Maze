@@ -587,11 +587,10 @@ namespace JAFD
 				code = ReturnCode::fatalError;
 			}
 
-			if (frontLong.setup() != ReturnCode::ok)
-			{
-				Serial.println("FL");
-				code = ReturnCode::fatalError;
-			}
+			//if (frontLong.setup() != ReturnCode::ok)
+			//{
+			//	code = ReturnCode::fatalError;
+			//}
 
 			//if (backLong.setup() != ReturnCode::ok)
 			//{
