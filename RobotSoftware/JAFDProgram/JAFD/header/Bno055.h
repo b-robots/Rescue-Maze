@@ -21,6 +21,9 @@ namespace JAFD
 		ReturnCode calibration();
 		void update_sensorreadings();		//Funktn aus Bno055 aufrufen
 
+		void Write_to_RAM();
+		void Read_from_RAM();
+
 		Vec3f get_linear_acceleration();
 		Vec3f get_angular_velocity();
 		Vec3f get_absolute_orientation();

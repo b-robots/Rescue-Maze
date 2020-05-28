@@ -138,6 +138,13 @@ namespace JAFD
 			*bfsValue = bytes[2];
 		}
 
+		// Set current cell and recalculate certainty
+		void setCurrentCell(const GridCell gridCell, float&  currentCertainty, const float updateCertainty, MapCoordinate coor)
+		{
+			currentCertainty = 0.25f * updateCertainty + 0.5f * updateCertainty * updateCertainty + 0.15f * currentCertainty + 0.55f * currentCertainty * updateCertainty - 0.7f * currentCertainty * updateCertainty * updateCertainty + 0.3f * currentCertainty * currentCertainty + 0.1f * currentCertainty * currentCertainty * updateCertainty - 0.2f * currentCertainty * currentCertainty * updateCertainty * updateCertainty + 0.05;
+			setGridCell(gridCell, coor);
+		}
+
 		namespace BFAlgorithm
 		{
 			// Reset all BFS Values in this floor

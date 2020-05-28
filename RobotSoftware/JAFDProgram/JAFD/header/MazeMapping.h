@@ -52,5 +52,8 @@ namespace JAFD
 		void getGridCell(GridCell* gridCell, const MapCoordinate coor);
 		void getGridCell(uint8_t* bfsValue, const MapCoordinate coor);
 		void getGridCell(GridCell* gridCell, uint8_t* bfsValue, const MapCoordinate coor);
+
+		// Set current cell and recalculate certainty
+		void setCurrentCell(const GridCell gridCell, float& currentCertainty, const float updateCertainty, MapCoordinate coor);
 	}
 }

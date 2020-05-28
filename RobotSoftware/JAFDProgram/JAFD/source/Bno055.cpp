@@ -43,6 +43,8 @@ namespace JAFD
 
 			bno055.setExtCrystalUse(true);
 
+			Read_from_RAM();
+
 			return ReturnCode::ok;
 		}
 
@@ -87,6 +89,8 @@ namespace JAFD
 			} while (gyro < 2);
 
 			Serial.println("Calibration complete!");
+
+			Write_to_RAM();
 		}
 
 

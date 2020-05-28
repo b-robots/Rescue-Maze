@@ -34,7 +34,9 @@ void PIOD_Handler()
 // 1kHz 
 void TC3_Handler()
 {
-	TC1->TC_CHANNEL[0].TC_SR;
+	{
+		volatile auto dummy = TC1->TC_CHANNEL[0].TC_SR;
+	}
 }
 
 // 100Hz
@@ -42,40 +44,52 @@ void TC4_Handler()
 {
 	static uint8_t i = 0;
 
-	TC1->TC_CHANNEL[1].TC_SR;
+	{
+		volatile auto dummy = TC1->TC_CHANNEL[1].TC_SR;
+	}
 
 	i++;
+
 	// 100Hz:
 
 	if (i % 2 == 0)
 	{
 		// 50Hz:
 	}
+}
 
-	if (i % 5 == 0)
+// 20Hz
+void TC5_Handler()
+{
+	static uint8_t i = 0;
+
 	{
-		// 20Hz:
-		JAFD::MotorControl::calcMotorSpeed(20);
-		JAFD::SensorFusion::sensorFiltering(20);
-		JAFD::SmoothDriving::updateSpeeds(20);
-		JAFD::MotorControl::speedPID(20);
+		volatile auto dummy = TC1->TC_CHANNEL[2].TC_SR;
+	}
 
-		if (i % 10 == 0)
+	i++;
+
+	// 20Hz:
+	JAFD::MotorControl::calcMotorSpeed(20);
+	JAFD::SensorFusion::sensorFiltering(20);
+	JAFD::SmoothDriving::updateSpeeds(20);
+	JAFD::MotorControl::speedPID(20);
+
+	if (i % 2 == 0)
+	{
+		// 10Hz:
+		JAFD::Bno055::update_sensorreadings();
+
+		if (i % 4 == 0)
 		{
-			// 10Hz:
-			// JAFD::Bno055::update_sensorreadings();
+			// 5Hz:
 
 			if (i % 20 == 0)
 			{
-				// 5Hz:
-				
+				i = 0;
 
-				if (i % 100 == 0)
-				{
-					i = 0;
+				// 1Hz:
 
-					// 1Hz:
-				}
 			}
 		}
 	}

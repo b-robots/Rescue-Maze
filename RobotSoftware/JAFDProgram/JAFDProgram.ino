@@ -29,14 +29,6 @@
 #include "JAFD/header/Bno055.h"
 #include "JAFD/header/SpiNVSRAM.h"
 
-using namespace JAFD::SpiNVSRAM;
-using namespace JAFD::MazeMapping;
-using namespace JAFD::MotorControl;
-using namespace JAFD::SmoothDriving;
-using namespace JAFD::SensorFusion;
-using namespace JAFD::DistanceSensors;
-using namespace JAFD::Bno055;
-
 // The setup function runs once when you press reset or power the board
 void setup()
 {
