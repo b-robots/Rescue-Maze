@@ -24,6 +24,7 @@ namespace JAFD
 		namespace
 		{
 			Adafruit_BNO055 bno055;
+			Vec3f startRotation(0, 0, 0);
 
 			//Variables for getting the sensor values
 
@@ -93,6 +94,12 @@ namespace JAFD
 			Write_to_RAM();
 		}
 
+		void setStartPoint()
+		{
+			update_sensorreadings();
+
+			startRotation = get_absolute_orientation();
+		}
 
 		void update_sensorreadings()					//gets values from the sensors
 		{
@@ -143,8 +150,7 @@ namespace JAFD
 				absolute_orientation_values.z = orientationEvent.orientation.z;
 			}
 
-			return absolute_orientation_values;
-			
+			return absolute_orientation_values - startRotation;	
 		}
 
 		Vec3f get_gravity_vector()
@@ -154,7 +160,6 @@ namespace JAFD
 			// Why the f**k is the gravity measurement an accelerometer sensor and not a gravity sensor?
 			if (gravityVecEvent.type == SENSOR_TYPE_ACCELEROMETER)
 			{
-
 				gravity_vector_values.x = gravityVecEvent.acceleration.x;
 				gravity_vector_values.y = gravityVecEvent.acceleration.y;
 				gravity_vector_values.z = gravityVecEvent.acceleration.z;

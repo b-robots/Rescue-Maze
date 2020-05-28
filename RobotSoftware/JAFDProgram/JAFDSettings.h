@@ -77,6 +77,10 @@ namespace JAFDSettings
 		constexpr float distSensSpeedIIRFactor = 0.4f;					// Factor used for IIR-Filter for speed measured by distance sensors
 		constexpr float longDistSensIIRFactor = 0.9f;					// Factor used for IIR-Filter for high range distance measurements
 		constexpr float shortDistSensIIRFactor = 0.7f;					// Factor used for IIR-Filter for short range distance measurements
+		constexpr float minHeightDiffFloor = 50.0f;						// Minimum height differenc to be on the other floor
+		constexpr float distSpeedPortion = 0.7f;						// How much is a perfect distance sensor measured speed worth?
+		constexpr float bno055Portion = 0.5f;							// How much is a Bno055 measurement worth?
+		constexpr float pitchIIRFactor = 0.8f;							// Factor used for IIR-Filter for pitch by BNO055
 	}
 
 	namespace Controller

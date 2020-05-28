@@ -73,6 +73,9 @@ namespace JAFD
 			Serial.println("Error Bno055");
 		}
 
+		// Set start for 9DOF
+		Bno055::setStartPoint();
+
 		// Setup TC3 for an interrupt every ms -> 1kHz (MCK / 32 / 2625)
 		PMC->PMC_PCER0 = 1 << ID_TC3;
 

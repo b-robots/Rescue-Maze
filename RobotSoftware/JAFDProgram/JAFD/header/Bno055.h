@@ -20,6 +20,7 @@ namespace JAFD
 		ReturnCode init();
 		ReturnCode calibration();
 		void update_sensorreadings();		//Funktn aus Bno055 aufrufen
+		void setStartPoint();
 
 		void Write_to_RAM();
 		void Read_from_RAM();

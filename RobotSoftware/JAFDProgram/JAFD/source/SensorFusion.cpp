@@ -9,6 +9,7 @@ This file of the library is responsible for the sensor fusion
 #include "../header/SensorFusion.h"
 #include "../header/MotorControl.h"
 #include "../header/DistanceSensors.h"
+#include "../header/Bno055.h"
 #include "../../JAFDSettings.h"
 #include <math.h>
 
@@ -28,38 +29,44 @@ namespace JAFD
 
 		void sensorFiltering(const uint8_t freq)
 		{
+			FusedData fd = fusedData;
+
 			// Magic Numbers 1.27f and 1.05f need to be analysed ;-)
-			fusedData.robotState.wheelSpeeds = MotorControl::getFloatSpeeds();
-			fusedData.robotState.angularVel = Vec3f((fusedData.robotState.wheelSpeeds.right - fusedData.robotState.wheelSpeeds.left) / JAFDSettings::Mechanics::wheelDistance, 0.0f, 0.0f) / 1.27f;
-			fusedData.robotState.rotation = Vec3f((MotorControl::getDistance(Motor::right) - MotorControl::getDistance(Motor::left)) / JAFDSettings::Mechanics::wheelDistance, 0.0f, 0.0f) / 1.27f - Vec3f(totalHeadingOff, 0.0f, 0.0f);
+			fd.robotState.wheelSpeeds = MotorControl::getFloatSpeeds();
 
-			fusedData.robotState.rotation.x = DEG_TO_RAD * 460.0f;
+			fd.robotState.angularVel = Vec3f((fd.robotState.wheelSpeeds.right - fd.robotState.wheelSpeeds.left) / JAFDSettings::Mechanics::wheelDistance, 0.0f, 0.0f) / 1.27f;
+			Vec3f bnoAngVel = Bno055::get_angular_velocity();
+			fd.robotState.angularVel.x = bnoAngVel.x * JAFDSettings::SensorFusion::bno055Portion + fd.robotState.angularVel.x * (1.0f - JAFDSettings::SensorFusion::bno055Portion);
+			fd.robotState.angularVel.y = bnoAngVel.y * JAFDSettings::SensorFusion::pitchIIRFactor + fd.robotState.angularVel.y * (1.0f - JAFDSettings::SensorFusion::pitchIIRFactor);
+			fd.robotState.angularVel.z = bnoAngVel.z;
+			
+			fd.robotState.rotation = Vec3f((MotorControl::getDistance(Motor::right) - MotorControl::getDistance(Motor::left)) / JAFDSettings::Mechanics::wheelDistance, 0.0f, 0.0f) / 1.27f - Vec3f(totalHeadingOff, 0.0f, 0.0f);
+			Vec3f bnoAbsOr = Bno055::get_absolute_orientation();
+			fd.robotState.rotation.x = bnoAbsOr.x * JAFDSettings::SensorFusion::bno055Portion + fd.robotState.rotation.x * (1.0f - JAFDSettings::SensorFusion::bno055Portion);
+			fd.robotState.rotation.y = bnoAbsOr.y * JAFDSettings::SensorFusion::pitchIIRFactor + fd.robotState.rotation.y * (1.0f - JAFDSettings::SensorFusion::pitchIIRFactor);
+			fd.robotState.rotation.z = bnoAbsOr.z;
+			
+			fd.robotState.forwardVel = ((fd.robotState.wheelSpeeds.left + fd.robotState.wheelSpeeds.right) / 2.0f / 1.05f) * (1.0f - distSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion) + distSensSpeed * (distSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion);
+			
+			fd.robotState.position += Vec3f::angleToDir(fd.robotState.rotation.x, fd.robotState.rotation.y) * fd.robotState.forwardVel / freq;
+			
+			fd.robotState.mapCoordinate.x = roundf(fd.robotState.position.x / JAFDSettings::Field::cellWidth);
+			fd.robotState.mapCoordinate.y = roundf(fd.robotState.position.y / JAFDSettings::Field::cellWidth);
 
-			// Nut zum testen
-			if (distSensSpeedTrust > 0.0f)
-			{
-				// !!! Faktoren sind nur num Testen
-				fusedData.robotState.forwardVel = (((fusedData.robotState.wheelSpeeds.left + fusedData.robotState.wheelSpeeds.right) / 2.0f / 1.05f) * 0.0f + distSensSpeed * 2.0) / 2.0f;
-			}
-			else
-			{
-				fusedData.robotState.forwardVel = (fusedData.robotState.wheelSpeeds.left + fusedData.robotState.wheelSpeeds.right) / 2.0f / 1.05f;
-			}
+			if (fabs(fd.robotState.position.z) > JAFDSettings::SensorFusion::minHeightDiffFloor) fd.robotState.mapCoordinate.floor = 1;
+			else fd.robotState.mapCoordinate.floor = 0;
 
-			fusedData.robotState.position += Vec3f(cosf(fusedData.robotState.rotation.x), sinf(fusedData.robotState.rotation.x), 0.0f) * (fusedData.robotState.forwardVel / freq);
-			fusedData.robotState.mapCoordinate.x = roundf(fusedData.robotState.position.x / JAFDSettings::Field::cellWidth);
-			fusedData.robotState.mapCoordinate.y = roundf(fusedData.robotState.position.y / JAFDSettings::Field::cellWidth);
-			fusedData.robotState.mapCoordinate.floor = 0;
-
-			float positiveAngle = fusedData.robotState.rotation.x;
+			float positiveAngle = fd.robotState.rotation.x;
 
 			while (positiveAngle < 0.0f) positiveAngle += M_TWOPI;
 			while (positiveAngle > M_TWOPI) positiveAngle -= M_TWOPI;
 
-			if (RAD_TO_DEG * positiveAngle > 315.0f || RAD_TO_DEG * positiveAngle < 45.0f) fusedData.robotState.heading = AbsoluteDir::north;
-			else if (RAD_TO_DEG * positiveAngle > 45.0f && RAD_TO_DEG * positiveAngle < 135.0f) fusedData.robotState.heading = AbsoluteDir::west;
-			else if (RAD_TO_DEG * positiveAngle > 135.0f && RAD_TO_DEG * positiveAngle < 225.0f) fusedData.robotState.heading = AbsoluteDir::south;
-			else fusedData.robotState.heading = AbsoluteDir::east;
+			if (RAD_TO_DEG * positiveAngle > 315.0f || RAD_TO_DEG * positiveAngle < 45.0f) fd.robotState.heading = AbsoluteDir::north;
+			else if (RAD_TO_DEG * positiveAngle > 45.0f && RAD_TO_DEG * positiveAngle < 135.0f) fd.robotState.heading = AbsoluteDir::west;
+			else if (RAD_TO_DEG * positiveAngle > 135.0f && RAD_TO_DEG * positiveAngle < 225.0f) fd.robotState.heading = AbsoluteDir::south;
+			else fd.robotState.heading = AbsoluteDir::east;
+
+			fusedData = fd;
 		}
 
 		void untimedFusion()

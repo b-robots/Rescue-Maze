@@ -11,6 +11,7 @@ This file of the library is responsible for a vector class
 #endif
 
 #include <stdint.h>
+#include <cmath>
 
 namespace JAFD
 {
@@ -201,6 +202,11 @@ namespace JAFD
 		constexpr Vec3f(const Vec3f& vec) : x(vec.x), y(vec.y), z(vec.z) {}
 		explicit Vec3f(const volatile Vec2f& vec) : x(vec.x), y(vec.y), z(0.0f) {}
 		explicit constexpr Vec3f(const Vec2f& vec) : x(vec.x), y(vec.y), z(0.0f) {}
+
+		static Vec3f angleToDir(float yaw, float pitch)
+		{
+			return Vec3f(cosf(yaw) * cosf(pitch), sinf(yaw) * cosf(pitch), sinf(pitch));
+		}
 
 		inline const volatile Vec3f& operator=(const volatile Vec3f vec) volatile
 		{
