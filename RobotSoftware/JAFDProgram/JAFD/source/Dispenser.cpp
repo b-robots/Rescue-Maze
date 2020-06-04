@@ -13,8 +13,8 @@ namespace JAFD
 	{
 		namespace
 		{
-			constexpr auto _rightPWMPin = PinMapping::MappedPins[JAFDSettings::Dispenser::Right::servoPinRight];
-			constexpr auto _leftPWMPin = PinMapping::MappedPins[JAFDSettings::Dispenser::Left::servoPinLeft];
+			constexpr auto _rightPWMPin = PinMapping::MappedPins[JAFDSettings::Dispenser::Right::servoPin];
+			constexpr auto _leftPWMPin = PinMapping::MappedPins[JAFDSettings::Dispenser::Left::servoPin];
 			constexpr auto _rightPWMCh = PinMapping::getPWMChannel(_rightPWMPin);
 			constexpr auto _leftPWMCh = PinMapping::getPWMChannel(_leftPWMPin);
 		}
@@ -73,16 +73,12 @@ namespace JAFD
 
 		uint16_t getRightCubeCount()
 		{
-			//DistanceSensors::packsRight.getDistance();
-
-			return 5; //(DistanceSensors::packsRight.getDistance() - 29) / 10;
+			return 5;
 		}
 
 		uint16_t getLeftCubeCount()
 		{
-			//DistanceSensors::packsLeft.getDistance();
-
-			return 5; //(DistanceSensors::packsRight.getDistance() - 29) / 10;
+			return 5;
 		}
 
 		ReturnCode dispenseRight(uint8_t num)
@@ -100,12 +96,12 @@ namespace JAFD
 			{
 				for (int i = 0; i < num; i++)
 				{
-					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::startDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::startDty * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(2000);
-					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::endDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
+					delay(500);
+					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::endDty * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(2000);
+					delay(500);
 				}
 
 				return ReturnCode::ok;
@@ -116,10 +112,10 @@ namespace JAFD
 				
 				for (int i = 0; i < getRightCubeCount(); i++)
 				{
-					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::startDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::startDty * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 					delay(500);
-					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::endDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::endDty * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 					delay(500);
 				}
@@ -132,12 +128,12 @@ namespace JAFD
 
 				for (int i = 0; i < remainPacks; i++)
 				{
-					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::startDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::startDty * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(2000);
-					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::endDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
+					delay(500);
+					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::endDty * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(2000);
+					delay(500);
 				}
 
 				return ReturnCode::ok;
@@ -156,16 +152,16 @@ namespace JAFD
 			{
 				return ReturnCode::error;
 			}
-			else if (getRightCubeCount() >= num)
+			else if (getLeftCubeCount() >= num)
 			{
 				for (int i = 0; i < num; i++)
 				{
-					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::startDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::startDty * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(2000);
-					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::endDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
+					delay(500);
+					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::endDty * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(2000);
+					delay(500);
 				}
 
 				return ReturnCode::ok;
@@ -176,12 +172,12 @@ namespace JAFD
 
 				for (int i = 0; i < getRightCubeCount(); i++)
 				{
-					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::startDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::startDty * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(2000);
-					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::endDYC * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
+					delay(500);
+					PWM->PWM_CH_NUM[_leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::endDty * PWM->PWM_CH_NUM[_leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(2000);
+					delay(500);
 				}
 
 				SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Stop(), true);
@@ -192,12 +188,12 @@ namespace JAFD
 
 				for (int i = 0; i < remainPacks; i++)
 				{
-					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::startDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
+					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::startDty * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(2000);
-					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::endDYC * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
+					delay(500);
+					PWM->PWM_CH_NUM[_rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::endDty * PWM->PWM_CH_NUM[_rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(2000);
+					delay(500);
 				}
 
 				return ReturnCode::ok;

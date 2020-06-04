@@ -559,31 +559,37 @@ namespace JAFD
 
 			if (leftFront.setup() != ReturnCode::ok)
 			{
+				Serial.println("lf");
 				code = ReturnCode::fatalError;
 			}
 
 			if (leftBack.setup() != ReturnCode::ok)
 			{
+				Serial.println("lb");
 				code = ReturnCode::fatalError;
 			}
 
 			if (rightFront.setup() != ReturnCode::ok)
 			{
+				Serial.println("rf");
 				code = ReturnCode::fatalError;
 			}
 
 			if (rightBack.setup() != ReturnCode::ok)
 			{
+				Serial.println("rb");
 				code = ReturnCode::fatalError;
 			}
 
 			if (frontLeft.setup() != ReturnCode::ok)
 			{
+				Serial.println("fl");
 				code = ReturnCode::fatalError;
 			}
 
 			if (frontRight.setup() != ReturnCode::ok)
 			{
+				Serial.println("fr");
 				code = ReturnCode::fatalError;
 			}
 

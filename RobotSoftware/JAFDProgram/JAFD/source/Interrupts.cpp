@@ -32,6 +32,7 @@ void PIOD_Handler()
 // TC0 - TC2 are reserved for Arduino Framework
 
 // 1kHz 
+// Not active
 void TC3_Handler()
 {
 	{
@@ -40,6 +41,7 @@ void TC3_Handler()
 }
 
 // 100Hz
+// Not active
 void TC4_Handler()
 {
 	static uint8_t i = 0;
@@ -59,6 +61,7 @@ void TC4_Handler()
 }
 
 // 20Hz
+// Active
 void TC5_Handler()
 {
 	static uint8_t i = 0;

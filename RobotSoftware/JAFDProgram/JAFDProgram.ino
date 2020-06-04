@@ -19,15 +19,7 @@
 
 // RobotLibrary
 #include "JAFD/JAFD.h"
-#include "JAFD/header/MotorControl.h"
-#include "JAFD/header/MazeMapping.h"
-#include "JAFD/header/Interrupts.h"
-#include "JAFD/header/SmoothDriving.h"
-#include "JAFD/header/AllDatatypes.h"
-#include "JAFD/header/SensorFusion.h"
-#include "JAFD/header/DistanceSensors.h"
-#include "JAFD/header/Bno055.h"
-#include "JAFD/header/SpiNVSRAM.h"
+#include "JAFD/header/Dispenser.h"
 
 // The setup function runs once when you press reset or power the board
 void setup()
@@ -38,6 +30,9 @@ void setup()
 	JAFD::robotSetup();
 
 	delay(100);
+
+	JAFD::Dispenser::dispenseLeft(2);
+	JAFD::Dispenser::dispenseRight(2);
 }
 
 // The loop function runs over and over again until power down or reset
