@@ -19,7 +19,8 @@
 
 // RobotLibrary
 #include "JAFD/JAFD.h"
-#include "JAFD/header/Dispenser.h"
+#include "JAFD/header/SmoothDriving.h"
+#include "JAFD/header/MotorControl.h"
 
 // The setup function runs once when you press reset or power the board
 void setup()
@@ -31,12 +32,12 @@ void setup()
 
 	delay(100);
 
-	JAFD::Dispenser::dispenseLeft(2);
-	JAFD::Dispenser::dispenseRight(2);
+	JAFD::SmoothDriving::setNewTask<JAFD::SmoothDriving::NewStateType::lastEndState>(JAFD::SmoothDriving::ForceSpeed(10, 100.0f), true);
 }
 
 // The loop function runs over and over again until power down or reset
 void loop()
 {
-	JAFD::robotLoop();
+	Serial.println(JAFD::MotorControl::getDistance(JAFD::Motor::left));
+	//JAFD::robotLoop();
 }

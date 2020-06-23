@@ -1,5 +1,5 @@
 /*
-This private file of the library is responsible for the access to the SPI EEPROM
+This private file of the library is responsible for the access to the SPI NVSRAM
 */
 
 #include "../../JAFDSettings.h"

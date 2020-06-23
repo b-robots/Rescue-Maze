@@ -13,7 +13,7 @@ namespace JAFD
 	{
 		namespace
 		{
-			TCA9548A _i2cMultiplexer(JAFDSettings::DistanceSensors::multiplexerAddr);
+			TCA9548A i2cMultiplexer(JAFDSettings::DistanceSensors::multiplexerAddr);
 		}
 
 		// VL6180 class - begin
@@ -21,9 +21,9 @@ namespace JAFD
 
 		ReturnCode VL6180::setup() const
 		{
-			if (_i2cMultiplexer.getChannel() != _multiplexCh)
+			if (i2cMultiplexer.getChannel() != _multiplexCh)
 			{
-				_i2cMultiplexer.selectChannel(_multiplexCh);
+				i2cMultiplexer.selectChannel(_multiplexCh);
 			}
 
 			if (read8(_regModelID) != 0xB4) {
@@ -90,9 +90,9 @@ namespace JAFD
 
 		void VL6180::loadSettings() const
 		{
-			if (_i2cMultiplexer.getChannel() != _multiplexCh)
+			if (i2cMultiplexer.getChannel() != _multiplexCh)
 			{
-				_i2cMultiplexer.selectChannel(_multiplexCh);
+				i2cMultiplexer.selectChannel(_multiplexCh);
 			}
 
 			// private settings from page 24 of app note
@@ -208,9 +208,9 @@ namespace JAFD
 		{
 			uint16_t distance;
 
-			if (_i2cMultiplexer.getChannel() != _multiplexCh)
+			if (i2cMultiplexer.getChannel() != _multiplexCh)
 			{
-				_i2cMultiplexer.selectChannel(_multiplexCh);
+				i2cMultiplexer.selectChannel(_multiplexCh);
 			}
 
 			// Wait for device to be ready for range measurement
@@ -452,9 +452,9 @@ namespace JAFD
 
 		ReturnCode VL53L0::setup()
 		{
-			if (_i2cMultiplexer.getChannel() != _multiplexCh)
+			if (i2cMultiplexer.getChannel() != _multiplexCh)
 			{
-				_i2cMultiplexer.selectChannel(_multiplexCh);
+				i2cMultiplexer.selectChannel(_multiplexCh);
 			}
 			_sensor.setTimeout(500);
 
@@ -464,9 +464,9 @@ namespace JAFD
 
 		uint16_t VL53L0::getDistance()
 		{
-			if (_i2cMultiplexer.getChannel() != _multiplexCh)
+			if (i2cMultiplexer.getChannel() != _multiplexCh)
 			{
-				_i2cMultiplexer.selectChannel(_multiplexCh);
+				i2cMultiplexer.selectChannel(_multiplexCh);
 			}
 
 			uint16_t distance = _sensor.readRangeSingleMillimeters();
@@ -593,10 +593,11 @@ namespace JAFD
 				code = ReturnCode::fatalError;
 			}
 
-			//if (frontLong.setup() != ReturnCode::ok)
-			//{
-			//	code = ReturnCode::fatalError;
-			//}
+			if (frontLong.setup() != ReturnCode::ok)
+			{
+				Serial.println("f");
+				code = ReturnCode::fatalError;
+			}
 
 			//if (backLong.setup() != ReturnCode::ok)
 			//{

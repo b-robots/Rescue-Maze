@@ -118,15 +118,17 @@ namespace JAFDSettings
 		namespace Left
 		{
 			constexpr float startDty = 0.03f;	// duty cylce for start
-			constexpr float endDty = 0.12f;	// duty cylce for start
+			constexpr float endDty = 0.12f;		// duty cylce for start
 			constexpr uint8_t servoPin = 35;
+			constexpr uint8_t startCubeCount = 5;
 		}
 
 		namespace Right
 		{
 			constexpr float startDty = 0.12f;	// duty cylce for start
-			constexpr float endDty = 0.03f;	// duty cylce for start
+			constexpr float endDty = 0.03f;		// duty cylce for start
 			constexpr uint8_t servoPin = 37;
+			constexpr uint8_t startCubeCount = 5;
 		}
 	}
 

@@ -31,25 +31,26 @@ namespace JAFD
 		{
 			FusedData fd = fusedData;
 
-			// Magic Numbers 1.27f and 1.05f need to be analysed ;-)
 			fd.robotState.wheelSpeeds = MotorControl::getFloatSpeeds();
 
+			// Magic Numbers 1.27f and 1.05f need to be analysed ;-)
 			fd.robotState.angularVel = Vec3f((fd.robotState.wheelSpeeds.right - fd.robotState.wheelSpeeds.left) / JAFDSettings::Mechanics::wheelDistance, 0.0f, 0.0f) / 1.27f;
-			Vec3f bnoAngVel = Bno055::get_angular_velocity();
-			fd.robotState.angularVel.x = bnoAngVel.x * JAFDSettings::SensorFusion::bno055Portion + fd.robotState.angularVel.x * (1.0f - JAFDSettings::SensorFusion::bno055Portion);
-			fd.robotState.angularVel.y = bnoAngVel.y * JAFDSettings::SensorFusion::pitchIIRFactor + fd.robotState.angularVel.y * (1.0f - JAFDSettings::SensorFusion::pitchIIRFactor);
-			fd.robotState.angularVel.z = bnoAngVel.z;
+
+			//fd.robotState.angularVel.x = bnoAngVel.x * JAFDSettings::SensorFusion::bno055Portion + fd.robotState.angularVel.x * (1.0f - JAFDSettings::SensorFusion::bno055Portion);
+			//fd.robotState.angularVel.y = bnoAngVel.y * JAFDSettings::SensorFusion::pitchIIRFactor + fd.robotState.angularVel.y * (1.0f - JAFDSettings::SensorFusion::pitchIIRFactor);
+			//fd.robotState.angularVel.z = bnoAngVel.z;
 			
 			fd.robotState.rotation = Vec3f((MotorControl::getDistance(Motor::right) - MotorControl::getDistance(Motor::left)) / JAFDSettings::Mechanics::wheelDistance, 0.0f, 0.0f) / 1.27f - Vec3f(totalHeadingOff, 0.0f, 0.0f);
 			Vec3f bnoAbsOr = Bno055::get_absolute_orientation();
-			fd.robotState.rotation.x = bnoAbsOr.x * JAFDSettings::SensorFusion::bno055Portion + fd.robotState.rotation.x * (1.0f - JAFDSettings::SensorFusion::bno055Portion);
-			fd.robotState.rotation.y = bnoAbsOr.y * JAFDSettings::SensorFusion::pitchIIRFactor + fd.robotState.rotation.y * (1.0f - JAFDSettings::SensorFusion::pitchIIRFactor);
-			fd.robotState.rotation.z = bnoAbsOr.z;
+			//fd.robotState.rotation.x = bnoAbsOr.x * JAFDSettings::SensorFusion::bno055Portion + fd.robotState.rotation.x * (1.0f - JAFDSettings::SensorFusion::bno055Portion);
+			//fd.robotState.rotation.y = bnoAbsOr.y * JAFDSettings::SensorFusion::pitchIIRFactor + fd.robotState.rotation.y * (1.0f - JAFDSettings::SensorFusion::pitchIIRFactor);
+			//fd.robotState.rotation.z = bnoAbsOr.z;
 			
+			distSensSpeedTrust = 0.0f;
 			fd.robotState.forwardVel = ((fd.robotState.wheelSpeeds.left + fd.robotState.wheelSpeeds.right) / 2.0f / 1.05f) * (1.0f - distSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion) + distSensSpeed * (distSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion);
 			
 			fd.robotState.position += Vec3f::angleToDir(fd.robotState.rotation.x, fd.robotState.rotation.y) * fd.robotState.forwardVel / freq;
-			
+
 			fd.robotState.mapCoordinate.x = roundf(fd.robotState.position.x / JAFDSettings::Field::cellWidth);
 			fd.robotState.mapCoordinate.y = roundf(fd.robotState.position.y / JAFDSettings::Field::cellWidth);
 
@@ -1024,7 +1025,7 @@ namespace JAFD
 
 				tempFusedData.distances.frontLeft = 0;
 			}
-
+			
 			numCorrectSamples = 0;
 			tempAverageDist = 0;
 			numOverflowSamples = 0;
@@ -1079,7 +1080,7 @@ namespace JAFD
 
 				tempFusedData.distances.frontRight = 0;
 			}
-
+			
 			numCorrectSamples = 0;
 			tempAverageDist = 0;
 			numOverflowSamples = 0;
@@ -1189,7 +1190,7 @@ namespace JAFD
 
 				tempFusedData.distances.leftFront = 0;
 			}
-
+			
 			numCorrectSamples = 0;
 			tempAverageDist = 0;
 			numOverflowSamples = 0;
@@ -1244,7 +1245,7 @@ namespace JAFD
 
 				tempFusedData.distances.rightBack = 0;
 			}
-
+			
 			numCorrectSamples = 0;
 			tempAverageDist = 0;
 			numOverflowSamples = 0;
@@ -1299,62 +1300,62 @@ namespace JAFD
 
 				tempFusedData.distances.rightFront = 0;
 			}
-
+			
 			numCorrectSamples = 0;
 			tempAverageDist = 0;
 			numOverflowSamples = 0;
 			numUnderflowSamples = 0;
 
-			//for (uint8_t i = 0; i < JAFDSettings::DistanceSensors::averagingNumSamples; i++)
-			//{
-			//	tempDist = DistanceSensors::frontLong.getDistance();
+			for (uint8_t i = 0; i < JAFDSettings::DistanceSensors::averagingNumSamples; i++)
+			{
+				tempDist = DistanceSensors::frontLong.getDistance();
 
-			//	if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::noError)
-			//	{
-			//		numCorrectSamples++;
-			//		tempAverageDist += tempDist;
-			//	}
-			//	else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::overflow)
-			//	{
-			//		numOverflowSamples++;
-			//	}
-			//	else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::underflow)
-			//	{
-			//		numUnderflowSamples++;
-			//	}
-			//}
+				if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::noError)
+				{
+					numCorrectSamples++;
+					tempAverageDist += tempDist;
+				}
+				else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::overflow)
+				{
+					numOverflowSamples++;
+				}
+				else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::underflow)
+				{
+					numUnderflowSamples++;
+				}
+			}
 
-			//if (numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numCorrectSamples))
-			//{
-			//	if (tempFusedData.distSensorState.frontLong == DistSensorStatus::ok)
-			//	{
-			//		tempFusedData.distances.frontLong = static_cast<uint16_t>((tempAverageDist / numCorrectSamples) * JAFDSettings::SensorFusion::longDistSensIIRFactor + tempFusedData.distances.frontLong * (1.0f - JAFDSettings::SensorFusion::longDistSensIIRFactor));
-			//	}
-			//	else
-			//	{
-			//		tempFusedData.distances.frontLong = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
-			//	}
+			if (numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numCorrectSamples))
+			{
+				if (tempFusedData.distSensorState.frontLong == DistSensorStatus::ok)
+				{
+					tempFusedData.distances.frontLong = static_cast<uint16_t>((tempAverageDist / numCorrectSamples) * JAFDSettings::SensorFusion::longDistSensIIRFactor + tempFusedData.distances.frontLong * (1.0f - JAFDSettings::SensorFusion::longDistSensIIRFactor));
+				}
+				else
+				{
+					tempFusedData.distances.frontLong = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
+				}
 
-			//	tempFusedData.distSensorState.frontLong = DistSensorStatus::ok;
-			//}
-			//else
-			//{
-			//	if (numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples))
-			//	{
-			//		tempFusedData.distSensorState.frontLong = DistSensorStatus::overflow;
-			//	}
-			//	else if (numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples))
-			//	{
-			//		tempFusedData.distSensorState.frontLong = DistSensorStatus::underflow;
-			//	}
-			//	else
-			//	{
-			//		tempFusedData.distSensorState.frontLong = DistSensorStatus::error;
-			//	}
+				tempFusedData.distSensorState.frontLong = DistSensorStatus::ok;
+			}
+			else
+			{
+				if (numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples))
+				{
+					tempFusedData.distSensorState.frontLong = DistSensorStatus::overflow;
+				}
+				else if (numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples))
+				{
+					tempFusedData.distSensorState.frontLong = DistSensorStatus::underflow;
+				}
+				else
+				{
+					tempFusedData.distSensorState.frontLong = DistSensorStatus::error;
+				}
 
-			//	tempFusedData.distances.frontLong = 0;
-			//}
-
+				tempFusedData.distances.frontLong = 0;
+			}
+			
 			//numCorrectSamples = 0;
 			//tempAverageDist = 0;
 			//numOverflowSamples = 0;

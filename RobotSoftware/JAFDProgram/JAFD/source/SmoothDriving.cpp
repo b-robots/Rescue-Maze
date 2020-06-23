@@ -320,7 +320,6 @@ namespace JAFD
 		WheelSpeeds Stop::updateSpeeds(const uint8_t freq)
 		{
 			_finished = true;
-
 			return WheelSpeeds{ 0, 0 };
 		}
 
@@ -463,7 +462,7 @@ namespace JAFD
 			absDrivenDist = posRelToStart.length();
 
 			// Check if I am there
-			if (fabs(absDrivenDist) >= fabs(_distance))
+			if (absDrivenDist >= fabs(_distance))
 			{
 				_finished = true;
 			}

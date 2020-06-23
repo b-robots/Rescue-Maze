@@ -14,6 +14,7 @@
 #include "../header/DistanceSensors.h"
 #include "../header/AllDatatypes.h"
 #include "../header/RobotLogic.h"
+#include "../header/SmoothDriving.h"
 
 #include <SPI.h>
 
@@ -76,7 +77,7 @@ namespace JAFD
 		// Set start for 9DOF
 		Bno055::setStartPoint();
 
-		// Setup TC3 for an interrupt every ms -> 1kHz (MCK / 32 / 2625)
+		////Setup TC3 for an interrupt every ms -> 1kHz (MCK / 32 / 2625)
 		//PMC->PMC_PCER0 = 1 << ID_TC3;
 
 		//TC1->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK3 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;
@@ -86,10 +87,10 @@ namespace JAFD
 		//TC1->TC_CHANNEL[0].TC_IDR = ~TC_IER_CPCS;
 
 		//NVIC_EnableIRQ(TC3_IRQn);
-
+		//NVIC_SetPriority(TC3_IRQn, 1);
 		//TC1->TC_CHANNEL[0].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
 
-		// Setup TC4 for an interrupt every 10ms -> 100Hz (MCK / 32 / 26250)
+		////Setup TC4 for an interrupt every 10ms -> 100Hz (MCK / 32 / 26250)
 		//PMC->PMC_PCER0 = 1 << ID_TC4;
 
 		//TC1->TC_CHANNEL[1].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK3 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;
@@ -99,11 +100,12 @@ namespace JAFD
 		//TC1->TC_CHANNEL[1].TC_IDR = ~TC_IER_CPCS;
 
 		//NVIC_EnableIRQ(TC4_IRQn);
+		//NVIC_SetPriority(TC4_IRQn, 1);
 
 		//TC1->TC_CHANNEL[1].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
 
 		// Setup TC4 for an interrupt every 50ms -> 19.9997Hz (MCK / 128 / 32813)
-		PMC->PMC_PCER0 = 1 << ID_TC5;
+		PMC->PMC_PCER1 = PMC_PCER1_PID32;
 
 		TC1->TC_CHANNEL[2].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;
 		TC1->TC_CHANNEL[2].TC_RC = 32813;
@@ -111,8 +113,8 @@ namespace JAFD
 		TC1->TC_CHANNEL[2].TC_IER = TC_IER_CPCS;
 		TC1->TC_CHANNEL[2].TC_IDR = ~TC_IER_CPCS;
 
-		NVIC_EnableIRQ(TC4_IRQn);
-
+		NVIC_EnableIRQ(TC5_IRQn);
+		NVIC_SetPriority(TC5_IRQn, 1);
 		TC1->TC_CHANNEL[2].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
 
 		return;
@@ -122,8 +124,8 @@ namespace JAFD
 	{
 		JAFD::SensorFusion::updateDistSensor();
 		SensorFusion::untimedFusion();
-		
-		RobotLogic::loop();
+
+		//RobotLogic::loop();
 
 		return;
 	}

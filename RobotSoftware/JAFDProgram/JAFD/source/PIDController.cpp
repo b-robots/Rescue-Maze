@@ -12,35 +12,35 @@ This part is responsible for a PID-Controller
 
 namespace JAFD
 {
-	PIDController::PIDController(const PIDSettings settings) : _settings(settings), _errorInt(0.0f), _lastErr(0.0f), _lastTimePoint(0.0f), _firstCall(true) {}
+	PIDController::PIDController(const PIDSettings settings) : settings(settings), errorInt(0.0f), lastErr(0.0f), lastTimePoint(0.0f), firstCall(true) {}
 	
 	float PIDController::process(const float setPoint, const float currentValue)
 	{
 		const uint32_t currentTime = millis();
-		const float dt = (currentTime - _lastTimePoint) / 1000.0f;
-		_lastTimePoint = currentTime;
+		const float dt = (currentTime - lastTimePoint) / 1000.0f;
+		lastTimePoint = currentTime;
 
 		const float error = setPoint - currentValue;
-		float diffTerm = (error - _lastErr) / dt;
+		float diffTerm = (error - lastErr) / dt;
 
-		if (_firstCall) diffTerm = 0.0f;
-		else if (diffTerm > _settings.maxAbsDiff) diffTerm = _settings.maxAbsDiff;
-		else if (diffTerm < -_settings.maxAbsDiff) diffTerm = -_settings.maxAbsDiff;
+		if (firstCall) diffTerm = 0.0f;
+		else if (diffTerm > settings.maxAbsDiff) diffTerm = settings.maxAbsDiff;
+		else if (diffTerm < -settings.maxAbsDiff) diffTerm = -settings.maxAbsDiff;
 
-		_errorInt += _lastErr * dt;
+		errorInt += lastErr * dt;
 
-		if (_firstCall) _errorInt = 0.0f;
-		else if (_errorInt > _settings.maxAbsInt) _errorInt = _settings.maxAbsInt;
-		else if (_errorInt < -_settings.maxAbsInt) _errorInt = -_settings.maxAbsInt;
+		if (firstCall) errorInt = 0.0f;
+		else if (errorInt > settings.maxAbsInt) errorInt = settings.maxAbsInt;
+		else if (errorInt < -settings.maxAbsInt) errorInt = -settings.maxAbsInt;
 
-		_lastErr = error;
+		lastErr = error;
 
-		if (_firstCall) _firstCall = false;
+		if (firstCall) firstCall = false;
 
-		float output = _settings.kp * error + _settings.ki * _errorInt + _settings.kd * diffTerm;
+		float output = settings.kp * error + settings.ki * errorInt + settings.kd * diffTerm;
 
-		if (output > _settings.maxOutput) output = _settings.maxOutput;
-		else if (output < _settings.minOutput) output = _settings.minOutput;
+		if (output > settings.maxOutput) output = settings.maxOutput;
+		else if (output < settings.minOutput) output = settings.minOutput;
 
 		return output;
 	}
@@ -48,35 +48,35 @@ namespace JAFD
 	float PIDController::process(const float setPoint, const float currentValue, const float dt)
 	{
 		const float error = setPoint - currentValue;
-		float diffTerm = (error - _lastErr) / dt;
+		float diffTerm = (error - lastErr) / dt;
 
-		if (_firstCall) diffTerm = 0.0f;
-		else if (diffTerm > _settings.maxAbsDiff) diffTerm = _settings.maxAbsDiff;
-		else if (diffTerm < -_settings.maxAbsDiff) diffTerm = -_settings.maxAbsDiff;
+		if (firstCall) diffTerm = 0.0f;
+		else if (diffTerm > settings.maxAbsDiff) diffTerm = settings.maxAbsDiff;
+		else if (diffTerm < -settings.maxAbsDiff) diffTerm = -settings.maxAbsDiff;
 
-		_errorInt += _lastErr * dt;
+		errorInt += lastErr * dt;
 
-		if (_firstCall) _errorInt = 0.0f;
-		else if (_errorInt > _settings.maxAbsInt) _errorInt = _settings.maxAbsInt;
-		else if (_errorInt < -_settings.maxAbsInt) _errorInt = -_settings.maxAbsInt;
+		if (firstCall) errorInt = 0.0f;
+		else if (errorInt > settings.maxAbsInt) errorInt = settings.maxAbsInt;
+		else if (errorInt < -settings.maxAbsInt) errorInt = -settings.maxAbsInt;
 
-		_lastErr = error;
+		lastErr = error;
 
-		if (_firstCall) _firstCall = false;
+		if (firstCall) firstCall = false;
 
-		float output = _settings.kp * error + _settings.ki * _errorInt + _settings.kd * diffTerm;
+		float output = settings.kp * error + settings.ki * errorInt + settings.kd * diffTerm;
 
-		if (output > _settings.maxOutput) output = _settings.maxOutput;
-		else if (output < _settings.minOutput) output = _settings.minOutput;
+		if (output > settings.maxOutput) output = settings.maxOutput;
+		else if (output < settings.minOutput) output = settings.minOutput;
 
 		return output;
 	}
 
 	void PIDController::reset()
 	{
-		_errorInt = 0.0f;
-		_lastErr = 0.0f;
-		_lastTimePoint = 0;
-		_firstCall = true;
+		errorInt = 0.0f;
+		lastErr = 0.0f;
+		lastTimePoint = 0;
+		firstCall = true;
 	}
 }

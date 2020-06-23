@@ -24,11 +24,11 @@ namespace JAFD
 	class PIDController
 	{
 	private:
-		const PIDSettings _settings;	// Settings 
-		float _errorInt;				// Error integral
-		float _lastErr;					// Last error
-		uint32_t _lastTimePoint;		// Last time 'process()' has been called in ms.
-		bool _firstCall;				// Is it the first call to process after a reset?
+		const PIDSettings settings;		// Settings 
+		float errorInt;					// Error integral
+		float lastErr;					// Last error
+		uint32_t lastTimePoint;			// Last time 'process()' has been called in ms.
+		bool firstCall;					// Is it the first call to process after a reset?
 	public:
 		PIDController(const PIDSettings settings);
 		float process(const float setPoint, const float currentValue);					// Process inputs and get controller output
