@@ -183,8 +183,8 @@ namespace JAFD
 		extern VL6180 leftBack;		// Left-Back short distance sensor
 		extern VL6180 rightFront;	// Right-Front short distance sensor
 		extern VL6180 rightBack;	// Right-Back short distance sensor
-		extern VL6180 packsRight;
-		extern VL6180 packsLeft;
+		//extern VL6180 packsRight;
+		//extern VL6180 packsLeft;
 
 		ReturnCode setup();
 	}

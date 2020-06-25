@@ -74,7 +74,7 @@ namespace JAFD
 			Serial.println("Error Bno055");
 		}
 
-		// Set start for 9DOF
+		//Set start for 9DOF
 		Bno055::setStartPoint();
 
 		////Setup TC3 for an interrupt every ms -> 1kHz (MCK / 32 / 2625)
@@ -122,12 +122,11 @@ namespace JAFD
 
 	void robotLoop()
 	{
-		JAFD::SensorFusion::updateDistSensor();
+		SensorFusion::updateDistSensor();
 		SensorFusion::untimedFusion();
 
-		//RobotLogic::loop();
+		RobotLogic::loop();
 
 		return;
 	}
 }
-

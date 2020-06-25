@@ -47,7 +47,7 @@ namespace JAFDSettings
 	{
 		constexpr float cmPSToPerc = 1.0f / (97.0f / 60.0f * 3.1415f * Mechanics::wheelDiameter);		// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed.)
 
-		constexpr uint8_t minSpeed = 10;			// Minimum speed for motor to rotate
+		constexpr uint8_t minSpeed = 15;			// Minimum speed for motor to rotate
 
 		constexpr float pulsePerRev = 4741.44f / 4.0f;		// Rotary-Encoder pulses per revolution
 

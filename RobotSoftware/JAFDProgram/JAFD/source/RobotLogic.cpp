@@ -20,13 +20,15 @@ namespace JAFD
 			static bool aligned = false;
 			static bool frontIsWall = false;
 
-			if (SensorFusion::getFusedData().gridCellCertainty >= 0.5f)
+			const auto tempFusedData = SensorFusion::getFusedData();
+
+			if (tempFusedData.gridCellCertainty >= 0.5f)
 			{
 				if (SmoothDriving::isTaskFinished())
 				{
-					cell = SensorFusion::getFusedData().gridCell;
+					cell = tempFusedData.gridCell;
 
-					switch (makeAbsolute(RelativeDir::forward, SensorFusion::getFusedData().robotState.heading))
+					switch (makeAbsolute(RelativeDir::forward, tempFusedData.robotState.heading))
 					{
 					case AbsoluteDir::north:
 						if (cell.cellConnections & Directions::north) frontIsWall = false;
@@ -50,7 +52,7 @@ namespace JAFD
 
 					if (frontIsWall && !aligned)
 					{
-						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::AlignFront());
+						//SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::AlignFront());
 						aligned = true;
 						return;
 					}
@@ -64,29 +66,29 @@ namespace JAFD
 						if ((cell.cellConnections & Directions::north) && rand == 0)
 						{
 							found = true;
-							relativeTurnDir = makeRelative(AbsoluteDir::north, SensorFusion::getFusedData().robotState.heading);
+							relativeTurnDir = makeRelative(AbsoluteDir::north, tempFusedData.robotState.heading);
 						}
 						else if ((cell.cellConnections & Directions::east) && rand == 1)
 						{
 							found = true;
-							relativeTurnDir = makeRelative(AbsoluteDir::east, SensorFusion::getFusedData().robotState.heading);
+							relativeTurnDir = makeRelative(AbsoluteDir::east, tempFusedData.robotState.heading);
 						}
 						else if ((cell.cellConnections & Directions::west) && rand == 2)
 						{
 							found = true;
-							relativeTurnDir = makeRelative(AbsoluteDir::west, SensorFusion::getFusedData().robotState.heading);
+							relativeTurnDir = makeRelative(AbsoluteDir::west, tempFusedData.robotState.heading);
 						}
 						else if ((cell.cellConnections & Directions::south) && rand == 3)
 						{
 							found = true;
-							relativeTurnDir = makeRelative(AbsoluteDir::south, SensorFusion::getFusedData().robotState.heading);
+							relativeTurnDir = makeRelative(AbsoluteDir::south, tempFusedData.robotState.heading);
 						}
 					}
 
 					if (aligned)
 					{
-						Vec3f position = SensorFusion::getFusedData().robotState.position;
-						Vec3f rotation = SensorFusion::getFusedData().robotState.rotation;
+						Vec3f position = tempFusedData.robotState.position;
+						Vec3f rotation = tempFusedData.robotState.rotation;
 
 						position.x = roundf(position.x / JAFDSettings::Field::cellWidth) * JAFDSettings::Field::cellWidth;
 						position.y = roundf(position.y / JAFDSettings::Field::cellWidth) * JAFDSettings::Field::cellWidth;
@@ -115,7 +117,7 @@ namespace JAFD
 							position.y -= JAFDSettings::Field::cellWidth / 2.0f - JAFDSettings::SmoothDriving::minAlignDist / 10.0f - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
 						}
 
-						SensorFusion::setCertainRobotPosition(position, rotation);
+						//SensorFusion::setCertainRobotPosition(position, rotation);
 					}
 
 					switch (relativeTurnDir)
