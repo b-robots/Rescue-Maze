@@ -104,7 +104,7 @@ namespace JAFD
 
 		//TC1->TC_CHANNEL[1].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
 
-		// Setup TC4 for an interrupt every 50ms -> 19.9997Hz (MCK / 128 / 32813)
+		// Setup TC4 for an interrupt every ~50ms -> 19.9997Hz (MCK / 128 / 32813)
 		PMC->PMC_PCER1 = PMC_PCER1_PID32;
 
 		TC1->TC_CHANNEL[2].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;

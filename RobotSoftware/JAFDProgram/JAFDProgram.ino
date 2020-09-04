@@ -35,5 +35,14 @@ void setup()
 // The loop function runs over and over again until power down or reset
 void loop()
 {
-	JAFD::robotLoop();
+	//JAFD::robotLoop();
+	if (JAFD::SmoothDriving::isTaskFinished())
+	{
+		JAFD::SmoothDriving::setNewTask<JAFD::SmoothDriving::NewStateType::lastEndState>(JAFD::SmoothDriving::TaskArray(
+			JAFD::SmoothDriving::Stop(),
+			JAFD::SmoothDriving::Accelerate(20, 50.0f),
+			JAFD::SmoothDriving::Accelerate(0, 50.0f),
+			JAFD::SmoothDriving::Accelerate(-20, -50.0f),
+			JAFD::SmoothDriving::Accelerate(0, -50.0f)));
+	}
 }
