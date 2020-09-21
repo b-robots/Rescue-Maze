@@ -122,10 +122,29 @@ namespace JAFD
 
 	void robotLoop()
 	{
+		static const SmoothDriving::TaskArray tasks[] = {SmoothDriving::TaskArray(SmoothDriving::Stop())};
+		static uint16_t i = 0;
 		SensorFusion::updateDistSensor();
 		SensorFusion::untimedFusion();
 
-		RobotLogic::loop();
+		//auto a = SensorFusion::getFusedData().distances.frontLong;
+		//auto b = SensorFusion::getFusedData().distances.frontLeft;
+		//auto c = SensorFusion::getFusedData().distances.frontRight;
+		//auto d = SensorFusion::getFusedData().distances.leftFront;
+		//auto e = SensorFusion::getFusedData().distances.leftBack;
+		//auto f = SensorFusion::getFusedData().distances.rightFront;
+		//auto g = SensorFusion::getFusedData().distances.rightBack; 
+
+		//RobotLogic::loop();
+
+		if (SmoothDriving::isTaskFinished())
+		{
+			//SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(tasks[i]);
+			Serial.println((int)Dispenser::dispenseRight(1));
+			i++;
+
+			i %= sizeof(tasks) / sizeof(SmoothDriving::TaskArray);
+		}
 
 		return;
 	}

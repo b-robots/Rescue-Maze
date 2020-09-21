@@ -1029,7 +1029,7 @@ namespace JAFD
 
 				tempFusedData.distances.frontLeft = 0;
 			}
-			
+
 			numCorrectSamples = 0;
 			tempAverageDist = 0;
 			numOverflowSamples = 0;
@@ -1084,7 +1084,7 @@ namespace JAFD
 
 				tempFusedData.distances.frontRight = 0;
 			}
-			
+
 			numCorrectSamples = 0;
 			tempAverageDist = 0;
 			numOverflowSamples = 0;
@@ -1194,7 +1194,7 @@ namespace JAFD
 
 				tempFusedData.distances.leftFront = 0;
 			}
-			
+
 			numCorrectSamples = 0;
 			tempAverageDist = 0;
 			numOverflowSamples = 0;
@@ -1249,7 +1249,7 @@ namespace JAFD
 
 				tempFusedData.distances.rightBack = 0;
 			}
-			
+
 			numCorrectSamples = 0;
 			tempAverageDist = 0;
 			numOverflowSamples = 0;
@@ -1304,7 +1304,7 @@ namespace JAFD
 
 				tempFusedData.distances.rightFront = 0;
 			}
-			
+
 			numCorrectSamples = 0;
 			tempAverageDist = 0;
 			numOverflowSamples = 0;
@@ -1359,7 +1359,7 @@ namespace JAFD
 
 				tempFusedData.distances.frontLong = 0;
 			}
-			
+
 			//numCorrectSamples = 0;
 			//tempAverageDist = 0;
 			//numOverflowSamples = 0;

@@ -16,6 +16,7 @@
 #include <Wire.h>
 #include <Adafruit_BNO055.h>
 #include <Adafruit_Sensor.h>
+#include <Adafruit_TCS34725.h>
 
 // RobotLibrary
 #include "JAFD/JAFD.h"
@@ -35,14 +36,5 @@ void setup()
 // The loop function runs over and over again until power down or reset
 void loop()
 {
-	//JAFD::robotLoop();
-	if (JAFD::SmoothDriving::isTaskFinished())
-	{
-		JAFD::SmoothDriving::setNewTask<JAFD::SmoothDriving::NewStateType::lastEndState>(JAFD::SmoothDriving::TaskArray(
-			JAFD::SmoothDriving::Stop(),
-			JAFD::SmoothDriving::Accelerate(20, 50.0f),
-			JAFD::SmoothDriving::Accelerate(0, 50.0f),
-			JAFD::SmoothDriving::Accelerate(-20, -50.0f),
-			JAFD::SmoothDriving::Accelerate(0, -50.0f)));
-	}
+	JAFD::robotLoop();
 }
