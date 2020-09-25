@@ -1,3 +1,4 @@
+
 /*
 In this file are all settings needed for the robot
 */
@@ -12,6 +13,7 @@ In this file are all settings needed for the robot
 
 #include "JAFD/header/AllDatatypes.h"
 #include "JAFD/header/PIDController.h"
+#include <Adafruit_TCS34725.h>
 
 namespace JAFDSettings
 {
@@ -41,6 +43,13 @@ namespace JAFDSettings
 		constexpr uint32_t mazeMappingStartAddr = 0;
 		constexpr uint32_t bno055StartAddr = mazeMappingStartAddr + 64 * 1024;
 		constexpr uint32_t distSensStartAddr = bno055StartAddr + 32;
+	}
+
+	namespace ColorSensor
+	{
+		constexpr uint8_t interruptPin = 0;
+		constexpr tcs34725IntegrationTime_t tcsIntegrationTime = TCS34725_INTEGRATIONTIME_700MS;
+		constexpr tcs34725Gain_t tcsGain = TCS34725_GAIN_1X;
 	}
 
 	namespace MotorControl

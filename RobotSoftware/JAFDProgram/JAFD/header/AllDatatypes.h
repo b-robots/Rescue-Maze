@@ -6,6 +6,7 @@ In this file are all definitions and includes for datatypes and name aliases, wh
 
 #include <stdint.h>
 #include "Vector.h"
+#include "DuePinMapping.h"
 
 namespace JAFD
 {

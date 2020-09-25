@@ -27,13 +27,13 @@ namespace JAFD
 			volatile float distSensAngleTrust = 0.0f;	// How much can I trust the measured angle? (0.0 - 1.0)
 		}
 
+		// Magic Number 1.27f need to be analysed ;-)
 		void sensorFiltering(const uint8_t freq)
 		{
 			auto tempRobotState = fusedData.robotState;
 
 			tempRobotState.wheelSpeeds = MotorControl::getFloatSpeeds();
 
-			// Magic Numbers 1.27f and 1.05f need to be analysed ;-)
 			tempRobotState.angularVel = Vec3f((tempRobotState.wheelSpeeds.right - tempRobotState.wheelSpeeds.left) / JAFDSettings::Mechanics::wheelDistance, 0.0f, 0.0f) / 1.27f;
 
 			//tempRobotState.angularVel.x = bnoAngVel.x * JAFDSettings::SensorFusion::bno055Portion + tempRobotState.angularVel.x * (1.0f - JAFDSettings::SensorFusion::bno055Portion);
@@ -48,7 +48,7 @@ namespace JAFD
 
 			// ACHTUNG!!  '= 0.0f;' nur zum debuggen
 			distSensSpeedTrust = 0.0f;
-			tempRobotState.forwardVel = ((tempRobotState.wheelSpeeds.left + tempRobotState.wheelSpeeds.right) / 2.0f / 1.05f) * (1.0f - distSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion) + distSensSpeed * (distSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion);
+			tempRobotState.forwardVel = ((tempRobotState.wheelSpeeds.left + tempRobotState.wheelSpeeds.right) / 2.0f) * (1.0f - distSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion) + distSensSpeed * (distSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion);
 
 			tempRobotState.position += (Vec3f::angleToDir(tempRobotState.rotation.x, tempRobotState.rotation.y) * tempRobotState.forwardVel / freq);
 
