@@ -7,6 +7,7 @@
 #endif
 
 #include "AllDatatypes.h"
+#include "Interrupts.h"
 #include <Adafruit_TCS34725.h>
 
 namespace JAFD

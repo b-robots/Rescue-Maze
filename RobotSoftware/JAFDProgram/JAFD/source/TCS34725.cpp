@@ -1,6 +1,7 @@
 #include <Wire.h>
 
 #include "../header/TCS34725.h"
+#include "../../JAFDSettings.h"
 
 namespace JAFD
 {
@@ -11,7 +12,7 @@ namespace JAFD
 		constexpr auto tcsGain = JAFDSettings::ColorSensor::tcsGain;
 
 		Adafruit_TCS34725 sensor;
-		uint16_t r, g, b, c, dataReady;
+		volatile bool dataReady;
 		
 		ReturnCode setup()
 		{
@@ -24,6 +25,20 @@ namespace JAFD
 			sensor.write8(TCS34725_PERS, TCS34725_PERS_NONE);
 			sensor.setInterrupt(true);
 
+			// Setup INT-Pin / Falling Edge Detection
+			interruptPin.port->PIO_PER = interruptPin.pin;
+			interruptPin.port->PIO_ODR = interruptPin.pin;
+			interruptPin.port->PIO_PUER = interruptPin.pin;
+			interruptPin.port->PIO_IER = interruptPin.pin;
+			interruptPin.port->PIO_AIMER = interruptPin.pin;
+			interruptPin.port->PIO_ESR = interruptPin.pin;
+			interruptPin.port->PIO_FELLSR = interruptPin.pin;
+
+			NVIC_EnableIRQ(static_cast<IRQn_Type>(interruptPin.portID));
+			NVIC_SetPriority(static_cast<IRQn_Type>(interruptPin.portID), 1);
+
+			//volatile auto temp = interruptPin.port->PIO_ISR;
+
 			return ReturnCode::ok;
 		}
 
@@ -31,11 +46,6 @@ namespace JAFD
 		{
 			if (interruptPin.portID == static_cast<uint8_t>(source) && (isr & interruptPin.pin))
 			{
-				c = sensor.read16(TCS34725_CDATAL);
-				r = sensor.read16(TCS34725_RDATAL);
-				g = sensor.read16(TCS34725_GDATAL);
-				b = sensor.read16(TCS34725_BDATAL);
-
 				dataReady = true;
 			}
 		}
@@ -47,11 +57,24 @@ namespace JAFD
 
 		void getData(uint16_t* colorTemp, uint16_t* lux)
 		{
-			*colorTemp = sensor.calculateColorTemperature(r, g, b);
-			*lux = sensor.calculateLux(r, g, b);
+			if (dataReady)
+			{
+				uint16_t c = sensor.read16(TCS34725_CDATAL);
+				uint16_t r = sensor.read16(TCS34725_RDATAL);
+				uint16_t g = sensor.read16(TCS34725_GDATAL);
+				uint16_t b = sensor.read16(TCS34725_BDATAL);
 
-			dataReady = false;
-			sensor.clearInterrupt();
+				*colorTemp = sensor.calculateColorTemperature(r, g, b);
+				*lux = sensor.calculateLux(r, g, b);
+
+				dataReady = false;
+				sensor.clearInterrupt();
+			}
+			else
+			{
+				*colorTemp = (uint16_t)-1;
+				*lux = (uint16_t)-1;
+			}
 		}
 	}
 }

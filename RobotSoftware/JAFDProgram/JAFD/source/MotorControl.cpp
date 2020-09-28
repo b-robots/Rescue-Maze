@@ -114,8 +114,8 @@ namespace JAFD
 			rEncB.port->PIO_IFER = rEncB.pin;
 
 			// Discard first interrupt
-			rEncA.port->PIO_ISR;
-			lEncA.port->PIO_ISR;
+			volatile auto temp = rEncA.port->PIO_ISR;
+			temp = lEncA.port->PIO_ISR;
 
 			// Setup interrupts for rotary encoder pins
 			NVIC_EnableIRQ(static_cast<IRQn_Type>(lEncA.portID));

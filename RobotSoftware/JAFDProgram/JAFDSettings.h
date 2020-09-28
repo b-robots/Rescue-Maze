@@ -47,8 +47,8 @@ namespace JAFDSettings
 
 	namespace ColorSensor
 	{
-		constexpr uint8_t interruptPin = 0;
-		constexpr tcs34725IntegrationTime_t tcsIntegrationTime = TCS34725_INTEGRATIONTIME_700MS;
+		constexpr uint8_t interruptPin = 7;
+		constexpr tcs34725IntegrationTime_t tcsIntegrationTime = TCS34725_INTEGRATIONTIME_154MS;
 		constexpr tcs34725Gain_t tcsGain = TCS34725_GAIN_1X;
 	}
 

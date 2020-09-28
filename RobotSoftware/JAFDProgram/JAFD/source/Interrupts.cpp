@@ -8,25 +8,34 @@ In this part are all interrupt handler
 #include "../header/SmoothDriving.h"
 #include "../header/SensorFusion.h"
 #include "../header/Bno055.h"
+#include "../header/TCS34725.h"
 
 void PIOA_Handler()
 {
-	JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioA, PIOA->PIO_ISR);
+	auto isr = PIOA->PIO_ISR;
+	JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioA, isr);
+	JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioA, isr);
 }
 
 void PIOB_Handler()
 {
-	JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioB, PIOB->PIO_ISR);
+	auto isr = PIOB->PIO_ISR;
+	JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioB, isr);
+	JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioB, isr);
 }
 
 void PIOC_Handler()
 {
-	JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioC, PIOC->PIO_ISR);
+	auto isr = PIOC->PIO_ISR;
+	JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioC, isr);
+	JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioC, isr);
 }
 
 void PIOD_Handler()
 {
-	JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioD, PIOD->PIO_ISR);
+	auto isr = PIOD->PIO_ISR;
+	JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioD, isr);
+	JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioD, isr);
 }
 
 // TC0 - TC2 are reserved for Arduino Framework

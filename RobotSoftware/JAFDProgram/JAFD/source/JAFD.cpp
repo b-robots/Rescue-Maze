@@ -15,6 +15,7 @@
 #include "../header/AllDatatypes.h"
 #include "../header/RobotLogic.h"
 #include "../header/SmoothDriving.h"
+#include "../header/TCS34725.h"
 
 #include <SPI.h>
 
@@ -37,7 +38,7 @@ namespace JAFD
 		PWM->PWM_CLK = PWM_CLK_PREB(0b111) | PWM_CLK_DIVB(1) | PWM_CLK_PREA(0) | PWM_CLK_DIVA(1);
 
 		randomSeed(69420);
-
+		/*
 		// Setup of MazeMapper
 		if (MazeMapping::setup() != ReturnCode::ok)
 		{
@@ -73,9 +74,15 @@ namespace JAFD
 		{
 			Serial.println("Error Bno055");
 		}
+		*/
+		// Setup of color sensor
+		if (ColorSensor::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error Color-Sensor");
+		}
 
 		//Set start for 9DOF
-		Bno055::setStartPoint();
+		//Bno055::setStartPoint();
 
 		////Setup TC3 for an interrupt every ms -> 1kHz (MCK / 32 / 2625)
 		//PMC->PMC_PCER0 = 1 << ID_TC3;
@@ -140,8 +147,8 @@ namespace JAFD
 		
 		static uint16_t i = 0;
 		
-		SensorFusion::updateDistSensor();
-		SensorFusion::untimedFusion();
+		//SensorFusion::updateDistSensor();
+		//SensorFusion::untimedFusion();
 
 		//auto a = SensorFusion::getFusedData().distances.frontLong;
 		//auto b = SensorFusion::getFusedData().distances.frontLeft;
@@ -168,6 +175,14 @@ namespace JAFD
 
 			//i++;
 			//i %= numTasks;
+		}
+
+		if (ColorSensor::dataIsReady())
+		{
+			uint16_t colorTemp = 0;
+			uint16_t lux = 0;
+			ColorSensor::getData(&colorTemp, &lux);
+			Serial.println(lux);
 		}
 
 		return;
