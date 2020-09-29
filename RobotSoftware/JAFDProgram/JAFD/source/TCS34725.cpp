@@ -18,13 +18,6 @@ namespace JAFD
 		{
 			dataReady = false;
 
-			sensor = Adafruit_TCS34725(tcsIntegrationTime, tcsGain);
-
-			if (!sensor.begin(TCS34725_ADDRESS, &Wire1)) return ReturnCode::error;
-
-			sensor.write8(TCS34725_PERS, TCS34725_PERS_NONE);
-			sensor.setInterrupt(true);
-
 			// Setup INT-Pin / Falling Edge Detection
 			interruptPin.port->PIO_PER = interruptPin.pin;
 			interruptPin.port->PIO_ODR = interruptPin.pin;
@@ -37,7 +30,14 @@ namespace JAFD
 			NVIC_EnableIRQ(static_cast<IRQn_Type>(interruptPin.portID));
 			NVIC_SetPriority(static_cast<IRQn_Type>(interruptPin.portID), 1);
 
-			//volatile auto temp = interruptPin.port->PIO_ISR;
+			volatile auto temp = interruptPin.port->PIO_ISR;
+
+			sensor = Adafruit_TCS34725(tcsIntegrationTime, tcsGain);
+
+			if (!sensor.begin(TCS34725_ADDRESS, &Wire1)) return ReturnCode::error;
+
+			sensor.write8(TCS34725_PERS, TCS34725_PERS_NONE);
+			sensor.setInterrupt(true);
 
 			return ReturnCode::ok;
 		}
