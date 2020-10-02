@@ -2,6 +2,7 @@
 //
 
 #include "CamRec.h"
+#include "test.cpp"
 
 #include <iostream>
 
