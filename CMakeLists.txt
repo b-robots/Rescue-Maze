@@ -7,3 +7,9 @@ project ("CamRec")
 
 # Include sub-projects.
 add_subdirectory ("CamRec")
+
+# Copy dlls into remote Trget
+#add_custom_command(TARGET CamRec POST_BUILD
+#	COMMAND $(CMAKE_COMMAND) -E copy_if_different
+#	"${PROJECT_SOURCE_DIR}/libs/dlls"
+#	$<TARGET_FILE_DIR:CamRec>)
