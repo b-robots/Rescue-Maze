@@ -9,12 +9,15 @@ In this part are all interrupt handler
 #include "../header/SensorFusion.h"
 #include "../header/Bno055.h"
 #include "../header/TCS34725.h"
+#include "../header/DistanceSensors.h"
 
 void PIOA_Handler()
 {
 	auto isr = PIOA->PIO_ISR;
 	JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioA, isr);
 	JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioA, isr);
+	JAFD::DistanceSensors::frontLeft.interrupt(JAFD::Interrupts::InterruptSource::pioA, isr);
+	JAFD::DistanceSensors::frontRight.interrupt(JAFD::Interrupts::InterruptSource::pioA, isr);
 }
 
 void PIOB_Handler()
@@ -22,6 +25,8 @@ void PIOB_Handler()
 	auto isr = PIOB->PIO_ISR;
 	JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioB, isr);
 	JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioB, isr);
+	JAFD::DistanceSensors::frontLeft.interrupt(JAFD::Interrupts::InterruptSource::pioB, isr);
+	JAFD::DistanceSensors::frontRight.interrupt(JAFD::Interrupts::InterruptSource::pioB, isr);
 }
 
 void PIOC_Handler()
@@ -29,6 +34,8 @@ void PIOC_Handler()
 	auto isr = PIOC->PIO_ISR;
 	JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioC, isr);
 	JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioC, isr);
+	JAFD::DistanceSensors::frontLeft.interrupt(JAFD::Interrupts::InterruptSource::pioC, isr);
+	JAFD::DistanceSensors::frontRight.interrupt(JAFD::Interrupts::InterruptSource::pioC, isr);
 }
 
 void PIOD_Handler()
@@ -36,6 +43,8 @@ void PIOD_Handler()
 	auto isr = PIOD->PIO_ISR;
 	JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioD, isr);
 	JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioD, isr);
+	JAFD::DistanceSensors::frontLeft.interrupt(JAFD::Interrupts::InterruptSource::pioD, isr);
+	JAFD::DistanceSensors::frontRight.interrupt(JAFD::Interrupts::InterruptSource::pioD, isr);
 }
 
 // TC0 - TC2 are reserved for Arduino Framework

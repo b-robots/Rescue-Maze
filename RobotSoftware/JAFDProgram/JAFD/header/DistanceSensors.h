@@ -15,6 +15,7 @@ This file is responsible for all distance sensors
 
 #include "../../JAFDSettings.h"
 #include "AllDatatypes.h"
+#include "Interrupts.h"
 
 namespace JAFD
 {
@@ -153,7 +154,7 @@ namespace JAFD
 			static const uint16_t minDist = 0;//40;
 			static const uint16_t maxDist = 1200;
 
-			VL53L0(uint8_t multiplexCh, uint8_t id);
+			VL53L0(uint8_t multiplexCh, uint8_t id, uint8_t interruptPin);
 			ReturnCode setup();
 			uint16_t getDistance();		// Get distance in mm
 			Status getStatus() const;
@@ -161,10 +162,13 @@ namespace JAFD
 			void storeCalibData();
 			void restoreCalibData();
 			void resetCalibData();
+			bool dataIsReady() const;
+			void interrupt(const Interrupts::InterruptSource source, const uint32_t isr);
 
 		private:
+			volatile bool measurementFinished = false;
 			const uint8_t _multiplexCh;
-
+			const PinMapping::PinInformation interruptPin;
 			const uint8_t _id;
 
 			// Calibration data

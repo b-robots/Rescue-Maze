@@ -448,28 +448,54 @@ namespace JAFD
 
 		// VL53L0 class - begin
 
-		VL53L0::VL53L0(uint8_t multiplexCh, uint8_t id) : _multiplexCh(multiplexCh), _status(Status::undefinedError), _id(id) {}
+		VL53L0::VL53L0(uint8_t multiplexCh, uint8_t id, uint8_t interruptPin) : _multiplexCh(multiplexCh), _status(Status::undefinedError), _id(id), interruptPin(PinMapping::MappedPins[interruptPin]) {}
 
 		ReturnCode VL53L0::setup()
 		{
+			// Setup INT-Pin / Rising Edge Detection
+			interruptPin.port->PIO_PER = interruptPin.pin;
+			interruptPin.port->PIO_ODR = interruptPin.pin;
+			interruptPin.port->PIO_PUER = interruptPin.pin;
+			interruptPin.port->PIO_IER = interruptPin.pin;
+			interruptPin.port->PIO_AIMER = interruptPin.pin;
+			interruptPin.port->PIO_ESR = interruptPin.pin;
+			interruptPin.port->PIO_REHLSR = interruptPin.pin;
+
+			NVIC_EnableIRQ(static_cast<IRQn_Type>(interruptPin.portID));
+			NVIC_SetPriority(static_cast<IRQn_Type>(interruptPin.portID), 1);
+
+			volatile auto temp = interruptPin.port->PIO_ISR;
+
 			if (i2cMultiplexer.getChannel() != _multiplexCh)
 			{
 				i2cMultiplexer.selectChannel(_multiplexCh);
 			}
-			_sensor.setTimeout(500);
+			_sensor.setTimeout(100);
 
-			if (_sensor.init()) return ReturnCode::ok;
-			else return ReturnCode::error;
+			Serial.println(_multiplexCh);
+
+			if (!_sensor.init()) return ReturnCode::error;
+			
+			_sensor.startContinuous();
+
+			return ReturnCode::ok;
 		}
 
 		uint16_t VL53L0::getDistance()
 		{
+			if (!measurementFinished)
+			{
+				return 0;
+			}
+
+			measurementFinished = false;
+
 			if (i2cMultiplexer.getChannel() != _multiplexCh)
 			{
 				i2cMultiplexer.selectChannel(_multiplexCh);
 			}
 
-			uint16_t distance = _sensor.readRangeSingleMillimeters();
+			uint16_t distance = _sensor.readRangeContinuousMillimeters();
 			
 			float tempDist = distance * _k + _d;
 
@@ -542,10 +568,23 @@ namespace JAFD
 			return _status;
 		}
 
+		bool VL53L0::dataIsReady() const
+		{
+			return measurementFinished;
+		}
+
+		void VL53L0::interrupt(const Interrupts::InterruptSource source, const uint32_t isr)
+		{
+			if (interruptPin.portID == static_cast<uint8_t>(source) && (isr & interruptPin.pin))
+			{
+				measurementFinished = true;
+			}
+		}
+
 		// VL53L0 class - end
 
-		VL53L0 frontLeft(JAFDSettings::DistanceSensors::FrontLeft::multiplexCh, 0);
-		VL53L0 frontRight(JAFDSettings::DistanceSensors::FrontRight::multiplexCh, 1);
+		VL53L0 frontLeft(JAFDSettings::DistanceSensors::FrontLeft::multiplexCh, 0, JAFDSettings::DistanceSensors::FrontLeft::interruptPin);
+		VL53L0 frontRight(JAFDSettings::DistanceSensors::FrontRight::multiplexCh, 1, JAFDSettings::DistanceSensors::FrontLeft::interruptPin);
 		TFMini frontLong(JAFDSettings::DistanceSensors::FrontLong::serialType, 2);
 		TFMini backLong(JAFDSettings::DistanceSensors::BackLong::serialType, 3);
 		VL6180 leftFront(JAFDSettings::DistanceSensors::LeftFront::multiplexCh, 4);
@@ -556,7 +595,7 @@ namespace JAFD
 		ReturnCode setup()
 		{
 			ReturnCode code = ReturnCode::ok;
-
+			/*
 			if (leftFront.setup() != ReturnCode::ok)
 			{
 				Serial.println("lf");
@@ -580,13 +619,13 @@ namespace JAFD
 				Serial.println("rb");
 				code = ReturnCode::fatalError;
 			}
-
+			*/
 			if (frontLeft.setup() != ReturnCode::ok)
 			{
 				Serial.println("fl");
 				code = ReturnCode::fatalError;
 			}
-
+			/*
 			if (frontRight.setup() != ReturnCode::ok)
 			{
 				Serial.println("fr");
@@ -598,7 +637,7 @@ namespace JAFD
 				Serial.println("f");
 				code = ReturnCode::fatalError;
 			}
-
+			*/
 			//if (backLong.setup() != ReturnCode::ok)
 			//{
 			//	code = ReturnCode::fatalError;

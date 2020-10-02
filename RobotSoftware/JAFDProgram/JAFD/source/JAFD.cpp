@@ -37,7 +37,9 @@ namespace JAFD
 		PMC->PMC_PCER1 = PMC_PCER1_PID36;
 		PWM->PWM_CLK = PWM_CLK_PREB(0b111) | PWM_CLK_DIVB(1) | PWM_CLK_PREA(0) | PWM_CLK_DIVA(1);
 
+		// Nice
 		randomSeed(69420);
+
 		/*
 		// Setup of MazeMapper
 		if (MazeMapping::setup() != ReturnCode::ok)
@@ -62,25 +64,25 @@ namespace JAFD
 		{
 			Serial.println("Error SPI NVSRAM");
 		}
-
+		*/
 		// Setup of Distance Sensors
 		if (DistanceSensors::setup() != ReturnCode::ok)
 		{
 			Serial.println("Error Distance Sensors");
 		}
-
+		/*
 		// Setup of Bno055
 		if (Bno055::init() != ReturnCode::ok)
 		{
 			Serial.println("Error Bno055");
 		}
-		*/
+		
 		// Setup of color sensor
 		if (ColorSensor::setup() != ReturnCode::ok)
 		{
 			Serial.println("Error Color-Sensor");
 		}
-
+		*/
 		//Set start for 9DOF
 		//Bno055::setStartPoint();
 
@@ -129,6 +131,12 @@ namespace JAFD
 
 	void robotLoop()
 	{
+		if (DistanceSensors::frontLeft.dataIsReady())
+		{
+			Serial.println(DistanceSensors::frontLeft.getDistance());
+		}
+
+		/*
 		constexpr uint16_t numTasks = 9;
 		
 		static const SmoothDriving::TaskArray tasks[numTasks] = {SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Accelerate(30, 15.0f), SmoothDriving::Accelerate(0, 15.0f)),
@@ -184,7 +192,7 @@ namespace JAFD
 			ColorSensor::getData(&colorTemp, &lux);
 			Serial.println(lux);
 		}
-
+		*/
 		return;
 	}
 }
