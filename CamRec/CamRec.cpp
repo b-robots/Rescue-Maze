@@ -2,7 +2,6 @@
 //
 
 #include "CamRec.h"
-#include "test.cpp"
 
 #include <iostream>
 
@@ -11,5 +10,6 @@ using namespace std;
 int main()
 {
 	cout << "Hello CMake" << endl;
+	getchar();
 	return 0;
 }

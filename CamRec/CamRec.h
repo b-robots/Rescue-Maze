@@ -3,7 +3,6 @@
 
 #pragma once
 
-
-
 // TODO: Reference additional headers your program requires here
-#include "libs/opencv-4.2.0/modules/"
+#include "opencv2/opencv.hpp"
+#include "tesseract/baseapi.h"
