@@ -14,37 +14,37 @@ In this part are all interrupt handler
 void PIOA_Handler()
 {
 	auto isr = PIOA->PIO_ISR;
-	JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioA, isr);
-	JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioA, isr);
-	JAFD::DistanceSensors::frontLeft.interrupt(JAFD::Interrupts::InterruptSource::pioA, isr);
-	JAFD::DistanceSensors::frontRight.interrupt(JAFD::Interrupts::InterruptSource::pioA, isr);
+	if (JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioA, isr)) {}
+	else if (JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioA, isr)) {}
+	else if (JAFD::DistanceSensors::frontLeft.interrupt(JAFD::Interrupts::InterruptSource::pioA, isr)) {}
+	else JAFD::DistanceSensors::frontRight.interrupt(JAFD::Interrupts::InterruptSource::pioA, isr);
 }
 
 void PIOB_Handler()
 {
 	auto isr = PIOB->PIO_ISR;
-	JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioB, isr);
-	JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioB, isr);
-	JAFD::DistanceSensors::frontLeft.interrupt(JAFD::Interrupts::InterruptSource::pioB, isr);
-	JAFD::DistanceSensors::frontRight.interrupt(JAFD::Interrupts::InterruptSource::pioB, isr);
+	if (JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioB, isr)) {}
+	else if (JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioB, isr)) {}
+	else if (JAFD::DistanceSensors::frontLeft.interrupt(JAFD::Interrupts::InterruptSource::pioB, isr)) {}
+	else JAFD::DistanceSensors::frontRight.interrupt(JAFD::Interrupts::InterruptSource::pioB, isr);
 }
 
 void PIOC_Handler()
 {
 	auto isr = PIOC->PIO_ISR;
-	JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioC, isr);
-	JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioC, isr);
-	JAFD::DistanceSensors::frontLeft.interrupt(JAFD::Interrupts::InterruptSource::pioC, isr);
-	JAFD::DistanceSensors::frontRight.interrupt(JAFD::Interrupts::InterruptSource::pioC, isr);
+	if (JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioC, isr)) {}
+	else if (JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioC, isr)) {}
+	else if (JAFD::DistanceSensors::frontLeft.interrupt(JAFD::Interrupts::InterruptSource::pioC, isr)) {}
+	else JAFD::DistanceSensors::frontRight.interrupt(JAFD::Interrupts::InterruptSource::pioC, isr);
 }
 
 void PIOD_Handler()
 {
 	auto isr = PIOD->PIO_ISR;
-	JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioD, isr);
-	JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioD, isr);
-	JAFD::DistanceSensors::frontLeft.interrupt(JAFD::Interrupts::InterruptSource::pioD, isr);
-	JAFD::DistanceSensors::frontRight.interrupt(JAFD::Interrupts::InterruptSource::pioD, isr);
+	if (JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioD, isr)) {}
+	else if (JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioD, isr)) {}
+	else if (JAFD::DistanceSensors::frontLeft.interrupt(JAFD::Interrupts::InterruptSource::pioD, isr)) {}
+	else JAFD::DistanceSensors::frontRight.interrupt(JAFD::Interrupts::InterruptSource::pioD, isr);
 }
 
 // TC0 - TC2 are reserved for Arduino Framework
@@ -99,7 +99,6 @@ void TC5_Handler()
 	if (i % 2 == 0)
 	{
 		// 10Hz:
-		JAFD::Bno055::update_sensorreadings();
 
 		if (i % 4 == 0)
 		{

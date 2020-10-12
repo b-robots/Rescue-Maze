@@ -192,10 +192,5 @@ namespace JAFDSettings
 		{
 			constexpr JAFD::SerialType serialType = JAFD::SerialType::three;
 		}
-
-		namespace BackLong
-		{
-			constexpr JAFD::SerialType serialType = JAFD::SerialType::software;
-		}
 	}
 }

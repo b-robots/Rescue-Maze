@@ -40,6 +40,15 @@ namespace JAFD
 		// Nice
 		randomSeed(69420);
 
+		NVIC_EnableIRQ(PIOA_IRQn);
+		NVIC_SetPriority(PIOA_IRQn, 1);
+		NVIC_EnableIRQ(PIOB_IRQn);
+		NVIC_SetPriority(PIOB_IRQn, 1);
+		NVIC_EnableIRQ(PIOC_IRQn);
+		NVIC_SetPriority(PIOC_IRQn, 1);
+		NVIC_EnableIRQ(PIOD_IRQn);
+		NVIC_SetPriority(PIOD_IRQn, 1);
+
 		/*
 		// Setup of MazeMapper
 		if (MazeMapping::setup() != ReturnCode::ok)
@@ -154,9 +163,6 @@ namespace JAFD
 		static const bool dispR[numTasks] = { false, false, false, false, false, false, false, false, true };
 		
 		static uint16_t i = 0;
-		
-		//SensorFusion::updateDistSensor();
-		//SensorFusion::untimedFusion();
 
 		//auto a = SensorFusion::getFusedData().distances.frontLong;
 		//auto b = SensorFusion::getFusedData().distances.frontLeft;
@@ -165,8 +171,6 @@ namespace JAFD
 		//auto e = SensorFusion::getFusedData().distances.leftBack;
 		//auto f = SensorFusion::getFusedData().distances.rightFront;
 		//auto g = SensorFusion::getFusedData().distances.rightBack; 
-
-		//RobotLogic::loop();
 
 		if (SmoothDriving::isTaskFinished())
 		{
@@ -193,6 +197,10 @@ namespace JAFD
 			Serial.println(lux);
 		}
 		*/
+
+		SensorFusion::updateSensors();
+		SensorFusion::untimedFusion();
+		RobotLogic::loop();
 		return;
 	}
 }

@@ -30,7 +30,7 @@ namespace JAFD
 		void speedPID(const uint8_t freq);
 
 		// Interrupthandler for Encoder
-		void encoderInterrupt(const Interrupts::InterruptSource source, const uint32_t isr);
+		bool encoderInterrupt(const Interrupts::InterruptSource source, const uint32_t isr);
 
 		// Set motor speed (cm/2)
 		void setSpeeds(const WheelSpeeds wheelSpeeds);

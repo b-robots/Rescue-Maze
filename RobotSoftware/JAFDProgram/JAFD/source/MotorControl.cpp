@@ -117,12 +117,6 @@ namespace JAFD
 			volatile auto temp = rEncA.port->PIO_ISR;
 			temp = lEncA.port->PIO_ISR;
 
-			// Setup interrupts for rotary encoder pins
-			NVIC_EnableIRQ(static_cast<IRQn_Type>(lEncA.portID));
-			NVIC_SetPriority(static_cast<IRQn_Type>(lEncA.portID), 0);
-			NVIC_EnableIRQ(static_cast<IRQn_Type>(rEncA.portID));
-			NVIC_SetPriority(static_cast<IRQn_Type>(rEncA.portID), 0);
-
 			// Setup PWM - Controller (20kHz)
 			PWM->PWM_ENA = 1 << lPWMCh | 1 << rPWMCh;
 
@@ -269,7 +263,7 @@ namespace JAFD
 			}
 		}
 
-		void encoderInterrupt(const Interrupts::InterruptSource source, const uint32_t isr)
+		bool encoderInterrupt(const Interrupts::InterruptSource source, const uint32_t isr)
 		{
 			if (lEncA.portID == static_cast<uint8_t>(source) && (isr & lEncA.pin))
 			{
@@ -281,9 +275,10 @@ namespace JAFD
 				{
 					lEncCnt++;
 				}
-			}
 
-			if (rEncA.portID == static_cast<uint8_t>(source) && (isr & rEncA.pin))
+				return true;
+			}
+			else if (rEncA.portID == static_cast<uint8_t>(source) && (isr & rEncA.pin))
 			{
 				if (rEncB.port->PIO_PDSR & rEncB.pin)
 				{
@@ -293,6 +288,12 @@ namespace JAFD
 				{
 					rEncCnt++;
 				}
+
+				return true;
+			}
+			else
+			{
+				return false;
 			}
 		}
 

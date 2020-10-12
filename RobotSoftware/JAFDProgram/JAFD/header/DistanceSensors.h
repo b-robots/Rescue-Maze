@@ -163,7 +163,7 @@ namespace JAFD
 			void restoreCalibData();
 			void resetCalibData();
 			bool dataIsReady() const;
-			void interrupt(const Interrupts::InterruptSource source, const uint32_t isr);
+			bool interrupt(const Interrupts::InterruptSource source, const uint32_t isr);
 
 		private:
 			volatile bool measurementFinished = false;
@@ -182,14 +182,12 @@ namespace JAFD
 		extern VL53L0 frontLeft;	// Front-Left short distance sensor
 		extern VL53L0 frontRight;	// Front-Right short distance sensor
 		extern TFMini frontLong;	// Front long distance sensor
-		extern TFMini backLong;		// Back long distance sensor
 		extern VL6180 leftFront;	// Left-Front short distance sensor
 		extern VL6180 leftBack;		// Left-Back short distance sensor
 		extern VL6180 rightFront;	// Right-Front short distance sensor
 		extern VL6180 rightBack;	// Right-Back short distance sensor
-		//extern VL6180 packsRight;
-		//extern VL6180 packsLeft;
 
 		ReturnCode setup();
+		void updateDistSensors();
 	}
 }

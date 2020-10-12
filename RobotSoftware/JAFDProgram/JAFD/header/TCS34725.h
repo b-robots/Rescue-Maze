@@ -16,7 +16,7 @@ namespace JAFD
 	namespace ColorSensor
 	{
 		ReturnCode setup();
-		void interrupt(const Interrupts::InterruptSource source, const uint32_t isr);
+		bool interrupt(const Interrupts::InterruptSource source, const uint32_t isr);
 		bool dataIsReady();
 		void getData(uint16_t* colorTemp, uint16_t* lux);
 	}

@@ -27,9 +27,6 @@ namespace JAFD
 			interruptPin.port->PIO_ESR = interruptPin.pin;
 			interruptPin.port->PIO_FELLSR = interruptPin.pin;
 
-			NVIC_EnableIRQ(static_cast<IRQn_Type>(interruptPin.portID));
-			NVIC_SetPriority(static_cast<IRQn_Type>(interruptPin.portID), 1);
-
 			volatile auto temp = interruptPin.port->PIO_ISR;
 
 			sensor = Adafruit_TCS34725(tcsIntegrationTime, tcsGain);
@@ -42,11 +39,17 @@ namespace JAFD
 			return ReturnCode::ok;
 		}
 
-		void interrupt(const Interrupts::InterruptSource source, const uint32_t isr)
+		bool interrupt(const Interrupts::InterruptSource source, const uint32_t isr)
 		{
 			if (interruptPin.portID == static_cast<uint8_t>(source) && (isr & interruptPin.pin))
 			{
 				dataReady = true;
+
+				return true;
+			}
+			else
+			{
+				return false;
 			}
 		}
 
