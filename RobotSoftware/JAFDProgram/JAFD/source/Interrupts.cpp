@@ -11,40 +11,36 @@ In this part are all interrupt handler
 #include "../header/TCS34725.h"
 #include "../header/DistanceSensors.h"
 
+void handleISR(JAFD::Interrupts::InterruptSource interruptSrc, uint8_t isr)
+{
+	if (JAFD::MotorControl::encoderInterrupt(interruptSrc, isr)) {}
+	else if (JAFD::ColorSensor::interrupt(interruptSrc, isr)) {}
+	else if (JAFD::DistanceSensors::frontLeft.interrupt(interruptSrc, isr)) {}
+	else if (JAFD::DistanceSensors::frontRight.interrupt(interruptSrc, isr)) {}
+	else if (JAFD::DistanceSensors::leftFront.interrupt(interruptSrc, isr)) {}
+	else if (JAFD::DistanceSensors::leftBack.interrupt(interruptSrc, isr)) {}
+	else if (JAFD::DistanceSensors::rightFront.interrupt(interruptSrc, isr)) {}
+	else if (JAFD::DistanceSensors::rightBack.interrupt(interruptSrc, isr)) {}
+}
+
 void PIOA_Handler()
 {
-	auto isr = PIOA->PIO_ISR;
-	if (JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioA, isr)) {}
-	else if (JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioA, isr)) {}
-	else if (JAFD::DistanceSensors::frontLeft.interrupt(JAFD::Interrupts::InterruptSource::pioA, isr)) {}
-	else JAFD::DistanceSensors::frontRight.interrupt(JAFD::Interrupts::InterruptSource::pioA, isr);
+	handleISR(JAFD::Interrupts::InterruptSource::pioA, PIOA->PIO_ISR);
 }
 
 void PIOB_Handler()
 {
-	auto isr = PIOB->PIO_ISR;
-	if (JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioB, isr)) {}
-	else if (JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioB, isr)) {}
-	else if (JAFD::DistanceSensors::frontLeft.interrupt(JAFD::Interrupts::InterruptSource::pioB, isr)) {}
-	else JAFD::DistanceSensors::frontRight.interrupt(JAFD::Interrupts::InterruptSource::pioB, isr);
+	handleISR(JAFD::Interrupts::InterruptSource::pioA, PIOB->PIO_ISR);
 }
 
 void PIOC_Handler()
 {
-	auto isr = PIOC->PIO_ISR;
-	if (JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioC, isr)) {}
-	else if (JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioC, isr)) {}
-	else if (JAFD::DistanceSensors::frontLeft.interrupt(JAFD::Interrupts::InterruptSource::pioC, isr)) {}
-	else JAFD::DistanceSensors::frontRight.interrupt(JAFD::Interrupts::InterruptSource::pioC, isr);
+	handleISR(JAFD::Interrupts::InterruptSource::pioA, PIOC->PIO_ISR);
 }
 
 void PIOD_Handler()
 {
-	auto isr = PIOD->PIO_ISR;
-	if (JAFD::MotorControl::encoderInterrupt(JAFD::Interrupts::InterruptSource::pioD, isr)) {}
-	else if (JAFD::ColorSensor::interrupt(JAFD::Interrupts::InterruptSource::pioD, isr)) {}
-	else if (JAFD::DistanceSensors::frontLeft.interrupt(JAFD::Interrupts::InterruptSource::pioD, isr)) {}
-	else JAFD::DistanceSensors::frontRight.interrupt(JAFD::Interrupts::InterruptSource::pioD, isr);
+	handleISR(JAFD::Interrupts::InterruptSource::pioA, PIOD->PIO_ISR);
 }
 
 // TC0 - TC2 are reserved for Arduino Framework

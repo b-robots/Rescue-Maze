@@ -18,7 +18,7 @@ namespace JAFD
 		}
 
 		// VL6180 class - begin
-		VL6180::VL6180(uint8_t multiplexCh, uint8_t id) : _multiplexCh(multiplexCh), _status(Status::noError), _id(id) {}
+		VL6180::VL6180(uint8_t multiplexCh, uint8_t id, uint8_t interruptPin) : _multiplexCh(multiplexCh), _status(Status::noError), _id(id), interruptPin(PinMapping::MappedPins[interruptPin]) {}
 
 		ReturnCode VL6180::setup() const
 		{
@@ -29,7 +29,7 @@ namespace JAFD
 
 			if (read8(_regModelID) != 0xB4) {
 				// Retry
-				delay(10);
+				delay(5);
 
 				if (read8(_regModelID) != 0xB4) {
 					return ReturnCode::error;
@@ -129,8 +129,7 @@ namespace JAFD
 			write8(0x0030, 0x00);
 
 			// Recommended : Public registers - See data sheet for more detail
-			write8(0x0011, 0x10);       // Enables polling for 'New Sample ready'
-										// when measurement completes
+			write8(0x0011, 0b00010000);	// Enable active low interrupt for 'New Measurement ready'
 			write8(0x010a, 0x30);       // Set the averaging sample period
 										// (compromise between lower noise and
 										// increased execution time)
@@ -145,12 +144,14 @@ namespace JAFD
 										// of the ranging sensor
 
 			// Optional: Public registers - See data sheet for more detail
-			write8(0x001b, 0x09);       // Set default ranging inter-measurement
-										// period to 100ms
+			write8(0x001b, 0x00);       // Set ranging inter-measurement period to 10ms
 			write8(0x003e, 0x31);       // Set default ALS inter-measurement period
 										// to 500ms
 			write8(0x0014, 0x24);       // Configures interrupt on 'New Sample
 										// Ready threshold event'
+
+			// Start continuos mode
+			write8(0x0018, 0b11);
 		}
 
 		// Write 1 byte
@@ -205,6 +206,25 @@ namespace JAFD
 			return data;
 		}
 
+		bool VL6180::dataIsReady() const
+		{
+			return measurementFinished;
+		}
+
+		bool VL6180::interrupt(const Interrupts::InterruptSource source, const uint32_t isr)
+		{
+			if (interruptPin.portID == static_cast<uint8_t>(source) && (isr & interruptPin.pin))
+			{
+				measurementFinished = true;
+
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
 		uint16_t VL6180::getDistance()
 		{
 			uint16_t distance;
@@ -213,12 +233,6 @@ namespace JAFD
 			{
 				i2cMultiplexer.selectChannel(_multiplexCh);
 			}
-
-			// Wait for device to be ready for range measurement
-			while (!(read8(_regRangeStatus) & 0x01));
-
-			// Start a range measurement
-			write8(_regRangeStart, 0x01);
 
 			// Poll until bit 2 is set
 			while (!(read8(_regIntStatus) & 0x04));
@@ -590,10 +604,10 @@ namespace JAFD
 		VL53L0 frontLeft(JAFDSettings::DistanceSensors::FrontLeft::multiplexCh, 0, JAFDSettings::DistanceSensors::FrontLeft::interruptPin);
 		VL53L0 frontRight(JAFDSettings::DistanceSensors::FrontRight::multiplexCh, 1, JAFDSettings::DistanceSensors::FrontLeft::interruptPin);
 		TFMini frontLong(JAFDSettings::DistanceSensors::FrontLong::serialType, 2);
-		VL6180 leftFront(JAFDSettings::DistanceSensors::LeftFront::multiplexCh, 4);
-		VL6180 leftBack(JAFDSettings::DistanceSensors::LeftBack::multiplexCh, 5);
-		VL6180 rightFront(JAFDSettings::DistanceSensors::RightFront::multiplexCh, 6);
-		VL6180 rightBack(JAFDSettings::DistanceSensors::RightBack::multiplexCh, 7);
+		VL6180 leftFront(JAFDSettings::DistanceSensors::LeftFront::multiplexCh, 4, JAFDSettings::DistanceSensors::LeftFront::interruptPin);
+		VL6180 leftBack(JAFDSettings::DistanceSensors::LeftBack::multiplexCh, 5, JAFDSettings::DistanceSensors::LeftBack::interruptPin);
+		VL6180 rightFront(JAFDSettings::DistanceSensors::RightFront::multiplexCh, 6, JAFDSettings::DistanceSensors::RightFront::interruptPin);
+		VL6180 rightBack(JAFDSettings::DistanceSensors::RightBack::multiplexCh, 7, JAFDSettings::DistanceSensors::RightBack::interruptPin);
 
 		ReturnCode setup()
 		{

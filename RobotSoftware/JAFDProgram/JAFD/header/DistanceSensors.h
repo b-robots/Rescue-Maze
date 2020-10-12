@@ -42,7 +42,7 @@ namespace JAFD
 			static const uint16_t minDist = 0;//30;
 			static const uint16_t maxDist = 150;
 
-			VL6180(uint8_t multiplexCh, uint8_t id);
+			VL6180(uint8_t multiplexCh, uint8_t id, uint8_t interruptPin);
 			ReturnCode setup() const;
 			uint16_t getDistance();		// Get distance in mm
 			Status getStatus() const;
@@ -50,6 +50,8 @@ namespace JAFD
 			void storeCalibData();
 			void restoreCalibData();
 			void resetCalibData();
+			bool dataIsReady() const;
+			bool interrupt(const Interrupts::InterruptSource source, const uint32_t isr);
 
 		private:
 			// Register addresses
@@ -78,7 +80,9 @@ namespace JAFD
 			static const uint8_t _alsGain40 = 0x07;		// x 40
 
 			static const uint8_t _i2cAddr = 0x29;
+			volatile bool measurementFinished = false;
 			const uint8_t _multiplexCh;
+			const PinMapping::PinInformation interruptPin;
 
 			const uint8_t _id;
 
@@ -93,6 +97,7 @@ namespace JAFD
 			void write16(uint16_t address, uint16_t data) const;
 			uint16_t read16(uint16_t address) const;
 			uint8_t read8(uint16_t address) const;
+			void clearInterrupt();
 		};
 
 		class TFMini

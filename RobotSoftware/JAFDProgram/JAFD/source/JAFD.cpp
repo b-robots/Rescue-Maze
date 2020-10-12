@@ -40,14 +40,22 @@ namespace JAFD
 		// Nice
 		randomSeed(69420);
 
+		// Setup interrupts for all ports 
 		NVIC_EnableIRQ(PIOA_IRQn);
 		NVIC_SetPriority(PIOA_IRQn, 1);
+		volatile auto temp = PIOA->PIO_ISR;
+
 		NVIC_EnableIRQ(PIOB_IRQn);
 		NVIC_SetPriority(PIOB_IRQn, 1);
+		temp = PIOB->PIO_ISR;
+
 		NVIC_EnableIRQ(PIOC_IRQn);
 		NVIC_SetPriority(PIOC_IRQn, 1);
+		temp = PIOC->PIO_ISR;
+
 		NVIC_EnableIRQ(PIOD_IRQn);
 		NVIC_SetPriority(PIOD_IRQn, 1);
+		temp = PIOD->PIO_ISR;
 
 		/*
 		// Setup of MazeMapper

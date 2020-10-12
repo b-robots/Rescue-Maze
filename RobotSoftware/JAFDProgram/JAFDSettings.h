@@ -159,21 +159,25 @@ namespace JAFDSettings
 		namespace LeftFront
 		{
 			constexpr uint8_t multiplexCh = 4;
+			constexpr uint8_t interruptPin = 13;
 		}
 
 		namespace LeftBack
 		{
 			constexpr uint8_t multiplexCh = 7;
+			constexpr uint8_t interruptPin = 12;
 		}
 
 		namespace RightFront
 		{
 			constexpr uint8_t multiplexCh = 5;
+			constexpr uint8_t interruptPin = 11;
 		}
 
 		namespace RightBack
 		{
 			constexpr uint8_t multiplexCh = 6;
+			constexpr uint8_t interruptPin = 10;
 		}
 
 		namespace FrontLeft
@@ -185,7 +189,7 @@ namespace JAFDSettings
 		namespace FrontRight
 		{
 			constexpr uint8_t multiplexCh = 3;
-			constexpr uint8_t interruptPin = 9;
+			constexpr uint8_t interruptPin = 7;
 		}
 
 		namespace FrontLong

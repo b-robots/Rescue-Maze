@@ -113,10 +113,6 @@ namespace JAFD
 			rEncB.port->PIO_SCDR = PIO_SCDR_DIV(0);
 			rEncB.port->PIO_IFER = rEncB.pin;
 
-			// Discard first interrupt
-			volatile auto temp = rEncA.port->PIO_ISR;
-			temp = lEncA.port->PIO_ISR;
-
 			// Setup PWM - Controller (20kHz)
 			PWM->PWM_ENA = 1 << lPWMCh | 1 << rPWMCh;
 
