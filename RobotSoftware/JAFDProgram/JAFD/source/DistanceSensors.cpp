@@ -18,7 +18,7 @@ namespace JAFD
 		}
 
 		// VL6180 class - begin
-		VL6180::VL6180(uint8_t multiplexCh, uint8_t id, uint8_t interruptPin) : _multiplexCh(multiplexCh), _status(Status::noError), _id(id), interruptPin(PinMapping::MappedPins[interruptPin]) {}
+		VL6180::VL6180(uint8_t multiplexCh, uint8_t id, uint8_t interruptPin) : _multiplexCh(multiplexCh), _status(Status::unknownError), _id(id), interruptPin(PinMapping::MappedPins[interruptPin]) {}
 
 		ReturnCode VL6180::setup() const
 		{
@@ -229,6 +229,12 @@ namespace JAFD
 		{
 			uint16_t distance;
 
+			if (!measurementFinished)
+			{
+				_status = Status::unknownError;
+				return 0;
+			}
+
 			if (i2cMultiplexer.getChannel() != _multiplexCh)
 			{
 				i2cMultiplexer.selectChannel(_multiplexCh);
@@ -264,6 +270,19 @@ namespace JAFD
 			}
 
 			return distance;
+		}
+
+		void VL6180::clearInterrupt()
+		{
+			if (i2cMultiplexer.getChannel() != _multiplexCh)
+			{
+				i2cMultiplexer.selectChannel(_multiplexCh);
+			}
+
+			// Clear interrupt
+			write8(_regIntClear, 0x07);
+
+			measurementFinished = false;
 		}
 
 		VL6180::Status VL6180::getStatus() const
@@ -497,6 +516,7 @@ namespace JAFD
 		{
 			if (!measurementFinished)
 			{
+				_status = Status::undefinedError;
 				return 0;
 			}
 
@@ -527,6 +547,11 @@ namespace JAFD
 			}
 
 			return distance;
+		}
+
+		void VL53L0::clearInterrupt()
+		{
+			measurementFinished = false;
 		}
 
 		void VL53L0::calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure)
@@ -1051,6 +1076,16 @@ namespace JAFD
 
 			SensorFusion::setDistances(tempFusedData.distances);
 			SensorFusion::setDistSensStates(tempFusedData.distSensorState);
+		}
+		
+		void forceNewMeasurement()
+		{
+			frontLeft.clearInterrupt();
+			frontRight.clearInterrupt();
+			leftFront.clearInterrupt();
+			leftBack.clearInterrupt();
+			rightFront.clearInterrupt();
+			rightBack.clearInterrupt();
 		}
 	}
 }

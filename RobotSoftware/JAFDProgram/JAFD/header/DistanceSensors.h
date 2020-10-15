@@ -37,9 +37,10 @@ namespace JAFD
 				rawOverflow = 13,	// Raw measurement overflow
 				underflow = 14,		// Measurement underflow
 				overflow = 15,		// Measurement overflow
+				unknownError		// Unbekannter Fehler
 			};
 
-			static const uint16_t minDist = 0;//30;
+			static const uint16_t minDist = 30;
 			static const uint16_t maxDist = 150;
 
 			VL6180(uint8_t multiplexCh, uint8_t id, uint8_t interruptPin);
@@ -52,6 +53,7 @@ namespace JAFD
 			void resetCalibData();
 			bool dataIsReady() const;
 			bool interrupt(const Interrupts::InterruptSource source, const uint32_t isr);
+			void clearInterrupt();
 
 		private:
 			// Register addresses
@@ -97,7 +99,6 @@ namespace JAFD
 			void write16(uint16_t address, uint16_t data) const;
 			uint16_t read16(uint16_t address) const;
 			uint8_t read8(uint16_t address) const;
-			void clearInterrupt();
 		};
 
 		class TFMini
@@ -156,7 +157,7 @@ namespace JAFD
 				undefinedError	// Undefined error
 			};
 
-			static const uint16_t minDist = 0;//40;
+			static const uint16_t minDist = 40;
 			static const uint16_t maxDist = 1200;
 
 			VL53L0(uint8_t multiplexCh, uint8_t id, uint8_t interruptPin);
@@ -169,6 +170,7 @@ namespace JAFD
 			void resetCalibData();
 			bool dataIsReady() const;
 			bool interrupt(const Interrupts::InterruptSource source, const uint32_t isr);
+			void clearInterrupt();
 
 		private:
 			volatile bool measurementFinished = false;
@@ -194,5 +196,6 @@ namespace JAFD
 
 		ReturnCode setup();
 		void updateDistSensors();
+		void forceNewMeasurement();
 	}
 }
