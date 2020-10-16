@@ -43,19 +43,15 @@ namespace JAFD
 		// Setup interrupts for all ports 
 		NVIC_EnableIRQ(PIOA_IRQn);
 		NVIC_SetPriority(PIOA_IRQn, 1);
-		volatile auto temp = PIOA->PIO_ISR;
 
 		NVIC_EnableIRQ(PIOB_IRQn);
 		NVIC_SetPriority(PIOB_IRQn, 1);
-		temp = PIOB->PIO_ISR;
 
 		NVIC_EnableIRQ(PIOC_IRQn);
 		NVIC_SetPriority(PIOC_IRQn, 1);
-		temp = PIOC->PIO_ISR;
 
 		NVIC_EnableIRQ(PIOD_IRQn);
 		NVIC_SetPriority(PIOD_IRQn, 1);
-		temp = PIOD->PIO_ISR;
 
 		/*
 		// Setup of MazeMapper
@@ -103,6 +99,12 @@ namespace JAFD
 		//Set start for 9DOF
 		//Bno055::setStartPoint();
 
+		// Clear all interrupts once
+		volatile auto temp = PIOA->PIO_ISR;
+		temp = PIOB->PIO_ISR;
+		temp = PIOC->PIO_ISR;
+		temp = PIOD->PIO_ISR;
+
 		////Setup TC3 for an interrupt every ms -> 1kHz (MCK / 32 / 2625)
 		//PMC->PMC_PCER0 = 1 << ID_TC3;
 
@@ -148,9 +150,15 @@ namespace JAFD
 
 	void robotLoop()
 	{
-		if (DistanceSensors::frontLeft.dataIsReady())
+		auto dist = DistanceSensors::frontLeft.getDistance();
+
+		if (DistanceSensors::frontLeft.getStatus() != DistanceSensors::VL53L0::Status::noError)
 		{
-			Serial.println(DistanceSensors::frontLeft.getDistance());
+			Serial.println("err");
+		}
+		else
+		{
+			Serial.println(dist);
 		}
 
 		/*
@@ -206,9 +214,9 @@ namespace JAFD
 		}
 		*/
 
-		SensorFusion::updateSensors();
-		SensorFusion::untimedFusion();
-		RobotLogic::loop();
+		//SensorFusion::updateSensors();
+		//SensorFusion::untimedFusion();
+		//RobotLogic::loop();
 		return;
 	}
 }

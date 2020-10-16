@@ -43,7 +43,7 @@ namespace JAFD
 			static const uint16_t minDist = 30;
 			static const uint16_t maxDist = 150;
 
-			VL6180(uint8_t multiplexCh, uint8_t id, uint8_t interruptPin);
+			VL6180(uint8_t multiplexCh, uint8_t id);
 			ReturnCode setup() const;
 			uint16_t getDistance();		// Get distance in mm
 			Status getStatus() const;
@@ -51,8 +51,6 @@ namespace JAFD
 			void storeCalibData();
 			void restoreCalibData();
 			void resetCalibData();
-			bool dataIsReady() const;
-			bool interrupt(const Interrupts::InterruptSource source, const uint32_t isr);
 			void clearInterrupt();
 
 		private:
@@ -82,9 +80,7 @@ namespace JAFD
 			static const uint8_t _alsGain40 = 0x07;		// x 40
 
 			static const uint8_t _i2cAddr = 0x29;
-			volatile bool measurementFinished = false;
 			const uint8_t _multiplexCh;
-			const PinMapping::PinInformation interruptPin;
 
 			const uint8_t _id;
 
@@ -160,7 +156,7 @@ namespace JAFD
 			static const uint16_t minDist = 40;
 			static const uint16_t maxDist = 1200;
 
-			VL53L0(uint8_t multiplexCh, uint8_t id, uint8_t interruptPin);
+			VL53L0(uint8_t multiplexCh, uint8_t id);
 			ReturnCode setup();
 			uint16_t getDistance();		// Get distance in mm
 			Status getStatus() const;
@@ -168,14 +164,10 @@ namespace JAFD
 			void storeCalibData();
 			void restoreCalibData();
 			void resetCalibData();
-			bool dataIsReady() const;
-			bool interrupt(const Interrupts::InterruptSource source, const uint32_t isr);
 			void clearInterrupt();
 
 		private:
-			volatile bool measurementFinished = false;
 			const uint8_t _multiplexCh;
-			const PinMapping::PinInformation interruptPin;
 			const uint8_t _id;
 
 			// Calibration data

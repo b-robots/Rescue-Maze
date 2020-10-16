@@ -27,8 +27,6 @@ namespace JAFD
 			interruptPin.port->PIO_ESR = interruptPin.pin;
 			interruptPin.port->PIO_FELLSR = interruptPin.pin;
 
-			volatile auto temp = interruptPin.port->PIO_ISR;
-
 			sensor = Adafruit_TCS34725(tcsIntegrationTime, tcsGain);
 
 			if (!sensor.begin(TCS34725_ADDRESS, &Wire1)) return ReturnCode::error;

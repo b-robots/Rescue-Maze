@@ -11,16 +11,10 @@ In this part are all interrupt handler
 #include "../header/TCS34725.h"
 #include "../header/DistanceSensors.h"
 
-void handleISR(JAFD::Interrupts::InterruptSource interruptSrc, uint8_t isr)
+void handleISR(JAFD::Interrupts::InterruptSource interruptSrc, uint32_t isr)
 {
 	if (JAFD::MotorControl::encoderInterrupt(interruptSrc, isr)) {}
 	else if (JAFD::ColorSensor::interrupt(interruptSrc, isr)) {}
-	else if (JAFD::DistanceSensors::frontLeft.interrupt(interruptSrc, isr)) {}
-	else if (JAFD::DistanceSensors::frontRight.interrupt(interruptSrc, isr)) {}
-	else if (JAFD::DistanceSensors::leftFront.interrupt(interruptSrc, isr)) {}
-	else if (JAFD::DistanceSensors::leftBack.interrupt(interruptSrc, isr)) {}
-	else if (JAFD::DistanceSensors::rightFront.interrupt(interruptSrc, isr)) {}
-	else if (JAFD::DistanceSensors::rightBack.interrupt(interruptSrc, isr)) {}
 }
 
 void PIOA_Handler()
@@ -30,17 +24,17 @@ void PIOA_Handler()
 
 void PIOB_Handler()
 {
-	handleISR(JAFD::Interrupts::InterruptSource::pioA, PIOB->PIO_ISR);
+	handleISR(JAFD::Interrupts::InterruptSource::pioB, PIOB->PIO_ISR);
 }
 
 void PIOC_Handler()
 {
-	handleISR(JAFD::Interrupts::InterruptSource::pioA, PIOC->PIO_ISR);
+	handleISR(JAFD::Interrupts::InterruptSource::pioC, PIOC->PIO_ISR);
 }
 
 void PIOD_Handler()
 {
-	handleISR(JAFD::Interrupts::InterruptSource::pioA, PIOD->PIO_ISR);
+	handleISR(JAFD::Interrupts::InterruptSource::pioD, PIOD->PIO_ISR);
 }
 
 // TC0 - TC2 are reserved for Arduino Framework

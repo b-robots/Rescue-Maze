@@ -18,7 +18,7 @@ namespace JAFD
 		}
 
 		// VL6180 class - begin
-		VL6180::VL6180(uint8_t multiplexCh, uint8_t id, uint8_t interruptPin) : _multiplexCh(multiplexCh), _status(Status::unknownError), _id(id), interruptPin(PinMapping::MappedPins[interruptPin]) {}
+		VL6180::VL6180(uint8_t multiplexCh, uint8_t id) : _multiplexCh(multiplexCh), _status(Status::unknownError), _id(id) {}
 
 		ReturnCode VL6180::setup() const
 		{
@@ -206,34 +206,9 @@ namespace JAFD
 			return data;
 		}
 
-		bool VL6180::dataIsReady() const
-		{
-			return measurementFinished;
-		}
-
-		bool VL6180::interrupt(const Interrupts::InterruptSource source, const uint32_t isr)
-		{
-			if (interruptPin.portID == static_cast<uint8_t>(source) && (isr & interruptPin.pin))
-			{
-				measurementFinished = true;
-
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-
 		uint16_t VL6180::getDistance()
 		{
 			uint16_t distance;
-
-			if (!measurementFinished)
-			{
-				_status = Status::unknownError;
-				return 0;
-			}
 
 			if (i2cMultiplexer.getChannel() != _multiplexCh)
 			{
@@ -281,8 +256,6 @@ namespace JAFD
 
 			// Clear interrupt
 			write8(_regIntClear, 0x07);
-
-			measurementFinished = false;
 		}
 
 		VL6180::Status VL6180::getStatus() const
@@ -482,28 +455,15 @@ namespace JAFD
 
 		// VL53L0 class - begin
 
-		VL53L0::VL53L0(uint8_t multiplexCh, uint8_t id, uint8_t interruptPin) : _multiplexCh(multiplexCh), _status(Status::undefinedError), _id(id), interruptPin(PinMapping::MappedPins[interruptPin]) {}
+		VL53L0::VL53L0(uint8_t multiplexCh, uint8_t id) : _multiplexCh(multiplexCh), _status(Status::undefinedError), _id(id) {}
 
 		ReturnCode VL53L0::setup()
 		{
-			// Setup INT-Pin / Rising Edge Detection
-			interruptPin.port->PIO_PER = interruptPin.pin;
-			interruptPin.port->PIO_ODR = interruptPin.pin;
-			interruptPin.port->PIO_PUER = interruptPin.pin;
-			interruptPin.port->PIO_IER = interruptPin.pin;
-			interruptPin.port->PIO_AIMER = interruptPin.pin;
-			interruptPin.port->PIO_ESR = interruptPin.pin;
-			interruptPin.port->PIO_REHLSR = interruptPin.pin;
-
-			volatile auto temp = interruptPin.port->PIO_ISR;
-
 			if (i2cMultiplexer.getChannel() != _multiplexCh)
 			{
 				i2cMultiplexer.selectChannel(_multiplexCh);
 			}
-			_sensor.setTimeout(100);
-
-			Serial.println(_multiplexCh);
+			_sensor.setTimeout(200);
 
 			if (!_sensor.init()) return ReturnCode::error;
 			
@@ -514,14 +474,6 @@ namespace JAFD
 
 		uint16_t VL53L0::getDistance()
 		{
-			if (!measurementFinished)
-			{
-				_status = Status::undefinedError;
-				return 0;
-			}
-
-			measurementFinished = false;
-
 			if (i2cMultiplexer.getChannel() != _multiplexCh)
 			{
 				i2cMultiplexer.selectChannel(_multiplexCh);
@@ -551,7 +503,7 @@ namespace JAFD
 
 		void VL53L0::clearInterrupt()
 		{
-			measurementFinished = false;
+			_sensor.writeReg(_sensor.SYSTEM_INTERRUPT_CLEAR, 0x01);
 		}
 
 		void VL53L0::calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure)
@@ -605,38 +557,23 @@ namespace JAFD
 			return _status;
 		}
 
-		bool VL53L0::dataIsReady() const
-		{
-			return measurementFinished;
-		}
-
-		bool VL53L0::interrupt(const Interrupts::InterruptSource source, const uint32_t isr)
-		{
-			if (interruptPin.portID == static_cast<uint8_t>(source) && (isr & interruptPin.pin))
-			{
-				measurementFinished = true;
-
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-
 		// VL53L0 class - end
 
-		VL53L0 frontLeft(JAFDSettings::DistanceSensors::FrontLeft::multiplexCh, 0, JAFDSettings::DistanceSensors::FrontLeft::interruptPin);
-		VL53L0 frontRight(JAFDSettings::DistanceSensors::FrontRight::multiplexCh, 1, JAFDSettings::DistanceSensors::FrontLeft::interruptPin);
+		VL53L0 frontLeft(JAFDSettings::DistanceSensors::FrontLeft::multiplexCh, 0);
+		VL53L0 frontRight(JAFDSettings::DistanceSensors::FrontRight::multiplexCh, 1);
 		TFMini frontLong(JAFDSettings::DistanceSensors::FrontLong::serialType, 2);
-		VL6180 leftFront(JAFDSettings::DistanceSensors::LeftFront::multiplexCh, 4, JAFDSettings::DistanceSensors::LeftFront::interruptPin);
-		VL6180 leftBack(JAFDSettings::DistanceSensors::LeftBack::multiplexCh, 5, JAFDSettings::DistanceSensors::LeftBack::interruptPin);
-		VL6180 rightFront(JAFDSettings::DistanceSensors::RightFront::multiplexCh, 6, JAFDSettings::DistanceSensors::RightFront::interruptPin);
-		VL6180 rightBack(JAFDSettings::DistanceSensors::RightBack::multiplexCh, 7, JAFDSettings::DistanceSensors::RightBack::interruptPin);
+		VL6180 leftFront(JAFDSettings::DistanceSensors::LeftFront::multiplexCh, 4);
+		VL6180 leftBack(JAFDSettings::DistanceSensors::LeftBack::multiplexCh, 5);
+		VL6180 rightFront(JAFDSettings::DistanceSensors::RightFront::multiplexCh, 6);
+		VL6180 rightBack(JAFDSettings::DistanceSensors::RightBack::multiplexCh, 7);
 
 		ReturnCode setup()
 		{
 			ReturnCode code = ReturnCode::ok;
+
+			// Force a specific channel on the multiplexer
+			i2cMultiplexer.selectChannel(0);
+
 			/*
 			if (leftFront.setup() != ReturnCode::ok)
 			{
