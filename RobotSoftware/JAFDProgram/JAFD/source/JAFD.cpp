@@ -53,7 +53,6 @@ namespace JAFD
 		NVIC_EnableIRQ(PIOD_IRQn);
 		NVIC_SetPriority(PIOD_IRQn, 1);
 
-		/*
 		// Setup of MazeMapper
 		if (MazeMapping::setup() != ReturnCode::ok)
 		{
@@ -77,13 +76,13 @@ namespace JAFD
 		{
 			Serial.println("Error SPI NVSRAM");
 		}
-		*/
+		
 		// Setup of Distance Sensors
 		if (DistanceSensors::setup() != ReturnCode::ok)
 		{
 			Serial.println("Error Distance Sensors");
 		}
-		/*
+		
 		// Setup of Bno055
 		if (Bno055::init() != ReturnCode::ok)
 		{
@@ -95,9 +94,9 @@ namespace JAFD
 		{
 			Serial.println("Error Color-Sensor");
 		}
-		*/
+		
 		//Set start for 9DOF
-		//Bno055::setStartPoint();
+		Bno055::setStartPoint();
 
 		// Clear all interrupts once
 		volatile auto temp = PIOA->PIO_ISR;
@@ -150,16 +149,9 @@ namespace JAFD
 
 	void robotLoop()
 	{
-		auto dist = DistanceSensors::frontLeft.getDistance();
+		static float fps = 0;
 
-		if (DistanceSensors::frontLeft.getStatus() != DistanceSensors::VL53L0::Status::noError)
-		{
-			Serial.println("err");
-		}
-		else
-		{
-			Serial.println(dist);
-		}
+		auto time = millis();
 
 		/*
 		constexpr uint16_t numTasks = 9;
@@ -214,9 +206,22 @@ namespace JAFD
 		}
 		*/
 
-		//SensorFusion::updateSensors();
+		SensorFusion::updateSensors();
 		//SensorFusion::untimedFusion();
 		//RobotLogic::loop();
+
+		volatile auto dist = DistanceSensors::frontLeft.getDistance();
+		dist = DistanceSensors::frontRight.getDistance();
+		dist = DistanceSensors::rightFront.getDistance();
+		dist = DistanceSensors::leftFront.getDistance();
+		dist = DistanceSensors::rightBack.getDistance();
+		dist = DistanceSensors::leftBack.getDistance();
+		dist = DistanceSensors::frontLong.getDistance();
+
+		if (fps < 0.01f) fps = 1000.0f / (millis() - time);
+		else fps = fps * 0.7f + 300.0f / (millis() - time);
+		Serial.println(fps);
+
 		return;
 	}
 }

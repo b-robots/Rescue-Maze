@@ -964,7 +964,7 @@ namespace JAFD
 		{
 			DistanceSensors::forceNewMeasurement();
 			Bno055::update_sensorreadings();
-			DistanceSensors::updateDistSensors();
+			//DistanceSensors::updateDistSensors();
 		}
 
 		void setDistances(Distances distances)

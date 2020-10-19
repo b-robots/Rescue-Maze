@@ -29,8 +29,6 @@ namespace JAFD
 
 			if (read8(_regModelID) != 0xB4) {
 				// Retry
-				delay(5);
-
 				if (read8(_regModelID) != 0xB4) {
 					return ReturnCode::error;
 				}
@@ -96,7 +94,7 @@ namespace JAFD
 				i2cMultiplexer.selectChannel(_multiplexCh);
 			}
 
-			// private settings from page 24 of app note
+			// Private settings from page 24 of app note
 			write8(0x0207, 0x01);
 			write8(0x0208, 0x01);
 			write8(0x0096, 0x00);
@@ -129,29 +127,33 @@ namespace JAFD
 			write8(0x0030, 0x00);
 
 			// Recommended : Public registers - See data sheet for more detail
-			write8(0x0011, 0b00010000);	// Enable active low interrupt for 'New Measurement ready'
-			write8(0x010a, 0x30);       // Set the averaging sample period
-										// (compromise between lower noise and
-										// increased execution time)
-			write8(0x003f, 0x46);       // Sets the light and dark gain (upper
-										// nibble). Dark gain should not be
-										// changed.
-			write8(0x0031, 0xFF);       // sets the # of range measurements after
-										// which auto calibration of system is
-										// performed
-			write8(0x0040, 0x63);       // Set ALS integration time to 100ms
-			write8(0x002e, 0x01);       // perform a single temperature calibration
-										// of the ranging sensor
+			write8(0x0011, 0x10);	// Enables polling for ‘New Sample ready’
+									// when measurement completes
+			write8(0x010a, 0x30);	// Set the averaging sample period
+									// (compromise between lower noise and
+									// increased execution time)
+			write8(0x003f, 0x46);	// Sets the light and dark gain (upper
+									// nibble). Dark gain should not be
+									// changed.
+			write8(0x0031, 0xFF);	// sets the # of range measurements after
+									// which auto calibration of system is
+									// performed
+			write8(0x002e, 0x01);	// perform a single temperature calibration
+									// of the ranging sensor
+			write8(0x0014, 0x24);	// Configures interrupt on ‘New Sample
+									// Ready threshold event’
 
-			// Optional: Public registers - See data sheet for more detail
-			write8(0x001b, 0x00);       // Set ranging inter-measurement period to 10ms
-			write8(0x003e, 0x31);       // Set default ALS inter-measurement period
-										// to 500ms
-			write8(0x0014, 0x24);       // Configures interrupt on 'New Sample
-										// Ready threshold event'
+			// 10 Hz continuos mode
+			write8(0x001c, 30);		// max convergence time = 30ms
+			write8(0x001b, 9);		// inter measurement period = 100ms (= 9 * 10ms + 10ms)
+
+			// Stop continuous mode
+			write8(_regRangeStart, 0x01);
+
+			delay(100);
 
 			// Start continuos mode
-			write8(0x0018, 0b11);
+			write8(_regRangeStart, 0x03);
 		}
 
 		// Write 1 byte
@@ -215,8 +217,8 @@ namespace JAFD
 				i2cMultiplexer.selectChannel(_multiplexCh);
 			}
 
-			// Poll until bit 2 is set
-			while (!(read8(_regIntStatus) & 0x04));
+			// Poll until data is available
+			while (!read8(_regIntStatus));
 			
 			// Read range in mm
 			float tempDist = read8(_regRangeResult) * _k + _d;
@@ -503,6 +505,11 @@ namespace JAFD
 
 		void VL53L0::clearInterrupt()
 		{
+			if (i2cMultiplexer.getChannel() != _multiplexCh)
+			{
+				i2cMultiplexer.selectChannel(_multiplexCh);
+			}
+
 			_sensor.writeReg(_sensor.SYSTEM_INTERRUPT_CLEAR, 0x01);
 		}
 
@@ -574,7 +581,6 @@ namespace JAFD
 			// Force a specific channel on the multiplexer
 			i2cMultiplexer.selectChannel(0);
 
-			/*
 			if (leftFront.setup() != ReturnCode::ok)
 			{
 				Serial.println("lf");
@@ -598,13 +604,13 @@ namespace JAFD
 				Serial.println("rb");
 				code = ReturnCode::fatalError;
 			}
-			*/
+			
 			if (frontLeft.setup() != ReturnCode::ok)
 			{
 				Serial.println("fl");
 				code = ReturnCode::fatalError;
 			}
-			/*
+			
 			if (frontRight.setup() != ReturnCode::ok)
 			{
 				Serial.println("fr");
@@ -616,7 +622,6 @@ namespace JAFD
 				Serial.println("f");
 				code = ReturnCode::fatalError;
 			}
-			*/
 
 			return code;
 		}
