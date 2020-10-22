@@ -37,6 +37,7 @@ namespace JAFD
 				rawOverflow = 13,	// Raw measurement overflow
 				underflow = 14,		// Measurement underflow
 				overflow = 15,		// Measurement overflow
+				timeout,			// Timeout during waiting for new value
 				unknownError		// Unbekannter Fehler
 			};
 
@@ -51,7 +52,7 @@ namespace JAFD
 			void storeCalibData();
 			void restoreCalibData();
 			void resetCalibData();
-			void clearInterrupt();
+			void forceMeasurement();
 
 		private:
 			// Register addresses
@@ -123,9 +124,9 @@ namespace JAFD
 
 		private:
 			static const uint32_t _baudrate = 115200;
-			static const uint8_t _maxBytesBeforeHeader = 30;
+			static const uint8_t _maxBytesBeforeHeader = 10;
 			static const uint8_t _frameSize = 7;
-			static const uint8_t _maxMeasurementTries = 3;
+			static const uint8_t _maxMeasurementTries = 2;
 
 			const uint8_t _id;
 
@@ -138,6 +139,7 @@ namespace JAFD
 			uint16_t _distance;
 			Status _status;
 
+			void clearSerialBuffer();
 			Status takeMeasurement();
 		};
 
@@ -164,7 +166,7 @@ namespace JAFD
 			void storeCalibData();
 			void restoreCalibData();
 			void resetCalibData();
-			void clearInterrupt();
+			void forceMeasurement();
 
 		private:
 			const uint8_t _multiplexCh;
