@@ -218,7 +218,17 @@ namespace JAFD
 			}
 
 			// Poll until data is available
-			while (!read8(_regIntStatus));
+			auto startMillis = millis();
+			while (!(read8(_regIntStatus) & 0x04))
+			{
+				if (millis() - startMillis > JAFDSettings::DistanceSensors::timeout)
+				{
+					// Timeout
+					clearInterrupt();
+					_status = Status::timeout;
+					return 0;
+				}
+			}
 			
 			// Read range in mm
 			float tempDist = read8(_regRangeResult) * _k + _d;
@@ -227,7 +237,7 @@ namespace JAFD
 			else distance = (uint16_t)roundf(tempDist);
 
 			// Clear interrupt
-			write8(_regIntClear, 0x07);
+			clearInterrupt();
 
 			// Read status
 			_status = static_cast<Status>(read8(_regRangeStatus) >> 4);
@@ -310,8 +320,15 @@ namespace JAFD
 			uint8_t lastChar = 0x00;
 
 			// Read the serial stream until we see the beginning of the TF Mini header, or we timeout reading too many characters.
+			auto startMillis = millis();
 			while (1)
 			{
+				if (millis() - startMillis > JAFDSettings::DistanceSensors::timeout / _maxMeasurementTries)
+				{
+					_distance = 0;
+					_status = Status::noSerialHeader;
+					return _status;
+				}
 
 				if (_streamPtr->available())
 				{
@@ -386,10 +403,16 @@ namespace JAFD
 			{
 				numMeasurementAttempts++;
 
-				if (numMeasurementAttempts > _maxMeasurementTries) return 0;
+				if (numMeasurementAttempts > _maxMeasurementTries)
+				{
+					clearSerialBuffer();
+					return 0;
+				}
 
 				takeMeasurement();
 			} while (_status != Status::noError);
+
+			clearSerialBuffer();
 
 			float tempDist = _distance * _k + _d;
 
@@ -453,6 +476,11 @@ namespace JAFD
 			return _status;
 		}
 
+		void TFMini::clearSerialBuffer()
+		{
+			while (_streamPtr->available()) volatile auto temp = _streamPtr->read();
+		}
+
 		// TFMini class - end
 
 		// VL53L0 class - begin
@@ -465,7 +493,7 @@ namespace JAFD
 			{
 				i2cMultiplexer.selectChannel(_multiplexCh);
 			}
-			_sensor.setTimeout(200);
+			_sensor.setTimeout(JAFDSettings::DistanceSensors::timeout);
 
 			if (!_sensor.init()) return ReturnCode::error;
 			

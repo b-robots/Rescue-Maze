@@ -37,6 +37,7 @@ namespace JAFD
 				rawOverflow = 13,	// Raw measurement overflow
 				underflow = 14,		// Measurement underflow
 				overflow = 15,		// Measurement overflow
+				timeout,			// Timeout
 				unknownError		// Unbekannter Fehler
 			};
 
@@ -60,24 +61,11 @@ namespace JAFD
 			static const uint8_t _regIntClear = 0x015;				// Interrupt clear
 			static const uint8_t _regSysFreshOutOfReset = 0x016;	// Fresh out of reset
 			static const uint8_t _regRangeStart = 0x018;			// Start rang measurement
-			static const uint8_t _regLuxStart = 0x038;				// Start lux reading
-			static const uint8_t _regLuxGain = 0x03F;				// Lux gain
 			static const uint8_t _regIntegrationPerHi = 0x040;		// Integration period for ALS mode - high byte
 			static const uint8_t _regIntegrationPerLo = 0x041;		// Integration period for ALS mode - low byte
 			static const uint8_t _regRangeStatus = 0x04d;			// Error codes
 			static const uint8_t _regIntStatus = 0x04f;				// Interrupt status
-			static const uint8_t _regALSResult = 0x050;				// Light reading result
 			static const uint8_t _regRangeResult = 0x062;			// Range reading result
-
-			// ALS - Gains
-			static const uint8_t _alsGain1 = 0x06;		// x 1
-			static const uint8_t _alsGain1_25 = 0x05;	// x 1.25
-			static const uint8_t _alsGain1_67 = 0x04;	// x 1.67
-			static const uint8_t _alsGain2_5 = 0x03;	// x 2.5
-			static const uint8_t _alsGain5 = 0x02;		// x 5
-			static const uint8_t _alsGain10 = 0x01;		// x 10
-			static const uint8_t _alsGain20 = 0x00;		// x 20
-			static const uint8_t _alsGain40 = 0x07;		// x 40
 
 			static const uint8_t _i2cAddr = 0x29;
 			const uint8_t _multiplexCh;
@@ -123,9 +111,9 @@ namespace JAFD
 
 		private:
 			static const uint32_t _baudrate = 115200;
-			static const uint8_t _maxBytesBeforeHeader = 30;
+			static const uint8_t _maxBytesBeforeHeader = 10;
 			static const uint8_t _frameSize = 7;
-			static const uint8_t _maxMeasurementTries = 3;
+			static const uint8_t _maxMeasurementTries = 2;
 
 			const uint8_t _id;
 
@@ -138,6 +126,7 @@ namespace JAFD
 			uint16_t _distance;
 			Status _status;
 
+			void clearSerialBuffer();
 			Status takeMeasurement();
 		};
 
