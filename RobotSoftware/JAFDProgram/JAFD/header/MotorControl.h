@@ -1,5 +1,5 @@
 /*
-This part of the Library is responsible for driving the motors.
+This part of the Library is responsible for driving the motors by using the "Pololu Dual VNH5019 Motor Driver"
 */
 
 #pragma once

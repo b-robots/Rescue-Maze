@@ -26,9 +26,12 @@ namespace JAFD
 			constexpr auto lDir = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::dirPin];		// Direction pin left motor
 			constexpr auto rDir = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::dirPin];	// Direction pin right motor
 
-			constexpr auto lFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::fbPin];		// Current sense output left motor
-			constexpr auto rFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::fbPin];		// Current sense output right motor
+			constexpr auto lCurFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::curFbPin];		// Current sense output left motor
+			constexpr auto rCurFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::curFbPin];	// Current sense output right motor
 			
+			constexpr auto lVoltFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::voltFbPin];		// Voltage sense output left motor
+			constexpr auto rVoltFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::voltFbPin];		// Voltage sense output right motor
+
 			constexpr auto lEncA = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::encA];		// Encoder Pin A left motor
 			constexpr auto lEncB = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::encB];		// Encoder Pin B left motor
 
@@ -40,8 +43,11 @@ namespace JAFD
 			constexpr uint8_t lPWMCh = PinMapping::getPWMChannel(lPWM);		// Left motor PWM channel
 			constexpr uint8_t rPWMCh = PinMapping::getPWMChannel(rPWM);		// Right motor PWM channel
 
-			constexpr uint8_t lADCCh = PinMapping::getADCChannel(lFb);		// Left motor ADC channel
-			constexpr uint8_t rADCCh = PinMapping::getADCChannel(rFb);		// Right motor ADC channel
+			constexpr uint8_t lCurADCCh = PinMapping::getADCChannel(lCurFv);	// Left motor ADC channel for current measurement
+			constexpr uint8_t rCurADCCh = PinMapping::getADCChannel(rCurFv);	// Right motor ADC channel for current measurement
+
+			constexpr uint8_t lVoltADCCh = PinMapping::getADCChannel(lVoltFv);	// Left motor ADC channel for voltage measurement
+			constexpr uint8_t rVoltADCCh = PinMapping::getADCChannel(rVoltFv);	// Right motor ADC channel for voltage measurement
 
 			PIDController leftPID(JAFDSettings::Controller::Motor::pidSettings);		// Left speed PID-Controller
 			PIDController rightPID(JAFDSettings::Controller::Motor::pidSettings);		// Right speed PID-Controller
@@ -52,12 +58,28 @@ namespace JAFD
 			volatile FloatWheelSpeeds speeds = { 0.0f, 0.0f };	// Current motor speeds (cm/s)
 
 			volatile WheelSpeeds desSpeeds = { 0.0f, 0.0f };	// Desired motor speed (cm/s)
+
+			// Get output voltage of motor
+			float getVoltage(const Motor motor)
+			{
+				// Wait for end of conversion
+				while (!(ADC->ADC_ISR & ADC_ISR_DRDY));
+
+				if (motor == Motor::left)
+				{
+					return ADC->ADC_CDR[lVoltADCCh] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::voltageSensFactor;
+				}
+				else
+				{
+					ADC->ADC_CDR[rVoltADCCh] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::voltageSensFactor;
+				}
+			}
 		}
 
 		ReturnCode setup()
 		{
 			// Check if PWM Pins and ADC Pins are correct
-			if (!PinMapping::hasPWM(lPWM) || !PinMapping::hasPWM(rPWM) || !PinMapping::hasADC(lFb) || !PinMapping::hasADC(rFb))
+			if (!PinMapping::hasPWM(lPWM) || !PinMapping::hasPWM(rPWM) || !PinMapping::hasADC(lCurFv) || !PinMapping::hasADC(rCurFv))
 			{
 				return ReturnCode::fatalError;
 			}
@@ -155,12 +177,11 @@ namespace JAFD
 				rPWM.port->PIO_ABSR &= ~rPWM.pin;
 			}
 
-			// Setup ADC (Freerunning mode / 21MHz)
+			// Setup ADC (Freerunning mode / 21MHz); No Gain and Offset
 			PMC->PMC_PCER1 = PMC_PCER1_PID37;
 
 			ADC->ADC_MR = ADC_MR_FREERUN_ON | ADC_MR_PRESCAL(3) | ADC_MR_STARTUP_SUT896 | ADC_MR_SETTLING_AST5 | ADC_MR_TRACKTIM(0) | ADC_MR_TRANSFER(1);
-			ADC->ADC_CGR = ADC_CGR_GAIN0(0b11);
-			ADC->ADC_CHER = 1 << lADCCh | 1 << rADCCh;
+			ADC->ADC_CHER = 1 << lCurADCCh | 1 << rCurADCCh | 1 << lVoltADCCh | 1 << rVoltADCCh;
 
 			return ReturnCode::ok;
 		}
@@ -170,7 +191,7 @@ namespace JAFD
 			static int32_t lastLeftCnt = 0;
 			static int32_t lastRightCnt = 0;
 
-			// Calculate speeds and apply 
+			// Calculate speeds
 			speeds.left = ((lEncCnt - lastLeftCnt) / (JAFDSettings::MotorControl::pulsePerRev) * JAFDSettings::Mechanics::wheelDiameter * PI * freq);
 			speeds.right = ((rEncCnt - lastRightCnt) / (JAFDSettings::MotorControl::pulsePerRev) * JAFDSettings::Mechanics::wheelDiameter * PI * freq);
 
@@ -180,7 +201,15 @@ namespace JAFD
 
 		void speedPID(const uint8_t freq)
 		{
-			static FloatWheelSpeeds setSpeed;	// Speed calculated by PID
+			FloatWheelSpeeds setSpeed;	// Speed calculated by PID
+
+			static FloatWheelSpeeds lastPWMVal = { 0.0f, 0.0f };	// Last PWM values
+			static float leftPWMReduction = JAFDSettings::MotorControl::initPWMReduction;	// PWM reduction to prevent overvoltage
+			static float rightPWMReduction = JAFDSettings::MotorControl::initPWMReduction;	// PWM reduction to prevent overvoltage
+
+			// Update PWM reduction factor with IIR
+			leftPWMReduction = JAFDSettings::MotorControl::pwmRedIIRFactor * (lastPWMVal.left * 6.0f / getVoltage(Motor::left)) + (1 - JAFDSettings::MotorControl::pwmRedIIRFactor) * leftPWMReduction;
+			rightPWMReduction = JAFDSettings::MotorControl::pwmRedIIRFactor * (lastPWMVal.right * 6.0f / getVoltage(Motor::right)) + (1 - JAFDSettings::MotorControl::pwmRedIIRFactor) * rightPWMReduction;
 
 			// When speed isn't 0, do PID controller
 			if (desSpeeds.left == 0)
@@ -230,6 +259,13 @@ namespace JAFD
 			{
 				rDir.port->PIO_SODR = rDir.pin;
 			}
+
+			// Reduce PWM values
+			setSpeed.left *= leftPWMReduction;
+			setSpeed.right *= rightPWMReduction;
+
+			// Update last PWM values
+			lastPWMVal = setSpeed;
 
 			// Set PWM Value
 			PWM->PWM_CH_NUM[lPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[lPWMCh].PWM_CPRD * fabs(setSpeed.left));
@@ -307,23 +343,23 @@ namespace JAFD
 		{
 			float result = 0.0f;
 
-			// Sample 10 values and return average
-			for (uint8_t i = 0; i < 10; i++)
+			// Sample values and return average
+			for (uint8_t i = 0; i < JAFDSettings::MotorControl::currentADCSampleCount; i++)
 			{
 				// Wait for end of conversion
 				while (!(ADC->ADC_ISR & ADC_ISR_DRDY));
 
 				if (motor == Motor::left)
 				{
-					result += ADC->ADC_CDR[lADCCh] * 3.3f * 1904.7619f / 4.0f / (1 << 12 - 1);
+					result += ADC->ADC_CDR[lCurADCCh] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::currentSensFactor;
 				}
 				else
 				{
-					result += ADC->ADC_CDR[rADCCh] * 3.3f * 1904.7619f / 4.0f / (1 << 12 - 1);
+					result += ADC->ADC_CDR[rCurADCCh] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::currentSensFactor;
 				}
 			}
 
-			return result / 10.0f;
+			return result / JAFDSettings::MotorControl::currentADCSampleCount;
 		}
 	}
 }

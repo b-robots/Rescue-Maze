@@ -58,24 +58,36 @@ namespace JAFDSettings
 
 		constexpr uint8_t minSpeed = 15;			// Minimum speed for motor to rotate
 
-		constexpr float pulsePerRev = 4741.44f / 4.0f;		// Rotary-Encoder pulses per revolution
+		constexpr float pulsePerRev = 4741.44f / 4.0f;	// Rotary-Encoder pulses per revolution
+
+		constexpr uint8_t currentADCSampleCount = 2;		// How often to sample and average the ADC measurement for the current
+		constexpr float currentSensFactor = 1.0f / 0.14f;	// 140mv/A
+		
+		constexpr float voltageSensFactor = 0.5f;			// Relation between real voltage and measured voltage
+
+		constexpr float initPWMReduction = 0.82f;			// Starting with this reduction of the pwm to prevent overvoltage
+		constexpr float pwmRedIIRFactor = 0.8f;				// IIR factor for PWM reduction value
 
 		namespace Left
 		{
-			constexpr uint8_t pwmPin = 43;	// PWM pin left motor
-			constexpr uint8_t dirPin = 47;	// Direction pin left motor
-			constexpr uint8_t fbPin = A11;	// Current feedback output left motor
-			constexpr uint8_t encA = 4;		// Encoder Pin A
-			constexpr uint8_t encB = 5;		// Encoder Pin B
+			constexpr uint8_t pwmPin = 43;			// PWM pin left motor
+			constexpr uint8_t inAPin = 47;			// Input A pin left motor
+			constexpr uint8_t inBPin = 48;			// Input B pin left motor
+			constexpr uint8_t curFbPin = A11;		// Current feedback output left motor
+			constexpr uint8_t voltFbPin = A5;		// Voltage feedback output left motor
+			constexpr uint8_t encA = 4;				// Encoder Pin A
+			constexpr uint8_t encB = 5;				// Encoder Pin B
 		}
 
 		namespace Right
 		{
-			constexpr uint8_t pwmPin = 41;	// PWM pin left motor
-			constexpr uint8_t dirPin = 46;	// Direction pin left motor
-			constexpr uint8_t fbPin = A10;	// Current feedback output left motor
-			constexpr uint8_t encA = 6;		// Encoder Pin A
-			constexpr uint8_t encB = 9;		// Encoder Pin B
+			constexpr uint8_t pwmPin = 41;			// PWM pin left motor
+			constexpr uint8_t inAPin = 42;			// Input A pin right motor
+			constexpr uint8_t inBPin = 44;			// Input B pin right motor
+			constexpr uint8_t curFbPin = A10;		// Current feedback output left motor
+			constexpr uint8_t voltFbPin = A6;		// Current feedback output left motor
+			constexpr uint8_t encA = 6;				// Encoder Pin A
+			constexpr uint8_t encB = 9;				// Encoder Pin B
 		}
 	}
 
