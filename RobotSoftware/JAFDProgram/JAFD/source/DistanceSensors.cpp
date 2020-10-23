@@ -656,53 +656,144 @@ namespace JAFD
 
 		void updateDistSensors()
 		{
-			uint16_t tempDist = 0.0f;
-			uint32_t tempAverageDist = 0;
-			uint8_t numCorrectSamples = 0;
-			uint8_t numOverflowSamples = 0;
-			uint8_t numUnderflowSamples = 0;
+			struct TempData
+			{
+				uint32_t tempAverageDist = 0;
+				uint8_t numCorrectSamples = 0;
+				uint8_t numOverflowSamples = 0;
+				uint8_t numUnderflowSamples = 0;
+			};
+
+			TempData flData, frData, lfData, lbData, rfData, rbData;
+			uint16_t tempDist = 0;
 
 			auto tempFusedData = SensorFusion::getFusedData();
 
 			for (uint8_t i = 0; i < JAFDSettings::DistanceSensors::averagingNumSamples; i++)
 			{
+				// Front Left
 				tempDist = DistanceSensors::frontLeft.getDistance();
 
 				if (DistanceSensors::frontLeft.getStatus() == decltype(DistanceSensors::frontLeft)::Status::noError)
 				{
-					numCorrectSamples++;
-					tempAverageDist += tempDist;
+					flData.numCorrectSamples++;
+					flData.tempAverageDist += tempDist;
 				}
 				else if (DistanceSensors::frontLeft.getStatus() == decltype(DistanceSensors::frontLeft)::Status::overflow)
 				{
-					numOverflowSamples++;
+					flData.numOverflowSamples++;
 				}
 				else if (DistanceSensors::frontLeft.getStatus() == decltype(DistanceSensors::frontLeft)::Status::underflow)
 				{
-					numUnderflowSamples++;
+					flData.numUnderflowSamples++;
+				}
+			
+				// Front Right
+				tempDist = DistanceSensors::frontRight.getDistance();
+
+				if (DistanceSensors::frontRight.getStatus() == decltype(DistanceSensors::frontRight)::Status::noError)
+				{
+					frData.numCorrectSamples++;
+					frData.tempAverageDist += tempDist;
+				}
+				else if (DistanceSensors::frontRight.getStatus() == decltype(DistanceSensors::frontRight)::Status::overflow)
+				{
+					frData.numOverflowSamples++;
+				}
+				else if (DistanceSensors::frontRight.getStatus() == decltype(DistanceSensors::frontRight)::Status::underflow)
+				{
+					frData.numUnderflowSamples++;
+				}
+				
+				// Left Back
+				tempDist = DistanceSensors::leftBack.getDistance();
+
+				if (DistanceSensors::leftBack.getStatus() == decltype(DistanceSensors::leftBack)::Status::noError)
+				{
+					lbData.numCorrectSamples++;
+					lbData.tempAverageDist += tempDist;
+				}
+				else if (DistanceSensors::leftBack.getStatus() == decltype(DistanceSensors::leftBack)::Status::overflow)
+				{
+					lbData.numOverflowSamples++;
+				}
+				else if (DistanceSensors::leftBack.getStatus() == decltype(DistanceSensors::leftBack)::Status::underflow)
+				{
+					lbData.numUnderflowSamples++;
+				}
+				
+				// Left Front
+				tempDist = DistanceSensors::leftFront.getDistance();
+
+				if (DistanceSensors::leftFront.getStatus() == decltype(DistanceSensors::leftFront)::Status::noError)
+				{
+					lfData.numCorrectSamples++;
+					lfData.tempAverageDist += tempDist;
+				}
+				else if (DistanceSensors::leftFront.getStatus() == decltype(DistanceSensors::leftFront)::Status::overflow)
+				{
+					lfData.numOverflowSamples++;
+				}
+				else if (DistanceSensors::leftFront.getStatus() == decltype(DistanceSensors::leftFront)::Status::underflow)
+				{
+					lfData.numUnderflowSamples++;
+				}
+			
+				// Right Back
+				tempDist = DistanceSensors::rightBack.getDistance();
+
+				if (DistanceSensors::rightBack.getStatus() == decltype(DistanceSensors::rightBack)::Status::noError)
+				{
+					rbData.numCorrectSamples++;
+					rbData.tempAverageDist += tempDist;
+				}
+				else if (DistanceSensors::rightBack.getStatus() == decltype(DistanceSensors::rightBack)::Status::overflow)
+				{
+					rbData.numOverflowSamples++;
+				}
+				else if (DistanceSensors::rightBack.getStatus() == decltype(DistanceSensors::rightBack)::Status::underflow)
+				{
+					rbData.numUnderflowSamples++;
+				}
+			
+				// Right Front
+				tempDist = DistanceSensors::rightFront.getDistance();
+
+				if (DistanceSensors::rightFront.getStatus() == decltype(DistanceSensors::rightFront)::Status::noError)
+				{
+					rfData.numCorrectSamples++;
+					rfData.tempAverageDist += tempDist;
+				}
+				else if (DistanceSensors::rightFront.getStatus() == decltype(DistanceSensors::rightFront)::Status::overflow)
+				{
+					rfData.numOverflowSamples++;
+				}
+				else if (DistanceSensors::rightFront.getStatus() == decltype(DistanceSensors::rightFront)::Status::underflow)
+				{
+					rfData.numUnderflowSamples++;
 				}
 			}
 
-			if (numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numCorrectSamples))
+			if (flData.numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - flData.numCorrectSamples))
 			{
 				if (tempFusedData.distSensorState.frontLeft == DistSensorStatus::ok)
 				{
-					tempFusedData.distances.frontLeft = static_cast<uint16_t>((tempAverageDist / numCorrectSamples) * JAFDSettings::SensorFusion::shortDistSensIIRFactor + tempFusedData.distances.frontLeft * (1.0f - JAFDSettings::SensorFusion::shortDistSensIIRFactor));
+					tempFusedData.distances.frontLeft = static_cast<uint16_t>((static_cast<float>(flData.tempAverageDist) / flData.numCorrectSamples) * JAFDSettings::SensorFusion::shortDistSensIIRFactor + tempFusedData.distances.frontLeft * (1.0f - JAFDSettings::SensorFusion::shortDistSensIIRFactor));
 				}
 				else
 				{
-					tempFusedData.distances.frontLeft = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
+					tempFusedData.distances.frontLeft = static_cast<uint16_t>(static_cast<float>(flData.tempAverageDist) / flData.numCorrectSamples);
 				}
 
 				tempFusedData.distSensorState.frontLeft = DistSensorStatus::ok;
 			}
 			else
 			{
-				if (numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples))
+				if (flData.numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - flData.numOverflowSamples))
 				{
 					tempFusedData.distSensorState.frontLeft = DistSensorStatus::overflow;
 				}
-				else if (numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples))
+				else if (flData.numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - flData.numUnderflowSamples))
 				{
 					tempFusedData.distSensorState.frontLeft = DistSensorStatus::underflow;
 				}
@@ -714,50 +805,26 @@ namespace JAFD
 				tempFusedData.distances.frontLeft = 0;
 			}
 
-			numCorrectSamples = 0;
-			tempAverageDist = 0;
-			numOverflowSamples = 0;
-			numUnderflowSamples = 0;
-
-			for (uint8_t i = 0; i < JAFDSettings::DistanceSensors::averagingNumSamples; i++)
-			{
-				tempDist = DistanceSensors::frontRight.getDistance();
-
-				if (DistanceSensors::frontRight.getStatus() == decltype(DistanceSensors::frontRight)::Status::noError)
-				{
-					numCorrectSamples++;
-					tempAverageDist += tempDist;
-				}
-				else if (DistanceSensors::frontRight.getStatus() == decltype(DistanceSensors::frontRight)::Status::overflow)
-				{
-					numOverflowSamples++;
-				}
-				else if (DistanceSensors::frontRight.getStatus() == decltype(DistanceSensors::frontRight)::Status::underflow)
-				{
-					numUnderflowSamples++;
-				}
-			}
-
-			if (numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numCorrectSamples))
+			if (frData.numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - frData.numCorrectSamples))
 			{
 				if (tempFusedData.distSensorState.frontRight == DistSensorStatus::ok)
 				{
-					tempFusedData.distances.frontRight = static_cast<uint16_t>((tempAverageDist / numCorrectSamples) * JAFDSettings::SensorFusion::shortDistSensIIRFactor + tempFusedData.distances.frontRight * (1.0f - JAFDSettings::SensorFusion::shortDistSensIIRFactor));
+					tempFusedData.distances.frontRight = static_cast<uint16_t>((static_cast<float>(frData.tempAverageDist) / frData.numCorrectSamples) * JAFDSettings::SensorFusion::shortDistSensIIRFactor + tempFusedData.distances.frontRight * (1.0f - JAFDSettings::SensorFusion::shortDistSensIIRFactor));
 				}
 				else
 				{
-					tempFusedData.distances.frontRight = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
+					tempFusedData.distances.frontRight = static_cast<uint16_t>(static_cast<float>(frData.tempAverageDist) / frData.numCorrectSamples);
 				}
 
 				tempFusedData.distSensorState.frontRight = DistSensorStatus::ok;
 			}
 			else
 			{
-				if (numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples))
+				if (frData.numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - frData.numOverflowSamples))
 				{
 					tempFusedData.distSensorState.frontRight = DistSensorStatus::overflow;
 				}
-				else if (numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples))
+				else if (frData.numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - frData.numUnderflowSamples))
 				{
 					tempFusedData.distSensorState.frontRight = DistSensorStatus::underflow;
 				}
@@ -769,50 +836,26 @@ namespace JAFD
 				tempFusedData.distances.frontRight = 0;
 			}
 
-			numCorrectSamples = 0;
-			tempAverageDist = 0;
-			numOverflowSamples = 0;
-			numUnderflowSamples = 0;
-
-			for (uint8_t i = 0; i < JAFDSettings::DistanceSensors::averagingNumSamples; i++)
-			{
-				tempDist = DistanceSensors::leftBack.getDistance();
-
-				if (DistanceSensors::leftBack.getStatus() == decltype(DistanceSensors::leftBack)::Status::noError)
-				{
-					numCorrectSamples++;
-					tempAverageDist += tempDist;
-				}
-				else if (DistanceSensors::leftBack.getStatus() == decltype(DistanceSensors::leftBack)::Status::overflow)
-				{
-					numOverflowSamples++;
-				}
-				else if (DistanceSensors::leftBack.getStatus() == decltype(DistanceSensors::leftBack)::Status::underflow)
-				{
-					numUnderflowSamples++;
-				}
-			}
-
-			if (numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numCorrectSamples))
+			if (lbData.numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - lbData.numCorrectSamples))
 			{
 				if (tempFusedData.distSensorState.leftBack == DistSensorStatus::ok)
 				{
-					tempFusedData.distances.leftBack = static_cast<uint16_t>((tempAverageDist / numCorrectSamples) * JAFDSettings::SensorFusion::shortDistSensIIRFactor + tempFusedData.distances.leftBack * (1.0f - JAFDSettings::SensorFusion::shortDistSensIIRFactor));
+					tempFusedData.distances.leftBack = static_cast<uint16_t>((static_cast<float>(lbData.tempAverageDist) / lbData.numCorrectSamples) * JAFDSettings::SensorFusion::shortDistSensIIRFactor + tempFusedData.distances.leftBack * (1.0f - JAFDSettings::SensorFusion::shortDistSensIIRFactor));
 				}
 				else
 				{
-					tempFusedData.distances.leftBack = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
+					tempFusedData.distances.leftBack = static_cast<uint16_t>(static_cast<float>(lbData.tempAverageDist) / lbData.numCorrectSamples);
 				}
 
 				tempFusedData.distSensorState.leftBack = DistSensorStatus::ok;
 			}
 			else
 			{
-				if (numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples))
+				if (lbData.numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - lbData.numOverflowSamples))
 				{
 					tempFusedData.distSensorState.leftBack = DistSensorStatus::overflow;
 				}
-				else if (numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples))
+				else if (lbData.numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - lbData.numUnderflowSamples))
 				{
 					tempFusedData.distSensorState.leftBack = DistSensorStatus::underflow;
 				}
@@ -824,50 +867,26 @@ namespace JAFD
 				tempFusedData.distances.leftBack = 0;
 			}
 
-			numCorrectSamples = 0;
-			tempAverageDist = 0;
-			numOverflowSamples = 0;
-			numUnderflowSamples = 0;
-
-			for (uint8_t i = 0; i < JAFDSettings::DistanceSensors::averagingNumSamples; i++)
-			{
-				tempDist = DistanceSensors::leftFront.getDistance();
-
-				if (DistanceSensors::leftFront.getStatus() == decltype(DistanceSensors::leftFront)::Status::noError)
-				{
-					numCorrectSamples++;
-					tempAverageDist += tempDist;
-				}
-				else if (DistanceSensors::leftFront.getStatus() == decltype(DistanceSensors::leftFront)::Status::overflow)
-				{
-					numOverflowSamples++;
-				}
-				else if (DistanceSensors::leftFront.getStatus() == decltype(DistanceSensors::leftFront)::Status::underflow)
-				{
-					numUnderflowSamples++;
-				}
-			}
-
-			if (numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numCorrectSamples))
+			if (lfData.numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - lfData.numCorrectSamples))
 			{
 				if (tempFusedData.distSensorState.leftFront == DistSensorStatus::ok)
 				{
-					tempFusedData.distances.leftFront = static_cast<uint16_t>((tempAverageDist / numCorrectSamples) * JAFDSettings::SensorFusion::shortDistSensIIRFactor + tempFusedData.distances.leftFront * (1.0f - JAFDSettings::SensorFusion::shortDistSensIIRFactor));
+					tempFusedData.distances.leftFront = static_cast<uint16_t>((static_cast<float>(lfData.tempAverageDist) / lfData.numCorrectSamples) * JAFDSettings::SensorFusion::shortDistSensIIRFactor + tempFusedData.distances.leftFront * (1.0f - JAFDSettings::SensorFusion::shortDistSensIIRFactor));
 				}
 				else
 				{
-					tempFusedData.distances.leftFront = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
+					tempFusedData.distances.leftFront = static_cast<uint16_t>(static_cast<float>(lfData.tempAverageDist) / lfData.numCorrectSamples);
 				}
 
 				tempFusedData.distSensorState.leftFront = DistSensorStatus::ok;
 			}
 			else
 			{
-				if (numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples))
+				if (lfData.numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - lfData.numOverflowSamples))
 				{
 					tempFusedData.distSensorState.leftFront = DistSensorStatus::overflow;
 				}
-				else if (numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples))
+				else if (lfData.numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - lfData.numUnderflowSamples))
 				{
 					tempFusedData.distSensorState.leftFront = DistSensorStatus::underflow;
 				}
@@ -879,50 +898,26 @@ namespace JAFD
 				tempFusedData.distances.leftFront = 0;
 			}
 
-			numCorrectSamples = 0;
-			tempAverageDist = 0;
-			numOverflowSamples = 0;
-			numUnderflowSamples = 0;
-
-			for (uint8_t i = 0; i < JAFDSettings::DistanceSensors::averagingNumSamples; i++)
-			{
-				tempDist = DistanceSensors::rightBack.getDistance();
-
-				if (DistanceSensors::rightBack.getStatus() == decltype(DistanceSensors::rightBack)::Status::noError)
-				{
-					numCorrectSamples++;
-					tempAverageDist += tempDist;
-				}
-				else if (DistanceSensors::rightBack.getStatus() == decltype(DistanceSensors::rightBack)::Status::overflow)
-				{
-					numOverflowSamples++;
-				}
-				else if (DistanceSensors::rightBack.getStatus() == decltype(DistanceSensors::rightBack)::Status::underflow)
-				{
-					numUnderflowSamples++;
-				}
-			}
-
-			if (numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numCorrectSamples))
+			if (rbData.numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - rbData.numCorrectSamples))
 			{
 				if (tempFusedData.distSensorState.rightBack == DistSensorStatus::ok)
 				{
-					tempFusedData.distances.rightBack = static_cast<uint16_t>((tempAverageDist / numCorrectSamples) * JAFDSettings::SensorFusion::shortDistSensIIRFactor + tempFusedData.distances.rightBack * (1.0f - JAFDSettings::SensorFusion::shortDistSensIIRFactor));
+					tempFusedData.distances.rightBack = static_cast<uint16_t>((static_cast<float>(rbData.tempAverageDist) / rbData.numCorrectSamples) * JAFDSettings::SensorFusion::shortDistSensIIRFactor + tempFusedData.distances.rightBack * (1.0f - JAFDSettings::SensorFusion::shortDistSensIIRFactor));
 				}
 				else
 				{
-					tempFusedData.distances.rightBack = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
+					tempFusedData.distances.rightBack = static_cast<uint16_t>(static_cast<float>(rbData.tempAverageDist) / rbData.numCorrectSamples);
 				}
 
 				tempFusedData.distSensorState.rightBack = DistSensorStatus::ok;
 			}
 			else
 			{
-				if (numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples))
+				if (rbData.numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - rbData.numOverflowSamples))
 				{
 					tempFusedData.distSensorState.rightBack = DistSensorStatus::overflow;
 				}
-				else if (numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples))
+				else if (rbData.numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - rbData.numUnderflowSamples))
 				{
 					tempFusedData.distSensorState.rightBack = DistSensorStatus::underflow;
 				}
@@ -934,50 +929,26 @@ namespace JAFD
 				tempFusedData.distances.rightBack = 0;
 			}
 
-			numCorrectSamples = 0;
-			tempAverageDist = 0;
-			numOverflowSamples = 0;
-			numUnderflowSamples = 0;
-
-			for (uint8_t i = 0; i < JAFDSettings::DistanceSensors::averagingNumSamples; i++)
-			{
-				tempDist = DistanceSensors::rightFront.getDistance();
-
-				if (DistanceSensors::rightFront.getStatus() == decltype(DistanceSensors::rightFront)::Status::noError)
-				{
-					numCorrectSamples++;
-					tempAverageDist += tempDist;
-				}
-				else if (DistanceSensors::rightFront.getStatus() == decltype(DistanceSensors::rightFront)::Status::overflow)
-				{
-					numOverflowSamples++;
-				}
-				else if (DistanceSensors::rightFront.getStatus() == decltype(DistanceSensors::rightFront)::Status::underflow)
-				{
-					numUnderflowSamples++;
-				}
-			}
-
-			if (numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numCorrectSamples))
+			if (rfData.numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - rfData.numCorrectSamples))
 			{
 				if (tempFusedData.distSensorState.rightFront == DistSensorStatus::ok)
 				{
-					tempFusedData.distances.rightFront = static_cast<uint16_t>((tempAverageDist / numCorrectSamples) * JAFDSettings::SensorFusion::shortDistSensIIRFactor + tempFusedData.distances.rightFront * (1.0f - JAFDSettings::SensorFusion::shortDistSensIIRFactor));
+					tempFusedData.distances.rightFront = static_cast<uint16_t>((static_cast<float>(rfData.tempAverageDist) / rfData.numCorrectSamples) * JAFDSettings::SensorFusion::shortDistSensIIRFactor + tempFusedData.distances.rightFront * (1.0f - JAFDSettings::SensorFusion::shortDistSensIIRFactor));
 				}
 				else
 				{
-					tempFusedData.distances.rightFront = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
+					tempFusedData.distances.rightFront = static_cast<uint16_t>(static_cast<float>(rfData.tempAverageDist) / rfData.numCorrectSamples);
 				}
 
 				tempFusedData.distSensorState.rightFront = DistSensorStatus::ok;
 			}
 			else
 			{
-				if (numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples))
+				if (rfData.numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - rfData.numOverflowSamples))
 				{
 					tempFusedData.distSensorState.rightFront = DistSensorStatus::overflow;
 				}
-				else if (numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples))
+				else if (rfData.numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - rfData.numUnderflowSamples))
 				{
 					tempFusedData.distSensorState.rightFront = DistSensorStatus::underflow;
 				}
@@ -989,58 +960,26 @@ namespace JAFD
 				tempFusedData.distances.rightFront = 0;
 			}
 
-			numCorrectSamples = 0;
-			tempAverageDist = 0;
-			numOverflowSamples = 0;
-			numUnderflowSamples = 0;
+			tempDist = DistanceSensors::frontLong.getDistance();
 
-			for (uint8_t i = 0; i < JAFDSettings::DistanceSensors::averagingNumSamples; i++)
+			if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::noError)
 			{
-				tempDist = DistanceSensors::frontLong.getDistance();
-
-				if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::noError)
-				{
-					numCorrectSamples++;
-					tempAverageDist += tempDist;
-				}
-				else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::overflow)
-				{
-					numOverflowSamples++;
-				}
-				else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::underflow)
-				{
-					numUnderflowSamples++;
-				}
-			}
-
-			if (numCorrectSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numCorrectSamples))
-			{
-				if (tempFusedData.distSensorState.frontLong == DistSensorStatus::ok)
-				{
-					tempFusedData.distances.frontLong = static_cast<uint16_t>((tempAverageDist / numCorrectSamples) * JAFDSettings::SensorFusion::longDistSensIIRFactor + tempFusedData.distances.frontLong * (1.0f - JAFDSettings::SensorFusion::longDistSensIIRFactor));
-				}
-				else
-				{
-					tempFusedData.distances.frontLong = static_cast<uint16_t>(tempAverageDist / numCorrectSamples);
-				}
-
 				tempFusedData.distSensorState.frontLong = DistSensorStatus::ok;
+				tempFusedData.distances.frontLong = tempDist;
+			}
+			else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::overflow)
+			{
+				tempFusedData.distSensorState.frontLong = DistSensorStatus::overflow;
+				tempFusedData.distances.frontLong = 0;
+			}
+			else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::underflow)
+			{
+				tempFusedData.distSensorState.frontLong = DistSensorStatus::underflow;
+				tempFusedData.distances.frontLong = 0;
 			}
 			else
 			{
-				if (numOverflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numOverflowSamples))
-				{
-					tempFusedData.distSensorState.frontLong = DistSensorStatus::overflow;
-				}
-				else if (numUnderflowSamples > (JAFDSettings::DistanceSensors::averagingNumSamples - numUnderflowSamples))
-				{
-					tempFusedData.distSensorState.frontLong = DistSensorStatus::underflow;
-				}
-				else
-				{
-					tempFusedData.distSensorState.frontLong = DistSensorStatus::error;
-				}
-
+				tempFusedData.distSensorState.frontLong = DistSensorStatus::error;
 				tempFusedData.distances.frontLong = 0;
 			}
 

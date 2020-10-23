@@ -493,22 +493,20 @@ namespace JAFD
 		DistSensorStatus frontLeft;
 		DistSensorStatus frontRight;
 		DistSensorStatus frontLong;
-		DistSensorStatus backLong;
 		DistSensorStatus leftFront;
 		DistSensorStatus leftBack;
 		DistSensorStatus rightFront;
 		DistSensorStatus rightBack;
 
-		constexpr DistSensorStates() : frontLeft(DistSensorStatus::error), frontRight(DistSensorStatus::error), frontLong(DistSensorStatus::error), backLong(DistSensorStatus::error), leftFront(DistSensorStatus::error), leftBack(DistSensorStatus::error), rightFront(DistSensorStatus::error), rightBack(DistSensorStatus::error) {}
-		DistSensorStates(const volatile DistSensorStates& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), backLong(dist.backLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
-		constexpr DistSensorStates(const DistSensorStates& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), backLong(dist.backLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
+		constexpr DistSensorStates() : frontLeft(DistSensorStatus::error), frontRight(DistSensorStatus::error), frontLong(DistSensorStatus::error), leftFront(DistSensorStatus::error), leftBack(DistSensorStatus::error), rightFront(DistSensorStatus::error), rightBack(DistSensorStatus::error) {}
+		DistSensorStates(const volatile DistSensorStates& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
+		constexpr DistSensorStates(const DistSensorStates& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
 
 		inline const volatile DistSensorStates& operator=(const volatile DistSensorStates dist) volatile
 		{
 			frontLeft = dist.frontLeft;
 			frontRight = dist.frontRight;
 			frontLong = dist.frontLong;
-			backLong = dist.backLong;
 			leftFront = dist.leftFront;
 			leftBack = dist.leftBack;
 			rightFront = dist.rightFront;
@@ -522,7 +520,6 @@ namespace JAFD
 			frontLeft = dist.frontLeft;
 			frontRight = dist.frontRight;
 			frontLong = dist.frontLong;
-			backLong = dist.backLong;
 			leftFront = dist.leftFront;
 			leftBack = dist.leftBack;
 			rightFront = dist.rightFront;
@@ -538,22 +535,20 @@ namespace JAFD
 		uint16_t frontLeft;
 		uint16_t frontRight;
 		uint16_t frontLong;
-		uint16_t backLong;
 		uint16_t leftFront;
 		uint16_t leftBack;
 		uint16_t rightFront;
 		uint16_t rightBack;
 
-		constexpr Distances() : frontLeft(0), frontRight(0), frontLong(0), backLong(0), leftFront(0), leftBack(0), rightFront(0), rightBack(0) {}
-		Distances(const volatile Distances& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), backLong(dist.backLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
-		constexpr Distances(const Distances& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), backLong(dist.backLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
+		constexpr Distances() : frontLeft(0), frontRight(0), frontLong(0), leftFront(0), leftBack(0), rightFront(0), rightBack(0) {}
+		Distances(const volatile Distances& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
+		constexpr Distances(const Distances& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
 
 		inline const volatile Distances& operator=(const volatile Distances dist) volatile
 		{
 			frontLeft = dist.frontLeft;
 			frontRight = dist.frontRight;
 			frontLong = dist.frontLong;
-			backLong = dist.backLong;
 			leftFront = dist.leftFront;
 			leftBack = dist.leftBack;
 			rightFront = dist.rightFront;
@@ -567,7 +562,6 @@ namespace JAFD
 			frontLeft = dist.frontLeft;
 			frontRight = dist.frontRight;
 			frontLong = dist.frontLong;
-			backLong = dist.backLong;
 			leftFront = dist.leftFront;
 			leftBack = dist.leftBack;
 			rightFront = dist.rightFront;

@@ -27,8 +27,13 @@ namespace JAFD
 			Vec3f startRotation(0, 0, 0);
 
 			//Variables for getting the sensor values
-
 			sensors_event_t	orientationEvent, angVelEvent, linearAccelEvent, gravityVecEvent;
+
+			// Convert x,y,z rotation to yaw pitch roll, based on the sensor orientation
+			Vec3f toYawPitchRoll(Vec3f vec)
+			{
+				return Vec3f(-vec.x, vec.z, -vec.y);
+			}
 		}
 
 		ReturnCode init()		//vorne steht das was die init Funktion zurückgibt und hinten das was wir ihr übergeben
@@ -136,7 +141,7 @@ namespace JAFD
 				angular_velocity_values.z = angVelEvent.gyro.z;		//Seiten schief liegen
 			}
 
-			return angular_velocity_values;
+			return toYawPitchRoll(angular_velocity_values);
 		}
 
 		Vec3f get_absolute_orientation()
@@ -150,7 +155,7 @@ namespace JAFD
 				absolute_orientation_values.z = orientationEvent.orientation.z;
 			}
 
-			return absolute_orientation_values - startRotation;	
+			return toYawPitchRoll(absolute_orientation_values) - startRotation;	
 		}
 
 		Vec3f get_gravity_vector()
@@ -233,7 +238,6 @@ namespace JAFD
 			calib_data.accel_offset_y = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 2) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 3);
 			calib_data.accel_offset_z = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 4) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 5);
 			calib_data.accel_radius = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 6) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 7);
-
 
 			calib_data.gyro_offset_x = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 8) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 9);
 			calib_data.gyro_offset_y = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 10) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 11);

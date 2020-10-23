@@ -207,20 +207,22 @@ namespace JAFD
 		*/
 
 		SensorFusion::updateSensors();
-		//SensorFusion::untimedFusion();
+		SensorFusion::untimedFusion();
 		//RobotLogic::loop();
-
-		volatile auto dist = DistanceSensors::frontLeft.getDistance();
-		dist = DistanceSensors::frontRight.getDistance();
-		dist = DistanceSensors::rightFront.getDistance();
-		dist = DistanceSensors::leftFront.getDistance();
-		dist = DistanceSensors::rightBack.getDistance();
-		dist = DistanceSensors::leftBack.getDistance();
-		dist = DistanceSensors::frontLong.getDistance();
 
 		if (fps < 0.01f) fps = 1000.0f / (millis() - time);
 		else fps = fps * 0.7f + 300.0f / (millis() - time);
+
+		Serial.print("----------\nFPS: ");
 		Serial.println(fps);
+
+		auto orientation = Bno055::get_absolute_orientation();
+
+		Serial.print(orientation.x);
+		Serial.print(", ");
+		Serial.print(orientation.y);
+		Serial.print(", ");
+		Serial.println(orientation.z);
 
 		return;
 	}
