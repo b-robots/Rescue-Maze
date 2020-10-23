@@ -156,8 +156,6 @@ namespace JAFDSettings
 
 		constexpr uint8_t multiplexerAddr = 0x70;
 
-		constexpr uint16_t timeout = 150;
-
 		namespace LeftFront
 		{
 			constexpr uint8_t multiplexCh = 4;

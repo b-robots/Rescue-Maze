@@ -142,9 +142,7 @@ namespace JAFD
 									// of the ranging sensor
 			write8(0x0014, 0x24);	// Configures interrupt on ‘New Sample
 									// Ready threshold event’
-			
-			// Funktionierender continuos mode - Konfig Code 
-			/*
+
 			// 10 Hz continuos mode
 			write8(0x001c, 30);		// max convergence time = 30ms
 			write8(0x001b, 9);		// inter measurement period = 100ms (= 9 * 10ms + 10ms)
@@ -156,7 +154,6 @@ namespace JAFD
 
 			// Start continuos mode
 			write8(_regRangeStart, 0x03);
-			*/
 		}
 
 		// Write 1 byte
@@ -221,23 +218,16 @@ namespace JAFD
 			}
 
 			// Poll until data is available
-			auto startMillis = millis();
-			while (!(read8(_regIntStatus) & 0x04))
-			{
-				if (millis() - startMillis > JAFDSettings::DistanceSensors::timeout)
-				{
-					// Timeout
-					forceMeasurement();
-					_status = Status::timeout;
-					return 0; 
-				}
-			}
+			while (!read8(_regIntStatus));
 			
 			// Read range in mm
 			float tempDist = read8(_regRangeResult) * _k + _d;
 
 			if (tempDist < 0.0f) distance = 0;
 			else distance = (uint16_t)roundf(tempDist);
+
+			// Clear interrupt
+			write8(_regIntClear, 0x07);
 
 			// Read status
 			_status = static_cast<Status>(read8(_regRangeStatus) >> 4);
@@ -256,13 +246,10 @@ namespace JAFD
 				_status = Status::underflow;
 			}
 
-			// Start new measurement
-			forceMeasurement();
-
 			return distance;
 		}
 
-		void VL6180::forceMeasurement()
+		void VL6180::clearInterrupt()
 		{
 			if (i2cMultiplexer.getChannel() != _multiplexCh)
 			{
@@ -271,9 +258,6 @@ namespace JAFD
 
 			// Clear interrupt
 			write8(_regIntClear, 0x07);
-
-			// Start measurement
-			write8(_regRangeStart, 0x01);
 		}
 
 		VL6180::Status VL6180::getStatus() const
@@ -326,16 +310,8 @@ namespace JAFD
 			uint8_t lastChar = 0x00;
 
 			// Read the serial stream until we see the beginning of the TF Mini header, or we timeout reading too many characters.
-			auto startMillis = millis();
-			while (true)
+			while (1)
 			{
-
-				if (millis() - startMillis > JAFDSettings::DistanceSensors::timeout / _maxMeasurementTries)
-				{
-					_distance = 0;
-					_status = Status::noSerialHeader;
-					return _status;
-				}
 
 				if (_streamPtr->available())
 				{
@@ -410,16 +386,10 @@ namespace JAFD
 			{
 				numMeasurementAttempts++;
 
-				if (numMeasurementAttempts > _maxMeasurementTries)
-				{
-					clearSerialBuffer();
-					return 0;
-				}
+				if (numMeasurementAttempts > _maxMeasurementTries) return 0;
 
 				takeMeasurement();
 			} while (_status != Status::noError);
-
-			clearSerialBuffer();
 
 			float tempDist = _distance * _k + _d;
 
@@ -483,11 +453,6 @@ namespace JAFD
 			return _status;
 		}
 
-		void TFMini::clearSerialBuffer()
-		{
-			while (_streamPtr->available()) volatile auto t = _streamPtr->read();
-		}
-
 		// TFMini class - end
 
 		// VL53L0 class - begin
@@ -500,7 +465,7 @@ namespace JAFD
 			{
 				i2cMultiplexer.selectChannel(_multiplexCh);
 			}
-			_sensor.setTimeout(JAFDSettings::DistanceSensors::timeout);
+			_sensor.setTimeout(200);
 
 			if (!_sensor.init()) return ReturnCode::error;
 			
@@ -538,7 +503,7 @@ namespace JAFD
 			return distance;
 		}
 
-		void VL53L0::forceMeasurement()
+		void VL53L0::clearInterrupt()
 		{
 			if (i2cMultiplexer.getChannel() != _multiplexCh)
 			{
@@ -1057,12 +1022,12 @@ namespace JAFD
 		
 		void forceNewMeasurement()
 		{
-			frontLeft.forceMeasurement();
-			frontRight.forceMeasurement();
-			leftFront.forceMeasurement();
-			leftBack.forceMeasurement();
-			rightFront.forceMeasurement();
-			rightBack.forceMeasurement();
+			frontLeft.clearInterrupt();
+			frontRight.clearInterrupt();
+			leftFront.clearInterrupt();
+			leftBack.clearInterrupt();
+			rightFront.clearInterrupt();
+			rightBack.clearInterrupt();
 		}
 	}
 }
