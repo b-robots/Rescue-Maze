@@ -206,6 +206,14 @@ namespace JAFD
 		Serial.print("----------\nFPS: ");
 		Serial.println(fps);
 
+		auto orientation = Bno055::get_absolute_orientation();
+
+		Serial.print(orientation.x);
+		Serial.print(", ");
+		Serial.print(orientation.y);
+		Serial.print(", ");
+		Serial.println(orientation.z);
+
 		return;
 	}
 }
