@@ -29,8 +29,8 @@ namespace JAFD
 			constexpr auto lCurFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::curFbPin];		// Current sense output left motor
 			constexpr auto rCurFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::curFbPin];	// Current sense output right motor
 			
-			constexpr auto lVoltFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::voltFbPin];		// Voltage sense output left motor
-			constexpr auto rVoltFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::voltFbPin];		// Voltage sense output right motor
+			constexpr auto lVoltFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::voltFbPin];	// Voltage sense output left motor
+			constexpr auto rVoltFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::voltFbPin];	// Voltage sense output right motor
 
 			constexpr auto lEncA = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::encA];		// Encoder Pin A left motor
 			constexpr auto lEncB = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::encB];		// Encoder Pin B left motor
