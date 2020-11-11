@@ -23,8 +23,11 @@ namespace JAFD
 			constexpr auto lPWM = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::pwmPin];		// PWM pin left motor
 			constexpr auto rPWM = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::pwmPin];	// PWM pin right motor
 
-			constexpr auto lDir = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::dirPin];		// Direction pin left motor
-			constexpr auto rDir = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::dirPin];	// Direction pin right motor
+			constexpr auto lInA = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::inAPin];		// A input pin left motor
+			constexpr auto lInB = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::inBPin];		// B input pin left motor
+			
+			constexpr auto rInA = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::inAPin];	// A input pin left motor
+			constexpr auto rInB = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::inBPin];	// B input pin left motor
 
 			constexpr auto lCurFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::curFbPin];		// Current sense output left motor
 			constexpr auto rCurFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::curFbPin];	// Current sense output right motor
@@ -43,11 +46,11 @@ namespace JAFD
 			constexpr uint8_t lPWMCh = PinMapping::getPWMChannel(lPWM);		// Left motor PWM channel
 			constexpr uint8_t rPWMCh = PinMapping::getPWMChannel(rPWM);		// Right motor PWM channel
 
-			constexpr uint8_t lCurADCCh = PinMapping::getADCChannel(lCurFv);	// Left motor ADC channel for current measurement
-			constexpr uint8_t rCurADCCh = PinMapping::getADCChannel(rCurFv);	// Right motor ADC channel for current measurement
+			constexpr uint8_t lCurADCCh = PinMapping::getADCChannel(lCurFb);	// Left motor ADC channel for current measurement
+			constexpr uint8_t rCurADCCh = PinMapping::getADCChannel(rCurFb);	// Right motor ADC channel for current measurement
 
-			constexpr uint8_t lVoltADCCh = PinMapping::getADCChannel(lVoltFv);	// Left motor ADC channel for voltage measurement
-			constexpr uint8_t rVoltADCCh = PinMapping::getADCChannel(rVoltFv);	// Right motor ADC channel for voltage measurement
+			constexpr uint8_t lVoltADCCh = PinMapping::getADCChannel(lVoltFb);	// Left motor ADC channel for voltage measurement
+			constexpr uint8_t rVoltADCCh = PinMapping::getADCChannel(rVoltFb);	// Right motor ADC channel for voltage measurement
 
 			PIDController leftPID(JAFDSettings::Controller::Motor::pidSettings);		// Left speed PID-Controller
 			PIDController rightPID(JAFDSettings::Controller::Motor::pidSettings);		// Right speed PID-Controller
@@ -79,21 +82,31 @@ namespace JAFD
 		ReturnCode setup()
 		{
 			// Check if PWM Pins and ADC Pins are correct
-			if (!PinMapping::hasPWM(lPWM) || !PinMapping::hasPWM(rPWM) || !PinMapping::hasADC(lCurFv) || !PinMapping::hasADC(rCurFv))
+			if (!PinMapping::hasPWM(lPWM) || !PinMapping::hasPWM(rPWM) || !PinMapping::hasADC(lCurFb) || !PinMapping::hasADC(rCurFb))
 			{
 				return ReturnCode::fatalError;
 			}
 
 			// Set the pin modes for Dir - Pins / Encoder - Pins
-			// Left Dir
-			lDir.port->PIO_PER = lDir.pin;
-			lDir.port->PIO_OER = lDir.pin;
-			lDir.port->PIO_CODR = lDir.pin;
+			// Left Input A
+			lInA.port->PIO_PER = lInA.pin;
+			lInA.port->PIO_OER = lInA.pin;
+			lInA.port->PIO_CODR = lInA.pin;
 			
-			// Right Dir
-			rDir.port->PIO_PER = rDir.pin;
-			rDir.port->PIO_OER = rDir.pin;
-			rDir.port->PIO_CODR = rDir.pin;
+			// Right Input A
+			rInA.port->PIO_PER = rInA.pin;
+			rInA.port->PIO_OER = rInA.pin;
+			rInA.port->PIO_CODR = rInA.pin;
+
+			// Left Input B
+			lInB.port->PIO_PER = lInB.pin;
+			lInB.port->PIO_OER = lInB.pin;
+			lInB.port->PIO_CODR = lInB.pin;
+
+			// Right Input B
+			rInB.port->PIO_PER = rInB.pin;
+			rInB.port->PIO_OER = rInB.pin;
+			rInB.port->PIO_CODR = rInB.pin;
 
 			// Left Encoder A
 			lEncA.port->PIO_PER = lEncA.pin;
@@ -240,24 +253,28 @@ namespace JAFD
 				setSpeed.right *= cmPSToPerc;
 			}
 
-			// Set left dir pin
+			// Set driection of left motor
 			if (setSpeed.left > 0.0f)
 			{
-				lDir.port->PIO_CODR = lDir.pin;
+				lInA.port->PIO_SODR = lInA.pin;
+				lInB.port->PIO_CODR = lInB.pin;
 			}
 			else
 			{
-				lDir.port->PIO_SODR = lDir.pin;
+				lInA.port->PIO_CODR = lInA.pin;
+				lInB.port->PIO_SODR = lInB.pin;
 			}
 
-			// Set right dir pin
+			// Set driection of left motor
 			if (setSpeed.right > 0.0f)
 			{
-				rDir.port->PIO_CODR = rDir.pin;
+				rInA.port->PIO_SODR = rInA.pin;
+				rInB.port->PIO_CODR = rInB.pin;
 			}
 			else
 			{
-				rDir.port->PIO_SODR = rDir.pin;
+				rInA.port->PIO_CODR = rInA.pin;
+				rInB.port->PIO_SODR = rInB.pin;
 			}
 
 			// Reduce PWM values
