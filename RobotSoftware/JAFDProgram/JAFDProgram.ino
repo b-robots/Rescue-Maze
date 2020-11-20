@@ -17,6 +17,8 @@
 #include <Adafruit_BNO055.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_TCS34725.h>
+#include <Adafruit_AMG88xx.h>
+#include <TPA81.h>
 
 // RobotLibrary
 #include "JAFD/JAFD.h"

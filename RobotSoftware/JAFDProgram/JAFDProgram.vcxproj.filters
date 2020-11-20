@@ -63,6 +63,9 @@
     <ClInclude Include="JAFD\header\TCS34725.h">
       <Filter>JAFD\Header</Filter>
     </ClInclude>
+    <ClInclude Include="JAFD\header\HeatSensor.h">
+      <Filter>JAFD\Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="JAFD">
@@ -116,6 +119,9 @@
       <Filter>JAFD\Source</Filter>
     </ClCompile>
     <ClCompile Include="JAFD\source\TCS34725.cpp">
+      <Filter>JAFD\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="JAFD\source\HeatSensor.cpp">
       <Filter>JAFD\Source</Filter>
     </ClCompile>
   </ItemGroup>

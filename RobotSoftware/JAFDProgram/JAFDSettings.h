@@ -15,6 +15,9 @@ In this file are all settings needed for the robot
 #include "JAFD/header/PIDController.h"
 #include <Adafruit_TCS34725.h>
 
+// We use the TPA81 at the moment
+//#define USE_AMG8833
+
 namespace JAFDSettings
 {
 	namespace Field
@@ -203,6 +206,31 @@ namespace JAFDSettings
 		namespace FrontLong
 		{
 			constexpr JAFD::SerialType serialType = JAFD::SerialType::three;
+		}
+	}
+
+	namespace HeatSensors
+	{
+		constexpr uint8_t averagingNumber = 5;
+
+		constexpr float threshold = 10.0f;
+
+		namespace Left
+		{
+#ifndef USE_AMG8833
+			constexpr uint8_t i2cChannel = 1;
+#else
+			constexpr uint8_t i2cAddr = 0x69;
+#endif
+		}
+
+		namespace Right
+		{
+#ifndef USE_AMG8833
+			constexpr uint8_t i2cChannel = 0;
+#else
+			constexpr uint8_t i2cAddr = 0x68;
+#endif
 		}
 	}
 }

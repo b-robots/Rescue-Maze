@@ -12,19 +12,14 @@ namespace JAFD
 {
 	namespace DistanceSensors
 	{
-		namespace
-		{
-			TCA9548A i2cMultiplexer(JAFDSettings::DistanceSensors::multiplexerAddr);
-		}
-
 		// VL6180 class - begin
 		VL6180::VL6180(uint8_t multiplexCh, uint8_t id) : _multiplexCh(multiplexCh), _status(Status::unknownError), _id(id) {}
 
 		ReturnCode VL6180::setup() const
 		{
-			if (i2cMultiplexer.getChannel() != _multiplexCh)
+			if (I2CMultiplexer::getChannel() != _multiplexCh)
 			{
-				i2cMultiplexer.selectChannel(_multiplexCh);
+				I2CMultiplexer::selectChannel(_multiplexCh);
 			}
 
 			if (read8(_regModelID) != 0xB4) {
@@ -89,9 +84,9 @@ namespace JAFD
 
 		void VL6180::loadSettings() const
 		{
-			if (i2cMultiplexer.getChannel() != _multiplexCh)
+			if (I2CMultiplexer::getChannel() != _multiplexCh)
 			{
-				i2cMultiplexer.selectChannel(_multiplexCh);
+				I2CMultiplexer::selectChannel(_multiplexCh);
 			}
 
 			// Private settings from page 24 of app note
@@ -212,9 +207,9 @@ namespace JAFD
 		{
 			uint16_t distance;
 
-			if (i2cMultiplexer.getChannel() != _multiplexCh)
+			if (I2CMultiplexer::getChannel() != _multiplexCh)
 			{
-				i2cMultiplexer.selectChannel(_multiplexCh);
+				I2CMultiplexer::selectChannel(_multiplexCh);
 			}
 
 			// Poll until data is available
@@ -261,9 +256,9 @@ namespace JAFD
 
 		void VL6180::clearInterrupt()
 		{
-			if (i2cMultiplexer.getChannel() != _multiplexCh)
+			if (I2CMultiplexer::getChannel() != _multiplexCh)
 			{
-				i2cMultiplexer.selectChannel(_multiplexCh);
+				I2CMultiplexer::selectChannel(_multiplexCh);
 			}
 
 			// Clear interrupt
@@ -489,9 +484,9 @@ namespace JAFD
 
 		ReturnCode VL53L0::setup()
 		{
-			if (i2cMultiplexer.getChannel() != _multiplexCh)
+			if (I2CMultiplexer::getChannel() != _multiplexCh)
 			{
-				i2cMultiplexer.selectChannel(_multiplexCh);
+				I2CMultiplexer::selectChannel(_multiplexCh);
 			}
 			_sensor.setTimeout(JAFDSettings::DistanceSensors::timeout);
 
@@ -504,9 +499,9 @@ namespace JAFD
 
 		uint16_t VL53L0::getDistance()
 		{
-			if (i2cMultiplexer.getChannel() != _multiplexCh)
+			if (I2CMultiplexer::getChannel() != _multiplexCh)
 			{
-				i2cMultiplexer.selectChannel(_multiplexCh);
+				I2CMultiplexer::selectChannel(_multiplexCh);
 			}
 
 			uint16_t distance = _sensor.readRangeContinuousMillimeters();
@@ -533,9 +528,9 @@ namespace JAFD
 
 		void VL53L0::clearInterrupt()
 		{
-			if (i2cMultiplexer.getChannel() != _multiplexCh)
+			if (I2CMultiplexer::getChannel() != _multiplexCh)
 			{
-				i2cMultiplexer.selectChannel(_multiplexCh);
+				I2CMultiplexer::selectChannel(_multiplexCh);
 			}
 
 			_sensor.writeReg(_sensor.SYSTEM_INTERRUPT_CLEAR, 0x01);
@@ -605,9 +600,6 @@ namespace JAFD
 		ReturnCode setup()
 		{
 			ReturnCode code = ReturnCode::ok;
-
-			// Force a specific channel on the multiplexer
-			i2cMultiplexer.selectChannel(0);
 
 			if (leftFront.setup() != ReturnCode::ok)
 			{
