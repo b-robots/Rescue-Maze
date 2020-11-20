@@ -209,6 +209,19 @@ namespace JAFDSettings
 		}
 	}
 
+	namespace PowerLEDs
+	{
+		namespace Left
+		{
+			constexpr uint8_t pwmPin = 35;
+		}
+
+		namespace Right
+		{
+			constexpr uint8_t pwmPin = 37;
+		}
+	}
+
 	namespace HeatSensors
 	{
 		constexpr uint8_t averagingNumber = 5;

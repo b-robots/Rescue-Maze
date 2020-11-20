@@ -29,6 +29,7 @@ namespace JAFD
 				return ReturnCode::fatalError;
 			}
 
+			// PWM 50Hz
 			PWM->PWM_ENA = 1 << rightPWMCh | 1 << leftPWMCh;
 
 			PWM->PWM_CH_NUM[rightPWMCh].PWM_CMR = PWM_CMR_CPRE_MCK_DIV_128;

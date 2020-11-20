@@ -4,6 +4,12 @@
  Author:	B.Robots
 */
 
+#if defined(ARDUINO) && ARDUINO >= 100
+#include "arduino.h"
+#else
+#include "WProgram.h"
+#endif
+
 #include "../JAFD.h"
 #include "../header/Bno055.h"
 #include "../header/Dispenser.h"
@@ -18,8 +24,10 @@
 #include "../header/TCS34725.h"
 #include "../header/TCA9548A.h"
 #include "../header/HeatSensor.h"
+#include "../header/SmallThings.h"
 
 #include <SPI.h>
+#include <Wire.h>
 
 namespace JAFD
 {
@@ -34,7 +42,7 @@ namespace JAFD
 		SPI.begin();
 		SPI.beginTransaction(SPISettings(10e+6, MSBFIRST, SPI_MODE0));
 
-		// Setup PWM
+		// Setup PWM - CLK A for motors - CLK B unused
 		PMC->PMC_PCER0 = 1 << ID_PIOA | 1 << ID_PIOB | 1 << ID_PIOC | 1 << ID_PIOD;
 		PMC->PMC_PCER1 = PMC_PCER1_PID36;
 		PWM->PWM_CLK = PWM_CLK_PREB(0b111) | PWM_CLK_DIVB(1) | PWM_CLK_PREA(0) | PWM_CLK_DIVA(1);
@@ -109,6 +117,12 @@ namespace JAFD
 			Serial.println("Error Color-Sensor");
 		}
 		
+		// Setup of power LEDs
+		if (PowerLEDs::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error power LEDs");
+		}
+
 		//Set start for 9DOF
 		Bno055::setStartPoint();
 

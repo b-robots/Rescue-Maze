@@ -146,6 +146,7 @@
     <ClInclude Include="JAFD\header\PIDController.h" />
     <ClInclude Include="JAFD\header\RobotLogic.h" />
     <ClInclude Include="JAFD\header\SensorFusion.h" />
+    <ClInclude Include="JAFD\header\SmallThings.h" />
     <ClInclude Include="JAFD\header\SmoothDriving.h" />
     <ClInclude Include="JAFD\header\SpiNVSRAM.h" />
     <ClInclude Include="JAFD\header\StaticQueue.h" />
@@ -167,6 +168,7 @@
     <ClCompile Include="JAFD\source\PIDController.cpp" />
     <ClCompile Include="JAFD\source\RobotLogic.cpp" />
     <ClCompile Include="JAFD\source\SensorFusion.cpp" />
+    <ClCompile Include="JAFD\source\SmallThings.cpp" />
     <ClCompile Include="JAFD\source\SmoothDriving.cpp" />
     <ClCompile Include="JAFD\source\SpiNVSRAM.cpp" />
     <ClCompile Include="JAFD\source\TCA9548A.cpp" />

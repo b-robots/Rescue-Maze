@@ -1,5 +1,5 @@
 /*
-This part of the Library is responsible for the 9 DOF-IMU (BNO055).
+This part of the Library is responsible for heat sensors
 */
 
 #if defined(ARDUINO) && ARDUINO >= 100
