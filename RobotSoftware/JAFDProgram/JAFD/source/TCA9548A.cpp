@@ -1,27 +1,41 @@
 #include <Wire.h>
 
 #include "../header/TCA9548A.h"
+#include "../../JAFDSettings.h"
 
 namespace JAFD
 {
-	TCA9548A::TCA9548A(uint8_t address) :_address(address) {}
-
-	uint8_t TCA9548A::getChannel() const
+	namespace I2CMultiplexer
 	{
-		return _currentChannel;
-	}
-
-	uint8_t TCA9548A::selectChannel(uint8_t channel) 
-	{
-		if (channel >= 0 && channel < _maxCh)
+		namespace
 		{
-			Wire.beginTransmission(_address);
-			Wire.write(1 << channel);
-
-			_currentChannel = channel;
-			return(Wire.endTransmission());
+			constexpr uint8_t _maxCh = 8;
+			uint8_t _currentChannel;
 		}
 
-		return 0xff;
+		ReturnCode setup()
+		{
+			if (!selectChannel(0)) return ReturnCode::error;
+			else return ReturnCode::ok;
+		}
+
+		uint8_t getChannel()
+		{
+			return _currentChannel;
+		}
+
+		uint8_t selectChannel(uint8_t channel)
+		{
+			if (channel >= 0 && channel < _maxCh)
+			{
+				Wire.beginTransmission(JAFDSettings::DistanceSensors::multiplexerAddr);
+				Wire.write(1 << channel);
+
+				_currentChannel = channel;
+				return(Wire.endTransmission());
+			}
+
+			return 0;
+		}
 	}
 }

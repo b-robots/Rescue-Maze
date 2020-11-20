@@ -16,6 +16,8 @@
 #include "../header/RobotLogic.h"
 #include "../header/SmoothDriving.h"
 #include "../header/TCS34725.h"
+#include "../header/TCA9548A.h"
+#include "../header/HeatSensor.h"
 
 #include <SPI.h>
 
@@ -52,6 +54,12 @@ namespace JAFD
 
 		NVIC_EnableIRQ(PIOD_IRQn);
 		NVIC_SetPriority(PIOD_IRQn, 1);
+
+		// Setup of I2C Multiplexer
+		if (I2CMultiplexer::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error I2C multiplexer");
+		}
 
 		// Setup of MazeMapper
 		if (MazeMapping::setup() != ReturnCode::ok)
@@ -91,6 +99,12 @@ namespace JAFD
 		
 		// Setup of color sensor
 		if (ColorSensor::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error Color-Sensor");
+		}
+		
+		// Setup of heat sensors
+		if (HeatSensor::setup() != ReturnCode::ok)
 		{
 			Serial.println("Error Color-Sensor");
 		}

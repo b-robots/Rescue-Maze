@@ -89,6 +89,13 @@ namespace JAFD
 		right
 	};
 
+	// Which heat sensor?
+	enum class HeatSensorSide : uint8_t
+	{
+		left,
+		right
+	};
+
 	// Return codes of a function
 	enum class ReturnCode : uint8_t
 	{
