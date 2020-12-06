@@ -74,7 +74,7 @@ namespace JAFD
 				}
 				else
 				{
-					ADC->ADC_CDR[rVoltADCCh] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::voltageSensFactor;
+					return ADC->ADC_CDR[rVoltADCCh] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::voltageSensFactor;
 				}
 			}
 		}

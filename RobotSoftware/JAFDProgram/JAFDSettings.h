@@ -29,20 +29,20 @@ namespace JAFDSettings
 	namespace Mechanics
 	{
 		constexpr float wheelDiameter = 8.0f;
-		constexpr float wheelDistance = 15.5f;
-		constexpr float distSensLeftRightDist = 14.0f;
-		constexpr float distSensFrontBackDist = 16.0f;
-		constexpr float distSensFrontSpacing = 10.0f;
-		constexpr float distSensFrontDistToMiddle = 9.4f;		// !!! ALWAYS = sqrt(distSensFrontBackDist^2 + distSensFrontSpacing^2) / 2
-		constexpr float distSensFrontAngleToMiddle = 0.5586f;	// !!! ALWAYS = arctan(distSensFrontSpacing / distSensFrontBackDist)
-		constexpr float distSensLRSpacing = 12.5f;
-		constexpr float distSensLRDistToMiddle = 9.4f;		// !!! ALWAYS = sqrt(distSensLeftRightDist^2 + distSensLRSpacing^2) / 2
-		constexpr float distSensLRAngleToMiddle = 0.729f;	// !!! ALWAYS = arctan(distSensLRSpacing / distSensLeftRightDist)
+		constexpr float wheelDistance = 15.0f;
+		constexpr float distSensLeftRightDist = 12.2f;
+		constexpr float distSensFrontBackDist = 13.0f;
+		constexpr float distSensFrontSpacing = 10.5f;
+		constexpr float distSensFrontDistToMiddle = 8.4f;		// !!! ALWAYS = sqrt(distSensFrontBackDist^2 + distSensFrontSpacing^2) / 2
+		constexpr float distSensFrontAngleToMiddle = 0.6794f;	// !!! ALWAYS = arctan(distSensFrontSpacing / distSensFrontBackDist)
+		constexpr float distSensLRSpacing = 11.0f;
+		constexpr float distSensLRDistToMiddle = 8.2f;		// !!! ALWAYS = sqrt(distSensLeftRightDist^2 + distSensLRSpacing^2) / 2
+		constexpr float distSensLRAngleToMiddle = 0.7337f;	// !!! ALWAYS = arctan(distSensLRSpacing / distSensLeftRightDist)
 	}
 
 	namespace SpiNVSRAM
 	{
-		constexpr uint8_t ssPin = 32;
+		constexpr uint8_t ssPin = 39;
 		constexpr uint32_t mazeMappingStartAddr = 0;
 		constexpr uint32_t bno055StartAddr = mazeMappingStartAddr + 64 * 1024;
 		constexpr uint32_t distSensStartAddr = bno055StartAddr + 32;
@@ -50,7 +50,7 @@ namespace JAFDSettings
 
 	namespace ColorSensor
 	{
-		constexpr uint8_t interruptPin = 7;
+		constexpr uint8_t interruptPin = 34;
 		constexpr tcs34725IntegrationTime_t tcsIntegrationTime = TCS34725_INTEGRATIONTIME_154MS;
 		constexpr tcs34725Gain_t tcsGain = TCS34725_GAIN_1X;
 	}
@@ -66,18 +66,19 @@ namespace JAFDSettings
 		constexpr uint8_t currentADCSampleCount = 2;		// How often to sample and average the ADC measurement for the current
 		constexpr float currentSensFactor = 1.0f / 0.14f;	// 140mv/A
 		
-		constexpr float voltageSensFactor = 0.5f;			// Relation between real voltage and measured voltage
+		constexpr float voltageSensFactor = 2.585f;			// "Real Voltage" / "Measured Voltage" for voltage feedback
 
-		constexpr float initPWMReduction = 0.82f;			// Starting with this reduction of the pwm to prevent overvoltage
+		constexpr float initPWMReduction = 0.71f;			// Starting with this reduction of the pwm to prevent overvoltage
 		constexpr float pwmRedIIRFactor = 0.8f;				// IIR factor for PWM reduction value
 
 		namespace Left
 		{
 			constexpr uint8_t pwmPin = 43;			// PWM pin left motor
-			constexpr uint8_t inAPin = 47;			// Input A pin left motor
-			constexpr uint8_t inBPin = 48;			// Input B pin left motor
-			constexpr uint8_t curFbPin = A11;		// Current feedback output left motor
-			constexpr uint8_t voltFbPin = A5;		// Voltage feedback output left motor
+			constexpr uint8_t inAPin = 49;			// Input A pin left motor
+			constexpr uint8_t inBPin = 47;			// Input B pin left motor
+			constexpr uint8_t curFbPin = A8;		// Current feedback output left motor
+			constexpr uint8_t voltFbPinA = A1;		// Voltage feedback output left motor / A
+			constexpr uint8_t voltFbPinB = A3;		// Voltage feedback output left motor / B
 			constexpr uint8_t encA = 4;				// Encoder Pin A
 			constexpr uint8_t encB = 5;				// Encoder Pin B
 		}
@@ -85,10 +86,11 @@ namespace JAFDSettings
 		namespace Right
 		{
 			constexpr uint8_t pwmPin = 41;			// PWM pin left motor
-			constexpr uint8_t inAPin = 42;			// Input A pin right motor
-			constexpr uint8_t inBPin = 44;			// Input B pin right motor
-			constexpr uint8_t curFbPin = A10;		// Current feedback output left motor
-			constexpr uint8_t voltFbPin = A6;		// Current feedback output left motor
+			constexpr uint8_t inAPin = 48;			// Input A pin right motor
+			constexpr uint8_t inBPin = 46;			// Input B pin right motor
+			constexpr uint8_t curFbPin = A9;		// Current feedback output left motor
+			constexpr uint8_t voltFbPinA = A7;		// Voltage feedback output left motor / A
+			constexpr uint8_t voltFbPinB = A5;		// Voltage feedback output left motor / b
 			constexpr uint8_t encA = 6;				// Encoder Pin A
 			constexpr uint8_t encB = 9;				// Encoder Pin B
 		}
@@ -175,37 +177,37 @@ namespace JAFDSettings
 
 		namespace LeftFront
 		{
-			constexpr uint8_t multiplexCh = 4;
+			constexpr uint8_t multiplexCh = 2;
 		}
 
 		namespace LeftBack
 		{
-			constexpr uint8_t multiplexCh = 7;
+			constexpr uint8_t multiplexCh = 3;
 		}
 
 		namespace RightFront
 		{
-			constexpr uint8_t multiplexCh = 5;
+			constexpr uint8_t multiplexCh = 4;
 		}
 
 		namespace RightBack
 		{
-			constexpr uint8_t multiplexCh = 6;
+			constexpr uint8_t multiplexCh = 5;
 		}
 
 		namespace FrontLeft
 		{
-			constexpr uint8_t multiplexCh = 2;
+			constexpr uint8_t multiplexCh = 0;
 		}
 
 		namespace FrontRight
 		{
-			constexpr uint8_t multiplexCh = 3;
+			constexpr uint8_t multiplexCh = 1;
 		}
 
 		namespace FrontLong
 		{
-			constexpr JAFD::SerialType serialType = JAFD::SerialType::three;
+			constexpr JAFD::SerialType serialType = JAFD::SerialType::two;
 		}
 	}
 
@@ -213,12 +215,12 @@ namespace JAFDSettings
 	{
 		namespace Left
 		{
-			constexpr uint8_t pwmPin = 35;
+			constexpr uint8_t pwmPin = 8;
 		}
 
 		namespace Right
 		{
-			constexpr uint8_t pwmPin = 37;
+			constexpr uint8_t pwmPin = 7;
 		}
 	}
 
@@ -231,7 +233,7 @@ namespace JAFDSettings
 		namespace Left
 		{
 #ifndef USE_AMG8833
-			constexpr uint8_t i2cChannel = 1;
+			constexpr uint8_t i2cChannel = 6;
 #else
 			constexpr uint8_t i2cAddr = 0x69;
 #endif
@@ -240,7 +242,7 @@ namespace JAFDSettings
 		namespace Right
 		{
 #ifndef USE_AMG8833
-			constexpr uint8_t i2cChannel = 0;
+			constexpr uint8_t i2cChannel = 7;
 #else
 			constexpr uint8_t i2cAddr = 0x68;
 #endif
