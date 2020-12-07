@@ -362,7 +362,6 @@ namespace JAFD
 		}
 	}
 
-
 	// State of robot
 	struct RobotState
 	{
@@ -578,6 +577,33 @@ namespace JAFD
 		}
 	};
 
+	// Data from color sensor
+	struct ColorSensData
+	{
+		uint16_t colorTemp;
+		uint16_t lux;
+
+		constexpr ColorSensData(uint16_t colorTemp = 0, uint16_t lux = 0) : colorTemp(colorTemp), lux(lux) {}
+		ColorSensData(const volatile ColorSensData& data) : colorTemp(data.colorTemp), lux(data.lux) {}
+		constexpr ColorSensData(const ColorSensData& data) : colorTemp(data.colorTemp), lux(data.lux) {}
+
+		inline const volatile ColorSensData& operator=(const volatile ColorSensData data) volatile
+		{
+			colorTemp = data.colorTemp;
+			lux = data.lux;
+
+			return *this;
+		}
+
+		inline const ColorSensData& operator=(const ColorSensData& data)
+		{
+			colorTemp = data.colorTemp;
+			lux = data.lux;
+
+			return *this;
+		}
+	};
+
 	// Data fused by SensorFusion
 	struct FusedData
 	{
@@ -586,10 +612,11 @@ namespace JAFD
 		float gridCellCertainty;	// Certainty about the grid cell
 		Distances distances; 		// Results of distance measurement in mm
 		DistSensorStates distSensorState;	// States of all distance sensors
+		ColorSensData colorSensData;	// Data from color sensor at the bottom (includes color temperature and brightness in lux)
 
-		constexpr FusedData() : robotState(), gridCell(), gridCellCertainty(0.0f), distances(), distSensorState() {}
-		FusedData(const volatile FusedData& data) : robotState(data.robotState), gridCell(data.gridCell), gridCellCertainty(data.gridCellCertainty), distances(data.distances), distSensorState(data.distSensorState){}
-		constexpr FusedData(const FusedData& data) : robotState(data.robotState), gridCell(data.gridCell), gridCellCertainty(data.gridCellCertainty), distances(data.distances), distSensorState(data.distSensorState){}
+		constexpr FusedData() : robotState(), gridCell(), gridCellCertainty(0.0f), distances(), distSensorState(), colorSensData() {}
+		FusedData(const volatile FusedData& data) : robotState(data.robotState), gridCell(data.gridCell), gridCellCertainty(data.gridCellCertainty), distances(data.distances), distSensorState(data.distSensorState), colorSensData(data.colorSensData) {}
+		constexpr FusedData(const FusedData& data) : robotState(data.robotState), gridCell(data.gridCell), gridCellCertainty(data.gridCellCertainty), distances(data.distances), distSensorState(data.distSensorState), colorSensData(data.colorSensData)  {}
 
 		inline const volatile FusedData& operator=(const volatile FusedData data) volatile
 		{
@@ -598,6 +625,7 @@ namespace JAFD
 			gridCellCertainty = data.gridCellCertainty;
 			distances = data.distances;
 			distSensorState = data.distSensorState;
+			colorSensData = data.colorSensData;
 
 			return *this;
 		}
@@ -609,6 +637,7 @@ namespace JAFD
 			gridCellCertainty = data.gridCellCertainty;
 			distances = data.distances;
 			distSensorState = data.distSensorState;
+			colorSensData = data.colorSensData;
 
 			return *this;
 		}

@@ -18,6 +18,10 @@ This part of the Library is responsible for heat sensors
 #include <algorithm>
 #include <functional>
 
+#ifdef USE_AMG833
+#error "AMG8833 doesn't work on Wire1"
+#endif
+
 namespace JAFD
 {
 	namespace HeatSensor
@@ -34,7 +38,7 @@ namespace JAFD
 
 			float ambientTemp = 23.0f;
 
-			void readAmbientTemp()
+			ReturnCode readAmbientTemp()
 			{
 #ifdef USE_AMG8833
 				float pixels[AMG88xx_PIXEL_ARRAY_SIZE];
@@ -57,27 +61,38 @@ namespace JAFD
 				ambientTemp = (ambientTemp + amgLeft.readThermistor() + amgRight.readThermistor()) / 3.0f;
 #else
 				int pixels[8];
-
+				/*
 				I2CMultiplexer::selectChannel(JAFDSettings::HeatSensors::Left::i2cChannel);
-				tpaLeft.getAll(pixels);
+				int leftAmbient = tpaLeft.getAll(pixels);
+				if (leftAmbient == 0) return ReturnCode::error;
 
-				for (size_t i = 0; i < AMG88xx_PIXEL_ARRAY_SIZE; i++)
+				for (size_t i = 0; i < 8; i++)
 				{
 					ambientTemp += pixels[i];
 				}
+				*/
+				int leftAmbient = 20;
 
 				I2CMultiplexer::selectChannel(JAFDSettings::HeatSensors::Right::i2cChannel);
-				tpaRight.getAll(pixels);
+				int rightAmbient = tpaRight.getAll(pixels);
+				if (rightAmbient == 0) return ReturnCode::error;
 
-				for (size_t i = 0; i < AMG88xx_PIXEL_ARRAY_SIZE; i++)
+				for (size_t i = 0; i < 8; i++)
 				{
 					ambientTemp += pixels[i];
 				}
 
 				ambientTemp /= (2.0f * 8.0f);
-				ambientTemp = (ambientTemp + tpaLeft.getAmbient() + tpaRight.getAmbient()) / 3.0f;
+				ambientTemp = (ambientTemp + leftAmbient + rightAmbient) / 3.0f;
 #endif
+				Serial.println(ambientTemp);
+				return ReturnCode::ok;
 			}
+		}
+
+		ReturnCode reset()
+		{
+			return setup();
 		}
 
 		ReturnCode setup()
@@ -89,6 +104,15 @@ namespace JAFD
 			amgRight.setMovingAverageMode(false);
 #else
 #endif
+			/*
+			I2CMultiplexer::selectChannel(JAFDSettings::HeatSensors::Left::i2cChannel);
+			tpaLeft.setup(0x68);
+			*/
+
+			I2CMultiplexer::selectChannel(JAFDSettings::HeatSensors::Right::i2cChannel);
+			tpaRight.setup(0x68);
+
+			return readAmbientTemp();
 		}
 
 		bool detectVictim(HeatSensorSide sensor)
@@ -107,8 +131,12 @@ namespace JAFD
 #ifdef USE_AMG833
 				amgLeft.readPixels(pixels);
 #else
-				I2CMultiplexer::selectChannel(JAFDSettings::HeatSensors::Left::i2cChannel);
-				tpaLeft.getAll(pixels);
+				//I2CMultiplexer::selectChannel(JAFDSettings::HeatSensors::Left::i2cChannel);
+				//tpaLeft.getAll(pixels);
+				for (size_t i = 0; i < 8; i++)
+				{
+					pixels[i] = 20;
+				}
 #endif
 			}
 			else
@@ -126,7 +154,7 @@ namespace JAFD
 #else
 			std::sort(pixels, pixels + numPix, std::greater<int>());
 #endif
-			float avgHigh = (pixels[0] + pixels[1] + pixels[2]) / 3.0f;
+			float avgHigh = (pixels[0] + pixels[1]) / 2.0f;
 
 			if (avgHigh >= JAFDSettings::HeatSensors::threshold + ambientTemp) return true;
 			else return false;

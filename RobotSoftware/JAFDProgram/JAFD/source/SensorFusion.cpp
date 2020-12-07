@@ -10,6 +10,7 @@ This file of the library is responsible for the sensor fusion
 #include "../header/MotorControl.h"
 #include "../header/DistanceSensors.h"
 #include "../header/Bno055.h"
+#include "../header/TCS34725.h"
 #include "../../JAFDSettings.h"
 #include <math.h>
 
@@ -961,7 +962,18 @@ namespace JAFD
 		void updateSensors()
 		{
 			DistanceSensors::forceNewMeasurement();
-			Bno055::update_sensorreadings();
+
+			if (ColorSensor::dataIsReady())
+			{
+				uint16_t colorTemp = 0;
+				uint16_t lux = 0;
+				ColorSensor::getData(&colorTemp, &lux);
+
+				fusedData.colorSensData.colorTemp = colorTemp;
+				fusedData.colorSensData.lux = lux;
+			}
+
+			//Bno055::update_sensorreadings();
 			DistanceSensors::updateDistSensors();
 		}
 

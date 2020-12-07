@@ -10,4 +10,10 @@ namespace JAFD
 		ReturnCode setup();
 		void setBrightness(float perc);
 	}
+
+	namespace I2CBus
+	{
+		ReturnCode setup();
+		ReturnCode resetBus();
+	}
 }

@@ -15,7 +15,7 @@ namespace JAFD
 
 		ReturnCode setup()
 		{
-			if (!selectChannel(0)) return ReturnCode::error;
+			if (selectChannel(0) != 0) return ReturnCode::error;
 			else return ReturnCode::ok;
 		}
 
@@ -28,14 +28,14 @@ namespace JAFD
 		{
 			if (channel >= 0 && channel < _maxCh)
 			{
-				Wire.beginTransmission(JAFDSettings::DistanceSensors::multiplexerAddr);
+				Wire.beginTransmission(0x70);
 				Wire.write(1 << channel);
 
 				_currentChannel = channel;
 				return(Wire.endTransmission());
 			}
 
-			return 0;
+			return 4;
 		}
 	}
 }

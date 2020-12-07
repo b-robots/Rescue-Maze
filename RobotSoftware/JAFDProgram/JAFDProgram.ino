@@ -22,9 +22,6 @@
 
 // RobotLibrary
 #include "JAFD/JAFD.h"
-#include "JAFD/header/SmoothDriving.h"
-#include "JAFD/header/MotorControl.h"
-#include "JAFD/header/SensorFusion.h"
 
 // The setup function runs once when you press reset or power the board
 void setup()

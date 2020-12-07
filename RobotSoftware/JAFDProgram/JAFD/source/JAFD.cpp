@@ -63,6 +63,12 @@ namespace JAFD
 		NVIC_EnableIRQ(PIOD_IRQn);
 		NVIC_SetPriority(PIOD_IRQn, 1);
 
+		// Setup I2C-Bus-Power
+		if (I2CBus::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error I2C bus power");
+		}
+
 		// Setup of I2C Multiplexer
 		if (I2CMultiplexer::setup() != ReturnCode::ok)
 		{
@@ -114,7 +120,7 @@ namespace JAFD
 		// Setup of heat sensors
 		if (HeatSensor::setup() != ReturnCode::ok)
 		{
-			Serial.println("Error Color-Sensor");
+			Serial.println("Error Heat-Sensor");
 		}
 		
 		// Setup of power LEDs
@@ -127,10 +133,12 @@ namespace JAFD
 		Bno055::setStartPoint();
 
 		// Clear all interrupts once
-		volatile auto temp = PIOA->PIO_ISR;
-		temp = PIOB->PIO_ISR;
-		temp = PIOC->PIO_ISR;
-		temp = PIOD->PIO_ISR;
+		{
+			volatile auto temp = PIOA->PIO_ISR;
+			temp = PIOB->PIO_ISR;
+			temp = PIOC->PIO_ISR;
+			temp = PIOD->PIO_ISR;
+		}
 
 		////Setup TC3 for an interrupt every ms -> 1kHz (MCK / 32 / 2625)
 		//PMC->PMC_PCER0 = 1 << ID_TC3;
@@ -177,10 +185,12 @@ namespace JAFD
 
 	void robotLoop()
 	{
+		Serial.println("----------");
+
 		static float fps = 0;
 
 		auto time = millis();
-
+		/*
 		constexpr uint16_t numTasks = 9;
 		
 		static const SmoothDriving::TaskArray tasks[numTasks] = {SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Accelerate(30, 15.0f), SmoothDriving::Accelerate(0, 15.0f)),
@@ -213,16 +223,9 @@ namespace JAFD
 			i++;
 			i %= numTasks;
 		}
-
-		/*
-		if (ColorSensor::dataIsReady())
-		{
-			uint16_t colorTemp = 0;
-			uint16_t lux = 0;
-			ColorSensor::getData(&colorTemp, &lux);
-			Serial.println(lux);
-		}
 		*/
+
+		PowerLEDs::setBrightness(0.0f);
 
 		SensorFusion::updateSensors();
 		SensorFusion::untimedFusion();
@@ -231,7 +234,7 @@ namespace JAFD
 		if (fps < 0.01f) fps = 1000.0f / (millis() - time);
 		else fps = fps * 0.7f + 300.0f / (millis() - time);
 
-		Serial.print("----------\nFPS: ");
+		Serial.print("FPS:");
 		Serial.println(fps);
 
 		return;

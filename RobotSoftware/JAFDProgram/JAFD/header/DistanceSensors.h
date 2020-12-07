@@ -176,6 +176,7 @@ namespace JAFD
 		extern VL6180 rightBack;	// Right-Back short distance sensor
 
 		ReturnCode setup();
+		ReturnCode reset();
 		void updateDistSensors();
 		void forceNewMeasurement();
 	}

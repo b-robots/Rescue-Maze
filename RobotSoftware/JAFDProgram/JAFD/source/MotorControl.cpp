@@ -32,8 +32,11 @@ namespace JAFD
 			constexpr auto lCurFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::curFbPin];		// Current sense output left motor
 			constexpr auto rCurFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::curFbPin];	// Current sense output right motor
 			
-			constexpr auto lVoltFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::voltFbPin];	// Voltage sense output left motor
-			constexpr auto rVoltFb = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::voltFbPin];	// Voltage sense output right motor
+			constexpr auto lVoltFbA = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::voltFbPinA];	// Voltage sense output left motor / A
+			constexpr auto lVoltFbB = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::voltFbPinB];	// Voltage sense output left motor / B
+			
+			constexpr auto rVoltFbA = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::voltFbPinA];	// Voltage sense output right motor / A
+			constexpr auto rVoltFbB = PinMapping::MappedPins[JAFDSettings::MotorControl::Right::voltFbPinB];	// Voltage sense output right motor / B
 
 			constexpr auto lEncA = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::encA];		// Encoder Pin A left motor
 			constexpr auto lEncB = PinMapping::MappedPins[JAFDSettings::MotorControl::Left::encB];		// Encoder Pin B left motor
@@ -49,8 +52,11 @@ namespace JAFD
 			constexpr uint8_t lCurADCCh = PinMapping::getADCChannel(lCurFb);	// Left motor ADC channel for current measurement
 			constexpr uint8_t rCurADCCh = PinMapping::getADCChannel(rCurFb);	// Right motor ADC channel for current measurement
 
-			constexpr uint8_t lVoltADCCh = PinMapping::getADCChannel(lVoltFb);	// Left motor ADC channel for voltage measurement
-			constexpr uint8_t rVoltADCCh = PinMapping::getADCChannel(rVoltFb);	// Right motor ADC channel for voltage measurement
+			constexpr uint8_t lVoltADCChA = PinMapping::getADCChannel(lVoltFbA);	// Left motor ADC channel for voltage measurement / A
+			constexpr uint8_t lVoltADCChB = PinMapping::getADCChannel(lVoltFbA);	// Left motor ADC channel for voltage measurement / B
+			
+			constexpr uint8_t rVoltADCChA = PinMapping::getADCChannel(rVoltFbB);	// Right motor ADC channel for voltage measurement / A
+			constexpr uint8_t rVoltADCChB = PinMapping::getADCChannel(rVoltFbB);	// Right motor ADC channel for voltage measurement / B
 
 			PIDController leftPID(JAFDSettings::Controller::Motor::pidSettings);		// Left speed PID-Controller
 			PIDController rightPID(JAFDSettings::Controller::Motor::pidSettings);		// Right speed PID-Controller
@@ -70,11 +76,17 @@ namespace JAFD
 
 				if (motor == Motor::left)
 				{
-					return ADC->ADC_CDR[lVoltADCCh] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::voltageSensFactor;
+					float voltA = ADC->ADC_CDR[lVoltADCChA] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::voltageSensFactor;
+					float voltB = ADC->ADC_CDR[lVoltADCChB] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::voltageSensFactor;
+					
+					return std::fabs(voltA - voltB);
 				}
 				else
 				{
-					return ADC->ADC_CDR[rVoltADCCh] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::voltageSensFactor;
+					float voltA = ADC->ADC_CDR[rVoltADCChA] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::voltageSensFactor;
+					float voltB = ADC->ADC_CDR[rVoltADCChB] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::voltageSensFactor;
+
+					return std::fabs(voltA - voltB);
 				}
 			}
 		}
@@ -82,7 +94,10 @@ namespace JAFD
 		ReturnCode setup()
 		{
 			// Check if PWM Pins and ADC Pins are correct
-			if (!PinMapping::hasPWM(lPWM) || !PinMapping::hasPWM(rPWM) || !PinMapping::hasADC(lCurFb) || !PinMapping::hasADC(rCurFb))
+			if (!PinMapping::hasPWM(lPWM) || !PinMapping::hasPWM(rPWM) ||
+				!PinMapping::hasADC(lCurFb) || !PinMapping::hasADC(rCurFb) ||
+				!PinMapping::hasADC(lVoltFbA) || !PinMapping::hasADC(lVoltFbB) ||
+				!PinMapping::hasADC(lVoltFbA) || !PinMapping::hasADC(lVoltFbB))
 			{
 				return ReturnCode::fatalError;
 			}
@@ -194,7 +209,7 @@ namespace JAFD
 			PMC->PMC_PCER1 = PMC_PCER1_PID37;
 
 			ADC->ADC_MR = ADC_MR_FREERUN_ON | ADC_MR_PRESCAL(3) | ADC_MR_STARTUP_SUT896 | ADC_MR_SETTLING_AST5 | ADC_MR_TRACKTIM(0) | ADC_MR_TRANSFER(1);
-			ADC->ADC_CHER = 1 << lCurADCCh | 1 << rCurADCCh | 1 << lVoltADCCh | 1 << rVoltADCCh;
+			ADC->ADC_CHER = 1 << lCurADCCh | 1 << rCurADCCh | 1 << lVoltADCChA | 1 << rVoltADCChA | 1 << lVoltADCChB | 1 << rVoltADCChB;
 
 			return ReturnCode::ok;
 		}

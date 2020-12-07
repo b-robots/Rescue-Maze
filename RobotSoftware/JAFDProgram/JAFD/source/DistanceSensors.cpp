@@ -597,6 +597,11 @@ namespace JAFD
 		VL6180 rightFront(JAFDSettings::DistanceSensors::RightFront::multiplexCh, 6);
 		VL6180 rightBack(JAFDSettings::DistanceSensors::RightBack::multiplexCh, 7);
 
+		ReturnCode reset()
+		{
+			return setup();
+		}
+
 		ReturnCode setup()
 		{
 			ReturnCode code = ReturnCode::ok;
@@ -951,9 +956,10 @@ namespace JAFD
 
 				tempFusedData.distances.rightFront = 0;
 			}
-
+			
+			/*
 			tempDist = DistanceSensors::frontLong.getDistance();
-
+			
 			if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::noError)
 			{
 				tempFusedData.distSensorState.frontLong = DistSensorStatus::ok;
@@ -974,6 +980,7 @@ namespace JAFD
 				tempFusedData.distSensorState.frontLong = DistSensorStatus::error;
 				tempFusedData.distances.frontLong = 0;
 			}
+			*/
 
 			SensorFusion::setDistances(tempFusedData.distances);
 			SensorFusion::setDistSensStates(tempFusedData.distSensorState);

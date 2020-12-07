@@ -6,6 +6,8 @@
 
 #include "../../JAFDSettings.h"
 #include "../header/SmallThings.h"
+#include "../header/DistanceSensors.h"
+#include "../header/HeatSensor.h"
 
 namespace JAFD
 {
@@ -63,6 +65,16 @@ namespace JAFD
 			{
 				rPWM.port->PIO_ABSR &= ~rPWM.pin;
 			}
+
+			// Make pins Open Drain
+			lPWM.port->PIO_PUDR = lPWM.pin;
+			rPWM.port->PIO_PUDR = rPWM.pin;
+			lPWM.port->PIO_MDER = lPWM.pin;
+			rPWM.port->PIO_MDER = rPWM.pin;
+
+			setBrightness(0.0f);
+
+			return ReturnCode::ok;
 		}
 
 		void setBrightness(float perc)
@@ -70,6 +82,39 @@ namespace JAFD
 			PWM->PWM_CH_NUM[lPWMCh].PWM_CDTYUPD = static_cast<uint16_t>(PWM->PWM_CH_NUM[lPWMCh].PWM_CPRD * perc);
 			PWM->PWM_CH_NUM[rPWMCh].PWM_CDTYUPD = static_cast<uint16_t>(PWM->PWM_CH_NUM[rPWMCh].PWM_CPRD * perc);
 			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
+		}
+	}
+
+	namespace I2CBus
+	{
+		namespace
+		{
+			constexpr auto resetBusPin = PinMapping::MappedPins[JAFDSettings::I2CBus::powerResetPin];
+		}
+
+		ReturnCode setup()
+		{
+			resetBusPin.port->PIO_PER = resetBusPin.pin;
+			resetBusPin.port->PIO_OER = resetBusPin.pin;
+
+			resetBusPin.port->PIO_SODR = resetBusPin.pin;
+
+			return ReturnCode::ok;
+		}
+
+		ReturnCode resetBus()
+		{
+			ReturnCode result = ReturnCode::ok;
+
+			resetBusPin.port->PIO_CODR = resetBusPin.pin;
+			delay(5);
+			resetBusPin.port->PIO_SODR = resetBusPin.pin;
+
+			if (DistanceSensors::reset() != ReturnCode::ok) result = ReturnCode::error;
+
+			if (HeatSensor::reset() != ReturnCode::ok) result = ReturnCode::error;
+
+			return result;
 		}
 	}
 }

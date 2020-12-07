@@ -211,6 +211,11 @@ namespace JAFDSettings
 		}
 	}
 
+	namespace I2CBus
+	{
+		constexpr uint8_t powerResetPin = 38;
+	}
+
 	namespace PowerLEDs
 	{
 		namespace Left
@@ -233,7 +238,7 @@ namespace JAFDSettings
 		namespace Left
 		{
 #ifndef USE_AMG8833
-			constexpr uint8_t i2cChannel = 6;
+			constexpr uint8_t i2cChannel = 7;
 #else
 			constexpr uint8_t i2cAddr = 0x69;
 #endif
@@ -242,7 +247,7 @@ namespace JAFDSettings
 		namespace Right
 		{
 #ifndef USE_AMG8833
-			constexpr uint8_t i2cChannel = 7;
+			constexpr uint8_t i2cChannel = 6;
 #else
 			constexpr uint8_t i2cAddr = 0x68;
 #endif

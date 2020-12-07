@@ -16,7 +16,8 @@ namespace JAFD
 {
 	namespace HeatSensor
 	{
-		ReturnCode setup();	// Setup
+		ReturnCode setup();
+		ReturnCode reset();
 
 		bool detectVictim(HeatSensorSide sensor);
 	}
