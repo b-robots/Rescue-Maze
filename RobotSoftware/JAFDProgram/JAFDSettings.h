@@ -69,7 +69,7 @@ namespace JAFDSettings
 		constexpr float voltageSensFactor = 2.585f;			// "Real Voltage" / "Measured Voltage" for voltage feedback
 
 		constexpr float initPWMReduction = 0.71f;			// Starting with this reduction of the pwm to prevent overvoltage
-		constexpr float pwmRedIIRFactor = 0.8f;				// IIR factor for PWM reduction value
+		constexpr float pwmRedIIRFactor = 0.5f;				// IIR factor for PWM reduction value
 
 		namespace Left
 		{
@@ -100,7 +100,7 @@ namespace JAFDSettings
 	{
 		constexpr float maxPitchForDistSensor = DEG_TO_RAD * 10.0f;		// Maximum pitch of robot for correct front distance measurements
 		constexpr uint16_t minDeltaDistForEdge = 30;					// Minimum change in distance that corresponds to an edge (in mm)
-		constexpr float distSensSpeedIIRFactor = 0.4f;					// Factor used for IIR-Filter for speed measured by distance sensors
+		constexpr float distSensSpeedIIRFactor = 0.5f;					// Factor used for IIR-Filter for speed measured by distance sensors
 		constexpr float longDistSensIIRFactor = 0.9f;					// Factor used for IIR-Filter for high range distance measurements
 		constexpr float shortDistSensIIRFactor = 0.7f;					// Factor used for IIR-Filter for short range distance measurements
 		constexpr float minHeightDiffFloor = 50.0f;						// Minimum height differenc to be on the other floor
@@ -146,7 +146,7 @@ namespace JAFDSettings
 			constexpr float startDty = 0.03f;	// duty cylce for start
 			constexpr float endDty = 0.12f;		// duty cylce for start
 			constexpr uint8_t servoPin = 35;
-			constexpr uint8_t startCubeCount = 5;
+			constexpr uint8_t startCubeCount = 6;
 		}
 
 		namespace Right
@@ -154,7 +154,7 @@ namespace JAFDSettings
 			constexpr float startDty = 0.12f;	// duty cylce for start
 			constexpr float endDty = 0.03f;		// duty cylce for start
 			constexpr uint8_t servoPin = 37;
-			constexpr uint8_t startCubeCount = 5;
+			constexpr uint8_t startCubeCount = 6;
 		}
 	}
 
@@ -168,8 +168,6 @@ namespace JAFDSettings
 	{
 		constexpr uint16_t minCalibDataDiff = 20;		// Minimum difference in calibration data
 		constexpr uint8_t bytesPerCalibData = 8;
-
-		constexpr uint8_t averagingNumSamples = 2;
 
 		constexpr uint8_t multiplexerAddr = 0x70;
 
@@ -218,6 +216,8 @@ namespace JAFDSettings
 
 	namespace PowerLEDs
 	{
+		constexpr float defaultPower = 0.0f;
+
 		namespace Left
 		{
 			constexpr uint8_t pwmPin = 8;

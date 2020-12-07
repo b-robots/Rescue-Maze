@@ -53,9 +53,9 @@ namespace JAFD
 			constexpr uint8_t rCurADCCh = PinMapping::getADCChannel(rCurFb);	// Right motor ADC channel for current measurement
 
 			constexpr uint8_t lVoltADCChA = PinMapping::getADCChannel(lVoltFbA);	// Left motor ADC channel for voltage measurement / A
-			constexpr uint8_t lVoltADCChB = PinMapping::getADCChannel(lVoltFbA);	// Left motor ADC channel for voltage measurement / B
+			constexpr uint8_t lVoltADCChB = PinMapping::getADCChannel(lVoltFbB);	// Left motor ADC channel for voltage measurement / B
 			
-			constexpr uint8_t rVoltADCChA = PinMapping::getADCChannel(rVoltFbB);	// Right motor ADC channel for voltage measurement / A
+			constexpr uint8_t rVoltADCChA = PinMapping::getADCChannel(rVoltFbA);	// Right motor ADC channel for voltage measurement / A
 			constexpr uint8_t rVoltADCChB = PinMapping::getADCChannel(rVoltFbB);	// Right motor ADC channel for voltage measurement / B
 
 			PIDController leftPID(JAFDSettings::Controller::Motor::pidSettings);		// Left speed PID-Controller
@@ -76,9 +76,9 @@ namespace JAFD
 
 				if (motor == Motor::left)
 				{
-					float voltA = ADC->ADC_CDR[lVoltADCChA] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::voltageSensFactor;
-					float voltB = ADC->ADC_CDR[lVoltADCChB] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::voltageSensFactor;
-					
+					float voltA = ADC->ADC_CDR[lVoltADCChA] * 3.3f / ((1 << 12) - 1) * JAFDSettings::MotorControl::voltageSensFactor;
+					float voltB = ADC->ADC_CDR[lVoltADCChB] * 3.3f / ((1 << 12) - 1) * JAFDSettings::MotorControl::voltageSensFactor;
+
 					return std::fabs(voltA - voltB);
 				}
 				else
@@ -236,8 +236,18 @@ namespace JAFD
 			static float rightPWMReduction = JAFDSettings::MotorControl::initPWMReduction;	// PWM reduction to prevent overvoltage
 
 			// Update PWM reduction factor with IIR
-			leftPWMReduction = JAFDSettings::MotorControl::pwmRedIIRFactor * (lastPWMVal.left * 6.0f / getVoltage(Motor::left)) + (1 - JAFDSettings::MotorControl::pwmRedIIRFactor) * leftPWMReduction;
-			rightPWMReduction = JAFDSettings::MotorControl::pwmRedIIRFactor * (lastPWMVal.right * 6.0f / getVoltage(Motor::right)) + (1 - JAFDSettings::MotorControl::pwmRedIIRFactor) * rightPWMReduction;
+			if (lastPWMVal.left > 0.2)
+			{
+				leftPWMReduction = JAFDSettings::MotorControl::pwmRedIIRFactor * (lastPWMVal.left * 6.0f / getVoltage(Motor::left)) + (1 - JAFDSettings::MotorControl::pwmRedIIRFactor) * leftPWMReduction;
+			}
+
+			if (lastPWMVal.right > 0.2)
+			{
+				rightPWMReduction = JAFDSettings::MotorControl::pwmRedIIRFactor * (lastPWMVal.right * 6.0f / getVoltage(Motor::right)) + (1 - JAFDSettings::MotorControl::pwmRedIIRFactor) * rightPWMReduction;
+			}
+
+			if (leftPWMReduction > 2.0f * JAFDSettings::MotorControl::initPWMReduction) leftPWMReduction = JAFDSettings::MotorControl::initPWMReduction;
+			if (rightPWMReduction > 2.0f * JAFDSettings::MotorControl::initPWMReduction) rightPWMReduction = JAFDSettings::MotorControl::initPWMReduction;
 
 			// When speed isn't 0, do PID controller
 			if (desSpeeds.left == 0)
@@ -269,7 +279,7 @@ namespace JAFD
 			}
 
 			// Set driection of left motor
-			if (setSpeed.left > 0.0f)
+			if (setSpeed.left < 0.0f)
 			{
 				lInA.port->PIO_SODR = lInA.pin;
 				lInB.port->PIO_CODR = lInB.pin;
@@ -281,7 +291,7 @@ namespace JAFD
 			}
 
 			// Set driection of left motor
-			if (setSpeed.right > 0.0f)
+			if (setSpeed.right < 0.0f)
 			{
 				rInA.port->PIO_SODR = rInA.pin;
 				rInB.port->PIO_CODR = rInB.pin;

@@ -190,42 +190,25 @@ namespace JAFD
 		static float fps = 0;
 
 		auto time = millis();
-		/*
-		constexpr uint16_t numTasks = 9;
+
+		constexpr uint16_t numTasks = 4;
 		
-		static const SmoothDriving::TaskArray tasks[numTasks] = {SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Accelerate(30, 15.0f), SmoothDriving::Accelerate(0, 15.0f)),
-			SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Rotate(1.0f, 90.0f), SmoothDriving::Accelerate(30, 15.0f), SmoothDriving::Accelerate(0, 15.0f)),
-			SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Rotate(-1.0f, -90.0f), SmoothDriving::Accelerate(30, 15.0f), SmoothDriving::Accelerate(0, 15.0f)),
-			SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Accelerate(30, 15.0f), SmoothDriving::Accelerate(0, 15.0f)),
-			SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Rotate(-1.0f, -90.0f), SmoothDriving::Accelerate(30, 15.0f), SmoothDriving::Accelerate(0, 15.0f)),
-			SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Accelerate(50, 130.0f), SmoothDriving::Accelerate(0, 130.0f)),
-			SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Rotate(-1.0f, -90.0f), SmoothDriving::Accelerate(30, 15.0f), SmoothDriving::Accelerate(0, 15.0f)),
-			SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Rotate(-1.0f, -90.0f), SmoothDriving::Accelerate(30, 15.0f), SmoothDriving::Accelerate(0, 15.0f)),
-			SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Accelerate(30, 15.0f), SmoothDriving::Accelerate(0, 15.0f)),
+		static const SmoothDriving::TaskArray tasks[numTasks] = {
+			SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Accelerate(30, 15.0f), SmoothDriving::Accelerate(0, 15.0f), SmoothDriving::Rotate(1.0f, 90.0f)),
+			SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Accelerate(30, 15.0f), SmoothDriving::Accelerate(0, 15.0f), SmoothDriving::Rotate(1.0f, 90.0f)),
+			SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Accelerate(30, 15.0f), SmoothDriving::Accelerate(0, 15.0f), SmoothDriving::Rotate(1.0f, 90.0f)),
+			SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Accelerate(30, 15.0f), SmoothDriving::Accelerate(0, 15.0f), SmoothDriving::Rotate(1.0f, 90.0f))
 		};
-		
-		static const bool dispL[numTasks] = { false, false, false, false, false, false, false, false, false };
-		static const bool dispR[numTasks] = { false, false, false, false, false, false, false, false, true };
 		
 		static uint16_t i = 0;
 
 		if (SmoothDriving::isTaskFinished())
 		{
-			//SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Stop());
-
-			while (!SmoothDriving::isTaskFinished());
-
-			//if (dispR[i] == true) Dispenser::dispenseRight(1);
-			//if (dispL[i] == true) Dispenser::dispenseLeft(1);
-
-			//SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(tasks[i]);
+			SmoothDriving::setNewTask<SmoothDriving::NewStateType::currentState>(tasks[i]);
 
 			i++;
 			i %= numTasks;
 		}
-		*/
-
-		PowerLEDs::setBrightness(0.0f);
 
 		SensorFusion::updateSensors();
 		SensorFusion::untimedFusion();

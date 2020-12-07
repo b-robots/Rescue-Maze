@@ -9,6 +9,8 @@
 #include "../header/DistanceSensors.h"
 #include "../header/HeatSensor.h"
 
+#include <Wire.h>
+
 namespace JAFD
 {
 	namespace PowerLEDs
@@ -72,7 +74,7 @@ namespace JAFD
 			lPWM.port->PIO_MDER = lPWM.pin;
 			rPWM.port->PIO_MDER = rPWM.pin;
 
-			setBrightness(0.0f);
+			setBrightness(JAFDSettings::PowerLEDs::defaultPower);
 
 			return ReturnCode::ok;
 		}
@@ -94,6 +96,9 @@ namespace JAFD
 
 		ReturnCode setup()
 		{
+			Wire.begin();
+			Wire1.begin();
+
 			resetBusPin.port->PIO_PER = resetBusPin.pin;
 			resetBusPin.port->PIO_OER = resetBusPin.pin;
 
@@ -106,6 +111,9 @@ namespace JAFD
 		{
 			ReturnCode result = ReturnCode::ok;
 
+			Wire.end();
+			Wire1.end();
+
 			resetBusPin.port->PIO_CODR = resetBusPin.pin;
 			delay(5);
 			resetBusPin.port->PIO_SODR = resetBusPin.pin;
@@ -113,6 +121,9 @@ namespace JAFD
 			if (DistanceSensors::reset() != ReturnCode::ok) result = ReturnCode::error;
 
 			if (HeatSensor::reset() != ReturnCode::ok) result = ReturnCode::error;
+
+			Wire.begin();
+			Wire1.begin();
 
 			return result;
 		}
