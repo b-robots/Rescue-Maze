@@ -70,6 +70,7 @@
       <Filter>JAFD\Header</Filter>
     </ClInclude>
     <ClInclude Include="JAFD\header\CamRec.h">
+    <ClInclude Include="JAFD\header\OLed.h">
       <Filter>JAFD\Header</Filter>
     </ClInclude>
   </ItemGroup>
@@ -134,6 +135,7 @@
       <Filter>JAFD\Source</Filter>
     </ClCompile>
     <ClCompile Include="JAFD\source\CamRec.cpp">
+    <ClCompile Include="JAFD\source\OLed.cpp">
       <Filter>JAFD\Source</Filter>
     </ClCompile>
   </ItemGroup>

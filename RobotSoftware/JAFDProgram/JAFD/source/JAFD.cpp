@@ -27,6 +27,7 @@
 #include "../header/SmallThings.h"
 #include "../header/CamRec.h"
 #include "../header/Math.h"
+#include "../header/OLed.h"
 
 #include <SPI.h>
 #include <Wire.h>
