@@ -69,6 +69,9 @@
     <ClInclude Include="JAFD\header\SmallThings.h">
       <Filter>JAFD\Header</Filter>
     </ClInclude>
+    <ClInclude Include="JAFD\header\OLed.h">
+      <Filter>JAFD\Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="JAFD">
@@ -128,6 +131,9 @@
       <Filter>JAFD\Source</Filter>
     </ClCompile>
     <ClCompile Include="JAFD\source\SmallThings.cpp">
+      <Filter>JAFD\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="JAFD\source\OLed.cpp">
       <Filter>JAFD\Source</Filter>
     </ClCompile>
   </ItemGroup>

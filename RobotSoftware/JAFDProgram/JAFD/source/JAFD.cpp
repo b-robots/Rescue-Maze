@@ -25,6 +25,7 @@
 #include "../header/TCA9548A.h"
 #include "../header/HeatSensor.h"
 #include "../header/SmallThings.h"
+#include "../header/OLed.h"
 
 #include <SPI.h>
 #include <Wire.h>
