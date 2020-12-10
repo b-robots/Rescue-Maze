@@ -35,9 +35,9 @@ U8GLIB_SSD1306_128X32 u8g(U8G_I2C_OPT_NONE | U8G_I2C_OPT_DEV_1);
 //0x3C OLED Adress
 void loop()
 {
-    auto time = millis();
+    
    
-  
+    String time(millis()/1000);
     //OLed::OLed asd;
    
     //u8g.setFont(u8g_font_unifont);
@@ -58,14 +58,14 @@ void loop()
       do
       {
           u8g.setFont(u8g_font_4x6);
-          u8g.drawStr(92, 6, "000:00:00");
+          u8g.drawStr(92, 6, time.c_str());
  
       } while (u8g.nextPage());
 
       
  
    
-    Serial.println((millis()-time));
+    //Serial.println((millis()-time));
 
     
     //Delay before repeating the loop.
