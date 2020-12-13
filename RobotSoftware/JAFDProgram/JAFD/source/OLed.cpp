@@ -8,9 +8,30 @@ namespace JAFD
 		namespace
 		{
 			U8GLIB_SSD1306_128X32 u8g(U8G_I2C_OPT_NONE | U8G_I2C_OPT_DEV_1);
-			uint32_t startTime = 0;
-			uint32_t pauseTime = 0;
+			
 			bool startset = true;
+
+			struct OLedTime
+			{
+				uint8_t h = 0;
+				uint8_t m = 0;
+				uint8_t s = 0;
+
+				uint32_t startTime = 0;
+				uint32_t pauseTime = 0;
+			};
+
+			uint32_t flagTime = 0;
+
+			struct OLedStringTime
+			{
+				String h;
+				String m;
+				String s;
+			};
+
+			OLedTime time;
+			OLedTime relTime;
 		}
 
 		U8GLIB_SSD1306_128X32* getOLedInstance()
@@ -24,31 +45,61 @@ namespace JAFD
 			{
 			}
 
+			//Seting the starttime
 			if (gamestart && startset)
 			{
-				startTime = millis();
+				time.startTime = millis();
 				startset = false;
 			}
 
-			u8g.setFont(u8g_font_4x6);
-			u8g.drawStr(92,6,"we");
+			//Time Declearation
+
+			if (time.s <= 60)
+			{
+				time.s = (millis() - (time.startTime + flagTime))/1000;
+			}
+			else if(time.s > 60)
+			{
+				time.s = 0;
+				time.m++;
+				flagTime = millis();
+			}
+
+			if (time.m > 60)
+			{
+				time.h++;
+				time.m = 0;
+			}
+			
+			//Stringyfy
+			String s(time.s);
+			String m(time.m);
+			String h(time.h);
+			String fg(flagTime);
+
+			//Define Display Format
+			String buffer = h + ":" + m + ":" + s;
+
+			//Define Look + Position
+			u8g.setFont(u8g_font_10x20);
+			u8g.drawStr(1,26,buffer.c_str());
 		}
 
 		void robotAktiveStopWatch(bool gamestart)
 		{
 			if (gamestart && startset)
 			{
-				startTime = millis();
+				time.startTime = millis();
 				startset = false;
 			}
 			else if (!gamestart)
 			{
-				pauseTime = millis();
+				time.pauseTime = millis();
 			}
 			else
 			{
 				u8g.setFont(u8g_font_4x6);
-				startTime = millis();
+				time.startTime = millis();
 			}
 			
 		}
@@ -57,7 +108,7 @@ namespace JAFD
 		{
 			
 			u8g.setFont(u8g_font_4x6);
-			startTime = millis();
+			time.startTime = millis();
 		}
 	}
 }

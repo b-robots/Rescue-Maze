@@ -31,42 +31,15 @@ void setup()
 	 //Set font.
 }
 
-U8GLIB_SSD1306_128X32 u8g(U8G_I2C_OPT_NONE | U8G_I2C_OPT_DEV_1);
 //0x3C OLED Adress
 void loop()
 {
-    
-   
-    String time(millis()/1000);
-    //OLed::OLed asd;
-   
-    //u8g.setFont(u8g_font_unifont);
-    //for (int i = 0; i < 100; i++)
-    //{
-    //    String s(i);
-    //    u8g.firstPage();
-    //    do
-    //    {
-    //        u8g.drawBox(6*i+1, 5, 10, 20);
-    //        u8g.drawStr(6*i+40, 16, s.c_str());
-    //        u8g.drawPixel(6*i+100, 16);
-    //        u8g.drawStr(6*i+17, 16, "??");
-    //        
-    //    } while (u8g.nextPage());
-    //}
-      u8g.firstPage();
-      do
-      {
-          u8g.setFont(u8g_font_4x6);
-          u8g.drawStr(92, 6, time.c_str());
- 
-      } while (u8g.nextPage());
+    auto aaa = getOLedInstance();
 
-      
- 
-   
-    //Serial.println((millis()-time));
+    aaa->firstPage();
+    do
+    {
+        robotStopWatch(1);
+    } while (aaa->nextPage());
 
-    
-    //Delay before repeating the loop.
 }
