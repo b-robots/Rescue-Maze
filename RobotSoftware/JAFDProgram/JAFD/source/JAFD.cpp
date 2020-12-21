@@ -52,27 +52,27 @@ namespace JAFD
 
 		// Setup interrupts for all ports 
 		NVIC_EnableIRQ(PIOA_IRQn);
-		NVIC_SetPriority(PIOA_IRQn, 1);
+		NVIC_SetPriority(PIOA_IRQn, 0);
 
 		NVIC_EnableIRQ(PIOB_IRQn);
-		NVIC_SetPriority(PIOB_IRQn, 1);
+		NVIC_SetPriority(PIOB_IRQn, 0);
 
 		NVIC_EnableIRQ(PIOC_IRQn);
-		NVIC_SetPriority(PIOC_IRQn, 1);
+		NVIC_SetPriority(PIOC_IRQn, 0);
 
 		NVIC_EnableIRQ(PIOD_IRQn);
-		NVIC_SetPriority(PIOD_IRQn, 1);
+		NVIC_SetPriority(PIOD_IRQn, 0);
+
+		// Setup of power LEDs
+		if (PowerLEDs::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error power LEDs");
+		}
 
 		// Setup I2C-Bus-Power
 		if (I2CBus::setup() != ReturnCode::ok)
 		{
 			Serial.println("Error I2C bus power");
-		}
-
-		// Setup of I2C Multiplexer
-		if (I2CMultiplexer::setup() != ReturnCode::ok)
-		{
-			Serial.println("Error I2C multiplexer");
 		}
 
 		// Setup of MazeMapper
@@ -81,10 +81,10 @@ namespace JAFD
 			Serial.println("Error Maze Mapping");
 		}
 
-		// Setup of Dispenser
-		if (Dispenser::setup() != ReturnCode::ok)
+		// Setup of SPI NVSRAM
+		if (SpiNVSRAM::setup() != ReturnCode::ok)
 		{
-			Serial.println("Error Dispenser");
+			Serial.println("Error SPI NVSRAM");
 		}
 
 		// Setup of Motor Control
@@ -93,10 +93,16 @@ namespace JAFD
 			Serial.println("Error Motor Control");
 		}
 
-		// Setup of SPI NVSRAM
-		if (SpiNVSRAM::setup() != ReturnCode::ok)
+		// Setup of I2C Multiplexer
+		if (I2CMultiplexer::setup() != ReturnCode::ok)
 		{
-			Serial.println("Error SPI NVSRAM");
+			Serial.println("Error I2C multiplexer");
+		}
+
+		// Setup of Dispenser
+		if (Dispenser::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error Dispenser");
 		}
 		
 		// Setup of Distance Sensors
@@ -122,15 +128,6 @@ namespace JAFD
 		{
 			Serial.println("Error Heat-Sensor");
 		}
-		
-		// Setup of power LEDs
-		if (PowerLEDs::setup() != ReturnCode::ok)
-		{
-			Serial.println("Error power LEDs");
-		}
-
-		//Set start for 9DOF
-		Bno055::setStartPoint();
 
 		// Clear all interrupts once
 		{
@@ -180,6 +177,11 @@ namespace JAFD
 		NVIC_SetPriority(TC5_IRQn, 1);
 		TC1->TC_CHANNEL[2].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
 
+		delay(500);
+
+		//Set start for 9DOF
+		Bno055::setStartPoint();
+
 		return;
 	}
 
@@ -187,32 +189,57 @@ namespace JAFD
 	{
 		Serial.println("----------");
 
-		static float fps = 0;
+		static float fps = 0.0f;
 
 		auto time = millis();
 
-		constexpr uint16_t numTasks = 4;
+		constexpr uint16_t numTasks = 1;
 		
 		static const SmoothDriving::TaskArray tasks[numTasks] = {
-			SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Accelerate(30, 15.0f), SmoothDriving::Accelerate(0, 15.0f), SmoothDriving::Rotate(1.0f, 90.0f)),
-			SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Accelerate(30, 15.0f), SmoothDriving::Accelerate(0, 15.0f), SmoothDriving::Rotate(1.0f, 90.0f)),
-			SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Accelerate(30, 15.0f), SmoothDriving::Accelerate(0, 15.0f), SmoothDriving::Rotate(1.0f, 90.0f)),
-			SmoothDriving::TaskArray(SmoothDriving::Stop(), SmoothDriving::Accelerate(30, 15.0f), SmoothDriving::Accelerate(0, 15.0f), SmoothDriving::Rotate(1.0f, 90.0f))
+			SmoothDriving::TaskArray(SmoothDriving::ForceSpeed(30, 100), SmoothDriving::Stop())
 		};
 		
 		static uint16_t i = 0;
 
-		if (SmoothDriving::isTaskFinished())
+		if (SmoothDriving::isTaskFinished() && i == 0)
 		{
-			SmoothDriving::setNewTask<SmoothDriving::NewStateType::currentState>(tasks[i]);
+			SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(tasks[i]);
 
 			i++;
-			i %= numTasks;
+			//i %= numTasks;
 		}
 
 		SensorFusion::updateSensors();
 		SensorFusion::untimedFusion();
 		//RobotLogic::loop();
+
+		auto fusedData = SensorFusion::getFusedData();
+
+		//Serial.print("Left dist: ");
+		//Serial.println(MotorControl::getDistance(Motor::left));
+
+		//Serial.print("Right dist: ");
+		//Serial.println(MotorControl::getDistance(Motor::right));
+
+		Serial.print("Pos: ");
+		Serial.print(fusedData.robotState.position.x);
+		Serial.print(", ");
+		Serial.println(fusedData.robotState.position.y);
+
+		Serial.print("Rot: ");
+		Serial.println(fusedData.robotState.rotation.x);
+
+		//static float lCurr = 0.0f;
+		//static float rCurr = 0.0f;
+
+		//lCurr = lCurr * 0.8f + 0.2f * MotorControl::getCurrent(Motor::left);
+		//rCurr = rCurr * 0.8f + 0.2f * MotorControl::getCurrent(Motor::right);
+
+		//Serial.print("Left curr.: ");
+		//Serial.println(lCurr);
+
+		//Serial.print("Right curr.: ");
+		//Serial.println(rCurr);
 
 		if (fps < 0.01f) fps = 1000.0f / (millis() - time);
 		else fps = fps * 0.7f + 300.0f / (millis() - time);

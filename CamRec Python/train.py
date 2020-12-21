@@ -228,7 +228,7 @@ def print_dataset(dataset):
 def create_model():
     inputs = keras.Input(shape=(image_size, image_size, 1))
     x = Conv2DBlock(64, 9)(inputs)
-    x = Conv2DBlock(16, 3)(x)
+    x = Conv2DBlock(16, 5)(x)
     x = layers.Flatten()(x)
     x = layers.Dropout(dropout_rate)(x)
     x = layers.Dense(64)(x)
@@ -260,11 +260,11 @@ def create_datasets(folder):
 
 ds_train, ds_val = create_datasets("C:/Users/patzi/Pictures/Letters_Brobots/train/")
 
-#print_dataset(ds_train)
+print_dataset(ds_train)
 
 model = create_model()
 
-model.load_weights(checkpoint_path)
+#model.load_weights(checkpoint_path)
 
 # Create a callback that saves the model's weights every 5 epochs
 cp_callback = keras.callbacks.ModelCheckpoint(
@@ -273,9 +273,9 @@ cp_callback = keras.callbacks.ModelCheckpoint(
     save_weights_only=True,
     save_freq=steps_per_epoch * 5)
 
-model.fit(ds_train, validation_data=ds_val, epochs=1, steps_per_epoch=steps_per_epoch, callbacks=[cp_callback, PrintLRCallback()], verbose=2)
+#model.fit(ds_train, validation_data=ds_val, epochs=1, steps_per_epoch=steps_per_epoch, callbacks=[cp_callback, PrintLRCallback()], verbose=2)
 
-model.save("model.h5")
+#model.save("model.h5")
 
 # Convert to int8 TfLite Model
 converter = tf.lite.TFLiteConverter.from_keras_model(model)

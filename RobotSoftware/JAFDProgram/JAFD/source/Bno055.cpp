@@ -34,11 +34,17 @@ namespace JAFD
 			{
 				return Vec3f(-vec.x, vec.z, -vec.y);
 			}
+
+			// Convert sensor x,y,z in such a way, that +x is forward, +y is left and +z is up
+			Vec3f toXYZ(Vec3f vec)
+			{
+				return Vec3f(-vec.z, -vec.x, -vec.y);
+			}
 		}
 
 		ReturnCode init()		//vorne steht das was die init Funktion zurückgibt und hinten das was wir ihr übergeben
 		{
-			bno055 = Adafruit_BNO055(55,0x28, &Wire1);
+			bno055 = Adafruit_BNO055(55, 0x28, &Wire1);
 
 			if (!bno055.begin())
 			{
@@ -126,9 +132,10 @@ namespace JAFD
 				linear_acceleration_values.z = linearAccelEvent.acceleration.z;
 			}
 
-			return linear_acceleration_values; 
+			return toXYZ(linear_acceleration_values); 
 		}
 
+		// Angular velocity in rad
 		Vec3f get_angular_velocity()
 		{
 			Vec3f angular_velocity_values(0.0f, 0.0f, 0.0f);
@@ -136,23 +143,24 @@ namespace JAFD
 			if (angVelEvent.type == SENSOR_TYPE_ROTATION_VECTOR)
 			{
 
-				angular_velocity_values.x = angVelEvent.gyro.x;		//Links rechts
-				angular_velocity_values.y = angVelEvent.gyro.y;		// auf ab 
-				angular_velocity_values.z = angVelEvent.gyro.z;		//Seiten schief liegen
+				angular_velocity_values.x = angVelEvent.gyro.x * DEG_TO_RAD;
+				angular_velocity_values.y = angVelEvent.gyro.y * DEG_TO_RAD;
+				angular_velocity_values.z = angVelEvent.gyro.z * DEG_TO_RAD;
 			}
 
 			return toYawPitchRoll(angular_velocity_values);
 		}
 
+		// absolute orientation in rad
 		Vec3f get_absolute_orientation()
 		{
 			Vec3f absolute_orientation_values(0.0f, 0.0f, 0.0f);
 
 			if (orientationEvent.type == SENSOR_TYPE_ORIENTATION)
 			{
-				absolute_orientation_values.x = orientationEvent.orientation.x;
-				absolute_orientation_values.y = orientationEvent.orientation.y;
-				absolute_orientation_values.z = orientationEvent.orientation.z;
+				absolute_orientation_values.x = orientationEvent.orientation.x * DEG_TO_RAD;
+				absolute_orientation_values.y = orientationEvent.orientation.y * DEG_TO_RAD;
+				absolute_orientation_values.z = orientationEvent.orientation.z * DEG_TO_RAD;
 			}
 
 			return toYawPitchRoll(absolute_orientation_values) - startRotation;	
@@ -165,13 +173,13 @@ namespace JAFD
 			// Why the f**k is the gravity measurement an accelerometer sensor and not a gravity sensor?
 			if (gravityVecEvent.type == SENSOR_TYPE_ACCELEROMETER)
 			{
-				gravity_vector_values.x = gravityVecEvent.acceleration.x;
-				gravity_vector_values.y = gravityVecEvent.acceleration.y;
-				gravity_vector_values.z = gravityVecEvent.acceleration.z;
+				gravity_vector_values.x = gravityVecEvent.acceleration.x * DEG_TO_RAD;
+				gravity_vector_values.y = gravityVecEvent.acceleration.y * DEG_TO_RAD;
+				gravity_vector_values.z = gravityVecEvent.acceleration.z * DEG_TO_RAD;
 
 			}
 
-			return gravity_vector_values;
+			return toXYZ(gravity_vector_values);
 		}
 
 		void Write_to_RAM()								//save Offsets
@@ -231,7 +239,6 @@ namespace JAFD
 
 		void Read_from_RAM()			//get Offsets from RAM
 		{
-
 			adafruit_bno055_offsets_t calib_data;
 
 			calib_data.accel_offset_x = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 1);

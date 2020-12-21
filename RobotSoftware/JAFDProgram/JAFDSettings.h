@@ -30,6 +30,8 @@ namespace JAFDSettings
 	{
 		constexpr float wheelDiameter = 8.0f;
 		constexpr float wheelDistance = 15.0f;
+		constexpr float axialSpacing = 9.7f;
+		constexpr float wheelDistToMiddle = 8.93f;			// !!! ALWAYS = sqrt(axialSpacing^2 + wheelDistance^2) / 2
 		constexpr float distSensLeftRightDist = 12.2f;
 		constexpr float distSensFrontBackDist = 13.0f;
 		constexpr float distSensFrontSpacing = 10.5f;
@@ -57,9 +59,9 @@ namespace JAFDSettings
 
 	namespace MotorControl
 	{
-		constexpr float cmPSToPerc = 1.0f / (97.0f / 60.0f * 3.1415f * Mechanics::wheelDiameter);		// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed.)
+		constexpr float cmPSToPerc = 1.0f / (97.0f / 60.0f * M_PI * Mechanics::wheelDiameter);		// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed.)
 
-		constexpr uint8_t minSpeed = 15;			// Minimum speed for motor to rotate
+		constexpr uint8_t minSpeed = 10;				// Minimum speed for motor to rotate
 
 		constexpr float pulsePerRev = 4741.44f / 4.0f;	// Rotary-Encoder pulses per revolution
 
@@ -98,15 +100,22 @@ namespace JAFDSettings
 
 	namespace SensorFusion
 	{
+		// Maze
 		constexpr float maxPitchForDistSensor = DEG_TO_RAD * 10.0f;		// Maximum pitch of robot for correct front distance measurements
 		constexpr uint16_t minDeltaDistForEdge = 30;					// Minimum change in distance that corresponds to an edge (in mm)
+
+		// Distance & Speed
 		constexpr float distSensSpeedIIRFactor = 0.5f;					// Factor used for IIR-Filter for speed measured by distance sensors
 		constexpr float longDistSensIIRFactor = 0.9f;					// Factor used for IIR-Filter for high range distance measurements
 		constexpr float shortDistSensIIRFactor = 0.7f;					// Factor used for IIR-Filter for short range distance measurements
-		constexpr float minHeightDiffFloor = 50.0f;						// Minimum height differenc to be on the other floor
-		constexpr float distSpeedPortion = 0.7f;						// How much is a perfect distance sensor measured speed worth?
-		constexpr float bno055Portion = 0.5f;							// How much is a Bno055 measurement worth?
+		constexpr float distSpeedPortion = 0.0f;						// How much is a perfect distance sensor measured speed worth?
+
+		// Rotation
+		constexpr float bno055Portion = 0.0f;							// How much is a Bno055 measurement worth?
 		constexpr float pitchIIRFactor = 0.8f;							// Factor used for IIR-Filter for pitch by BNO055
+		constexpr float angularVelIIRFactor = 0.8f;						// Factor used for IIR-Filter for angular velocity
+		constexpr float rotationIntegralFactor = 0.0f;					// How much of the rotation is based on the integration
+		constexpr float distAngularPortion = 0.0f;						// How much is a perfect distance sensor measured angle worth?
 	}
 
 	namespace Controller
@@ -132,9 +141,9 @@ namespace JAFDSettings
 
 	namespace SmoothDriving
 	{
-		constexpr uint8_t maxArrrayedTasks = 5;		// Maximum number of tasks in TaskArray
-		constexpr uint16_t maxAlignDistError = 10;	// Maximum deviation from perfect aligned distance (mm)
-		constexpr uint16_t maxAlignStartDist = 50;	// Maximum deviation from aligned distance at beginning to start (mm)
+		constexpr uint8_t maxArrrayedTasks = 5;						// Maximum number of tasks in TaskArray
+		constexpr uint16_t maxAlignDistError = 10;					// Maximum deviation from perfect aligned distance (mm)
+		constexpr uint16_t maxAlignStartDist = 50;					// Maximum deviation from aligned distance at beginning to start (mm)
 		constexpr uint16_t alignSpeed = MotorControl::minSpeed;		// Minimum speed to align to wall
 		constexpr uint16_t minAlignDist = 70;						// Minimum align distance, is default
 	}
@@ -171,7 +180,7 @@ namespace JAFDSettings
 
 		constexpr uint8_t multiplexerAddr = 0x70;
 
-		constexpr uint16_t timeout = 150;
+		constexpr uint16_t timeout = 200;
 
 		namespace LeftFront
 		{
@@ -216,7 +225,7 @@ namespace JAFDSettings
 
 	namespace PowerLEDs
 	{
-		constexpr float defaultPower = 0.0f;
+		constexpr float defaultPower = 0.4f;
 
 		namespace Left
 		{

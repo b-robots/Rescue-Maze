@@ -24,40 +24,57 @@ namespace JAFD
 			volatile float totalHeadingOff = 0.0f;		// Total heading offset
 			volatile float distSensSpeed = 0.0f;		// Linear speed measured by distance sensors
 			volatile float distSensSpeedTrust = 0.0f;	// How much can I trust the measured speed by the distance sensors? (0.0 - 1.0)
-			volatile float distSensAngle = 0.0f;		// Angle measured by distance sensors
+			volatile float distSensAngle = 0.0f;		// Angle measured by distance sensors (rad)
 			volatile float distSensAngleTrust = 0.0f;	// How much can I trust the measured angle? (0.0 - 1.0)
 		}
 
-		// Magic Number 1.27f need to be analysed ;-)
 		void sensorFiltering(const uint8_t freq)
 		{
-			auto tempRobotState = fusedData.robotState;
+			RobotState tempRobotState = fusedData.robotState;
 
 			tempRobotState.wheelSpeeds = MotorControl::getFloatSpeeds();
-
-			tempRobotState.angularVel = Vec3f((tempRobotState.wheelSpeeds.right - tempRobotState.wheelSpeeds.left) / JAFDSettings::Mechanics::wheelDistance, 0.0f, 0.0f) / 1.27f;
-			auto bnoAngVel = Bno055::get_angular_velocity();
-			//tempRobotState.angularVel.x = bnoAngVel.x * JAFDSettings::SensorFusion::bno055Portion + tempRobotState.angularVel.x * (1.0f - JAFDSettings::SensorFusion::bno055Portion);
-			//tempRobotState.angularVel.y = bnoAngVel.y * JAFDSettings::SensorFusion::pitchIIRFactor + tempRobotState.angularVel.y * (1.0f - JAFDSettings::SensorFusion::pitchIIRFactor);
-			//tempRobotState.angularVel.z = bnoAngVel.z;
 			
-			tempRobotState.rotation = Vec3f((MotorControl::getDistance(Motor::right) - MotorControl::getDistance(Motor::left)) / JAFDSettings::Mechanics::wheelDistance, 0.0f, 0.0f) / 1.27f - Vec3f(totalHeadingOff, 0.0f, 0.0f);
-			auto bnoAbsOr = Bno055::get_absolute_orientation();
-			//tempRobotState.rotation.x = bnoAbsOr.x * JAFDSettings::SensorFusion::bno055Portion + tempRobotState.rotation.x * (1.0f - JAFDSettings::SensorFusion::bno055Portion);
-			//tempRobotState.rotation.y = bnoAbsOr.y * JAFDSettings::SensorFusion::pitchIIRFactor + tempRobotState.rotation.y * (1.0f - JAFDSettings::SensorFusion::pitchIIRFactor);
-			//tempRobotState.rotation.z = bnoAbsOr.z;
+			// Angular velocity
+			auto prevAngularVel = tempRobotState.angularVel;
 
-			distSensSpeedTrust = 0.0;
+			float encoderYawVel = (tempRobotState.wheelSpeeds.right - tempRobotState.wheelSpeeds.left) / (JAFDSettings::Mechanics::wheelDistToMiddle * 2.0f);
+			auto bnoAngVel = Bno055::get_angular_velocity();
+
+			tempRobotState.angularVel.x = bnoAngVel.x * JAFDSettings::SensorFusion::bno055Portion + encoderYawVel * (1.0f - JAFDSettings::SensorFusion::bno055Portion);
+			tempRobotState.angularVel.y = bnoAngVel.y;
+			tempRobotState.angularVel.z = bnoAngVel.z;
+			
+			tempRobotState.angularVel = prevAngularVel * (1.0f - JAFDSettings::SensorFusion::angularVelIIRFactor) + tempRobotState.angularVel * JAFDSettings::SensorFusion::angularVelIIRFactor;
+
+			// Relative angle
+			Vec3f prevRot = tempRobotState.rotation;
+
+			float encoderYawAngle = (MotorControl::getDistance(Motor::right) - MotorControl::getDistance(Motor::left)) / (JAFDSettings::Mechanics::wheelDistToMiddle * 2.0f);
+			encoderYawAngle = fitAnglesToInterval(encoderYawAngle - totalHeadingOff);
+			auto bnoAbsOr = fitAnglesToInterval(Bno055::get_absolute_orientation() - Vec3f(totalHeadingOff, 0, 0));
+
+			float combinedYaw = interpolateAngles(encoderYawAngle, fitAnglesToInterval(distSensAngle), distSensAngleTrust * JAFDSettings::SensorFusion::distAngularPortion);
+
+			tempRobotState.rotation.x = interpolateAngles(combinedYaw, bnoAbsOr.x, JAFDSettings::SensorFusion::bno055Portion);
+			tempRobotState.rotation.y = interpolateAngles(tempRobotState.rotation.y, bnoAbsOr.y, JAFDSettings::SensorFusion::pitchIIRFactor);
+			tempRobotState.rotation.z = bnoAbsOr.z;
+
+			auto integratedAngle = fitAnglesToInterval(prevRot + tempRobotState.angularVel / (float)freq);
+			tempRobotState.rotation = interpolateAngles(tempRobotState.rotation, integratedAngle, JAFDSettings::SensorFusion::rotationIntegralFactor);
+
+			tempRobotState.rotation = makeRotationCoherent(prevRot, tempRobotState.rotation);
+
+			// Linear velocitys
 			tempRobotState.forwardVel = ((tempRobotState.wheelSpeeds.left + tempRobotState.wheelSpeeds.right) / 2.0f) * (1.0f - distSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion) + distSensSpeed * (distSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion);
 
+			// Position
 			tempRobotState.position += (Vec3f::angleToDir(tempRobotState.rotation.x, tempRobotState.rotation.y) * tempRobotState.forwardVel / freq);
 
+			// Map coordinates
 			tempRobotState.mapCoordinate.x = roundf(tempRobotState.position.x / JAFDSettings::Field::cellWidth);
 			tempRobotState.mapCoordinate.y = roundf(tempRobotState.position.y / JAFDSettings::Field::cellWidth);
 
-			if (fabs(tempRobotState.position.z) > JAFDSettings::SensorFusion::minHeightDiffFloor) tempRobotState.mapCoordinate.floor = 1;
-			else tempRobotState.mapCoordinate.floor = 0;
-
+			// Heading
 			float positiveAngle = tempRobotState.rotation.x;
 
 			while (positiveAngle < 0.0f) positiveAngle += M_TWOPI;
@@ -934,7 +951,7 @@ namespace JAFD
 
 			float headingOffset = tempRobotState.rotation.x - rotation.x;
 
-			while (headingOffset < 0.0f) headingOffset += M_TWOPI;
+			while (headingOffset < -M_PI) headingOffset += M_TWOPI;
 			while (headingOffset > M_PI) headingOffset -= M_TWOPI;
 
 			totalHeadingOff += headingOffset;
@@ -963,7 +980,7 @@ namespace JAFD
 		void updateSensors()
 		{
 			DistanceSensors::forceNewMeasurement();
-			/*
+			
 			if (ColorSensor::dataIsReady())
 			{
 				uint16_t colorTemp = 0;
@@ -975,7 +992,7 @@ namespace JAFD
 			}
 
 			Bno055::update_sensorreadings();
-			*/
+			
 			DistanceSensors::updateDistSensors();
 		}
 

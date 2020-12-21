@@ -13,8 +13,8 @@ In this part are all interrupt handler
 
 void handleISR(JAFD::Interrupts::InterruptSource interruptSrc, uint32_t isr)
 {
-	if (JAFD::MotorControl::encoderInterrupt(interruptSrc, isr)) {}
-	else if (JAFD::ColorSensor::interrupt(interruptSrc, isr)) {}
+	JAFD::MotorControl::encoderInterrupt(interruptSrc, isr);
+	JAFD::ColorSensor::interrupt(interruptSrc, isr);
 }
 
 void PIOA_Handler()

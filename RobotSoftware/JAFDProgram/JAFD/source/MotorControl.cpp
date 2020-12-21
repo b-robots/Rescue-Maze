@@ -262,6 +262,8 @@ namespace JAFD
 				if (setSpeed.left < JAFDSettings::MotorControl::minSpeed && setSpeed.left > -JAFDSettings::MotorControl::minSpeed) setSpeed.left = JAFDSettings::MotorControl::minSpeed * sgn(desSpeeds.left);
 				
 				setSpeed.left *= cmPSToPerc;
+
+				if (setSpeed.left >= 1.0f) setSpeed.left = 1.0f;
 			}
 
 			if (desSpeeds.right == 0)
@@ -276,6 +278,8 @@ namespace JAFD
 				if (setSpeed.right < JAFDSettings::MotorControl::minSpeed && setSpeed.right > -JAFDSettings::MotorControl::minSpeed) setSpeed.right = JAFDSettings::MotorControl::minSpeed * sgn(desSpeeds.right);
 			
 				setSpeed.right *= cmPSToPerc;
+
+				if (setSpeed.right >= 1.0f) setSpeed.right = 1.0f;
 			}
 
 			// Set driection of left motor
@@ -337,7 +341,7 @@ namespace JAFD
 			}
 		}
 
-		bool encoderInterrupt(const Interrupts::InterruptSource source, const uint32_t isr)
+		void encoderInterrupt(const Interrupts::InterruptSource source, const uint32_t isr)
 		{
 			if (lEncA.portID == static_cast<uint8_t>(source) && (isr & lEncA.pin))
 			{
@@ -349,10 +353,9 @@ namespace JAFD
 				{
 					lEncCnt++;
 				}
-
-				return true;
 			}
-			else if (rEncA.portID == static_cast<uint8_t>(source) && (isr & rEncA.pin))
+			
+			if (rEncA.portID == static_cast<uint8_t>(source) && (isr & rEncA.pin))
 			{
 				if (rEncB.port->PIO_PDSR & rEncB.pin)
 				{
@@ -362,12 +365,6 @@ namespace JAFD
 				{
 					rEncCnt++;
 				}
-
-				return true;
-			}
-			else
-			{
-				return false;
 			}
 		}
 
