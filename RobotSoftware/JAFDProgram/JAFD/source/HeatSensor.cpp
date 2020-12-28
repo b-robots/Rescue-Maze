@@ -33,7 +33,7 @@ namespace JAFD
 			Adafruit_AMG88xx amgRight;
 #else
 			TPA81 tpaLeft;
-			TPA81 tpaRight(0xDA);
+			TPA81 tpaRight;
 #endif
 
 			float ambientTemp = 23.0f;
@@ -66,7 +66,7 @@ namespace JAFD
 				int leftAmbient = tpaLeft.getAll(pixels);
 				Serial.println(leftAmbient);
 
-				if (leftAmbient == 0) return ReturnCode::error;
+				if (leftAmbient == 0 || leftAmbient > 40) return ReturnCode::error;
 
 				for (size_t i = 0; i < 8; i++)
 				{
@@ -77,7 +77,7 @@ namespace JAFD
 				int rightAmbient = tpaRight.getAll(pixels);
 				Serial.println(rightAmbient);
 
-				if (rightAmbient == 0) return ReturnCode::error;
+				if (rightAmbient == 0 || rightAmbient > 40) return ReturnCode::error;
 
 				for (size_t i = 0; i < 8; i++)
 				{
@@ -106,11 +106,12 @@ namespace JAFD
 #else
 #endif
 			I2CMultiplexer::selectChannel(JAFDSettings::HeatSensors::Left::i2cChannel);
-			tpaLeft.setup(0x68);
+			tpaLeft.setup(0xD0);
+
 
 
 			I2CMultiplexer::selectChannel(JAFDSettings::HeatSensors::Right::i2cChannel);
-			tpaRight.setup(0x68);
+			tpaRight.setup(0xD0);
 
 			return readAmbientTemp();
 		}

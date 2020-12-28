@@ -13,7 +13,8 @@ objp[0,:,:2] = np.mgrid[0:CHECKERBOARD[0], 0:CHECKERBOARD[1]].T.reshape(-1, 2)
 _img_shape = None
 objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
-images = glob.glob('*.jpg')
+images = glob.glob('C:/Users/patzi/Pictures/Letters_Brobots/calibrate/*.jpg')
+
 for fname in images:
     img = cv2.imread(fname)
     if _img_shape == None:
@@ -28,6 +29,7 @@ for fname in images:
         objpoints.append(objp)
         cv2.cornerSubPix(gray,corners,(3,3),(-1,-1),subpix_criteria)
         imgpoints.append(corners)
+
 N_OK = len(objpoints)
 K = np.zeros((3, 3))
 D = np.zeros((4, 1))

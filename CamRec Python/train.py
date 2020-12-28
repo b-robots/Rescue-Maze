@@ -25,7 +25,7 @@ num_validation = 87
 num_train = 150
 epochs = 200
 steps_per_epoch = num_train // batch_size
-image_size = 100
+image_size = 128
 checkpoint_path = "cp_weights.ckpt"
 dropout_rate = 0.5
 start_lr = 1e-4
@@ -92,18 +92,12 @@ def process_path(file_path):
 def augment(image, label):
     # do nothing
     rand_num = tf.random.uniform([], 0, 1.0)
-    if  rand_num < 0.3: # 30%
+    if  rand_num < 0.2: # 20%
         return image, label
-
-    # random brightness
-    rand_num = tf.random.uniform([], 0, 1.0)
-    if  rand_num < 0.8: # 80%
-        image = tf.image.random_brightness(image, max_delta=0.3)
-        image = tf.clip_by_value(image, 0.0, 1.0)
 
     # gaussian noise
     rand_num = tf.random.uniform([], 0, 1.0)
-    if  rand_num < 0.5: # 50%
+    if  rand_num < 0.6: # 60%
         if tf.math.argmax(label) == 4:
             image = image + tf.random.normal(shape=(image_size, image_size, 1), mean=0.0, stddev=0.1)
         else:
@@ -113,7 +107,7 @@ def augment(image, label):
     # random zoom (crop + padding)
     rand_num = tf.random.uniform([], 0, 1.0)
     if  rand_num > 0.6: # 40%
-        image = tf.image.resize(image, size=(image_size + 20, image_size + 20))
+        image = tf.image.resize(image, size=(image_size + 15, image_size + 15))
         image = tf.image.random_crop(image, size=(image_size, image_size, 1))
     elif rand_num < 0.4: # 40%
         scaling = tf.random.uniform([], 0.8, 1.0)
@@ -144,7 +138,7 @@ def augment(image, label):
 
     # random cutout
     rand_num = tf.random.uniform([], 0, 1.0)
-    if rand_num < 0.4: # 40%
+    if rand_num < 0.5: # 50%
         mask_size = tf.random.uniform([2], minval=2, maxval=30)
         mask_size = tf.cast(tf.math.round(mask_size / 2.0) * 2, dtype='int32')
 
@@ -191,10 +185,10 @@ def augment(image, label):
 
     # blur
     rand_num = tf.random.uniform([], 0, 1.0)
-    if rand_num < 0.1: # 10%
+    if rand_num < 0.15: # 15%
         filter_size = random.randint(1, 4)
         image = tfa.image.mean_filter2d(image, filter_shape=filter_size)
-    elif rand_num > 0.8: # 20%
+    elif rand_num > 0.75: # 25%
         # motion blur
         kernel_size = 3
         kernel = np.zeros([kernel_size, kernel_size])
@@ -223,15 +217,15 @@ def print_dataset(dataset):
         image = np.clip(image, 0, 255).astype(dtype='uint8')
         cv.imshow('img', image)
         cv.waitKey()
-        cv.destroyAllWindows()
+    cv.destroyAllWindows()
 
 def create_model():
     inputs = keras.Input(shape=(image_size, image_size, 1))
-    x = Conv2DBlock(64, 9)(inputs)
-    x = Conv2DBlock(16, 5)(x)
+    x = Conv2DBlock(64, 5, strides=2)(inputs)
+    x = Conv2DBlock(32, 5)(x)
     x = layers.Flatten()(x)
     x = layers.Dropout(dropout_rate)(x)
-    x = layers.Dense(64)(x)
+    x = layers.Dense(32)(x)
     x = layers.ReLU(6.0)(x)
     outputs = layers.Dense(4, activation="softmax")(x)
 
@@ -241,8 +235,8 @@ def create_model():
 
     lr_schedule = keras.optimizers.schedules.ExponentialDecay(
         start_lr,
-        decay_steps=100,
-        decay_rate=0.95)
+        decay_steps=lr_decay_step,
+        decay_rate=lr_decay)
 
     model.compile(
         loss=losses.CategoricalCrossentropy(),
@@ -260,7 +254,7 @@ def create_datasets(folder):
 
 ds_train, ds_val = create_datasets("C:/Users/patzi/Pictures/Letters_Brobots/train/")
 
-print_dataset(ds_train)
+#print_dataset(ds_train)
 
 model = create_model()
 
@@ -273,9 +267,9 @@ cp_callback = keras.callbacks.ModelCheckpoint(
     save_weights_only=True,
     save_freq=steps_per_epoch * 5)
 
-#model.fit(ds_train, validation_data=ds_val, epochs=1, steps_per_epoch=steps_per_epoch, callbacks=[cp_callback, PrintLRCallback()], verbose=2)
+model.fit(ds_train, validation_data=ds_val, epochs=epochs, steps_per_epoch=steps_per_epoch, callbacks=[cp_callback, PrintLRCallback()], verbose=2)
 
-#model.save("model.h5")
+model.save("model.h5")
 
 # Convert to int8 TfLite Model
 converter = tf.lite.TFLiteConverter.from_keras_model(model)

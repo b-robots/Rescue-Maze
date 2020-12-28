@@ -4,12 +4,12 @@ from tensorflow import keras
 from keras import layers
 
 class Conv2DBlock(layers.Layer):
-    def __init__(self, filters=32, kernel_size=3, **kwargs):
+    def __init__(self, filters=32, kernel_size=3, strides=1, **kwargs):
         super().__init__(**kwargs)
         self.filters = filters
         self.kernel_size = kernel_size
-        self.kernel_size = kernel_size
-        self.conv = layers.Conv2D(filters, kernel_size)
+        self.strides = strides
+        self.conv = layers.Conv2D(filters, kernel_size, strides=strides, padding='same')
         self.batch_norm = layers.BatchNormalization()
         self.activation = layers.ReLU(6.0)
         self.pooling = layers.MaxPool2D()
@@ -23,7 +23,8 @@ class Conv2DBlock(layers.Layer):
 
     def get_config(self):
         return {'filters' : self.filters,
-                'kernel_size' : self.kernel_size}
+                'kernel_size' : self.kernel_size,
+                'strides' : self.strides}
 
 class MobileNetV1Block(layers.Layer):
     def __init__(self, strides=1, filters=32, kernel_size=3, **kwargs):
