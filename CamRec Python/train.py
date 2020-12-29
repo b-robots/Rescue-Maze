@@ -20,17 +20,18 @@ from keras.utils import plot_model
 import math
 import random
 
-batch_size = 32
-num_validation = 87
-num_train = 150
-epochs = 200
+file_path = 'train/'
+batch_size = 64
+num_train = 500
+num_validation = 1114 - num_train
+epochs = 150
 steps_per_epoch = num_train // batch_size
-image_size = 128
+image_size = 100
 checkpoint_path = "cp_weights.ckpt"
 dropout_rate = 0.5
-start_lr = 1e-4
+start_lr = 1e-3
 lr_decay = 0.9
-lr_decay_step = 60
+lr_decay_step = 50
 
 def evaluate_lite_model(interpreter):
     input_index = interpreter.get_input_details()[0]["index"]
@@ -185,14 +186,14 @@ def augment(image, label):
 
     # blur
     rand_num = tf.random.uniform([], 0, 1.0)
-    if rand_num < 0.15: # 15%
+    if rand_num < 0.25: # 25%
         filter_size = random.randint(1, 4)
         image = tfa.image.mean_filter2d(image, filter_shape=filter_size)
     elif rand_num > 0.75: # 25%
         # motion blur
         kernel_size = 3
         kernel = np.zeros([kernel_size, kernel_size])
-        kernel[kernel_size // 2] = 1.0 / kernel_size
+        kernel[:, kernel_size // 2] = 1.0 / kernel_size
         kernel_motion_blur = tf.convert_to_tensor(kernel, tf.float32)
         kernel_motion_blur = tf.reshape(kernel_motion_blur, (kernel_size, kernel_size, 1, 1))
         image = tf.nn.conv2d(tf.expand_dims(image, 0), kernel_motion_blur, strides=(1,1,1,1), padding='SAME')
@@ -221,11 +222,11 @@ def print_dataset(dataset):
 
 def create_model():
     inputs = keras.Input(shape=(image_size, image_size, 1))
-    x = Conv2DBlock(64, 5, strides=2)(inputs)
-    x = Conv2DBlock(32, 5)(x)
+    x = Conv2DBlock(60, 5, strides=2)(inputs)
+    x = Conv2DBlock(45, 3)(x)
     x = layers.Flatten()(x)
     x = layers.Dropout(dropout_rate)(x)
-    x = layers.Dense(32)(x)
+    x = layers.Dense(70)(x)
     x = layers.ReLU(6.0)(x)
     outputs = layers.Dense(4, activation="softmax")(x)
 
@@ -252,7 +253,7 @@ def create_datasets(folder):
     ds_train = dataset.skip(num_validation).repeat(batch_size * steps_per_epoch * epochs // num_train + 1).map(augment).map(preprocess).batch(batch_size)
     return ds_train.prefetch(tf.data.experimental.AUTOTUNE), ds_val.prefetch(tf.data.experimental.AUTOTUNE)
 
-ds_train, ds_val = create_datasets("C:/Users/patzi/Pictures/Letters_Brobots/train/")
+ds_train, ds_val = create_datasets(file_path)
 
 #print_dataset(ds_train)
 

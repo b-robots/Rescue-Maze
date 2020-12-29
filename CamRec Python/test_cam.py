@@ -3,21 +3,14 @@ import numpy as np
 from FisheyeCorrection.undistort import undistort, get_undistort_map
 import time
 
-map1, map2 = get_undistort_map(1.0, 1.01)
+map1, map2 = get_undistort_map(0.8, 1.0)
 
-cam = cv.VideoCapture(0) # left
+cam = cv.VideoCapture(1)
 if not cam.isOpened():
     raise IOError("Cannot open webcam")
 cam.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M','J','P','G'))
 cam.set(cv.CAP_PROP_FRAME_WIDTH, 320)
 cam.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
-
-cam2 = cv.VideoCapture(2) # left
-if not cam2.isOpened():
-    raise IOError("Cannot open webcam")
-cam2.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M','J','P','G'))
-cam2.set(cv.CAP_PROP_FRAME_WIDTH, 320)
-cam2.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
 
 def detect_color(img):
     hsv = cv.cvtColor(cv.blur(img, (5, 5)), cv.COLOR_BGR2HSV)
@@ -50,11 +43,13 @@ def detect_color(img):
         else:
             return b'Y'
 
+def get_undist_roi(img, map1, map2):
+    img = undistort(img, map1, map2)
+    img = img[round(120 * (1.0 - 2.0 / 5.0)) : round(120 * (1.0 + 2.0 / 5.0)), 160 : 320]
+    return img
+
 while True:
-    start_time = time.time()
     _, img = cam.read()
-    cv.imshow('original', img)
-    color = detect_color(img)
+    img = get_undist_roi(img, map1, map2)
+    cv.imshow('', img)
     cv.waitKey(1)
-    print(color)
-    print("fps: " + str(round(1.0 / (time.time() - start_time), 2)))

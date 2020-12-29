@@ -6,7 +6,7 @@ import threading
 from FisheyeCorrection.undistort import undistort, get_undistort_map
 import serial
 
-image_size = 128
+image_size = 100
 min_s = 100
 min_v = 50
 min_color = 100
@@ -19,7 +19,7 @@ image_final_lock = threading.Lock()
 
 cameras = []
 
-map1, map2 = get_undistort_map(1.0, 1.01)
+map1, map2 = get_undistort_map(0.8, 1.0)
 
 stop_threads = False
 
@@ -42,18 +42,25 @@ def stop_threads_block():
     threads.clear()
     stop_threads = False
 
+def get_undist_roi(img, map1, map2):
+    img = undistort(img, map1, map2)
+    img = img[round(120 * (1.0 - 2.0 / 5.0)) : round(120 * (1.0 + 2.0 / 5.0)), 160 : 320]
+    return img
+
 def process_img(indx):
     while not stop_threads:
         _, img = cameras[indx].read()
 
         if img is None:
             continue
+        
+        img = get_undist_roi(img, map1, map2)
 
         if not detect_color(img, indx):
             preprocess_img(img, indx)
 
 def detect_color(img, indx):
-    hsv = cv.cvtColor(cv.blur(img, (5, 5)), cv.COLOR_BGR2HSV)
+    hsv = cv.cvtColor(cv.blur(img, (3, 3)), cv.COLOR_BGR2HSV)
 
     red_mask = cv.bitwise_or(cv.inRange(hsv, (0, min_s, min_v), (15, 255, 255)), cv.inRange(hsv, (180 - 15, min_s, min_v), (180, 255, 255)))
     green_mask = cv.inRange(hsv, (35, min_s, min_v), (60 + 15, 255, 255))
@@ -85,10 +92,6 @@ def detect_color(img, indx):
 
 def preprocess_img(img, indx):
     img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    img = undistort(img, map1, map2)
-    height, width = img.shape
-    new_width = height * 3.0 / 4.0
-    img = img[0:height, int(width // 2 - new_width // 2):int(width // 2 + new_width // 2)]
     img = cv.resize(img, (image_size, image_size))
     img = img / 255.0
     img = (img - img.mean()) / img.std()
