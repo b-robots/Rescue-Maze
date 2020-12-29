@@ -10,6 +10,7 @@ image_size = 100
 min_s = 100
 min_v = 50
 min_color = 100
+max_fps = 20.0
 
 final_images = [np.zeros((1, image_size, image_size, 1))] * 2 # 2 images with image_size x image_size in grayscale
 detected_colors = [None] * 2
@@ -62,7 +63,7 @@ def process_img(indx):
 def detect_color(img, indx):
     hsv = cv.cvtColor(cv.blur(img, (3, 3)), cv.COLOR_BGR2HSV)
 
-    red_mask = cv.bitwise_or(cv.inRange(hsv, (0, min_s, min_v), (15, 255, 255)), cv.inRange(hsv, (180 - 15, min_s, min_v), (180, 255, 255)))
+    red_mask = cv.bitwise_or(cv.inRange(hsv, (0, min_s, min_v), (10, 255, 255)), cv.inRange(hsv, (180 - 15, min_s, min_v), (180, 255, 255)))
     green_mask = cv.inRange(hsv, (35, min_s, min_v), (60 + 15, 255, 255))
     yellow_mask = cv.inRange(hsv, (30 - 15, min_s, min_v), (35, 255, 255))
 
@@ -113,7 +114,6 @@ interpreter.allocate_tensors()
 
 letter_lookup = [b'H', b'S', b'U', b'N']
 
-# user must be in group 'dialout'
 port = serial.Serial('/dev/ttyS0', baudrate=9600, timeout=0)
 
 while True:
@@ -183,6 +183,9 @@ while True:
         if b'E' in read_all_serial(port):
             stop = True
         
+        while ((time.time() - start_time) < 1.0 / max_fps):
+            pass
+
     stop_threads_block()
 
     cam_l.release()
