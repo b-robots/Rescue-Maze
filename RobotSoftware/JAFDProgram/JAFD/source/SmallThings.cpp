@@ -128,4 +128,34 @@ namespace JAFD
 			return result;
 		}
 	}
+
+	namespace MemWatcher
+	{
+		namespace
+		{
+			extern "C" char* sbrk(int i);
+			char* ramstart = (char*)0x20070000;
+			char* ramend = (char*)0x20088000;
+		}	
+
+		uint32_t getDynamicRam()
+		{
+			struct mallinfo mi = mallinfo();
+			return mi.uordblks;
+		}
+
+		uint32_t getStackRam()
+		{
+			register char* stack_ptr asm("sp");
+			return ramend - stack_ptr;
+		}
+
+		uint32_t getFreeRam()
+		{
+			char* heapend = sbrk(0);
+			struct mallinfo mi = mallinfo();
+			register char* stack_ptr asm("sp");
+			return stack_ptr - heapend + mi.fordblks;
+		}
+	}
 }

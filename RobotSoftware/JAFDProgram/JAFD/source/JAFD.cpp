@@ -200,20 +200,21 @@ namespace JAFD
 
 		auto time = millis();
 
-		constexpr uint16_t numTasks = 1;
+		constexpr uint16_t numTasks = 2;
 		
 		static const SmoothDriving::TaskArray tasks[numTasks] = {
-			SmoothDriving::TaskArray(SmoothDriving::ForceSpeed(30, 100), SmoothDriving::Stop())
+			SmoothDriving::TaskArray(SmoothDriving::Accelerate(30, 15), SmoothDriving::Accelerate(0, 15), SmoothDriving::Stop()),
+			SmoothDriving::TaskArray(SmoothDriving::Rotate(1, 90), SmoothDriving::Stop())
 		};
 		
 		static uint16_t i = 0;
 
-		if (SmoothDriving::isTaskFinished() && i == 0)
+		if (SmoothDriving::isTaskFinished())
 		{
 			SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(tasks[i]);
 
 			i++;
-			//i %= numTasks;
+			i %= numTasks;
 		}
 
 		SensorFusion::updateSensors();
@@ -222,8 +223,11 @@ namespace JAFD
 
 		auto fusedData = SensorFusion::getFusedData();
 
-		//Serial.print("Left dist: ");
-		//Serial.println(MotorControl::getDistance(Motor::left));
+		Serial.print("Left dist: ");
+		Serial.println(MotorControl::getDistance(Motor::left));
+
+		Serial.print("Left speed: ");
+		Serial.println(MotorControl::getFloatSpeeds().left);
 
 		//Serial.print("Right dist: ");
 		//Serial.println(MotorControl::getDistance(Motor::right));
@@ -247,6 +251,9 @@ namespace JAFD
 
 		//Serial.print("Right curr.: ");
 		//Serial.println(rCurr);
+
+		Serial.print("Free RAM: ");
+		Serial.println(MemWatcher::getFreeRam());
 
 		if (fps < 0.01f) fps = 1000.0f / (millis() - time);
 		else fps = fps * 0.7f + 300.0f / (millis() - time);

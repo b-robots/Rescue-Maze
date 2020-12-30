@@ -161,7 +161,7 @@ namespace JAFD
 
 		void timeBetweenUpdate()
 		{
-			CamRec::loop();
+			//CamRec::loop();
 		}
 	}
 }

@@ -306,6 +306,40 @@ namespace JAFD
 
 			delay(100);
 
+			uint8_t numCharsRead = 0;
+			uint8_t lastChar = 0x00;
+			auto startMillis = millis();
+
+			while (true)
+			{
+				if (millis() - startMillis > JAFDSettings::DistanceSensors::timeout)
+				{
+					return ReturnCode::error;
+				}
+
+				if (_streamPtr->available())
+				{
+					uint8_t curChar = _streamPtr->read();
+
+					if ((lastChar == 0x59) && (curChar == 0x59))
+					{
+						// Header start
+						break;
+					}
+					else
+					{
+						// Continue reading
+						lastChar = curChar;
+						numCharsRead += 1;
+					}
+				}
+
+				if (numCharsRead > _maxBytesBeforeHeader)
+				{
+					return ReturnCode::error;
+				}
+			}
+
 			return ReturnCode::ok;
 		}
 		
@@ -670,8 +704,16 @@ namespace JAFD
 
 			if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::noError)
 			{
+				if (tempFusedData.distSensorState.frontLong == DistSensorStatus::ok)
+				{
+					tempFusedData.distances.frontLong = tempDist * JAFDSettings::SensorFusion::longDistSensIIRFactor + tempFusedData.distances.frontLong * (1.0f - JAFDSettings::SensorFusion::longDistSensIIRFactor);
+				}
+				else
+				{
+					tempFusedData.distances.frontLong = tempDist;
+				}
+
 				tempFusedData.distSensorState.frontLong = DistSensorStatus::ok;
-				tempFusedData.distances.frontLong = tempDist;
 			}
 			else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::overflow)
 			{

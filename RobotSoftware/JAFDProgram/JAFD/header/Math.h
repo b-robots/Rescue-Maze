@@ -41,7 +41,7 @@ namespace JAFD
 	}
 
 	// Interpolates two orientations in the correct way.
-	// Angles must be in range [-180; 180]
+	// Angles must be in range [-pi; pi]
 	// if factor=0 => result=a
 	// if factor=1 => result=b
 	inline float interpolateAngles(float a, float b, float factor)
@@ -67,7 +67,7 @@ namespace JAFD
 	}
 
 	// Interpolates two orientations in the correct way.
-	// Angles must be in range [-180; 180]
+	// Angles must be in range [-pi; pi]
 	// if factor=0 => result=a
 	// if factor=1 => result=b
 	inline Vec3f interpolateAngles(Vec3f a, Vec3f b, float factor)

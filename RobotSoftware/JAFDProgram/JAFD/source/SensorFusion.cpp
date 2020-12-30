@@ -35,13 +35,18 @@ namespace JAFD
 
 			tempRobotState.wheelSpeeds = MotorControl::getFloatSpeeds();
 			
+			// Magic factor: *1.17
+
 			// Angular velocity
+			static Vec3f prevBnoAngVel;
 			auto prevAngularVel = tempRobotState.angularVel;
 
-			float encoderYawVel = (tempRobotState.wheelSpeeds.right - tempRobotState.wheelSpeeds.left) / (JAFDSettings::Mechanics::wheelDistToMiddle * 2.0f);
+			float encoderYawVel = (tempRobotState.wheelSpeeds.right - tempRobotState.wheelSpeeds.left) / (JAFDSettings::Mechanics::wheelDistToMiddle * 2.0f * 1.17f);
 			auto bnoAngVel = Bno055::get_angular_velocity();
+			bnoAngVel = prevBnoAngVel * (1.0f - JAFDSettings::SensorFusion::bno055AngularVelIIr) + bnoAngVel * JAFDSettings::SensorFusion::bno055AngularVelIIr;
+			prevBnoAngVel = bnoAngVel;
 
-			tempRobotState.angularVel.x = bnoAngVel.x * JAFDSettings::SensorFusion::bno055Portion + encoderYawVel * (1.0f - JAFDSettings::SensorFusion::bno055Portion);
+			tempRobotState.angularVel.x = bnoAngVel.x * JAFDSettings::SensorFusion::bno055AngularVelPortion + encoderYawVel * (1.0f - JAFDSettings::SensorFusion::bno055AngularVelPortion);
 			tempRobotState.angularVel.y = bnoAngVel.y;
 			tempRobotState.angularVel.z = bnoAngVel.z;
 			
@@ -50,14 +55,14 @@ namespace JAFD
 			// Relative angle
 			Vec3f prevRot = tempRobotState.rotation;
 
-			float encoderYawAngle = (MotorControl::getDistance(Motor::right) - MotorControl::getDistance(Motor::left)) / (JAFDSettings::Mechanics::wheelDistToMiddle * 2.0f);
+			float encoderYawAngle = (MotorControl::getDistance(Motor::right) - MotorControl::getDistance(Motor::left)) / (JAFDSettings::Mechanics::wheelDistToMiddle * 2.0f * 1.17f);
 			encoderYawAngle = fitAnglesToInterval(encoderYawAngle - totalHeadingOff);
 			auto bnoAbsOr = fitAnglesToInterval(Bno055::get_absolute_orientation() - Vec3f(totalHeadingOff, 0, 0));
 
 			float combinedYaw = interpolateAngles(encoderYawAngle, fitAnglesToInterval(distSensAngle), distSensAngleTrust * JAFDSettings::SensorFusion::distAngularPortion);
 
-			tempRobotState.rotation.x = interpolateAngles(combinedYaw, bnoAbsOr.x, JAFDSettings::SensorFusion::bno055Portion);
-			tempRobotState.rotation.y = interpolateAngles(tempRobotState.rotation.y, bnoAbsOr.y, JAFDSettings::SensorFusion::pitchIIRFactor);
+			tempRobotState.rotation.x = interpolateAngles(combinedYaw, fitAnglesToInterval(bnoAbsOr.x), JAFDSettings::SensorFusion::bno055RotPortion);
+			tempRobotState.rotation.y = interpolateAngles(tempRobotState.rotation.y, fitAnglesToInterval(bnoAbsOr.y), JAFDSettings::SensorFusion::pitchIIRFactor);
 			tempRobotState.rotation.z = bnoAbsOr.z;
 
 			auto integratedAngle = fitAnglesToInterval(prevRot + tempRobotState.angularVel / (float)freq);

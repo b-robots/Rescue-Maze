@@ -109,16 +109,18 @@ namespace JAFDSettings
 		constexpr uint16_t minDeltaDistForEdge = 30;					// Minimum change in distance that corresponds to an edge (in mm)
 
 		// Distance & Speed
-		constexpr float distSensSpeedIIRFactor = 0.5f;					// Factor used for IIR-Filter for speed measured by distance sensors
-		constexpr float longDistSensIIRFactor = 0.9f;					// Factor used for IIR-Filter for high range distance measurements
-		constexpr float shortDistSensIIRFactor = 0.7f;					// Factor used for IIR-Filter for short range distance measurements
+		constexpr float distSensSpeedIIRFactor = 0.8f;					// Factor used for IIR-Filter for speed measured by distance sensors
+		constexpr float longDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for high range distance measurements
+		constexpr float shortDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for short range distance measurements
 		constexpr float distSpeedPortion = 0.0f;						// How much is a perfect distance sensor measured speed worth?
 
 		// Rotation
-		constexpr float bno055Portion = 0.0f;							// How much is a Bno055 measurement worth?
+		constexpr float bno055AngularVelPortion = 0.0f;//0.2					// How much is an angular velocity measurement from the BNO worth? Pretty low, due to high unexcpected spikes
+		constexpr float bno055AngularVelIIr = 0.3f;						// IIR factor for angular velocity from BNO. Note: see above
+		constexpr float bno055RotPortion = 0.0f;//0.6						// How much is a Bno055 rotation measurement worth?
 		constexpr float pitchIIRFactor = 0.8f;							// Factor used for IIR-Filter for pitch by BNO055
 		constexpr float angularVelIIRFactor = 0.8f;						// Factor used for IIR-Filter for angular velocity
-		constexpr float rotationIntegralFactor = 0.0f;					// How much of the rotation is based on the integration
+		constexpr float rotationIntegralFactor = 0.2f;					// How much of the rotation is based on the integration
 		constexpr float distAngularPortion = 0.0f;						// How much is a perfect distance sensor measured angle worth?
 	}
 
