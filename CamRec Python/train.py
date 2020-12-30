@@ -22,8 +22,9 @@ import random
 
 file_path = 'train/'
 batch_size = 64
+num_samples = 1114
 num_train = 500
-num_validation = 1114 - num_train
+num_validation = num_samples - num_train
 epochs = 150
 steps_per_epoch = num_train // batch_size
 image_size = 100

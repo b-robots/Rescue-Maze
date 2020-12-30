@@ -5,6 +5,8 @@ import time
 
 map1, map2 = get_undistort_map(0.8, 1.0)
 
+img_size = 100
+
 cam = cv.VideoCapture(1)
 if not cam.isOpened():
     raise IOError("Cannot open webcam")
@@ -43,9 +45,12 @@ def detect_color(img):
         else:
             return b'Y'
 
-def get_undist_roi(img, map1, map2):
+def get_undist_roi(img, map1, map2, is_right=False):
     img = undistort(img, map1, map2)
+    if is_right:
+        img = cv.rotate(img, cv.ROTATE_180)
     img = img[round(120 * (1.0 - 2.0 / 5.0)) : round(120 * (1.0 + 2.0 / 5.0)), 160 : 320]
+    img = cv.resize(img, (img_size, img_size))
     return img
 
 while True:

@@ -43,8 +43,10 @@ def stop_threads_block():
     threads.clear()
     stop_threads = False
 
-def get_undist_roi(img, map1, map2):
+def get_undist_roi(img, map1, map2, is_right=False):
     img = undistort(img, map1, map2)
+    if is_right:
+        img = cv.rotate(img, cv.ROTATE_180)
     img = img[round(120 * (1.0 - 2.0 / 5.0)) : round(120 * (1.0 + 2.0 / 5.0)), 160 : 320]
     return img
 
@@ -55,7 +57,10 @@ def process_img(indx):
         if img is None:
             continue
         
-        img = get_undist_roi(img, map1, map2)
+        if indx == 1:
+            img = get_undist_roi(img, map1, map2, True)
+        else:
+            img = get_undist_roi(img, map1, map2)
 
         if not detect_color(img, indx):
             preprocess_img(img, indx)
