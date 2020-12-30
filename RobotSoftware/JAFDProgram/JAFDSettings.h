@@ -57,6 +57,10 @@ namespace JAFDSettings
 		constexpr tcs34725Gain_t tcsGain = TCS34725_GAIN_1X;
 	}
 
+	namespace CamRec
+	{
+	}
+
 	namespace MotorControl
 	{
 		constexpr float cmPSToPerc = 1.0f / (97.0f / 60.0f * M_PI * Mechanics::wheelDiameter);		// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed.)

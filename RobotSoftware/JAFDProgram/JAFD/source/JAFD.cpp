@@ -25,6 +25,7 @@
 #include "../header/TCA9548A.h"
 #include "../header/HeatSensor.h"
 #include "../header/SmallThings.h"
+#include "../header/CamRec.h"
 
 #include <SPI.h>
 #include <Wire.h>
@@ -127,6 +128,12 @@ namespace JAFD
 		if (HeatSensor::setup() != ReturnCode::ok)
 		{
 			Serial.println("Error Heat-Sensor");
+		}
+
+		// Setup communication with RasPI for camera recognition
+		if (CamRec::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error CamRec!");
 		}
 
 		// Clear all interrupts once

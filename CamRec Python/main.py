@@ -145,6 +145,8 @@ while True:
     # Wait for 'B' to begin
     while b'B' not in read_all_serial(port):
         pass
+    
+    port.write(b'OK\n')
 
     start_threads()
     stop = False

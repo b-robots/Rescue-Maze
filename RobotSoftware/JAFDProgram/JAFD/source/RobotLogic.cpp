@@ -7,6 +7,7 @@ This is the heart of the robot
 #include "../header/MazeMapping.h"
 #include "../header/SmoothDriving.h"
 #include "../header/MotorControl.h"
+#include "../header/CamRec.h"
 
 namespace JAFD
 {
@@ -156,6 +157,11 @@ namespace JAFD
 					aligned = false;
 				}
 			}
+		}
+
+		void timeBetweenUpdate()
+		{
+			CamRec::loop();
 		}
 	}
 }

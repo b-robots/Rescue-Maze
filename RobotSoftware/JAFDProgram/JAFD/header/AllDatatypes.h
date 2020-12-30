@@ -10,6 +10,62 @@ In this file are all definitions and includes for datatypes and name aliases, wh
 
 namespace JAFD
 {
+	enum class Victim : uint8_t
+	{
+		harmed,
+		stable,
+		unharmed,
+		red,
+		green,
+		yellow,
+		heat,
+		none
+	};
+
+	class VisVictimProb
+	{
+	public:
+		float harmed;
+		float stable;
+		float unharmed;
+		float red;
+		float green;
+		float yellow;
+		float none;
+
+		VisVictimProb(float val = 0.0f) : harmed(val), stable(val), unharmed(val), red(val), green(val), yellow(val), none(val) {}
+
+		inline VisVictimProb operator/(const float& val) const
+		{
+			VisVictimProb result = *this;
+
+			result.harmed /= val;
+			result.stable /= val;
+			result.unharmed /= val;
+			result.red /= val;
+			result.green /= val;
+			result.yellow /= val;
+			result.none /= val;
+
+			return result;
+		}
+
+		inline VisVictimProb operator/(const uint16_t& val) const
+		{
+			VisVictimProb result = *this;
+
+			result.harmed /= val;
+			result.stable /= val;
+			result.unharmed /= val;
+			result.red /= val;
+			result.green /= val;
+			result.yellow /= val;
+			result.none /= val;
+
+			return result;
+		}
+	};
+
 	enum class SerialType : uint8_t
 	{
 		software,

@@ -11,6 +11,7 @@ This file of the library is responsible for the sensor fusion
 #include "../header/DistanceSensors.h"
 #include "../header/Bno055.h"
 #include "../header/TCS34725.h"
+#include "../header/RobotLogic.h"
 #include "../../JAFDSettings.h"
 #include <math.h>
 
@@ -992,6 +993,8 @@ namespace JAFD
 			}
 
 			Bno055::update_sensorreadings();
+
+			RobotLogic::timeBetweenUpdate();
 			
 			DistanceSensors::updateDistSensors();
 		}
