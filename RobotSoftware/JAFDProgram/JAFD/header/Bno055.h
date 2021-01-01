@@ -17,17 +17,16 @@ namespace JAFD
 {
 	namespace Bno055
 	{
-		ReturnCode init();
-		ReturnCode calibration();
-		void update_sensorreadings();		//Funktn aus Bno055 aufrufen
-		void setStartPoint();
+		ReturnCode setup();
+		ReturnCode calibrate();
+		void updateValues();
+		void tare();
+		void tare(float globalHeading);		// Pitch and Roll should be 0°; Global heading in rad
 
-		void Write_to_RAM();
-		void Read_from_RAM();
+		void calibToRAM();
+		void calibFromRAM();
 
-		Vec3f get_linear_acceleration();
-		Vec3f get_angular_velocity();
-		Vec3f get_absolute_orientation();
-		Vec3f get_gravity_vector();
+		Vec3f getLinAcc();
+		Vec3f getForwardVec();
 	}
 }

@@ -1,11 +1,6 @@
-#camera has 127° vertical FOV - 170° horizontal FOV
-
 import os
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-#os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-#os.environ['TF_NUM_INTEROP_THREADS'] = '1'
-#os.environ['TF_NUM_INTRAOP_THREADS'] = '1'
 
 import numpy as np
 import tensorflow as tf

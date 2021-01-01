@@ -115,12 +115,10 @@ namespace JAFDSettings
 		constexpr float distSpeedPortion = 0.0f;						// How much is a perfect distance sensor measured speed worth?
 
 		// Rotation
-		constexpr float bno055AngularVelPortion = 0.0f;//0.2					// How much is an angular velocity measurement from the BNO worth? Pretty low, due to high unexcpected spikes
-		constexpr float bno055AngularVelIIr = 0.3f;						// IIR factor for angular velocity from BNO. Note: see above
 		constexpr float bno055RotPortion = 0.0f;//0.6						// How much is a Bno055 rotation measurement worth?
-		constexpr float pitchIIRFactor = 0.8f;							// Factor used for IIR-Filter for pitch by BNO055
-		constexpr float angularVelIIRFactor = 0.8f;						// Factor used for IIR-Filter for angular velocity
-		constexpr float rotationIntegralFactor = 0.2f;					// How much of the rotation is based on the integration
+		constexpr float angularVelIIRFactor = 0.9f;						// Factor used for IIR-Filter for angular velocity
+		constexpr float angularVelDiffPortion = 0.5f;					// How much of the angular yaw velocity is based on differentiation?
+		constexpr float pitchIIRFactor = 0.5f;							// Factor used for IIR-Filter for pitch angle
 		constexpr float distAngularPortion = 0.0f;						// How much is a perfect distance sensor measured angle worth?
 	}
 
@@ -156,6 +154,8 @@ namespace JAFDSettings
 
 	namespace Dispenser
 	{
+		constexpr uint16_t pause = 700;		// How long is the piston extended in ms?
+
 		namespace Left
 		{
 			constexpr float startDty = 0.03f;	// duty cylce for start

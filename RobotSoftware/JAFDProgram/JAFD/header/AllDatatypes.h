@@ -425,15 +425,17 @@ namespace JAFD
 		float forwardVel;				// Forward velocity (cm/s)
 		Vec3f position;					// Current position (cm)
 
-		Vec3f angularVel;				// Angular velocity as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad/s)
-		Vec3f rotation;					// Current Rotation as { yaw (= steering angle) / pitch (= tilt) / roll (= lean angle) } (rad)
+		Vec3f angularVel;				// Angular velocity as (heading, pitch, bank) in Tait-Bryan angles with order (z, y', x') (rad/s)
+		Vec3f forwardVec;				// Current Rotation as a forward vector
+		float globalHeading;			// Heading relative to the beginning in rad including full turns [-inf; inf]
+		float pitch;					// Pitch / Elevation in rad [-pi/2; pi/2]
 		
 		MapCoordinate mapCoordinate;	// Position on the map; (0, 0, 0) == start
 		AbsoluteDir heading;			// Heading of the robot
 
-		constexpr RobotState() : wheelSpeeds(), forwardVel(), position(), angularVel(), rotation(), heading() {}
-		RobotState(const volatile RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), rotation(state.rotation), heading(state.heading) {}
-		constexpr RobotState(const RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), rotation(state.rotation), heading(state.heading) {}
+		constexpr RobotState() : wheelSpeeds(), forwardVel(), position(), angularVel(), forwardVec(), heading(), globalHeading(), pitch() {}
+		RobotState(const volatile RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), forwardVec(state.forwardVec), heading(state.heading), globalHeading(state.globalHeading), pitch(state.pitch) {}
+		constexpr RobotState(const RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), forwardVec(state.forwardVec), heading(state.heading), globalHeading(state.globalHeading), pitch(state.pitch) {}
 
 		inline const volatile RobotState& operator=(const volatile RobotState state) volatile
 		{
@@ -441,8 +443,10 @@ namespace JAFD
 			forwardVel = state.forwardVel;
 			position = state.position;
 			angularVel = state.angularVel;
-			rotation = state.rotation;
+			forwardVec = state.forwardVec;
 			heading = state.heading;
+			globalHeading = state.globalHeading;
+			pitch = state.pitch;
 
 			return *this;
 		}
@@ -453,8 +457,10 @@ namespace JAFD
 			forwardVel = state.forwardVel;
 			position = state.position;
 			angularVel = state.angularVel;
-			rotation = state.rotation;
+			forwardVec = state.forwardVec;
 			heading = state.heading;
+			globalHeading = state.globalHeading;
+			pitch = state.pitch;
 
 			return *this;
 		}

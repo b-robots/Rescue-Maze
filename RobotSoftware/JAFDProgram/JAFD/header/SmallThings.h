@@ -26,4 +26,11 @@ namespace JAFD
 		uint32_t getStackRam();
 		uint32_t getFreeRam();
 	}
+
+	namespace Wait
+	{
+		void delayUnblocking(uint16_t ms);
+
+		void waitForFinishedTask();
+	}
 }

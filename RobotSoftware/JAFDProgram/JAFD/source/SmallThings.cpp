@@ -8,6 +8,8 @@
 #include "../header/SmallThings.h"
 #include "../header/DistanceSensors.h"
 #include "../header/HeatSensor.h"
+#include "../header/SensorFusion.h"
+#include "../header/SmoothDriving.h"
 
 #include <Wire.h>
 
@@ -156,6 +158,30 @@ namespace JAFD
 			struct mallinfo mi = mallinfo();
 			register char* stack_ptr asm("sp");
 			return stack_ptr - heapend + mi.fordblks;
+		}
+	}
+
+	namespace Wait
+	{
+		namespace
+		{
+			void doWhileWaiting()
+			{
+				SensorFusion::updateSensors();
+				SensorFusion::untimedFusion();
+			}
+		}
+
+		void delayUnblocking(uint16_t ms)
+		{
+			auto start = millis();
+
+			while (millis() - start < ms) doWhileWaiting();
+		}
+
+		void waitForFinishedTask()
+		{
+			while (!SmoothDriving::isTaskFinished()) doWhileWaiting();
 		}
 	}
 }

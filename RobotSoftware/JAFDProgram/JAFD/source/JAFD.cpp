@@ -26,6 +26,7 @@
 #include "../header/HeatSensor.h"
 #include "../header/SmallThings.h"
 #include "../header/CamRec.h"
+#include "../header/Math.h"
 
 #include <SPI.h>
 #include <Wire.h>
@@ -113,7 +114,7 @@ namespace JAFD
 		}
 		
 		// Setup of Bno055
-		if (Bno055::init() != ReturnCode::ok)
+		if (Bno055::setup() != ReturnCode::ok)
 		{
 			Serial.println("Error Bno055");
 		}
@@ -187,7 +188,7 @@ namespace JAFD
 		delay(500);
 
 		//Set start for 9DOF
-		Bno055::setStartPoint();
+		Bno055::tare();
 
 		return;
 	}
@@ -223,11 +224,11 @@ namespace JAFD
 
 		auto fusedData = SensorFusion::getFusedData();
 
-		Serial.print("Left dist: ");
-		Serial.println(MotorControl::getDistance(Motor::left));
+		//Serial.print("Left dist: ");
+		//Serial.println(MotorControl::getDistance(Motor::left));
 
-		Serial.print("Left speed: ");
-		Serial.println(MotorControl::getFloatSpeeds().left);
+		//Serial.print("Left speed: ");
+		//Serial.println(MotorControl::getFloatSpeeds().left);
 
 		//Serial.print("Right dist: ");
 		//Serial.println(MotorControl::getDistance(Motor::right));
@@ -237,8 +238,10 @@ namespace JAFD
 		Serial.print(", ");
 		Serial.println(fusedData.robotState.position.y);
 
-		Serial.print("Rot: ");
-		Serial.println(fusedData.robotState.rotation.x);
+		Serial.print("Heading: ");
+		Serial.println(getGlobalHeading(fusedData.robotState.forwardVec));
+		Serial.print("Pitch: ");
+		Serial.println(getPitch(fusedData.robotState.forwardVec));
 
 		//static float lCurr = 0.0f;
 		//static float rCurr = 0.0f;
