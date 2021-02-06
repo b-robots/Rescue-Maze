@@ -185,10 +185,12 @@ namespace JAFD
 		NVIC_SetPriority(TC5_IRQn, 1);
 		TC1->TC_CHANNEL[2].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
 
-		delay(500);
+		delay(5000);
 
 		//Set start for 9DOF
 		Bno055::tare();
+
+		delay(1000);
 
 		return;
 	}
@@ -200,22 +202,44 @@ namespace JAFD
 		static float fps = 0.0f;
 
 		auto time = millis();
-
-		constexpr uint16_t numTasks = 2;
 		
-		static const SmoothDriving::TaskArray tasks[numTasks] = {
-			SmoothDriving::TaskArray(SmoothDriving::Accelerate(30, 15), SmoothDriving::Accelerate(0, 15), SmoothDriving::Stop()),
-			SmoothDriving::TaskArray(SmoothDriving::Rotate(1, 90), SmoothDriving::Stop())
+		using namespace SmoothDriving;
+
+		static const TaskArray tasks[] = {
+			TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
+			TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
+			TaskArray(Rotate(1, 90), Stop()),
+			TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
+			TaskArray(Rotate(1, 90), Stop()),
+			TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
+			TaskArray(Rotate(1, 90), Stop()),
+			TaskArray(Rotate(1, 90), Stop()),
+			TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
+			TaskArray(Rotate(-1, -90), Stop()),
+			TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
+			TaskArray(Rotate(-1, -90), Stop()),
+			TaskArray(Accelerate(30, 30), Accelerate(0, 30), Stop()),
 		};
 		
+		const static uint16_t numTasks = sizeof(tasks) / sizeof(*tasks);
+
 		static uint16_t i = 0;
 
-		if (SmoothDriving::isTaskFinished())
+		if (SmoothDriving::isTaskFinished() && i < numTasks)
 		{
-			SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(tasks[i]);
+			if (i == 0)
+			{
+				delay(100);
+				Dispenser::dispenseRight(1);
+				delay(100);
+			}
+
+			if (SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(tasks[i]) != ReturnCode::ok)
+			{
+				Serial.println(i);
+			}
 
 			i++;
-			i %= numTasks;
 		}
 
 		SensorFusion::updateSensors();
@@ -233,15 +257,15 @@ namespace JAFD
 		//Serial.print("Right dist: ");
 		//Serial.println(MotorControl::getDistance(Motor::right));
 
-		Serial.print("Pos: ");
-		Serial.print(fusedData.robotState.position.x);
-		Serial.print(", ");
-		Serial.println(fusedData.robotState.position.y);
+		//Serial.print("Pos: ");
+		//Serial.print(fusedData.robotState.position.x);
+		//Serial.print(", ");
+		//Serial.println(fusedData.robotState.position.y);
 
-		Serial.print("Heading: ");
-		Serial.println(getGlobalHeading(fusedData.robotState.forwardVec));
-		Serial.print("Pitch: ");
-		Serial.println(getPitch(fusedData.robotState.forwardVec));
+		//Serial.print("Heading: ");
+		//Serial.println(fusedData.robotState.globalHeading);
+		//Serial.print("Pitch: ");
+		//Serial.println(fusedData.robotState.pitch);
 
 		//static float lCurr = 0.0f;
 		//static float rCurr = 0.0f;
@@ -255,8 +279,8 @@ namespace JAFD
 		//Serial.print("Right curr.: ");
 		//Serial.println(rCurr);
 
-		Serial.print("Free RAM: ");
-		Serial.println(MemWatcher::getFreeRam());
+		//Serial.print("Free RAM: ");
+		//Serial.println(MemWatcher::getFreeRam());
 
 		if (fps < 0.01f) fps = 1000.0f / (millis() - time);
 		else fps = fps * 0.7f + 300.0f / (millis() - time);

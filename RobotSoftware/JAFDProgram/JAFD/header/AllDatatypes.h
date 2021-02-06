@@ -433,7 +433,7 @@ namespace JAFD
 		MapCoordinate mapCoordinate;	// Position on the map; (0, 0, 0) == start
 		AbsoluteDir heading;			// Heading of the robot
 
-		constexpr RobotState() : wheelSpeeds(), forwardVel(), position(), angularVel(), forwardVec(), heading(), globalHeading(), pitch() {}
+		constexpr RobotState() : wheelSpeeds(), forwardVel(0.0f), position(), angularVel(), forwardVec(), heading(), globalHeading(0.0f), pitch(0.0f) {}
 		RobotState(const volatile RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), forwardVec(state.forwardVec), heading(state.heading), globalHeading(state.globalHeading), pitch(state.pitch) {}
 		constexpr RobotState(const RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), forwardVec(state.forwardVec), heading(state.heading), globalHeading(state.globalHeading), pitch(state.pitch) {}
 

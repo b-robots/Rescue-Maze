@@ -29,8 +29,14 @@ namespace JAFD
 
 	namespace Wait
 	{
-		void delayUnblocking(uint16_t ms);
+		void delayUnblocking(uint32_t ms);
 
 		void waitForFinishedTask();
+	}
+
+	namespace Switch
+	{
+		void setup();
+		bool getState();
 	}
 }

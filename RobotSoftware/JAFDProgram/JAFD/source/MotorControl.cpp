@@ -79,14 +79,14 @@ namespace JAFD
 					float voltA = ADC->ADC_CDR[lVoltADCChA] * 3.3f / ((1 << 12) - 1) * JAFDSettings::MotorControl::voltageSensFactor;
 					float voltB = ADC->ADC_CDR[lVoltADCChB] * 3.3f / ((1 << 12) - 1) * JAFDSettings::MotorControl::voltageSensFactor;
 
-					return std::fabs(voltA - voltB);
+					return fabsf(voltA - voltB);
 				}
 				else
 				{
 					float voltA = ADC->ADC_CDR[rVoltADCChA] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::voltageSensFactor;
 					float voltB = ADC->ADC_CDR[rVoltADCChB] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::voltageSensFactor;
 
-					return std::fabs(voltA - voltB);
+					return fabsf(voltA - voltB);
 				}
 			}
 		}
@@ -314,8 +314,8 @@ namespace JAFD
 			lastPWMVal = setSpeed;
 
 			// Set PWM Value
-			PWM->PWM_CH_NUM[lPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[lPWMCh].PWM_CPRD * fabs(setSpeed.left));
-			PWM->PWM_CH_NUM[rPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[rPWMCh].PWM_CPRD * fabs(setSpeed.right));
+			PWM->PWM_CH_NUM[lPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[lPWMCh].PWM_CPRD * fabsf(setSpeed.left));
+			PWM->PWM_CH_NUM[rPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[rPWMCh].PWM_CPRD * fabsf(setSpeed.right));
 			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 		}
 

@@ -10,6 +10,7 @@
 #include "../header/HeatSensor.h"
 #include "../header/SensorFusion.h"
 #include "../header/SmoothDriving.h"
+#include "../header/DuePinMapping.h"
 
 #include <Wire.h>
 
@@ -172,16 +173,37 @@ namespace JAFD
 			}
 		}
 
-		void delayUnblocking(uint16_t ms)
+		void delayUnblocking(uint32_t ms)
 		{
 			auto start = millis();
 
-			while (millis() - start < ms) doWhileWaiting();
+			while ((millis() - start) < ms)
+			{
+				doWhileWaiting();
+			}
 		}
 
 		void waitForFinishedTask()
 		{
 			while (!SmoothDriving::isTaskFinished()) doWhileWaiting();
+		}
+	}
+
+	namespace Switch
+	{
+		namespace
+		{
+			constexpr auto pin = PinMapping::MappedPins[JAFDSettings::Switch::pin];
+		}
+
+		void setup()
+		{
+
+		}
+
+		bool getState()
+		{
+
 		}
 	}
 }

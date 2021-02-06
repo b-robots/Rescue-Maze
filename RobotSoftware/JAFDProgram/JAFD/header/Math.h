@@ -8,74 +8,75 @@ This private file of the library is responsible for math functions (fast trig fu
 
 namespace JAFD
 {
-	inline int8_t sgn(int val) {
+	inline int8_t sgn(const int val) {
 		if (val < 0) return -1;
 		else if (val == 0) return 0;
 		else return 1;
 	}
 
-	inline int8_t sgn(float val) {
+	inline int8_t sgn(const float val) {
 		if (val < 0.0f) return -1;
+		else if (val == 0.0f) return 0;
 		else return 1;
 	}
 
 	// Fits angle to interval [-pi; +pi]
-	inline float fitAngleToInterval(float angle)
+	inline float fitAngleToInterval(const float angle)
 	{
-		while (angle >= M_PI) angle -= M_TWOPI;
-		while (angle <= -M_PI) angle += M_TWOPI;
+		float result = angle;
 
-		return angle;
+		while (result > M_PI) result -= M_TWOPI;
+		while (result < -M_PI) result += M_TWOPI;
+
+		return result;
 	}
 
 	// Interpolates two orientations in the correct way.
 	// Angles must be in range [-pi; pi]
 	// if factor=0 => result=a
 	// if factor=1 => result=b
-	inline float interpolateAngle(float a, float b, float factor)
+	inline float interpolateAngle(const float a, const float b, const float factor)
 	{
-		if (factor > 1.0f) factor = 1.0f;
-		else if (factor < 0.0f) factor = 0.0f;
+		float corrFact = factor;
+		float newA = a;
+		float newB = b;
+
+		if (factor > 1.0f) corrFact = 1.0f;
+		else if (factor < 0.0f) corrFact = 0.0f;
 
 		float result;
 
-		if (fabs(a - b) <= M_PI)
+		if (fabsf(a - b) > M_PI)
 		{
-			result = b * factor + a * (1.0f - factor);
-		}
-		else
-		{
-			if (a > b) b += M_TWOPI;
-			else if (a < b) a += M_TWOPI;
-
-			result = b * factor + a * (1.0f - factor);
+			if (a > b) newA += M_TWOPI;
+			else newB += M_TWOPI;
 		}
 
-		return result;
+		result = newB * corrFact + newA * (1.0f - corrFact);
+		return fitAngleToInterval(result);
 	}
 
 	// Make an angle change coherent, based on the previous angle. Assuming the angle did not change more than 180°
 	// "now" has to be in range [-pi; +pi]
 	// "prev" can be anything
-	inline float makeRotationCoherent(float prev, float now)
+	inline float makeRotationCoherent(const float prev, const float now)
 	{
-		return prev + fitAngleToInterval(now - prev);
+		return prev + fitAngleToInterval(now - fitAngleToInterval(prev));
 	}
 
-
 	// Get heading relative to starting position using the normalized forward vector
-	inline float getGlobalHeading(Vec3f forwardVec)
+	inline float getGlobalHeading(const Vec3f& forwardVec)
 	{
-		fitAngleToInterval(atan2f(forwardVec.y, forwardVec.x));
+		return atan2f(forwardVec.y, forwardVec.x);
 	}
 
 	// Get pitch relative to starting position using the normalized forward vector
-	inline float getPitch(Vec3f forwardVec)
+	inline float getPitch(const Vec3f& forwardVec)
 	{
 		return asinf(forwardVec.z);
 	}
 
-	inline Vec3f toForwardVec(float globalHeading, float pitch)
+	inline Vec3f toForwardVec(const float globalHeading, const float pitch)
 	{
 		Vec3f result;
 
@@ -84,5 +85,7 @@ namespace JAFD
 		result.z = sinf(pitch);
 		result.x = cosf(globalHeading) * cosPitch;
 		result.y = sinf(globalHeading) * cosPitch;
+
+		return result;
 	}
 }

@@ -20,6 +20,11 @@ In this file are all settings needed for the robot
 
 namespace JAFDSettings
 {
+	namespace Switch
+	{
+		constexpr uint8_t pin = 12;
+	}
+
 	namespace Field
 	{
 		constexpr float cellWidth = 30.0f;	// Cell width in cm
@@ -114,12 +119,17 @@ namespace JAFDSettings
 		constexpr float shortDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for short range distance measurements
 		constexpr float distSpeedPortion = 0.0f;						// How much is a perfect distance sensor measured speed worth?
 
+		// Position
+		constexpr float distSensOffsetPortion = 0.8f;					// How much does the center-offset measured by all distance sensors count?
+		constexpr float distSenssOffsetIIRFac = 0.95f;					// Factor used for IIR-Filter for center-offsets
+
 		// Rotation
-		constexpr float bno055RotPortion = 0.0f;//0.6						// How much is a Bno055 rotation measurement worth?
+		constexpr float bno055RotPortion = 0.1f;						// How much is a Bno055 rotation measurement worth?
 		constexpr float angularVelIIRFactor = 0.9f;						// Factor used for IIR-Filter for angular velocity
 		constexpr float angularVelDiffPortion = 0.5f;					// How much of the angular yaw velocity is based on differentiation?
 		constexpr float pitchIIRFactor = 0.5f;							// Factor used for IIR-Filter for pitch angle
 		constexpr float distAngularPortion = 0.0f;						// How much is a perfect distance sensor measured angle worth?
+		constexpr float maxAngleDeviation = 20.0f * DEG_TO_RAD;			// If there is a heading deviation greater than this after one time step (50ms) the BNO had an error
 	}
 
 	namespace Controller
@@ -154,7 +164,7 @@ namespace JAFDSettings
 
 	namespace Dispenser
 	{
-		constexpr uint16_t pause = 700;		// How long is the piston extended in ms?
+		constexpr uint32_t pause = 700;		// How long is the piston extended in ms?
 
 		namespace Left
 		{

@@ -41,7 +41,7 @@ namespace JAFD
 			} _taskCopies;
 
 			ITask* _currentTask = &_taskCopies.stop;	// Current task
-			
+
 			PIDController _forwardVelPID(JAFDSettings::Controller::SmoothDriving::forwardVelPidSettings);	// PID controller for forward velocity
 			PIDController _angularVelPID(JAFDSettings::Controller::SmoothDriving::angularVelPidSettings);	// PID controller for angular velocity
 		
@@ -67,7 +67,7 @@ namespace JAFD
 		ReturnCode Accelerate::startTask(RobotState startState)
 		{
 			_finished = false;
-			_targetDir = Vec2f(cosf(startState.rotation.x), sinf(startState.rotation.x));
+			_targetDir = Vec2f(cosf(startState.globalHeading), sinf(startState.globalHeading));
 			_startPos = (Vec2f)(startState.position);
 			_startSpeeds = startState.forwardVel;
 
@@ -79,7 +79,7 @@ namespace JAFD
 			_endState.forwardVel = static_cast<float>(_endSpeeds);
 			_endState.position = startState.position + (Vec3f)(_targetDir * _distance);
 			_endState.angularVel = Vec3f(0.0f, 0.0f, 0.0f);
-			_endState.rotation = startState.rotation;
+			_endState.globalHeading = startState.globalHeading;
 
 			return ReturnCode::ok;
 		}
@@ -106,14 +106,14 @@ namespace JAFD
 			const auto tempRobotState = SensorFusion::getFusedData().robotState;
 
 			currentPosition = (Vec2f)(tempRobotState.position);
-			currentHeading = tempRobotState.rotation.x;
+			currentHeading = tempRobotState.globalHeading;
 
 			// Calculate driven distance
 			posRelToStart = currentPosition - _startPos;
 			drivenDistance = std::max(posRelToStart.x * _targetDir.x + posRelToStart.y * _targetDir.y, 0.0f);
 
 			// Check if I am there
-			if (drivenDistance >= fabs(_distance))
+			if (drivenDistance >= fabsf(_distance))
 			{
 				_finished = true;
 
@@ -200,7 +200,7 @@ namespace JAFD
 		ReturnCode DriveStraight::startTask(RobotState startState)
 		{
 			_finished = false;
-			_targetDir = Vec2f(cosf(startState.rotation.x), sinf(startState.rotation.x));
+			_targetDir = Vec2f(cosf(startState.globalHeading), sinf(startState.globalHeading));
 			_startPos = (Vec2f)(startState.position);
 			_speeds = startState.forwardVel;
 
@@ -213,9 +213,9 @@ namespace JAFD
 
 			_endState.wheelSpeeds = FloatWheelSpeeds{ _speeds, _speeds };
 			_endState.forwardVel = static_cast<float>(_speeds);
-			_endState.position = startState.position + (Vec3f)(_targetDir * fabs(_distance));
+			_endState.position = startState.position + (Vec3f)(_targetDir * fabsf(_distance));
 			_endState.angularVel = Vec3f(0.0f, 0.0f, 0.0f);
-			_endState.rotation = startState.rotation;
+			_endState.globalHeading = startState.globalHeading;
 
 			return ReturnCode::ok;
 		}
@@ -241,14 +241,14 @@ namespace JAFD
 			const auto tempRobotState = SensorFusion::getFusedData().robotState;
 
 			currentPosition = (Vec2f)(tempRobotState.position);
-			currentHeading = tempRobotState.rotation.x;
+			currentHeading = tempRobotState.globalHeading;
 
 			// Calculate driven distance
 			posRelToStart = currentPosition - _startPos;
 			absDrivenDist = posRelToStart.length();
 
 			// Check if I am there
-			if (fabs(absDrivenDist) >= fabs(_distance))
+			if (fabsf(absDrivenDist) >= fabsf(_distance))
 			{
 				_finished = true;
 			}
@@ -257,7 +257,7 @@ namespace JAFD
 			// Furthermore, the lookahead distance is dynamically adapted to the speed
 			// Calculate goal point
 			lookAheadDistance = JAFDSettings::Controller::PurePursuit::lookAheadGain * _speeds;
-			lookAheadDistance = fabs(lookAheadDistance);
+			lookAheadDistance = fabsf(lookAheadDistance);
 
 			if (lookAheadDistance < JAFDSettings::Controller::PurePursuit::minLookAheadDist) lookAheadDistance = JAFDSettings::Controller::PurePursuit::minLookAheadDist;
 
@@ -313,7 +313,7 @@ namespace JAFD
 			_endState.forwardVel = static_cast<float>(0.0f);
 			_endState.position = startState.position;
 			_endState.angularVel = Vec3f(0.0f, 0.0f, 0.0f);
-			_endState.rotation = startState.rotation;
+			_endState.globalHeading = startState.globalHeading;
 
 			_forwardVelPID.reset();
 			_angularVelPID.reset();
@@ -336,7 +336,7 @@ namespace JAFD
 		ReturnCode Rotate::startTask(RobotState startState)
 		{
 			_finished = false;
-			_startAngle = startState.rotation.x;
+			_startAngle = startState.globalHeading;
 			_accelerate = true;
 
 			if (abs(startState.wheelSpeeds.left) > JAFDSettings::MotorControl::minSpeed || abs(startState.wheelSpeeds.right) > JAFDSettings::MotorControl::minSpeed) return ReturnCode::error;
@@ -349,7 +349,7 @@ namespace JAFD
 			_endState.forwardVel = static_cast<float>(0.0f);
 			_endState.position = startState.position;
 			_endState.angularVel = Vec3f(0.0f, 0.0f, 0.0f);
-			_endState.rotation = startState.rotation + Vec3f(_angle, 0.0f, 0.0f);
+			_endState.globalHeading = startState.globalHeading + _angle;
 
 			_forwardVelPID.reset();
 			_angularVelPID.reset();
@@ -368,10 +368,10 @@ namespace JAFD
 			const auto tempRobotState = SensorFusion::getFusedData().robotState;
 
 			// Calculate rotated angle
-			rotatedAngle = tempRobotState.rotation.x - _startAngle;
+			rotatedAngle = tempRobotState.globalHeading - _startAngle;
 
 			// Check if I am there
-			if (fabs(rotatedAngle) >= fabs(_angle))
+			if (fabsf(rotatedAngle) >= fabsf(_angle))
 			{
 				_finished = true;
 
@@ -385,16 +385,16 @@ namespace JAFD
 			if (_accelerate)
 			{
 				// w(t) = w_max * 2 * t / t_ges => a(t) = w_max * t^2 / t_ges => t(a) = sqrt(a * t_ges / w_max); w(a) = w_max * 2 * sqrt(a * t_ges / w_max) / t_ges = sqrt(4 * a * w_max / t_ges)
-				desAngularVel = sqrtf(4.0f * fabs(rotatedAngle * _maxAngularVel) / _totalTime) * sgn(_maxAngularVel);
+				desAngularVel = sqrtf(4.0f * fabsf(rotatedAngle * _maxAngularVel) / _totalTime) * sgn(_maxAngularVel);
 
-				if (fabs(rotatedAngle) >= fabs(_angle) / 2.0f)
+				if (fabsf(rotatedAngle) >= fabsf(_angle) / 2.0f)
 				{
 					_accelerate = false;
 				}
 			}
 			else
 			{
-				desAngularVel = _maxAngularVel - sqrtf(4.0f * fabs((rotatedAngle - _angle / 2.0f) * _maxAngularVel) / _totalTime) * sgn(_maxAngularVel);
+				desAngularVel = _maxAngularVel - sqrtf(4.0f * fabsf((rotatedAngle - _angle / 2.0f) * _maxAngularVel) / _totalTime) * sgn(_maxAngularVel);
 			}
 
 			// Kind of PID - controller
@@ -423,7 +423,7 @@ namespace JAFD
 		ReturnCode ForceSpeed::startTask(RobotState startState)
 		{
 			_finished = false;
-			_targetDir = Vec2f(cosf(startState.rotation.x), sinf(startState.rotation.x));
+			_targetDir = Vec2f(cosf(startState.globalHeading), sinf(startState.globalHeading));
 			_startPos = (Vec2f)(startState.position);
 
 			if (sgn(_speeds) != sgn(_distance)) return ReturnCode::error;
@@ -435,9 +435,9 @@ namespace JAFD
 
 			_endState.wheelSpeeds = FloatWheelSpeeds{ _speeds, _speeds };
 			_endState.forwardVel = static_cast<float>(_speeds);
-			_endState.position = startState.position + (Vec3f)(_targetDir * fabs(_distance));
+			_endState.position = startState.position + (Vec3f)(_targetDir * fabsf(_distance));
 			_endState.angularVel = Vec3f(0.0f, 0.0f, 0.0f);
-			_endState.rotation = startState.rotation;
+			_endState.globalHeading = startState.globalHeading;
 
 			return ReturnCode::ok;
 		}
@@ -463,14 +463,14 @@ namespace JAFD
 			const auto tempRobotState = SensorFusion::getFusedData().robotState;
 
 			currentPosition = (Vec2f)(tempRobotState.position);
-			currentHeading = tempRobotState.rotation.x;
+			currentHeading = tempRobotState.globalHeading;
 
 			// Calculate driven distance
 			posRelToStart = currentPosition - _startPos;
 			absDrivenDist = posRelToStart.length();
 
 			// Check if I am there
-			if (absDrivenDist >= fabs(_distance))
+			if (absDrivenDist >= fabsf(_distance))
 			{
 				_finished = true;
 			}
@@ -479,7 +479,7 @@ namespace JAFD
 			// Furthermore, the lookahead distance is dynamically adapted to the speed
 			// Calculate goal point
 			lookAheadDistance = JAFDSettings::Controller::PurePursuit::lookAheadGain * _speeds;
-			lookAheadDistance = fabs(lookAheadDistance);
+			lookAheadDistance = fabsf(lookAheadDistance);
 
 			if (lookAheadDistance < JAFDSettings::Controller::PurePursuit::minLookAheadDist) lookAheadDistance = JAFDSettings::Controller::PurePursuit::minLookAheadDist;
 
@@ -535,40 +535,36 @@ namespace JAFD
 			_angularVelPID.reset();
 			_forwardVelPID.reset();
 
-			_endState.rotation = startState.rotation;
-
 			_endState.position.x = roundf(startState.position.x / JAFDSettings::Field::cellWidth) * JAFDSettings::Field::cellWidth;
 			_endState.position.y = roundf(startState.position.y / JAFDSettings::Field::cellWidth) * JAFDSettings::Field::cellWidth;
 			_endState.position.z = 0;
 
-			_endState.rotation = startState.rotation;
-
-			float positiveAngle = startState.rotation.x;
+			float positiveAngle = startState.globalHeading;
 
 			while (positiveAngle < 0.0f) positiveAngle += M_TWOPI;
 			while (positiveAngle > M_TWOPI) positiveAngle -= M_TWOPI;
 
 			if (positiveAngle > 315.0f * DEG_TO_RAD || positiveAngle <= 45.0f * DEG_TO_RAD)
 			{
-				headingOffset = startState.rotation.x;
+				headingOffset = startState.globalHeading;
 
 				_endState.position.x += JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
 			}
 			else if (positiveAngle > 45.0f * DEG_TO_RAD && positiveAngle <= 135.0f * DEG_TO_RAD)
 			{
-				headingOffset = startState.rotation.x - M_PI_2;
+				headingOffset = startState.globalHeading - M_PI_2;
 
 				_endState.position.y += JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
 			}
 			else if (positiveAngle > 135.0f * DEG_TO_RAD && positiveAngle <= 225.0f * DEG_TO_RAD)
 			{
-				headingOffset = startState.rotation.x - M_PI;
+				headingOffset = startState.globalHeading - M_PI;
 
 				_endState.position.x -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
 			}
 			else
 			{
-				headingOffset = startState.rotation.x - M_PI_2 * 3;
+				headingOffset = startState.globalHeading - M_PI_2 * 3;
 
 				_endState.position.y -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
 			}
@@ -576,7 +572,7 @@ namespace JAFD
 			while (headingOffset < 0.0f) headingOffset += M_TWOPI;
 			while (headingOffset > M_PI) headingOffset -= M_TWOPI;
 
-			_endState.rotation.x -= headingOffset;
+			_endState.globalHeading -= headingOffset;
 
 			_endState.wheelSpeeds = FloatWheelSpeeds{ 0.0f, 0.0f };
 			_endState.forwardVel = static_cast<float>(0.0f);

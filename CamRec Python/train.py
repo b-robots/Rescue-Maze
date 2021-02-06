@@ -11,7 +11,7 @@ import pathlib
 import time
 import cv2 as cv
 from custom_layers import MobileNetV1Block, Conv2DBlock
-from keras.utils import plot_model
+from keras.utils import vis_utils
 import math
 import random
 
@@ -264,9 +264,9 @@ cp_callback = keras.callbacks.ModelCheckpoint(
     save_weights_only=True,
     save_freq=steps_per_epoch * 5)
 
-model.fit(ds_train, validation_data=ds_val, epochs=epochs, steps_per_epoch=steps_per_epoch, callbacks=[cp_callback, PrintLRCallback()], verbose=2)
+#model.fit(ds_train, validation_data=ds_val, epochs=epochs, steps_per_epoch=steps_per_epoch, callbacks=[cp_callback, PrintLRCallback()], verbose=2)
 
-model.save("model.h5")
+#model.save("model.h5")
 
 # Convert to int8 TfLite Model
 converter = tf.lite.TFLiteConverter.from_keras_model(model)
