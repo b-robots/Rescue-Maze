@@ -185,12 +185,10 @@ namespace JAFD
 		NVIC_SetPriority(TC5_IRQn, 1);
 		TC1->TC_CHANNEL[2].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
 
-		delay(5000);
+		delay(500);
 
 		//Set start for 9DOF
 		Bno055::tare();
-
-		delay(1000);
 
 		return;
 	}
@@ -205,44 +203,37 @@ namespace JAFD
 		
 		using namespace SmoothDriving;
 
-		static const TaskArray tasks[] = {
-			TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
-			TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
-			TaskArray(Rotate(1, 90), Stop()),
-			TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
-			TaskArray(Rotate(1, 90), Stop()),
-			TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
-			TaskArray(Rotate(1, 90), Stop()),
-			TaskArray(Rotate(1, 90), Stop()),
-			TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
-			TaskArray(Rotate(-1, -90), Stop()),
-			TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
-			TaskArray(Rotate(-1, -90), Stop()),
-			TaskArray(Accelerate(30, 30), Accelerate(0, 30), Stop()),
-		};
-		
-		const static uint16_t numTasks = sizeof(tasks) / sizeof(*tasks);
+		//static const TaskArray tasks[] = {
+		//	TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
+		//	TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
+		//	TaskArray(Rotate(1, 90), Stop()),
+		//	TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
+		//	TaskArray(Rotate(1, 90), Stop()),
+		//	TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
+		//	TaskArray(Rotate(1, 90), Stop()),
+		//	TaskArray(Rotate(1, 90), Stop()),
+		//	TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
+		//	TaskArray(Rotate(-1, -90), Stop()),
+		//	TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
+		//	TaskArray(Rotate(-1, -90), Stop()),
+		//	TaskArray(Accelerate(30, 30), Accelerate(0, 30), Stop()),
+		//};
+		//
+		//const static uint16_t numTasks = sizeof(tasks) / sizeof(*tasks);
 
-		static uint16_t i = 0;
+		//static uint16_t i = 0;
 
-		if (SmoothDriving::isTaskFinished() && i < numTasks)
-		{
-			if (i == 0)
-			{
-				delay(100);
-				Dispenser::dispenseRight(1);
-				delay(100);
-			}
+		//if (SmoothDriving::isTaskFinished() && i < numTasks)
+		//{
+		//	if (SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(tasks[i]) != ReturnCode::ok)
+		//	{
+		//		Serial.println(i);
+		//	}
 
-			if (SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(tasks[i]) != ReturnCode::ok)
-			{
-				Serial.println(i);
-			}
+		//	i++;
+		//}
 
-			i++;
-		}
-
-		SensorFusion::updateSensors();
+		//SensorFusion::updateSensors();
 		SensorFusion::untimedFusion();
 		//RobotLogic::loop();
 

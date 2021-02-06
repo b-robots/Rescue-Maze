@@ -155,7 +155,7 @@ namespace JAFD
 			{
 				if (rightDet > 0)
 				{
-					return rightDet / rightDet;
+					return rightProb / rightDet;
 				}
 				else
 				{

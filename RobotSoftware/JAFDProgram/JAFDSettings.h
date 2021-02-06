@@ -117,11 +117,10 @@ namespace JAFDSettings
 		constexpr float distSensSpeedIIRFactor = 0.8f;					// Factor used for IIR-Filter for speed measured by distance sensors
 		constexpr float longDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for high range distance measurements
 		constexpr float shortDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for short range distance measurements
-		constexpr float distSpeedPortion = 0.0f;						// How much is a perfect distance sensor measured speed worth?
+		constexpr float distSpeedPortion = 0.1f;						// How much is a perfect distance sensor measured speed worth?
 
 		// Position
 		constexpr float distSensOffsetPortion = 0.8f;					// How much does the center-offset measured by all distance sensors count?
-		constexpr float distSenssOffsetIIRFac = 0.95f;					// Factor used for IIR-Filter for center-offsets
 
 		// Rotation
 		constexpr float bno055RotPortion = 0.1f;						// How much is a Bno055 rotation measurement worth?

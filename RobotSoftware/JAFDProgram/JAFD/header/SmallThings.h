@@ -34,9 +34,16 @@ namespace JAFD
 		void waitForFinishedTask();
 	}
 
+	// TODO
 	namespace Switch
 	{
 		void setup();
 		bool getState();
+	}
+	
+	// TODO
+	namespace Buzzer
+	{
+
 	}
 }

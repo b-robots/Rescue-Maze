@@ -64,9 +64,9 @@ namespace JAFD
 			volatile int32_t lEncCnt = 0;		// Encoder count left motor
 			volatile int32_t rEncCnt = 0;		// Encoder count right motor
 
-			volatile FloatWheelSpeeds speeds = { 0.0f, 0.0f };	// Current motor speeds (cm/s)
+			volatile FloatWheelSpeeds speeds = FloatWheelSpeeds { 0.0f, 0.0f };		// Current motor speeds (cm/s)
 
-			volatile WheelSpeeds desSpeeds = { 0.0f, 0.0f };	// Desired motor speed (cm/s)
+			volatile WheelSpeeds desSpeeds = WheelSpeeds{ 0.0f, 0.0f };				// Desired motor speed (cm/s)
 
 			// Get output voltage of motor
 			float getVoltage(const Motor motor)
@@ -231,7 +231,7 @@ namespace JAFD
 		{
 			FloatWheelSpeeds setSpeed;	// Speed calculated by PID
 
-			static FloatWheelSpeeds lastPWMVal = { 0.0f, 0.0f };	// Last PWM values
+			static FloatWheelSpeeds lastPWMVal = FloatWheelSpeeds { 0.0f, 0.0f };	// Last PWM values
 			static float leftPWMReduction = JAFDSettings::MotorControl::initPWMReduction;	// PWM reduction to prevent overvoltage
 			static float rightPWMReduction = JAFDSettings::MotorControl::initPWMReduction;	// PWM reduction to prevent overvoltage
 

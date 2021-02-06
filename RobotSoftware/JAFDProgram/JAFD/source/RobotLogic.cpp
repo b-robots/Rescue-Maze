@@ -15,111 +15,45 @@ namespace JAFD
 	{
 		void loop()
 		{
-			static GridCell cell;
-			static RelativeDir relativeTurnDir;
-			static bool found = false;
-			static bool aligned = false;
-			static bool frontIsWall = false;
+			GridCell cell;
+			RelativeDir relativeTurnDir;
+			bool found = false;
 
 			const auto tempFusedData = SensorFusion::getFusedData();
 
 			if (tempFusedData.gridCellCertainty >= 0.5f)
 			{
-				if (SmoothDriving::isTaskFinished())
+				switch (relativeTurnDir)
 				{
-					cell = tempFusedData.gridCell;
-
-					switch (makeAbsolute(RelativeDir::forward, tempFusedData.robotState.heading))
-					{
-					case AbsoluteDir::north:
-						if (cell.cellConnections & Directions::north) frontIsWall = false;
-						else frontIsWall = true;
-						break;
-					case AbsoluteDir::east:
-						if (cell.cellConnections & Directions::east) frontIsWall = false;
-						else frontIsWall = true;
-						break;
-					case AbsoluteDir::south:
-						if (cell.cellConnections & Directions::south) frontIsWall = false;
-						else frontIsWall = true;
-						break;
-					case AbsoluteDir::west:
-						if (cell.cellConnections & Directions::west) frontIsWall = false;
-						else frontIsWall = true;
-						break;
-					default:
-						break;
-					}
-
-					if (frontIsWall && !aligned)
-					{
-						//SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::AlignFront());
-						aligned = true;
-						return;
-					}
-
-					found = false;
-
-					while (!found)
-					{
-						uint8_t rand = random(0, 4);
-
-						if ((cell.cellConnections & Directions::north) && rand == 0)
-						{
-							found = true;
-							relativeTurnDir = makeRelative(AbsoluteDir::north, tempFusedData.robotState.heading);
-						}
-						else if ((cell.cellConnections & Directions::east) && rand == 1)
-						{
-							found = true;
-							relativeTurnDir = makeRelative(AbsoluteDir::east, tempFusedData.robotState.heading);
-						}
-						else if ((cell.cellConnections & Directions::west) && rand == 2)
-						{
-							found = true;
-							relativeTurnDir = makeRelative(AbsoluteDir::west, tempFusedData.robotState.heading);
-						}
-						else if ((cell.cellConnections & Directions::south) && rand == 3)
-						{
-							found = true;
-							relativeTurnDir = makeRelative(AbsoluteDir::south, tempFusedData.robotState.heading);
-						}
-					}
-
-					switch (relativeTurnDir)
-					{
-					case RelativeDir::forward:
-						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
-							SmoothDriving::Accelerate(20, 15.0f),
-							SmoothDriving::Accelerate(0, 15.0f),
-							SmoothDriving::Stop()));
-						break;
-					case RelativeDir::right:
-						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
-							SmoothDriving::Rotate(-2.0f, -90.0f),
-							SmoothDriving::Accelerate(20, 15.0f),
-							SmoothDriving::Accelerate(0, 15.0f),
-							SmoothDriving::Stop()));
-						break;
-					case RelativeDir::backward:
-						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
-							SmoothDriving::Rotate(3.0f, 180.0f),
-							SmoothDriving::Accelerate(20, 15.0f),
-							SmoothDriving::Accelerate(0, 15.0f),
-							SmoothDriving::Stop()));
-						break;
-					case RelativeDir::left:
-						SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
-							SmoothDriving::Rotate(2.0f, 90.0f),
-							SmoothDriving::Accelerate(20, 15.0f),
-							SmoothDriving::Accelerate(0, 15.0f),
-							SmoothDriving::Stop()));
-						break;
-					default:
-						break;
-					}
-
-					aligned = false;
+				case RelativeDir::forward:
+					SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
+						SmoothDriving::Accelerate(20, 15.0f),
+						SmoothDriving::Accelerate(0, 15.0f),
+						SmoothDriving::Stop()));
+					break;
+				case RelativeDir::right:
+					SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
+						SmoothDriving::Rotate(-2.0f, -90.0f),
+						SmoothDriving::Accelerate(20, 15.0f),
+						SmoothDriving::Accelerate(0, 15.0f),
+						SmoothDriving::Stop()));
+					break;
+				case RelativeDir::backward:
+					SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
+						SmoothDriving::Rotate(3.0f, 180.0f),
+						SmoothDriving::Accelerate(20, 15.0f),
+						SmoothDriving::Accelerate(0, 15.0f),
+						SmoothDriving::Stop()));
+					break;
+				case RelativeDir::left:
+					SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
+						SmoothDriving::Rotate(2.0f, 90.0f),
+						SmoothDriving::Accelerate(20, 15.0f),
+						SmoothDriving::Accelerate(0, 15.0f),
+						SmoothDriving::Stop()));
+					break;
+				default:
+					break;
 				}
 			}
 		}

@@ -11,6 +11,7 @@
 #include "../header/SensorFusion.h"
 #include "../header/SmoothDriving.h"
 #include "../header/DuePinMapping.h"
+#include "../header/RobotLogic.h"
 
 #include <Wire.h>
 
@@ -179,7 +180,7 @@ namespace JAFD
 
 			while ((millis() - start) < ms)
 			{
-				doWhileWaiting();
+				RobotLogic::timeBetweenUpdate();
 			}
 		}
 
@@ -189,6 +190,7 @@ namespace JAFD
 		}
 	}
 
+	// TODO
 	namespace Switch
 	{
 		namespace
@@ -205,5 +207,11 @@ namespace JAFD
 		{
 
 		}
+	}
+
+	// TODO
+	namespace Buzzer
+	{
+
 	}
 }
