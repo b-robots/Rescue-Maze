@@ -360,10 +360,10 @@ namespace JAFD
 		// Update speeds for both wheels
 		WheelSpeeds Rotate::updateSpeeds(const uint8_t freq)
 		{
-			static float rotatedAngle;			// Rotated angle since start
-			static float desAngularVel;			// Desired angular velocity
-			static float correctedAngularVel;	// By PID Controller corrected angular velocity
-			static WheelSpeeds output;			// Output
+			float rotatedAngle;			// Rotated angle since start
+			float desAngularVel;		// Desired angular velocity
+			float correctedAngularVel;	// By PID Controller corrected angular velocity
+			WheelSpeeds output;			// Output
 
 			const auto tempRobotState = SensorFusion::getFusedData().robotState;
 
@@ -373,10 +373,10 @@ namespace JAFD
 			// Check if I am there
 			if (fabsf(rotatedAngle) >= fabsf(_angle))
 			{
-				_finished = true;
-
 				_forwardVelPID.reset();
 				_angularVelPID.reset();
+
+				_finished = true;
 
 				return WheelSpeeds{ 0, 0 };
 			}

@@ -151,6 +151,8 @@ namespace JAFD
 			forwardVec.y = -2.0f * (quat.x() * quat.y() - quat.w() * quat.z());
 			forwardVec.z = -2.0f * (quat.y() * quat.z() + quat.w() * quat.x());
 
+			forwardVec = forwardVec.normalized();
+
 			return forwardVec;
 		}
 

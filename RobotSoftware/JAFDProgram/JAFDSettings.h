@@ -117,7 +117,7 @@ namespace JAFDSettings
 		constexpr float distSensSpeedIIRFactor = 0.8f;					// Factor used for IIR-Filter for speed measured by distance sensors
 		constexpr float longDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for high range distance measurements
 		constexpr float shortDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for short range distance measurements
-		constexpr float distSpeedPortion = 0.1f;						// How much is a perfect distance sensor measured speed worth?
+		constexpr float distSpeedPortion = 0.2f;						// How much is a perfect distance sensor measured speed worth?
 
 		// Position
 		constexpr float distSensOffsetPortion = 0.8f;					// How much does the center-offset measured by all distance sensors count?
@@ -127,7 +127,7 @@ namespace JAFDSettings
 		constexpr float angularVelIIRFactor = 0.9f;						// Factor used for IIR-Filter for angular velocity
 		constexpr float angularVelDiffPortion = 0.5f;					// How much of the angular yaw velocity is based on differentiation?
 		constexpr float pitchIIRFactor = 0.5f;							// Factor used for IIR-Filter for pitch angle
-		constexpr float distAngularPortion = 0.0f;						// How much is a perfect distance sensor measured angle worth?
+		constexpr float distAngularPortion = 0.7f;						// How much is a perfect distance sensor measured angle worth?
 		constexpr float maxAngleDeviation = 20.0f * DEG_TO_RAD;			// If there is a heading deviation greater than this after one time step (50ms) the BNO had an error
 	}
 
@@ -141,8 +141,8 @@ namespace JAFDSettings
 		namespace PurePursuit
 		{
 			constexpr float lookAheadGain = 0.9f;
-			constexpr float minLookAheadDist = 12.0f;
-			constexpr float maxCurvature = 0.02f;
+			constexpr float minLookAheadDist = 11.0f;
+			constexpr float maxCurvature = 0.1f;
 		}
 
 		namespace SmoothDriving

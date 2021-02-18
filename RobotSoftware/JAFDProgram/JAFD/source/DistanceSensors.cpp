@@ -699,37 +699,39 @@ namespace JAFD
 
 			auto tempFusedData = SensorFusion::getFusedData();
 
-			// Front long
-			tempDist = DistanceSensors::frontLong.getDistance();
+			//// Front long
+			//tempDist = DistanceSensors::frontLong.getDistance();
 
-			if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::noError)
-			{
-				if (tempFusedData.distSensorState.frontLong == DistSensorStatus::ok)
-				{
-					tempFusedData.distances.frontLong = tempDist * JAFDSettings::SensorFusion::longDistSensIIRFactor + tempFusedData.distances.frontLong * (1.0f - JAFDSettings::SensorFusion::longDistSensIIRFactor);
-				}
-				else
-				{
-					tempFusedData.distances.frontLong = tempDist;
-				}
+			//if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::noError)
+			//{
+			//	if (tempFusedData.distSensorState.frontLong == DistSensorStatus::ok)
+			//	{
+			//		tempFusedData.distances.frontLong = tempDist * JAFDSettings::SensorFusion::longDistSensIIRFactor + tempFusedData.distances.frontLong * (1.0f - JAFDSettings::SensorFusion::longDistSensIIRFactor);
+			//	}
+			//	else
+			//	{
+			//		tempFusedData.distances.frontLong = tempDist;
+			//	}
 
-				tempFusedData.distSensorState.frontLong = DistSensorStatus::ok;
-			}
-			else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::overflow)
-			{
-				tempFusedData.distSensorState.frontLong = DistSensorStatus::overflow;
-				tempFusedData.distances.frontLong = 0;
-			}
-			else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::underflow)
-			{
-				tempFusedData.distSensorState.frontLong = DistSensorStatus::underflow;
-				tempFusedData.distances.frontLong = 0;
-			}
-			else
-			{
-				tempFusedData.distSensorState.frontLong = DistSensorStatus::error;
-				tempFusedData.distances.frontLong = 0;
-			}
+			//	tempFusedData.distSensorState.frontLong = DistSensorStatus::ok;
+			//}
+			//else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::overflow)
+			//{
+			//	tempFusedData.distSensorState.frontLong = DistSensorStatus::overflow;
+			//	tempFusedData.distances.frontLong = 0;
+			//}
+			//else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::underflow)
+			//{
+			//	tempFusedData.distSensorState.frontLong = DistSensorStatus::underflow;
+			//	tempFusedData.distances.frontLong = 0;
+			//}
+			//else
+			//{
+			//	tempFusedData.distSensorState.frontLong = DistSensorStatus::error;
+			//	tempFusedData.distances.frontLong = 0;
+			//}
+
+			tempFusedData.distSensorState.frontLong = DistSensorStatus::error;
 
 			// Front Left
 			tempDist = DistanceSensors::frontLeft.getDistance();

@@ -13,6 +13,7 @@ This file of the library is responsible for the sensor fusion
 #include "../header/TCS34725.h"
 #include "../header/RobotLogic.h"
 #include "../../JAFDSettings.h"
+
 #include <math.h>
 
 namespace JAFD
@@ -92,7 +93,7 @@ namespace JAFD
 
 			tempRobotState.angularVel.x = encoderYawVel * (1.0f - JAFDSettings::SensorFusion::angularVelDiffPortion) + ((tempRobotState.globalHeading - lastHeading) / freq) * JAFDSettings::SensorFusion::angularVelDiffPortion;
 			tempRobotState.angularVel.z = (tempRobotState.pitch - lastPitch) / freq;
-			tempRobotState.angularVel.z = 0.0f;
+			tempRobotState.angularVel.y = 0.0f;
 
 			tempRobotState.angularVel = tempRobotState.angularVel * JAFDSettings::SensorFusion::angularVelIIRFactor + lastAngularVel * (1.0f - JAFDSettings::SensorFusion::angularVelIIRFactor);
 
@@ -577,9 +578,12 @@ namespace JAFD
 					tempDistSensAngle += asinf((tempFusedData.distances.rightFront - tempFusedData.distances.rightBack) / sqrtf(JAFDSettings::Mechanics::distSensLRSpacing * JAFDSettings::Mechanics::distSensLRSpacing * 100.0f + (tempFusedData.distances.rightFront - tempFusedData.distances.rightBack) * (tempFusedData.distances.rightFront - tempFusedData.distances.rightBack)));
 					tempDistSensAngleTrust += 1.0f / 3.0f;
 				}
-
+				
 				tempXOffset /= tempXOffTrust;
 				tempYOffset /= tempYOffTrust;
+
+				if (tempXOffTrust < 0.1f) tempXOffset = 0.0f;
+				if (tempYOffTrust < 0.1f) tempYOffset = 0.0f;
 
 				if (tempDistSensAngleTrust > 0.0f)
 				{
@@ -588,7 +592,7 @@ namespace JAFD
 
 				switch (tempFusedData.robotState.heading)
 				{
-				
+
 				case AbsoluteDir::north:
 					distSensAngle = tempDistSensAngle;
 					tempXOffTrust /= 2.0f;		// If facing north, two sensors (front) could give an X-Offset
@@ -616,7 +620,7 @@ namespace JAFD
 				default:
 					break;
 				}
-
+				
 				distSensX = tempXOffset + tempFusedData.robotState.mapCoordinate.x * JAFDSettings::Field::cellWidth;
 				distSensY = tempYOffset + tempFusedData.robotState.mapCoordinate.y * JAFDSettings::Field::cellWidth;
 				distSensXTrust = tempXOffTrust;

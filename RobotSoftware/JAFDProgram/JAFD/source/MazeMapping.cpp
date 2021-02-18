@@ -121,9 +121,6 @@ namespace JAFD
 			address += ((coor.y + 0x20) & 0x3f) << 9;	// Bit 10 - 15 = y-Axis / 0 = 0x20
 			address += 2;								// Go to the solver value
 
-			// Data as a byte array
-			uint8_t bytes[2];
-
 			// Read data
 			*bfsValue = SpiNVSRAM::readByte(address);
 		}

@@ -77,16 +77,16 @@ namespace JAFD
 			Serial.println("Error I2C bus power");
 		}
 
-		// Setup of MazeMapper
-		if (MazeMapping::setup() != ReturnCode::ok)
-		{
-			Serial.println("Error Maze Mapping");
-		}
-
 		// Setup of SPI NVSRAM
 		if (SpiNVSRAM::setup() != ReturnCode::ok)
 		{
 			Serial.println("Error SPI NVSRAM");
+		}
+
+		// Setup of MazeMapper
+		if (MazeMapping::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error Maze Mapping");
 		}
 
 		// Setup of Motor Control
@@ -203,37 +203,27 @@ namespace JAFD
 		
 		using namespace SmoothDriving;
 
-		//static const TaskArray tasks[] = {
-		//	TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
-		//	TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
-		//	TaskArray(Rotate(1, 90), Stop()),
-		//	TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
-		//	TaskArray(Rotate(1, 90), Stop()),
-		//	TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
-		//	TaskArray(Rotate(1, 90), Stop()),
-		//	TaskArray(Rotate(1, 90), Stop()),
-		//	TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
-		//	TaskArray(Rotate(-1, -90), Stop()),
-		//	TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop()),
-		//	TaskArray(Rotate(-1, -90), Stop()),
-		//	TaskArray(Accelerate(30, 30), Accelerate(0, 30), Stop()),
-		//};
-		//
-		//const static uint16_t numTasks = sizeof(tasks) / sizeof(*tasks);
+		static const TaskArray tasks[] = {
+			TaskArray(Accelerate(30, 15), DriveStraight(30), Accelerate(0, 15), Stop()),
+			TaskArray(Accelerate(30, 15), DriveStraight(30), Accelerate(0, 15), Stop()),
+			TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop())
+		};
+		
+		const static uint16_t numTasks = sizeof(tasks) / sizeof(*tasks);
 
-		//static uint16_t i = 0;
+		static uint16_t i = 0;
 
-		//if (SmoothDriving::isTaskFinished() && i < numTasks)
-		//{
-		//	if (SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(tasks[i]) != ReturnCode::ok)
-		//	{
-		//		Serial.println(i);
-		//	}
+		if (SmoothDriving::isTaskFinished() && i < numTasks)
+		{
+			if (SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(tasks[i]) != ReturnCode::ok)
+			{
+				Serial.println(i);
+			}
 
-		//	i++;
-		//}
+			i++;
+		}
 
-		//SensorFusion::updateSensors();
+		SensorFusion::updateSensors();
 		SensorFusion::untimedFusion();
 		//RobotLogic::loop();
 
@@ -248,15 +238,15 @@ namespace JAFD
 		//Serial.print("Right dist: ");
 		//Serial.println(MotorControl::getDistance(Motor::right));
 
-		//Serial.print("Pos: ");
-		//Serial.print(fusedData.robotState.position.x);
-		//Serial.print(", ");
-		//Serial.println(fusedData.robotState.position.y);
+		Serial.print("Pos: ");
+		Serial.print(fusedData.robotState.position.x);
+		Serial.print(", ");
+		Serial.println(fusedData.robotState.position.y);
 
-		//Serial.print("Heading: ");
-		//Serial.println(fusedData.robotState.globalHeading);
-		//Serial.print("Pitch: ");
-		//Serial.println(fusedData.robotState.pitch);
+		Serial.print("Heading: ");
+		Serial.println(fusedData.robotState.globalHeading);
+		Serial.print("Pitch: ");
+		Serial.println(fusedData.robotState.pitch);
 
 		//static float lCurr = 0.0f;
 		//static float rCurr = 0.0f;
