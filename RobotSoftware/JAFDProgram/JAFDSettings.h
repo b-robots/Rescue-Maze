@@ -45,6 +45,8 @@ namespace JAFDSettings
 		constexpr float distSensLRSpacing = 11.0f;
 		constexpr float distSensLRDistToMiddle = 8.2f;		// !!! ALWAYS = sqrt(distSensLeftRightDist^2 + distSensLRSpacing^2) / 2
 		constexpr float distSensLRAngleToMiddle = 0.7337f;	// !!! ALWAYS = arctan(distSensLRSpacing / distSensLeftRightDist)
+		constexpr float robotLength = 20.0f;
+		constexpr float robotWidth = 14.0f;
 	}
 
 	namespace SpiNVSRAM
@@ -120,14 +122,14 @@ namespace JAFDSettings
 		constexpr float distSpeedPortion = 0.2f;						// How much is a perfect distance sensor measured speed worth?
 
 		// Position
-		constexpr float distSensOffsetPortion = 0.8f;					// How much does the center-offset measured by all distance sensors count?
+		constexpr float distSensOffsetPortion = 1.0f;					// How much does the center-offset measured by all distance sensors count?
 
 		// Rotation
 		constexpr float bno055RotPortion = 0.1f;						// How much is a Bno055 rotation measurement worth?
 		constexpr float angularVelIIRFactor = 0.9f;						// Factor used for IIR-Filter for angular velocity
 		constexpr float angularVelDiffPortion = 0.5f;					// How much of the angular yaw velocity is based on differentiation?
 		constexpr float pitchIIRFactor = 0.5f;							// Factor used for IIR-Filter for pitch angle
-		constexpr float distAngularPortion = 0.7f;						// How much is a perfect distance sensor measured angle worth?
+		constexpr float distAngularPortion = 1.0f;						// How much is a perfect distance sensor measured angle worth?
 		constexpr float maxAngleDeviation = 20.0f * DEG_TO_RAD;			// If there is a heading deviation greater than this after one time step (50ms) the BNO had an error
 	}
 
@@ -138,17 +140,22 @@ namespace JAFDSettings
 			constexpr JAFD::PIDSettings pidSettings(0.85f, 5.2f, 0.01f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
 		}
 
-		namespace PurePursuit
+		namespace GoToAngle
 		{
-			constexpr float lookAheadGain = 0.9f;
-			constexpr float minLookAheadDist = 11.0f;
-			constexpr float maxCurvature = 0.1f;
+			constexpr float turningGainConstant = 0.7f;
+			constexpr float aheadDistL = Mechanics::wheelDistance / (2.0f * turningGainConstant);
+			constexpr float angleDampingBegin = 10.0f;
+		}
+
+		namespace PID
+		{
+			constexpr float nonePIDPart = 0.5f;
 		}
 
 		namespace SmoothDriving
 		{
-			constexpr JAFD::PIDSettings forwardVelPidSettings(0.3f, 1.5f, 0.0f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
-			constexpr JAFD::PIDSettings angularVelPidSettings(0.25f, 1.2f, 0.0f, 10.0f, 5.0f, -10.0f, 10.0f);
+			constexpr JAFD::PIDSettings forwardVelPidSettings(0.3f, 1.5f, 0.01f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
+			constexpr JAFD::PIDSettings angularVelPidSettings(0.25f, 2.0f, 0.15f, 10.0f, 5.0f, -10.0f, 10.0f);
 		}
 	}
 

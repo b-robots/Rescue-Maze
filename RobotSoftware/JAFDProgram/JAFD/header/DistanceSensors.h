@@ -41,7 +41,7 @@ namespace JAFD
 				unknownError		// Unbekannter Fehler
 			};
 
-			static const uint16_t minDist = 30;
+			static const uint16_t minDist = 15;
 			static const uint16_t maxDist = 150;
 
 			VL6180(uint8_t multiplexCh, uint8_t id);
@@ -142,7 +142,7 @@ namespace JAFD
 				undefinedError	// Undefined error
 			};
 
-			static const uint16_t minDist = 40;
+			static const uint16_t minDist = 35;
 			static const uint16_t maxDist = 1200;
 
 			VL53L0(uint8_t multiplexCh, uint8_t id);

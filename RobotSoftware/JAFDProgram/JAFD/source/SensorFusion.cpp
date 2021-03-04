@@ -100,6 +100,8 @@ namespace JAFD
 			// Linear velocitys
 			tempRobotState.forwardVel = ((tempRobotState.wheelSpeeds.left + tempRobotState.wheelSpeeds.right) / 2.0f) * (1.0f - distSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion) + distSensSpeed * (distSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion);
 
+			Serial.println(fabsf(distSensSpeed - tempRobotState.forwardVel));
+
 			tempRobotState.forwardVel = distSensSpeed * (distSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion) + tempRobotState.forwardVel * (1.0f - distSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion);
 
 			// Position
@@ -265,6 +267,28 @@ namespace JAFD
 					if (tempFusedData.distSensorState.frontLeft == DistSensorStatus::underflow)
 					{
 						frontWallsDetected++;
+
+						switch (tempFusedData.robotState.heading)
+						{
+						case AbsoluteDir::north:
+							tempXOffset += 15.0f - JAFDSettings::Mechanics::robotLength / 2.0f;
+							tempXOffTrust += 1.0f;
+							break;
+						case AbsoluteDir::east:
+							tempYOffset += JAFDSettings::Mechanics::robotLength / 2.0f - 15.0f;
+							tempYOffTrust += 1.0f;
+							break;
+						case AbsoluteDir::south:
+							tempXOffset += JAFDSettings::Mechanics::robotLength / 2.0f - 15.0f;
+							tempXOffTrust += 1.0f;
+							break;
+						case AbsoluteDir::west:
+							tempYOffset += 15.0f - JAFDSettings::Mechanics::robotLength / 2.0f;
+							tempYOffTrust += 1.0f;
+							break;
+						default:
+							break;
+						}
 					}
 				}
 
@@ -347,6 +371,28 @@ namespace JAFD
 					if (tempFusedData.distSensorState.frontRight == DistSensorStatus::underflow)
 					{
 						frontWallsDetected++;
+
+						switch (tempFusedData.robotState.heading)
+						{
+						case AbsoluteDir::north:
+							tempXOffset += 15.0f - JAFDSettings::Mechanics::robotLength / 2.0f;
+							tempXOffTrust += 1.0f;
+							break;
+						case AbsoluteDir::east:
+							tempYOffset += JAFDSettings::Mechanics::robotLength / 2.0f - 15.0f;
+							tempYOffTrust += 1.0f;
+							break;
+						case AbsoluteDir::south:
+							tempXOffset += JAFDSettings::Mechanics::robotLength / 2.0f - 15.0f;
+							tempXOffTrust += 1.0f;
+							break;
+						case AbsoluteDir::west:
+							tempYOffset += 15.0f - JAFDSettings::Mechanics::robotLength / 2.0f;
+							tempYOffTrust += 1.0f;
+							break;
+						default:
+							break;
+						}
 					}
 				}
 
@@ -407,6 +453,28 @@ namespace JAFD
 				else if (tempFusedData.distSensorState.leftFront == DistSensorStatus::underflow)
 				{
 					leftWallsDetected++;
+
+					switch (tempFusedData.robotState.heading)
+					{
+					case AbsoluteDir::north:
+						tempYOffset += 15.0f - JAFDSettings::Mechanics::robotLength / 2.0f;
+						tempYOffTrust += 1.0f;
+						break;
+					case AbsoluteDir::east:
+						tempXOffset += JAFDSettings::Mechanics::robotLength / 2.0f - 15.0f;
+						tempXOffTrust += 1.0f;
+						break;
+					case AbsoluteDir::south:
+						tempYOffset += JAFDSettings::Mechanics::robotLength / 2.0f - 15.0f;
+						tempYOffTrust += 1.0f;
+						break;
+					case AbsoluteDir::west:
+						tempXOffset += 15.0f - JAFDSettings::Mechanics::robotLength / 2.0f;
+						tempXOffTrust += 1.0f;
+						break;
+					default:
+						break;
+					}
 				}
 
 				if (tempFusedData.distSensorState.leftBack == DistSensorStatus::ok)
@@ -459,6 +527,28 @@ namespace JAFD
 				else if (tempFusedData.distSensorState.leftBack == DistSensorStatus::underflow)
 				{
 					leftWallsDetected++;
+
+					switch (tempFusedData.robotState.heading)
+					{
+					case AbsoluteDir::north:
+						tempYOffset += 15.0f - JAFDSettings::Mechanics::robotLength / 2.0f;
+						tempYOffTrust += 1.0f;
+						break;
+					case AbsoluteDir::east:
+						tempXOffset += JAFDSettings::Mechanics::robotLength / 2.0f - 15.0f;
+						tempXOffTrust += 1.0f;
+						break;
+					case AbsoluteDir::south:
+						tempYOffset += JAFDSettings::Mechanics::robotLength / 2.0f - 15.0f;
+						tempYOffTrust += 1.0f;
+						break;
+					case AbsoluteDir::west:
+						tempXOffset += 15.0f - JAFDSettings::Mechanics::robotLength / 2.0f;
+						tempXOffTrust += 1.0f;
+						break;
+					default:
+						break;
+					}
 				}
 
 				if (leftWallsDetected == 2 && tempFusedData.distSensorState.leftFront == DistSensorStatus::ok && tempFusedData.distSensorState.leftBack == DistSensorStatus::ok)
@@ -518,6 +608,28 @@ namespace JAFD
 				else if (tempFusedData.distSensorState.rightFront == DistSensorStatus::underflow)
 				{
 					rightWallsDetected++;
+
+					switch (tempFusedData.robotState.heading)
+					{
+					case AbsoluteDir::south:
+						tempYOffset += 15.0f - JAFDSettings::Mechanics::robotLength / 2.0f;
+						tempYOffTrust += 1.0f;
+						break;
+					case AbsoluteDir::west:
+						tempXOffset += JAFDSettings::Mechanics::robotLength / 2.0f - 15.0f;
+						tempXOffTrust += 1.0f;
+						break;
+					case AbsoluteDir::north:
+						tempYOffset += JAFDSettings::Mechanics::robotLength / 2.0f - 15.0f;
+						tempYOffTrust += 1.0f;
+						break;
+					case AbsoluteDir::east:
+						tempXOffset += 15.0f - JAFDSettings::Mechanics::robotLength / 2.0f;
+						tempXOffTrust += 1.0f;
+						break;
+					default:
+						break;
+					}
 				}
 
 				if (tempFusedData.distSensorState.rightBack == DistSensorStatus::ok)
@@ -570,6 +682,28 @@ namespace JAFD
 				else if (tempFusedData.distSensorState.rightBack == DistSensorStatus::underflow)
 				{
 					rightWallsDetected++;
+
+					switch (tempFusedData.robotState.heading)
+					{
+					case AbsoluteDir::south:
+						tempYOffset += 15.0f - JAFDSettings::Mechanics::robotLength / 2.0f;
+						tempYOffTrust += 1.0f;
+						break;
+					case AbsoluteDir::west:
+						tempXOffset += JAFDSettings::Mechanics::robotLength / 2.0f - 15.0f;
+						tempXOffTrust += 1.0f;
+						break;
+					case AbsoluteDir::north:
+						tempYOffset += JAFDSettings::Mechanics::robotLength / 2.0f - 15.0f;
+						tempYOffTrust += 1.0f;
+						break;
+					case AbsoluteDir::east:
+						tempXOffset += 15.0f - JAFDSettings::Mechanics::robotLength / 2.0f;
+						tempXOffTrust += 1.0f;
+						break;
+					default:
+						break;
+					}
 				}
 
 				if (rightWallsDetected == 2 && tempFusedData.distSensorState.rightFront == DistSensorStatus::ok && tempFusedData.distSensorState.rightBack == DistSensorStatus::ok)
@@ -596,7 +730,7 @@ namespace JAFD
 				case AbsoluteDir::north:
 					distSensAngle = tempDistSensAngle;
 					tempXOffTrust /= 2.0f;		// If facing north, two sensors (front) could give an X-Offset
-					tempYOffTrust /= 4.0f;		// If facing north, four sensors (left & right) could give an y-Offset
+					tempYOffTrust /= 4.0f;		// If facing north, four sensors (left & right) could give an Y-Offset
 					break;
 
 				case AbsoluteDir::east:

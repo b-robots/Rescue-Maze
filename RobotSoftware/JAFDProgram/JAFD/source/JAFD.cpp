@@ -190,6 +190,8 @@ namespace JAFD
 		//Set start for 9DOF
 		Bno055::tare();
 
+		delay(5000);
+
 		return;
 	}
 
@@ -204,9 +206,7 @@ namespace JAFD
 		using namespace SmoothDriving;
 
 		static const TaskArray tasks[] = {
-			TaskArray(Accelerate(30, 15), DriveStraight(30), Accelerate(0, 15), Stop()),
-			TaskArray(Accelerate(30, 15), DriveStraight(30), Accelerate(0, 15), Stop()),
-			TaskArray(Accelerate(30, 15), Accelerate(0, 15), Stop())
+			TaskArray(Accelerate(30, 15), DriveStraight(30), Accelerate(0, 15), Stop())
 		};
 		
 		const static uint16_t numTasks = sizeof(tasks) / sizeof(*tasks);
@@ -244,9 +244,9 @@ namespace JAFD
 		Serial.println(fusedData.robotState.position.y);
 
 		Serial.print("Heading: ");
-		Serial.println(fusedData.robotState.globalHeading);
+		Serial.println(fusedData.robotState.globalHeading * RAD_TO_DEG);
 		Serial.print("Pitch: ");
-		Serial.println(fusedData.robotState.pitch);
+		Serial.println(fusedData.robotState.pitch * RAD_TO_DEG);
 
 		//static float lCurr = 0.0f;
 		//static float rCurr = 0.0f;
@@ -264,7 +264,7 @@ namespace JAFD
 		//Serial.println(MemWatcher::getFreeRam());
 
 		if (fps < 0.01f) fps = 1000.0f / (millis() - time);
-		else fps = fps * 0.7f + 300.0f / (millis() - time);
+		else fps = fps * 0.4f + 600.0f / (millis() - time);
 
 		Serial.print("FPS:");
 		Serial.println(fps);

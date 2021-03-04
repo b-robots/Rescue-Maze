@@ -185,7 +185,7 @@ namespace JAFD
 
 		inline Vec2f normalized() const volatile
 		{
-			return Vec2f(x / length(), y / length());
+			return *this / length();
 		}
 	};
 
@@ -355,12 +355,12 @@ namespace JAFD
 
 		inline float length() const volatile
 		{
-			return sqrtf(x * x + y * y);
+			return sqrtf(x * x + y * y + z * z);
 		}
 
 		inline Vec3f normalized() const volatile
 		{
-			return Vec3f(x / length(), y / length(), z / length());
+			return *this / length();
 		}
 	};
 

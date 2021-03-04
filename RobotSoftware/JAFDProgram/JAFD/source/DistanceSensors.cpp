@@ -50,6 +50,9 @@ namespace JAFD
 			}
 
 			_d = (int16_t)(((firstTrue - _k * firstMeasure) + (secondTrue - _k * secondMeasure)) / 2.0f);
+
+			Serial.println(_k);
+			Serial.println(_d);
 		}
 
 		void VL6180::storeCalibData()
@@ -124,7 +127,7 @@ namespace JAFD
 			// Recommended : Public registers - See data sheet for more detail
 			write8(0x0011, 0x10);	// Enables polling for ‘New Sample ready’
 									// when measurement completes
-			write8(0x010a, 0x30);	// Set the averaging sample period
+			write8(0x010a, 0x48);	// Set the averaging sample period
 									// (compromise between lower noise and
 									// increased execution time)
 			write8(0x003f, 0x46);	// Sets the light and dark gain (upper
@@ -139,7 +142,7 @@ namespace JAFD
 									// Ready threshold event’
 
 			// 10 Hz continuos mode
-			write8(0x001c, 40);		// max convergence time = 40ms
+			write8(0x003f, 40);		// max convergence time = 63ms
 			write8(0x001b, 9);		// inter measurement period = 100ms (= 9 * 10ms + 10ms)
 
 			// Stop continuous mode
@@ -218,6 +221,13 @@ namespace JAFD
 			{
 				if (millis() - startMillis > JAFDSettings::DistanceSensors::timeout)
 				{
+					if (read8(_regModelID) != 0xB4)
+					{
+						Serial.println("I2C problem");
+					}
+
+					Serial.print("to");
+					Serial.println(_id);
 					// Timeout
 					clearInterrupt();
 					_status = Status::timeout;
@@ -548,6 +558,8 @@ namespace JAFD
 			
 			if (_sensor.timeoutOccurred())
 			{
+				Serial.print("to");
+				Serial.println(_id);
 				_status = Status::timeOut;
 			}
 			else
@@ -583,6 +595,9 @@ namespace JAFD
 			}
 
 			_d = (int16_t)(((firstTrue - _k * firstMeasure) + (secondTrue - _k * secondMeasure)) / 2.0f);
+
+			Serial.println(_k);
+			Serial.println(_d);
 		}
 
 		void VL53L0::storeCalibData()
@@ -680,6 +695,14 @@ namespace JAFD
 				Serial.println("f");
 				code = ReturnCode::fatalError;
 			}
+
+			// Read calibration data for distance sensors
+			DistanceSensors::leftFront.restoreCalibData();
+			DistanceSensors::leftBack.restoreCalibData();
+			DistanceSensors::rightBack.restoreCalibData();
+			DistanceSensors::rightFront.restoreCalibData();
+			DistanceSensors::frontRight.restoreCalibData();
+			DistanceSensors::frontLeft.restoreCalibData();
 
 			return code;
 		}
