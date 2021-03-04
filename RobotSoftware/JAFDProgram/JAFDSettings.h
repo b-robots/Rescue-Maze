@@ -142,7 +142,7 @@ namespace JAFDSettings
 
 		namespace GoToAngle
 		{
-			constexpr float turningGainConstant = 0.7f;
+			constexpr float turningGainConstant = 0.1f;
 			constexpr float aheadDistL = Mechanics::wheelDistance / (2.0f * turningGainConstant);
 			constexpr float angleDampingBegin = 10.0f;
 		}

@@ -127,7 +127,7 @@ namespace JAFD
 			// Recommended : Public registers - See data sheet for more detail
 			write8(0x0011, 0x10);	// Enables polling for ‘New Sample ready’
 									// when measurement completes
-			write8(0x010a, 0x48);	// Set the averaging sample period
+			write8(0x010a, 0x28);	// Set the averaging sample period
 									// (compromise between lower noise and
 									// increased execution time)
 			write8(0x003f, 0x46);	// Sets the light and dark gain (upper
@@ -142,7 +142,7 @@ namespace JAFD
 									// Ready threshold event’
 
 			// 10 Hz continuos mode
-			write8(0x003f, 40);		// max convergence time = 63ms
+			write8(0x001c, 32);		// max convergence time = 32ms
 			write8(0x001b, 9);		// inter measurement period = 100ms (= 9 * 10ms + 10ms)
 
 			// Stop continuous mode
@@ -228,6 +228,7 @@ namespace JAFD
 
 					Serial.print("to");
 					Serial.println(_id);
+
 					// Timeout
 					clearInterrupt();
 					_status = Status::timeout;
@@ -641,7 +642,7 @@ namespace JAFD
 		VL53L0 frontRight(JAFDSettings::DistanceSensors::FrontRight::multiplexCh, 1);
 		TFMini frontLong(JAFDSettings::DistanceSensors::FrontLong::serialType, 2);
 		VL6180 leftFront(JAFDSettings::DistanceSensors::LeftFront::multiplexCh, 4);
-		VL6180 leftBack(JAFDSettings::DistanceSensors::LeftBack::multiplexCh, 5);
+		VL6180 leftBack(JAFDSettings::DistanceSensors::LeftBack::multiplexCh, 5);		// Probleme! evtl. kaputt
 		VL6180 rightFront(JAFDSettings::DistanceSensors::RightFront::multiplexCh, 6);
 		VL6180 rightBack(JAFDSettings::DistanceSensors::RightBack::multiplexCh, 7);
 

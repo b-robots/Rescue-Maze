@@ -9,13 +9,15 @@ namespace JAFD
 	{
 		namespace
 		{
-			constexpr uint8_t _maxCh = 8;
 			uint8_t _currentChannel;
 		}
-
+		
 		ReturnCode setup()
 		{
-			if (selectChannel(0) != 0) return ReturnCode::error;
+			uint8_t ch = random(0, maxCh + 1);
+			_currentChannel = ch;
+
+			if (selectChannel(ch) != 0) return ReturnCode::error;
 			else return ReturnCode::ok;
 		}
 
@@ -26,7 +28,7 @@ namespace JAFD
 
 		uint8_t selectChannel(uint8_t channel)
 		{
-			if (channel >= 0 && channel < _maxCh)
+			if (channel >= 0 && channel < maxCh)
 			{
 				Wire.beginTransmission(0x70);
 				Wire.write(1 << channel);

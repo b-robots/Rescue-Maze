@@ -100,8 +100,6 @@ namespace JAFD
 			// Linear velocitys
 			tempRobotState.forwardVel = ((tempRobotState.wheelSpeeds.left + tempRobotState.wheelSpeeds.right) / 2.0f) * (1.0f - distSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion) + distSensSpeed * (distSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion);
 
-			Serial.println(fabsf(distSensSpeed - tempRobotState.forwardVel));
-
 			tempRobotState.forwardVel = distSensSpeed * (distSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion) + tempRobotState.forwardVel * (1.0f - distSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion);
 
 			// Position

@@ -20,7 +20,7 @@ namespace JAFD
 		void untimedFusion();										// Update sensor values
 		void updateSensors();										// Update all sensors
 		const volatile FusedData& getFusedData();					// Get current robot state
-		void setCertainRobotPosition(Vec3f pos, Vec3f rotation);	// Set a certain robot position and angle
+		void setCertainRobotPosition(Vec3f pos, float heading);		// Set a certain robot position and angle
 		void setDistances(Distances distances);
 		void setDistSensStates(DistSensorStates distSensorStates);
 	}
