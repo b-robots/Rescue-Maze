@@ -141,12 +141,12 @@ namespace JAFD
 				desiredSpeed = _endSpeeds;
 			}
 
-			// GoToAngle Algorithm
+			// GoToAngle Algorithm - funktionier nicht
 			Vec3f goToVec = _endState.position - (Vec3f)currentPosition;
 
-			float angleDamping = std::max((fabsf(drivenDistance) - (fabsf(_distance) - GoToAngle::angleDampingBegin)) / GoToAngle::angleDampingBegin, 0.0f);
+			float angleDamping = std::max(GoToAngle::angleDampingBegin - fabsf(fabsf(drivenDistance) - fabsf(_distance)), 0.0f) / GoToAngle::angleDampingBegin;
 
-			float errorAngle = getGlobalHeading(goToVec) - tempRobotState.globalHeading;
+			float errorAngle = fitAngleToInterval(getGlobalHeading(goToVec) - tempRobotState.globalHeading);
 			errorAngle *= 1.0f - angleDamping;
 
 			desAngularVel = desiredSpeed / GoToAngle::aheadDistL * sinf(errorAngle);
@@ -262,9 +262,9 @@ namespace JAFD
 			// GoToAngle Algorithm
 			Vec3f goToVec = _endState.position - (Vec3f)currentPosition;
 
-			float angleDamping = std::max(fabsf(absDrivenDist - (fabsf(_distance) - GoToAngle::angleDampingBegin) / GoToAngle::angleDampingBegin), 0.0f);
+			float angleDamping = std::max(GoToAngle::angleDampingBegin - fabsf(absDrivenDist - fabsf(_distance)), 0.0f) / GoToAngle::angleDampingBegin;
 
-			float errorAngle = getGlobalHeading(goToVec) - tempRobotState.globalHeading;
+			float errorAngle = fitAngleToInterval(getGlobalHeading(goToVec) - tempRobotState.globalHeading);
 			errorAngle *= 1.0f - angleDamping;
 
 			desAngularVel = _speeds / GoToAngle::aheadDistL * sinf(errorAngle);
@@ -492,9 +492,9 @@ namespace JAFD
 			// GoToAngle Algorithm
 			Vec3f goToVec = _endState.position - (Vec3f)currentPosition;
 
-			float angleDamping = std::max(fabsf(absDrivenDist - (fabsf(_distance) - GoToAngle::angleDampingBegin) / GoToAngle::angleDampingBegin), 0.0f);
+			float angleDamping = std::max(GoToAngle::angleDampingBegin - fabsf(absDrivenDist - fabsf(_distance)), 0.0f) / GoToAngle::angleDampingBegin;
 
-			float errorAngle = getGlobalHeading(goToVec) - tempRobotState.globalHeading;
+			float errorAngle = fitAngleToInterval(getGlobalHeading(goToVec) - tempRobotState.globalHeading);
 			errorAngle *= 1.0f - angleDamping;
 
 			desAngularVel = _speeds / GoToAngle::aheadDistL * sinf(errorAngle);

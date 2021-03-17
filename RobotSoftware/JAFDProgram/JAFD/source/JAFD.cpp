@@ -202,6 +202,8 @@ namespace JAFD
 		using namespace SmoothDriving;
 
 		static const TaskArray tasks[] = {
+			TaskArray(Accelerate(30, 15), DriveStraight(30), Accelerate(0, 15), Stop()),
+			TaskArray(Rotate(-2, -90), Stop()),
 			TaskArray(Accelerate(30, 15), DriveStraight(30), Accelerate(0, 15), Stop())
 		};
 		
