@@ -7,6 +7,7 @@ This file is responsible for all distance sensors
 #include "../header/TCA9548A.h"
 #include "../header/SpiNVSRAM.h"
 #include "../header/SensorFusion.h"
+#include "../header/SmallThings.h"
 
 namespace JAFD
 {
@@ -142,15 +143,15 @@ namespace JAFD
 									// Ready threshold event’
 
 			// 10 Hz continuos mode
-			write8(0x001c, 32);		// max convergence time = 32ms
+			write8(0x001c, 63);		// max convergence time = 63ms
 			write8(0x001b, 9);		// inter measurement period = 100ms (= 9 * 10ms + 10ms)
 
-			// Stop continuous mode
+			// Select single mode (to stop eventual continuous )
 			write8(_regRangeStart, 0x01);
 
 			delay(100);
 
-			// Start continuos mode
+			// Start continuous mode
 			write8(_regRangeStart, 0x03);
 		}
 
@@ -221,13 +222,23 @@ namespace JAFD
 			{
 				if (millis() - startMillis > JAFDSettings::DistanceSensors::timeout)
 				{
+					// Select single mode (to stop eventual continuous )
+					write8(_regRangeStart, 0x01);
+
+					delay(100);
+
+					// Start continuous mode
+					write8(_regRangeStart, 0x03);
+
 					if (read8(_regModelID) != 0xB4)
 					{
 						Serial.println("I2C problem");
+						I2CBus::resetBus();
 					}
 
 					Serial.print("to");
-					Serial.println(_id);
+					Serial.print(_id);
+					Serial.println(read8(0x001c));
 
 					// Timeout
 					clearInterrupt();
@@ -235,7 +246,7 @@ namespace JAFD
 					return 0;
 				}
 			}
-			
+
 			// Read range in mm
 			float tempDist = read8(_regRangeResult) * _k + _d;
 
@@ -247,7 +258,7 @@ namespace JAFD
 
 			// Read status
 			_status = static_cast<Status>(read8(_regRangeStatus) >> 4);
-			
+
 			if (_status == Status::noError || _status == Status::eceFailure || _status == Status::noiseError)
 			{
 				if (distance > maxDist) _status = Status::overflow;
@@ -353,7 +364,7 @@ namespace JAFD
 
 			return ReturnCode::ok;
 		}
-		
+
 		TFMini::Status TFMini::takeMeasurement()
 		{
 			uint8_t numCharsRead = 0;
@@ -438,7 +449,7 @@ namespace JAFD
 		{
 			uint8_t numMeasurementAttempts = 0;
 
-			do 
+			do
 			{
 				numMeasurementAttempts++;
 
@@ -535,7 +546,7 @@ namespace JAFD
 			_sensor.setTimeout(JAFDSettings::DistanceSensors::timeout);
 
 			if (!_sensor.init()) return ReturnCode::error;
-			
+
 			_sensor.startContinuous();
 
 			return ReturnCode::ok;
@@ -549,19 +560,20 @@ namespace JAFD
 			}
 
 			uint16_t distance = _sensor.readRangeContinuousMillimeters();
-			
+
 			float tempDist = distance * _k + _d;
 
 			if (tempDist < 0.0f) distance = 0;
 			else distance = (uint16_t)roundf(tempDist);
 
 			_status = Status::noError;
-			
+
 			if (_sensor.timeoutOccurred())
 			{
 				Serial.print("to");
 				Serial.println(_id);
 				_status = Status::timeOut;
+				I2CBus::resetBus();
 			}
 			else
 			{
@@ -642,7 +654,7 @@ namespace JAFD
 		VL53L0 frontRight(JAFDSettings::DistanceSensors::FrontRight::multiplexCh, 1);
 		TFMini frontLong(JAFDSettings::DistanceSensors::FrontLong::serialType, 2);
 		VL6180 leftFront(JAFDSettings::DistanceSensors::LeftFront::multiplexCh, 4);
-		VL6180 leftBack(JAFDSettings::DistanceSensors::LeftBack::multiplexCh, 5);		// Probleme! evtl. kaputt
+		VL6180 leftBack(JAFDSettings::DistanceSensors::LeftBack::multiplexCh, 5);
 		VL6180 rightFront(JAFDSettings::DistanceSensors::RightFront::multiplexCh, 6);
 		VL6180 rightBack(JAFDSettings::DistanceSensors::RightBack::multiplexCh, 7);
 
@@ -678,13 +690,13 @@ namespace JAFD
 				Serial.println("rb");
 				code = ReturnCode::fatalError;
 			}
-			
+
 			if (frontLeft.setup() != ReturnCode::ok)
 			{
 				Serial.println("fl");
 				code = ReturnCode::fatalError;
 			}
-			
+
 			if (frontRight.setup() != ReturnCode::ok)
 			{
 				Serial.println("fr");
@@ -1048,7 +1060,7 @@ namespace JAFD
 			SensorFusion::setDistances(tempFusedData.distances);
 			SensorFusion::setDistSensStates(tempFusedData.distSensorState);
 		}
-		
+
 		void forceNewMeasurement()
 		{
 			frontLeft.clearInterrupt();
@@ -1057,6 +1069,63 @@ namespace JAFD
 			leftBack.clearInterrupt();
 			rightFront.clearInterrupt();
 			rightBack.clearInterrupt();
+		}
+
+		void averagedCalibration()
+		{
+			auto startCalibTime = millis();
+			auto avgDist = 0.0f;
+			uint16_t avgCount = 0;
+
+			DistanceSensors::rightBack.resetCalibData();
+
+			while (millis() - startCalibTime < 1000)
+			{
+				SensorFusion::updateSensors();
+				SensorFusion::untimedFusion();
+				auto fusedData = SensorFusion::getFusedData();
+
+				if (fusedData.distSensorState.rightBack == DistSensorStatus::ok)
+				{
+					avgDist += fusedData.distances.rightBack;
+					avgCount++;
+				}
+			}
+
+			Serial.println(avgDist / (float)avgCount);
+			while (!Serial.available());
+			auto trueFirst = (uint16_t)Serial.parseInt();
+			auto measFirst = (uint16_t)(avgDist / (float)avgCount);
+
+			do
+			{
+				while (!Serial.available());
+			} while (Serial.readString().indexOf('o') != -1);
+
+			startCalibTime = millis();
+			avgDist = 0.0f;
+			avgCount = 0;
+
+			while (millis() - startCalibTime < 1000)
+			{
+				SensorFusion::updateSensors();
+				SensorFusion::untimedFusion();
+				auto fusedData = SensorFusion::getFusedData();
+
+				if (fusedData.distSensorState.rightBack == DistSensorStatus::ok)
+				{
+					avgDist += fusedData.distances.rightBack;
+					avgCount++;
+				}
+			}
+
+			Serial.println(avgDist / (float)avgCount);
+			while (!Serial.available());
+			auto trueSecond = (uint16_t)Serial.parseInt();
+			auto measSecond = (uint16_t)(avgDist / (float)avgCount);
+
+			DistanceSensors::rightBack.calcCalibData(trueFirst, measFirst, trueSecond, measSecond);
+			DistanceSensors::rightBack.storeCalibData();
 		}
 	}
 }

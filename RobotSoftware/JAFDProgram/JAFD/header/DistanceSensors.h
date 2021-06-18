@@ -41,7 +41,7 @@ namespace JAFD
 				unknownError		// Unbekannter Fehler
 			};
 
-			static const uint16_t minDist = 15;
+			static const uint16_t minDist = 20;
 			static const uint16_t maxDist = 150;
 
 			VL6180(uint8_t multiplexCh, uint8_t id);
@@ -179,5 +179,6 @@ namespace JAFD
 		ReturnCode reset();
 		void updateDistSensors();
 		void forceNewMeasurement();
+		void averagedCalibration();
 	}
 }

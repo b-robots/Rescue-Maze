@@ -72,7 +72,9 @@ namespace JAFDSettings
 	{
 		constexpr float cmPSToPerc = 1.0f / (97.0f / 60.0f * M_PI * Mechanics::wheelDiameter);		// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed.)
 
-		constexpr uint8_t minSpeed = 10;				// Minimum speed for motor to rotate
+		constexpr uint8_t minSpeed = 10;					// Minimum speed for motor to rotate
+		constexpr uint8_t maxSpeed = 1.0f / cmPSToPerc;		// Calculated maximum speed
+		constexpr float maxRotSpeed = 2.0f * maxSpeed / Mechanics::wheelDistance;	// Calculated maximum rotation speed
 
 		constexpr float pulsePerRev = 4741.44f / 4.0f;	// Rotary-Encoder pulses per revolution
 
@@ -130,7 +132,7 @@ namespace JAFDSettings
 		constexpr float angularVelDiffPortion = 0.5f;					// How much of the angular yaw velocity is based on differentiation?
 		constexpr float pitchIIRFactor = 0.5f;							// Factor used for IIR-Filter for pitch angle
 		constexpr float distAngularPortion = 1.0f;						// How much is a perfect distance sensor measured angle worth?
-		constexpr float maxAngleDeviation = 20.0f * DEG_TO_RAD;			// If there is a heading deviation greater than this after one time step (50ms) the BNO had an error
+		constexpr float maxAngleDeviation = 90.0f * DEG_TO_RAD;			// If there is a heading deviation greater than this after one time step (50ms) the BNO had an error
 	}
 
 	namespace Controller
@@ -191,8 +193,8 @@ namespace JAFDSettings
 
 	namespace MazeMapping
 	{
-		constexpr float distLongerThanBorder = 7.0f;	// Distance longer than border from which next field is empty (cm)
-		constexpr float widthSecureDetectFactor = 0.7f;	// Factor of cell width in which border the distance measurement safely hits the front wall	
+		constexpr float distLongerThanBorder = 7.0f;		// Distance longer than border from which next field is empty (cm)
+		constexpr float widthSecureDetectFactor = 0.85f;	// Factor of cell width in which border the distance measurement safely hits the front wall	
 	}
 
 	namespace DistanceSensors

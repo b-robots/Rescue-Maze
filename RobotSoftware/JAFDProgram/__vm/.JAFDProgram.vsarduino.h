@@ -23,6 +23,11 @@
 #define USB_PID 0x003e
 #define USBCON
 #define __cplusplus 201103L
+#ifdef __CLEARCORE__
+#define __ARMCC_VERSION 6010050
+#define HIDE_FROM_DOXYGEN
+#endif
+
 #define _Pragma(x)
 #define __ARM__
 #define __arm__
@@ -83,7 +88,7 @@ __attribute__((always_inline)) static __INLINE void __disable_irq(void)
 	__ASM volatile ("cpsid i");
 }
 
-
+#ifndef __CLEARCORE__
 /** \brief  Get Control Register
 
 This function returns the content of the Control Register.
@@ -235,7 +240,21 @@ __attribute__((always_inline)) static __INLINE void __set_PRIMASK(uint32_t priMa
 {
 	__ASM volatile ("MSR primask, %0" : : "r" (priMask));
 }
+#else
+// Additions for Clear Core to reduce errors
 
+class ShiftRegister { public: enum Masks {};   Masks m_ledMask; };
+class PeripheralRoute {};
+class BlinkCodeDriver {
+public:
+	friend class StatusManager;
+	typedef enum {
+	} BlinkCodeGroups;
+};
+typedef enum {
+} DmaChannels;
+class Iir16 {};
+#endif
 
 #include "JAFDProgram.ino"
 #endif
