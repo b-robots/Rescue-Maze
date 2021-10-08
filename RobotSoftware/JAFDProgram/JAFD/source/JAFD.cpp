@@ -25,6 +25,7 @@
 #include "../header/TCA9548A.h"
 #include "../header/HeatSensor.h"
 #include "../header/SmallThings.h"
+#include "../header/OLed.h"
 #include "../header/CamRec.h"
 #include "../header/Math.h"
 #include "../header/OLed.h"

@@ -69,6 +69,7 @@
     <ClInclude Include="JAFD\header\SmallThings.h">
       <Filter>JAFD\Header</Filter>
     </ClInclude>
+    <ClInclude Include="JAFD\header\OLed.h">
     <ClInclude Include="JAFD\header\CamRec.h">
     <ClInclude Include="JAFD\header\OLed.h">
       <Filter>JAFD\Header</Filter>
@@ -134,6 +135,7 @@
     <ClCompile Include="JAFD\source\SmallThings.cpp">
       <Filter>JAFD\Source</Filter>
     </ClCompile>
+    <ClCompile Include="JAFD\source\OLed.cpp">
     <ClCompile Include="JAFD\source\CamRec.cpp">
     <ClCompile Include="JAFD\source\OLed.cpp">
       <Filter>JAFD\Source</Filter>

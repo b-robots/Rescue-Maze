@@ -135,7 +135,6 @@
     <ClInclude Include="JAFDSettings.h" />
     <ClInclude Include="JAFD\header\AllDatatypes.h" />
     <ClInclude Include="JAFD\header\Bno055.h" />
-    <ClInclude Include="JAFD\header\CamRec.h" />
     <ClInclude Include="JAFD\header\Dispenser.h" />
     <ClInclude Include="JAFD\header\DistanceSensors.h" />
     <ClInclude Include="JAFD\header\DuePinMapping.h" />
@@ -160,7 +159,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="JAFD\source\Bno055.cpp" />
-    <ClCompile Include="JAFD\source\CamRec.cpp" />
     <ClCompile Include="JAFD\source\Dispenser.cpp" />
     <ClCompile Include="JAFD\source\DistanceSensors.cpp" />
     <ClCompile Include="JAFD\source\HeatSensor.cpp" />
