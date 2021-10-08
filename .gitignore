@@ -5,7 +5,7 @@
 .vscode/
 
 # Visual Micro
-_vm/
+__vm/
 
 # User-specific files
 *.suo
