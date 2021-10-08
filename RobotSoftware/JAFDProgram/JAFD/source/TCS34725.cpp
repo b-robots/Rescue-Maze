@@ -37,17 +37,11 @@ namespace JAFD
 			return ReturnCode::ok;
 		}
 
-		bool interrupt(const Interrupts::InterruptSource source, const uint32_t isr)
+		void interrupt(const Interrupts::InterruptSource source, const uint32_t isr)
 		{
 			if (interruptPin.portID == static_cast<uint8_t>(source) && (isr & interruptPin.pin))
 			{
 				dataReady = true;
-
-				return true;
-			}
-			else
-			{
-				return false;
 			}
 		}
 

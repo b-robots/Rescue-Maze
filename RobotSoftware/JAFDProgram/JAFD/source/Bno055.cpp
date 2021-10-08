@@ -10,10 +10,12 @@ This part of the Library is responsible for the 9 DOF-IMU (BNO055).
 
 #include "../../JAFDSettings.h"
 #include "../header/SpiNVSRAM.h"
-#include <Adafruit_Sensor.h>
 #include "../header/Bno055.h"
 #include "../header/AllDatatypes.h"
+#include "../header/Math.h"
+
 #include <Adafruit_BNO055.h>
+#include <Adafruit_Sensor.h>
 #include <Wire.h>
 #include <utility/imumaths.h>
 
@@ -24,38 +26,39 @@ namespace JAFD
 		namespace
 		{
 			Adafruit_BNO055 bno055;
-			Vec3f startRotation(0, 0, 0);
 
 			//Variables for getting the sensor values
-			sensors_event_t	orientationEvent, angVelEvent, linearAccelEvent, gravityVecEvent;
+			sensors_event_t	linearAccelEvent;
+			sensors_event_t rotSpeedEvent;
+			imu::Quaternion quat;				// tared quaternion
+			imu::Quaternion tareQuat;			// conjugate of quaternion to tare
 
-			// Convert x,y,z rotation to yaw pitch roll, based on the sensor orientation
-			Vec3f toYawPitchRoll(Vec3f vec)
+			// Convert linear motion to the global axis based on the robot start orientation
+			Vec3f toXYZ(Vec3f vec)
 			{
-				return Vec3f(-vec.x, vec.z, -vec.y);
+				return Vec3f(-vec.z, -vec.x, -vec.y);
 			}
 		}
 
-		ReturnCode init()		//vorne steht das was die init Funktion zurückgibt und hinten das was wir ihr übergeben
+		ReturnCode setup()		//vorne steht das was die setup Funktion zurückgibt und hinten das was wir ihr übergeben
 		{
-			bno055 = Adafruit_BNO055(55,0x28, &Wire1);
+			bno055 = Adafruit_BNO055(55, 0x28, &Wire1);
 
 			if (!bno055.begin())
 			{
 				return ReturnCode::error;
 			}
 
-			delay(100);
+			delay(500);
 
 			bno055.setExtCrystalUse(true);
 
-			Read_from_RAM();
+			calibFromRAM();
 
 			return ReturnCode::ok;
 		}
 
-
-		ReturnCode calibration()								// how to calibrate
+		ReturnCode calibrate()								// how to calibrate
 		{
 			bno055.setMode(bno055.OPERATION_MODE_NDOF_FMC_OFF);
 
@@ -96,25 +99,37 @@ namespace JAFD
 
 			Serial.println("Calibration complete!");
 
-			Write_to_RAM();
+			calibToRAM();
 		}
 
-		void setStartPoint()
+		void tare()
 		{
-			update_sensorreadings();
-
-			startRotation = get_absolute_orientation();
+			tareQuat = bno055.getQuat().conjugate();
 		}
 
-		void update_sensorreadings()					//gets values from the sensors
+		// Global heading in rad
+		void tare(float globalHeading)
 		{
-			bno055.getEvent(&orientationEvent, Adafruit_BNO055::VECTOR_EULER);
-			bno055.getEvent(&angVelEvent, Adafruit_BNO055::VECTOR_GYROSCOPE);
+			updateValues();
+
+			auto isQuat = bno055.getQuat();
+
+			imu::Quaternion shouldQuat;
+			shouldQuat.fromAxisAngle(imu::Vector<3>(0, 1.0f, 0), globalHeading);
+
+			tareQuat = isQuat * shouldQuat.conjugate();
+		}
+
+		void updateValues()					//gets values from the sensors
+		{
 			bno055.getEvent(&linearAccelEvent, Adafruit_BNO055::VECTOR_LINEARACCEL);
-			bno055.getEvent(&gravityVecEvent, Adafruit_BNO055::VECTOR_GRAVITY);
+
+			quat = bno055.getQuat() * tareQuat;
+
+			bno055.getEvent(&rotSpeedEvent, Adafruit_BNO055::VECTOR_GYROSCOPE);
 		}
 
-		Vec3f get_linear_acceleration()
+		Vec3f getLinAcc()
 		{
 			Vec3f linear_acceleration_values(0.0f, 0.0f, 0.0f);
 
@@ -126,55 +141,35 @@ namespace JAFD
 				linear_acceleration_values.z = linearAccelEvent.acceleration.z;
 			}
 
-			return linear_acceleration_values; 
+			return toXYZ(linear_acceleration_values); 
 		}
 
-		Vec3f get_angular_velocity()
+		// Forward vector
+		Vec3f getForwardVec()
 		{
-			Vec3f angular_velocity_values(0.0f, 0.0f, 0.0f);
+			Vec3f forwardVec;
 
-			if (angVelEvent.type == SENSOR_TYPE_ROTATION_VECTOR)
+			forwardVec.x = 1.0f - 2.0f * (quat.x() * quat.x() + quat.z() * quat.z());
+			forwardVec.y = -2.0f * (quat.x() * quat.y() - quat.w() * quat.z());
+			forwardVec.z = -2.0f * (quat.y() * quat.z() + quat.w() * quat.x());
+
+			forwardVec = forwardVec.normalized();
+
+			return forwardVec;
+		}
+
+		float getRotSpeed()
+		{
+			if (rotSpeedEvent.type == SENSOR_TYPE_GYROSCOPE || rotSpeedEvent.type == SENSOR_TYPE_ROTATION_VECTOR)
 			{
 
-				angular_velocity_values.x = angVelEvent.gyro.x;		//Links rechts
-				angular_velocity_values.y = angVelEvent.gyro.y;		// auf ab 
-				angular_velocity_values.z = angVelEvent.gyro.z;		//Seiten schief liegen
+				return rotSpeedEvent.gyro.y;
 			}
 
-			return toYawPitchRoll(angular_velocity_values);
+			return 0.0;
 		}
 
-		Vec3f get_absolute_orientation()
-		{
-			Vec3f absolute_orientation_values(0.0f, 0.0f, 0.0f);
-
-			if (orientationEvent.type == SENSOR_TYPE_ORIENTATION)
-			{
-				absolute_orientation_values.x = orientationEvent.orientation.x;
-				absolute_orientation_values.y = orientationEvent.orientation.y;
-				absolute_orientation_values.z = orientationEvent.orientation.z;
-			}
-
-			return toYawPitchRoll(absolute_orientation_values) - startRotation;	
-		}
-
-		Vec3f get_gravity_vector()
-		{
-			Vec3f gravity_vector_values(0.0f, 0.0f, 0.0f);
-
-			// Why the f**k is the gravity measurement an accelerometer sensor and not a gravity sensor?
-			if (gravityVecEvent.type == SENSOR_TYPE_ACCELEROMETER)
-			{
-				gravity_vector_values.x = gravityVecEvent.acceleration.x;
-				gravity_vector_values.y = gravityVecEvent.acceleration.y;
-				gravity_vector_values.z = gravityVecEvent.acceleration.z;
-
-			}
-
-			return gravity_vector_values;
-		}
-
-		void Write_to_RAM()								//save Offsets
+		void calibToRAM()								//save Offsets
 		{
 			adafruit_bno055_offsets_t calib_data;	//Calibration data of bno055 structure
 
@@ -228,10 +223,8 @@ namespace JAFD
 			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 21, (mag_radius & 0xFF));
 		}
 
-
-		void Read_from_RAM()			//get Offsets from RAM
+		void calibFromRAM()			//get Offsets from RAM
 		{
-
 			adafruit_bno055_offsets_t calib_data;
 
 			calib_data.accel_offset_x = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 1);

@@ -53,9 +53,9 @@ namespace JAFD
 			constexpr uint8_t rCurADCCh = PinMapping::getADCChannel(rCurFb);	// Right motor ADC channel for current measurement
 
 			constexpr uint8_t lVoltADCChA = PinMapping::getADCChannel(lVoltFbA);	// Left motor ADC channel for voltage measurement / A
-			constexpr uint8_t lVoltADCChB = PinMapping::getADCChannel(lVoltFbA);	// Left motor ADC channel for voltage measurement / B
+			constexpr uint8_t lVoltADCChB = PinMapping::getADCChannel(lVoltFbB);	// Left motor ADC channel for voltage measurement / B
 			
-			constexpr uint8_t rVoltADCChA = PinMapping::getADCChannel(rVoltFbB);	// Right motor ADC channel for voltage measurement / A
+			constexpr uint8_t rVoltADCChA = PinMapping::getADCChannel(rVoltFbA);	// Right motor ADC channel for voltage measurement / A
 			constexpr uint8_t rVoltADCChB = PinMapping::getADCChannel(rVoltFbB);	// Right motor ADC channel for voltage measurement / B
 
 			PIDController leftPID(JAFDSettings::Controller::Motor::pidSettings);		// Left speed PID-Controller
@@ -64,9 +64,9 @@ namespace JAFD
 			volatile int32_t lEncCnt = 0;		// Encoder count left motor
 			volatile int32_t rEncCnt = 0;		// Encoder count right motor
 
-			volatile FloatWheelSpeeds speeds = { 0.0f, 0.0f };	// Current motor speeds (cm/s)
+			volatile FloatWheelSpeeds speeds = FloatWheelSpeeds { 0.0f, 0.0f };		// Current motor speeds (cm/s)
 
-			volatile WheelSpeeds desSpeeds = { 0.0f, 0.0f };	// Desired motor speed (cm/s)
+			volatile WheelSpeeds desSpeeds = WheelSpeeds{ 0.0f, 0.0f };				// Desired motor speed (cm/s)
 
 			// Get output voltage of motor
 			float getVoltage(const Motor motor)
@@ -76,17 +76,17 @@ namespace JAFD
 
 				if (motor == Motor::left)
 				{
-					float voltA = ADC->ADC_CDR[lVoltADCChA] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::voltageSensFactor;
-					float voltB = ADC->ADC_CDR[lVoltADCChB] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::voltageSensFactor;
-					
-					return std::fabs(voltA - voltB);
+					float voltA = ADC->ADC_CDR[lVoltADCChA] * 3.3f / ((1 << 12) - 1) * JAFDSettings::MotorControl::voltageSensFactor;
+					float voltB = ADC->ADC_CDR[lVoltADCChB] * 3.3f / ((1 << 12) - 1) * JAFDSettings::MotorControl::voltageSensFactor;
+
+					return fabsf(voltA - voltB);
 				}
 				else
 				{
 					float voltA = ADC->ADC_CDR[rVoltADCChA] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::voltageSensFactor;
 					float voltB = ADC->ADC_CDR[rVoltADCChB] * 3.3f / (1 << 12 - 1) * JAFDSettings::MotorControl::voltageSensFactor;
 
-					return std::fabs(voltA - voltB);
+					return fabsf(voltA - voltB);
 				}
 			}
 		}
@@ -231,13 +231,23 @@ namespace JAFD
 		{
 			FloatWheelSpeeds setSpeed;	// Speed calculated by PID
 
-			static FloatWheelSpeeds lastPWMVal = { 0.0f, 0.0f };	// Last PWM values
+			static FloatWheelSpeeds lastPWMVal = FloatWheelSpeeds { 0.0f, 0.0f };	// Last PWM values
 			static float leftPWMReduction = JAFDSettings::MotorControl::initPWMReduction;	// PWM reduction to prevent overvoltage
 			static float rightPWMReduction = JAFDSettings::MotorControl::initPWMReduction;	// PWM reduction to prevent overvoltage
 
 			// Update PWM reduction factor with IIR
-			leftPWMReduction = JAFDSettings::MotorControl::pwmRedIIRFactor * (lastPWMVal.left * 6.0f / getVoltage(Motor::left)) + (1 - JAFDSettings::MotorControl::pwmRedIIRFactor) * leftPWMReduction;
-			rightPWMReduction = JAFDSettings::MotorControl::pwmRedIIRFactor * (lastPWMVal.right * 6.0f / getVoltage(Motor::right)) + (1 - JAFDSettings::MotorControl::pwmRedIIRFactor) * rightPWMReduction;
+			if (lastPWMVal.left > 0.2)
+			{
+				leftPWMReduction = JAFDSettings::MotorControl::pwmRedIIRFactor * (lastPWMVal.left * 6.0f / getVoltage(Motor::left)) + (1 - JAFDSettings::MotorControl::pwmRedIIRFactor) * leftPWMReduction;
+			}
+
+			if (lastPWMVal.right > 0.2)
+			{
+				rightPWMReduction = JAFDSettings::MotorControl::pwmRedIIRFactor * (lastPWMVal.right * 6.0f / getVoltage(Motor::right)) + (1 - JAFDSettings::MotorControl::pwmRedIIRFactor) * rightPWMReduction;
+			}
+
+			if (leftPWMReduction > 2.0f * JAFDSettings::MotorControl::initPWMReduction) leftPWMReduction = JAFDSettings::MotorControl::initPWMReduction;
+			if (rightPWMReduction > 2.0f * JAFDSettings::MotorControl::initPWMReduction) rightPWMReduction = JAFDSettings::MotorControl::initPWMReduction;
 
 			// When speed isn't 0, do PID controller
 			if (desSpeeds.left == 0)
@@ -252,6 +262,8 @@ namespace JAFD
 				if (setSpeed.left < JAFDSettings::MotorControl::minSpeed && setSpeed.left > -JAFDSettings::MotorControl::minSpeed) setSpeed.left = JAFDSettings::MotorControl::minSpeed * sgn(desSpeeds.left);
 				
 				setSpeed.left *= cmPSToPerc;
+
+				if (setSpeed.left >= 1.0f) setSpeed.left = 1.0f;
 			}
 
 			if (desSpeeds.right == 0)
@@ -266,10 +278,12 @@ namespace JAFD
 				if (setSpeed.right < JAFDSettings::MotorControl::minSpeed && setSpeed.right > -JAFDSettings::MotorControl::minSpeed) setSpeed.right = JAFDSettings::MotorControl::minSpeed * sgn(desSpeeds.right);
 			
 				setSpeed.right *= cmPSToPerc;
+
+				if (setSpeed.right >= 1.0f) setSpeed.right = 1.0f;
 			}
 
 			// Set driection of left motor
-			if (setSpeed.left > 0.0f)
+			if (setSpeed.left < 0.0f)
 			{
 				lInA.port->PIO_SODR = lInA.pin;
 				lInB.port->PIO_CODR = lInB.pin;
@@ -281,7 +295,7 @@ namespace JAFD
 			}
 
 			// Set driection of left motor
-			if (setSpeed.right > 0.0f)
+			if (setSpeed.right < 0.0f)
 			{
 				rInA.port->PIO_SODR = rInA.pin;
 				rInB.port->PIO_CODR = rInB.pin;
@@ -300,8 +314,8 @@ namespace JAFD
 			lastPWMVal = setSpeed;
 
 			// Set PWM Value
-			PWM->PWM_CH_NUM[lPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[lPWMCh].PWM_CPRD * fabs(setSpeed.left));
-			PWM->PWM_CH_NUM[rPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[rPWMCh].PWM_CPRD * fabs(setSpeed.right));
+			PWM->PWM_CH_NUM[lPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[lPWMCh].PWM_CPRD * fabsf(setSpeed.left));
+			PWM->PWM_CH_NUM[rPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[rPWMCh].PWM_CPRD * fabsf(setSpeed.right));
 			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 		}
 
@@ -327,7 +341,7 @@ namespace JAFD
 			}
 		}
 
-		bool encoderInterrupt(const Interrupts::InterruptSource source, const uint32_t isr)
+		void encoderInterrupt(const Interrupts::InterruptSource source, const uint32_t isr)
 		{
 			if (lEncA.portID == static_cast<uint8_t>(source) && (isr & lEncA.pin))
 			{
@@ -339,10 +353,9 @@ namespace JAFD
 				{
 					lEncCnt++;
 				}
-
-				return true;
 			}
-			else if (rEncA.portID == static_cast<uint8_t>(source) && (isr & rEncA.pin))
+			
+			if (rEncA.portID == static_cast<uint8_t>(source) && (isr & rEncA.pin))
 			{
 				if (rEncB.port->PIO_PDSR & rEncB.pin)
 				{
@@ -352,12 +365,6 @@ namespace JAFD
 				{
 					rEncCnt++;
 				}
-
-				return true;
-			}
-			else
-			{
-				return false;
 			}
 		}
 

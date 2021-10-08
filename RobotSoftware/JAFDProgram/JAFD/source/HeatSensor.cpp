@@ -61,21 +61,21 @@ namespace JAFD
 				ambientTemp = (ambientTemp + amgLeft.readThermistor() + amgRight.readThermistor()) / 3.0f;
 #else
 				int pixels[8];
-				/*
+
 				I2CMultiplexer::selectChannel(JAFDSettings::HeatSensors::Left::i2cChannel);
 				int leftAmbient = tpaLeft.getAll(pixels);
-				if (leftAmbient == 0) return ReturnCode::error;
+
+				if (leftAmbient == 0 || leftAmbient > 40) return ReturnCode::error;
 
 				for (size_t i = 0; i < 8; i++)
 				{
 					ambientTemp += pixels[i];
 				}
-				*/
-				int leftAmbient = 20;
 
 				I2CMultiplexer::selectChannel(JAFDSettings::HeatSensors::Right::i2cChannel);
 				int rightAmbient = tpaRight.getAll(pixels);
-				if (rightAmbient == 0) return ReturnCode::error;
+
+				if (rightAmbient == 0 || rightAmbient > 40) return ReturnCode::error;
 
 				for (size_t i = 0; i < 8; i++)
 				{
@@ -85,7 +85,6 @@ namespace JAFD
 				ambientTemp /= (2.0f * 8.0f);
 				ambientTemp = (ambientTemp + leftAmbient + rightAmbient) / 3.0f;
 #endif
-				Serial.println(ambientTemp);
 				return ReturnCode::ok;
 			}
 		}
@@ -104,13 +103,13 @@ namespace JAFD
 			amgRight.setMovingAverageMode(false);
 #else
 #endif
-			/*
 			I2CMultiplexer::selectChannel(JAFDSettings::HeatSensors::Left::i2cChannel);
-			tpaLeft.setup(0x68);
-			*/
+			tpaLeft.setup(0xD0);
+
+
 
 			I2CMultiplexer::selectChannel(JAFDSettings::HeatSensors::Right::i2cChannel);
-			tpaRight.setup(0x68);
+			tpaRight.setup(0xD0);
 
 			return readAmbientTemp();
 		}
@@ -124,19 +123,14 @@ namespace JAFD
 			constexpr uint8_t numPix = 8;
 			int pixels[numPix];
 #endif
-			
 
 			if (sensor == HeatSensorSide::left)
 			{
 #ifdef USE_AMG833
 				amgLeft.readPixels(pixels);
 #else
-				//I2CMultiplexer::selectChannel(JAFDSettings::HeatSensors::Left::i2cChannel);
-				//tpaLeft.getAll(pixels);
-				for (size_t i = 0; i < 8; i++)
-				{
-					pixels[i] = 20;
-				}
+				I2CMultiplexer::selectChannel(JAFDSettings::HeatSensors::Left::i2cChannel);
+				tpaLeft.getAll(pixels);
 #endif
 			}
 			else

@@ -6,6 +6,8 @@ This part is responsible for dispensing the rescue packages.
 #include "../../JAFDSettings.h"
 #include "../header/SmoothDriving.h"
 #include "../header/DuePinMapping.h"
+#include "../header/SensorFusion.h"
+#include "../header/SmallThings.h"
 
 namespace JAFD
 {
@@ -20,6 +22,7 @@ namespace JAFD
 			uint8_t leftCubeCount = JAFDSettings::Dispenser::Left::startCubeCount;
 			uint8_t rightCubeCount = JAFDSettings::Dispenser::Right::startCubeCount;
 		}
+
 		// Set up the Dispenser System
 		ReturnCode setup()
 		{
@@ -106,10 +109,13 @@ namespace JAFD
 				{
 					PWM->PWM_CH_NUM[rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::startDty * PWM->PWM_CH_NUM[rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(500);
+					
+					Wait::delayUnblocking(JAFDSettings::Dispenser::pause);
+
 					PWM->PWM_CH_NUM[rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::endDty * PWM->PWM_CH_NUM[rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(500);
+
+					Wait::delayUnblocking(JAFDSettings::Dispenser::pause);
 
 					rightCubeCount--;
 				}
@@ -124,28 +130,35 @@ namespace JAFD
 				{
 					PWM->PWM_CH_NUM[rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::startDty * PWM->PWM_CH_NUM[rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(500);
+
+					Wait::delayUnblocking(JAFDSettings::Dispenser::pause);
+
 					PWM->PWM_CH_NUM[rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::endDty * PWM->PWM_CH_NUM[rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(500);
+
+					Wait::delayUnblocking(JAFDSettings::Dispenser::pause);
 
 					rightCubeCount--;
 				}
 
-				SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Stop(), true);
-				while (!SmoothDriving::isTaskFinished());
-				SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Rotate(4.0f, 180.0f));
-				while (!SmoothDriving::isTaskFinished());
-				SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Stop());
+				SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(
+					SmoothDriving::Stop(),
+					SmoothDriving::Rotate(4.0f, 180.0f),
+					SmoothDriving::Stop()), true);
+
+				Wait::waitForFinishedTask();
 
 				for (int i = 0; i < remainPacks; i++)
 				{
 					PWM->PWM_CH_NUM[leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::startDty * PWM->PWM_CH_NUM[leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(500);
+
+					Wait::delayUnblocking(JAFDSettings::Dispenser::pause);
+
 					PWM->PWM_CH_NUM[leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::endDty * PWM->PWM_CH_NUM[leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(500);
+
+					Wait::delayUnblocking(JAFDSettings::Dispenser::pause);
 
 					leftCubeCount--;
 				}
@@ -172,10 +185,13 @@ namespace JAFD
 				{
 					PWM->PWM_CH_NUM[leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::startDty * PWM->PWM_CH_NUM[leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(500);
+
+					Wait::delayUnblocking(JAFDSettings::Dispenser::pause);
+
 					PWM->PWM_CH_NUM[leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::endDty * PWM->PWM_CH_NUM[leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(500);
+
+					Wait::delayUnblocking(JAFDSettings::Dispenser::pause);
 
 					leftCubeCount--;
 				}
@@ -190,28 +206,35 @@ namespace JAFD
 				{
 					PWM->PWM_CH_NUM[leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::startDty * PWM->PWM_CH_NUM[leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(500);
+
+					Wait::delayUnblocking(JAFDSettings::Dispenser::pause);
+
 					PWM->PWM_CH_NUM[leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::endDty * PWM->PWM_CH_NUM[leftPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(500);
+
+					Wait::delayUnblocking(JAFDSettings::Dispenser::pause);
 
 					leftCubeCount--;
 				}
 				
-				SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Stop(), true);
-				while (!SmoothDriving::isTaskFinished());
-				SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Rotate(4.0f, 180.0f));
-				while (!SmoothDriving::isTaskFinished());
-				SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::Stop());
+				SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(
+					SmoothDriving::Stop(),
+					SmoothDriving::Rotate(4.0f, 180.0f),
+					SmoothDriving::Stop()), true);
+
+				Wait::waitForFinishedTask();
 
 				for (int i = 0; i < remainPacks; i++)
 				{
 					PWM->PWM_CH_NUM[rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::startDty * PWM->PWM_CH_NUM[rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(500);
+
+					Wait::delayUnblocking(JAFDSettings::Dispenser::pause);
+
 					PWM->PWM_CH_NUM[rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::endDty * PWM->PWM_CH_NUM[rightPWMCh].PWM_CPRD;
 					PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-					delay(500);
+
+					Wait::delayUnblocking(JAFDSettings::Dispenser::pause);
 
 					rightCubeCount--;
 				}

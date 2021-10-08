@@ -185,7 +185,7 @@ namespace JAFD
 
 		inline Vec2f normalized() const volatile
 		{
-			return Vec2f(x / length(), y / length());
+			return *this / length();
 		}
 	};
 
@@ -202,11 +202,6 @@ namespace JAFD
 		constexpr Vec3f(const Vec3f& vec) : x(vec.x), y(vec.y), z(vec.z) {}
 		explicit Vec3f(const volatile Vec2f& vec) : x(vec.x), y(vec.y), z(0.0f) {}
 		explicit constexpr Vec3f(const Vec2f& vec) : x(vec.x), y(vec.y), z(0.0f) {}
-
-		static Vec3f angleToDir(float yaw, float pitch)
-		{
-			return Vec3f(cosf(yaw) * cosf(pitch), sinf(yaw) * cosf(pitch), sinf(pitch));
-		}
 
 		inline const volatile Vec3f& operator=(const volatile Vec3f vec) volatile
 		{
@@ -360,12 +355,12 @@ namespace JAFD
 
 		inline float length() const volatile
 		{
-			return sqrtf(x * x + y * y);
+			return sqrtf(x * x + y * y + z * z);
 		}
 
 		inline Vec3f normalized() const volatile
 		{
-			return Vec3f(x / length(), y / length(), z / length());
+			return *this / length();
 		}
 	};
 

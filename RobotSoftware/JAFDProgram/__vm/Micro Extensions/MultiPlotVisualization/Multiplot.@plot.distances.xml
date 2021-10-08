@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PlotSettings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <CurveSettingCollection>
+    <CurveSettings>
+      <CurveId>lb</CurveId>
+      <CurveDisplayName>lb</CurveDisplayName>
+      <CurveLineTicks>None</CurveLineTicks>
+      <CurveColor>#800000</CurveColor>
+      <ChartAssignment2>0</ChartAssignment2>
+    </CurveSettings>
+    <CurveSettings>
+      <CurveId>lf</CurveId>
+      <CurveDisplayName>lf</CurveDisplayName>
+      <CurveLineTicks>None</CurveLineTicks>
+      <CurveColor>#008000</CurveColor>
+      <ChartAssignment2>0</ChartAssignment2>
+    </CurveSettings>
+    <CurveSettings>
+      <CurveId>rb</CurveId>
+      <CurveDisplayName>rb</CurveDisplayName>
+      <CurveLineTicks>None</CurveLineTicks>
+      <CurveColor>#000080</CurveColor>
+      <ChartAssignment2>0</ChartAssignment2>
+    </CurveSettings>
+    <CurveSettings>
+      <CurveId>rf</CurveId>
+      <CurveDisplayName>rf</CurveDisplayName>
+      <CurveLineTicks>None</CurveLineTicks>
+      <CurveColor>#808000</CurveColor>
+      <ChartAssignment2>0</ChartAssignment2>
+    </CurveSettings>
+  </CurveSettingCollection>
+  <XSweepTime>20 sec</XSweepTime>
+  <XTimeFormat>Auto</XTimeFormat>
+  <DisplayRefreshRate>AsDataComesIn</DisplayRefreshRate>
+  <ChartType>LineChart</ChartType>
+  <OptimizeBinaryCurves>Off</OptimizeBinaryCurves>
+  <CurveDistribution>SingeChart</CurveDistribution>
+  <TriggerEnabled>false</TriggerEnabled>
+  <TriggerCondition>None</TriggerCondition>
+  <TriggerMode>Continuous</TriggerMode>
+  <LineWidths2>Auto</LineWidths2>
+</PlotSettings>

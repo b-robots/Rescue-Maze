@@ -34,15 +34,18 @@ namespace JAFD
 		namespace BFAlgorithm
 		{
 			// Reset all BFS Values in this floor
-			void resetBFSValues(const uint8_t floor);
+			void resetBFSValues();
 
 			// Find the shortest known path from a to b
-			ReturnCode findShortestPath(const MapCoordinate start, uint8_t* directions, const uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell));
+			ReturnCode findShortestPath(const MapCoordinate start, uint8_t* directions, const uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell), bool(*ispassable)(GridCell cell));
 		}
 
 		// Setup the MazeMapper
 		ReturnCode setup();
 		
+		// Reset stored maze
+		void resetAllCells();
+
 		// Set a grid cell in the RAM
 		void setGridCell(const GridCell gridCell, const MapCoordinate coor);
 		void setGridCell(const uint8_t bfsValue, const MapCoordinate coor);
