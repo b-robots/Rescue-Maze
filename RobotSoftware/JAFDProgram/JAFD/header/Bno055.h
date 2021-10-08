@@ -28,5 +28,6 @@ namespace JAFD
 
 		Vec3f getLinAcc();
 		Vec3f getForwardVec();
+		float getRotSpeed();
 	}
 }

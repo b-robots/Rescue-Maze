@@ -29,6 +29,7 @@ namespace JAFD
 
 			//Variables for getting the sensor values
 			sensors_event_t	linearAccelEvent;
+			sensors_event_t rotSpeedEvent;
 			imu::Quaternion quat;				// tared quaternion
 			imu::Quaternion tareQuat;			// conjugate of quaternion to tare
 
@@ -56,7 +57,6 @@ namespace JAFD
 
 			return ReturnCode::ok;
 		}
-
 
 		ReturnCode calibrate()								// how to calibrate
 		{
@@ -125,6 +125,8 @@ namespace JAFD
 			bno055.getEvent(&linearAccelEvent, Adafruit_BNO055::VECTOR_LINEARACCEL);
 
 			quat = bno055.getQuat() * tareQuat;
+
+			bno055.getEvent(&rotSpeedEvent, Adafruit_BNO055::VECTOR_GYROSCOPE);
 		}
 
 		Vec3f getLinAcc()
@@ -156,6 +158,16 @@ namespace JAFD
 			return forwardVec;
 		}
 
+		float getRotSpeed()
+		{
+			if (rotSpeedEvent.type == SENSOR_TYPE_GYROSCOPE || rotSpeedEvent.type == SENSOR_TYPE_ROTATION_VECTOR)
+			{
+
+				return rotSpeedEvent.gyro.y;
+			}
+
+			return 0.0;
+		}
 
 		void calibToRAM()								//save Offsets
 		{
@@ -210,7 +222,6 @@ namespace JAFD
 			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 20, (mag_radius >> 8));
 			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 21, (mag_radius & 0xFF));
 		}
-
 
 		void calibFromRAM()			//get Offsets from RAM
 		{

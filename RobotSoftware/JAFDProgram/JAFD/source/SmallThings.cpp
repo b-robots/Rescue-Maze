@@ -13,6 +13,8 @@
 #include "../header/DuePinMapping.h"
 #include "../header/RobotLogic.h"
 #include "../header/TCA9548A.h"
+#include "../header/TCS34725.h"
+#include "../header/Bno055.h"
 
 #include <Wire.h>
 
@@ -213,7 +215,7 @@ namespace JAFD
 			Wire.begin();
 			Wire1.begin();
 
-			if ((millis() - lastReset) > 10000)
+			if ((millis() - lastReset) > 1000)
 			{
 				for (uint8_t ch = 0; ch < I2CMultiplexer::maxCh; ch++)
 				{
@@ -236,12 +238,20 @@ namespace JAFD
 			delay(5);
 			resetBusPin.port->PIO_SODR = resetBusPin.pin;
 
+			delay(10);
+
+			Wire.begin();
+			Wire1.begin();
+
 			if (DistanceSensors::reset() != ReturnCode::ok) result = ReturnCode::error;
 
 			if (HeatSensor::reset() != ReturnCode::ok) result = ReturnCode::error;
 
-			Wire.begin();
-			Wire1.begin();
+			if (I2CMultiplexer::setup() != ReturnCode::ok) result = ReturnCode::error;
+
+			if (Bno055::setup() != ReturnCode::ok) result = ReturnCode::error;
+
+			if (ColorSensor::setup() != ReturnCode::ok) result = ReturnCode::error;
 
 			lastReset = millis();
 

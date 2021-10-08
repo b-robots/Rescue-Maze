@@ -132,7 +132,6 @@ namespace JAFDSettings
 		constexpr float angularVelDiffPortion = 0.5f;					// How much of the angular yaw velocity is based on differentiation?
 		constexpr float pitchIIRFactor = 0.5f;							// Factor used for IIR-Filter for pitch angle
 		constexpr float distAngularPortion = 1.0f;						// How much is a perfect distance sensor measured angle worth?
-		constexpr float maxAngleDeviation = 90.0f * DEG_TO_RAD;			// If there is a heading deviation greater than this after one time step (50ms) the BNO had an error
 	}
 
 	namespace Controller

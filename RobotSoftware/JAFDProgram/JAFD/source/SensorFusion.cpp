@@ -55,7 +55,7 @@ namespace JAFD
 			auto excpectedHeading = lastHeading + tempRobotState.angularVel.x / freq;
 			bool bnoErr = false;
 
-			if (fabsf(fitAngleToInterval(bnoHeading - excpectedHeading)) > JAFDSettings::SensorFusion::maxAngleDeviation)
+			if (Bno055::getRotSpeed() * DEG_TO_RAD > JAFDSettings::MotorControl::maxRotSpeed * 1.5f)
 			{
 				bnoHeading = fitAngleToInterval(excpectedHeading);
 				bnoErr = true;

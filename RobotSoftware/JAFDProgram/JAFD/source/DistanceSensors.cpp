@@ -238,7 +238,6 @@ namespace JAFD
 
 					Serial.print("to");
 					Serial.print(_id);
-					Serial.println(read8(0x001c));
 
 					// Timeout
 					clearInterrupt();
@@ -703,11 +702,11 @@ namespace JAFD
 				code = ReturnCode::fatalError;
 			}
 
-			if (frontLong.setup() != ReturnCode::ok)
-			{
-				Serial.println("f");
-				code = ReturnCode::fatalError;
-			}
+			//if (frontLong.setup() != ReturnCode::ok)
+			//{
+			//	Serial.println("f");
+			//	code = ReturnCode::fatalError;
+			//}
 
 			// Read calibration data for distance sensors
 			DistanceSensors::leftFront.restoreCalibData();

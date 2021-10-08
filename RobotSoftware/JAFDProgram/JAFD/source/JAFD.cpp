@@ -94,7 +94,12 @@ namespace JAFD
 		// Setup of I2C Multiplexer
 		if (I2CMultiplexer::setup() != ReturnCode::ok)
 		{
-			Serial.println("Error I2C multiplexer");
+			Serial.println("Error I2C Multiplexer");
+
+			if (I2CBus::resetBus() != ReturnCode::ok)
+			{
+				Serial.println("Error resetting I2C Bus");
+			}
 		}
 
 		// Setup of Dispenser
@@ -106,25 +111,45 @@ namespace JAFD
 		// Setup of Distance Sensors
 		if (DistanceSensors::setup() != ReturnCode::ok)
 		{
-			Serial.println("Error Distance Sensors");
+			Serial.println("Error Distance Sensor");
+
+			if (I2CBus::resetBus() != ReturnCode::ok)
+			{
+				Serial.println("Error resetting I2C Bus");
+			}
 		}
 		
 		// Setup of Bno055
 		if (Bno055::setup() != ReturnCode::ok)
 		{
-			Serial.println("Error Bno055");
+			Serial.println("Error BNO055");
+
+			if (I2CBus::resetBus() != ReturnCode::ok)
+			{
+				Serial.println("Error resetting I2C Bus");
+			}
 		}
 		
 		// Setup of color sensor
 		if (ColorSensor::setup() != ReturnCode::ok)
 		{
-			Serial.println("Error Color-Sensor");
+			Serial.println("Error Color Sensor");
+
+			if (I2CBus::resetBus() != ReturnCode::ok)
+			{
+				Serial.println("Error resetting I2C Bus");
+			}
 		}
 		
 		// Setup of heat sensors
 		if (HeatSensor::setup() != ReturnCode::ok)
 		{
-			Serial.println("Error Heat-Sensor");
+			Serial.println("Error Heat Sensor");
+
+			if (I2CBus::resetBus() != ReturnCode::ok)
+			{
+				Serial.println("Error resetting I2C Bus");
+			}
 		}
 
 		// Setup communication with RasPI for camera recognition
