@@ -12,6 +12,7 @@ This file of the library is responsible for the sensor fusion
 #include "../header/Bno055.h"
 #include "../header/TCS34725.h"
 #include "../header/RobotLogic.h"
+#include "../header/SmallThings.h"
 #include "../../JAFDSettings.h"
 
 #include <cmath>
@@ -45,17 +46,17 @@ namespace JAFD
 			// Magic factor: *1.173
 
 			// Rotation
-			auto lastHeading = tempRobotState.globalHeading;
-			auto lastPitch = tempRobotState.pitch;
+			const auto lastHeading = tempRobotState.globalHeading;
+			const auto lastPitch = tempRobotState.pitch;
 			float currHeading = 0.0f;	// We don't handle rotation of robot on ramp (pitch != 0°) completely correct! But it shouldn't matter.
 
-			auto bnoForwardVec = Bno055::getForwardVec();
+			const auto bnoForwardVec = Bno055::getForwardVec();
 			auto bnoHeading = getGlobalHeading(bnoForwardVec);
 
 			auto excpectedHeading = lastHeading + tempRobotState.angularVel.x / freq;
 			bool bnoErr = false;
 
-			if (Bno055::getRotSpeed() * DEG_TO_RAD > JAFDSettings::MotorControl::maxRotSpeed * 1.5f)
+			if (fabsf(bnoHeading - lastHeading) > 0.8)
 			{
 				bnoHeading = fitAngleToInterval(excpectedHeading);
 				bnoErr = true;
@@ -1230,8 +1231,6 @@ namespace JAFD
 
 		void updateSensors()
 		{
-			DistanceSensors::forceNewMeasurement();
-
 			if (ColorSensor::dataIsReady())
 			{
 				uint16_t colorTemp = 0;
@@ -1247,6 +1246,7 @@ namespace JAFD
 			RobotLogic::timeBetweenUpdate();
 
 			DistanceSensors::updateDistSensors();
+			DistanceSensors::forceNewMeasurement();
 		}
 
 		void setDistances(Distances distances)

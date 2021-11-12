@@ -224,25 +224,21 @@ namespace JAFD
 		
 		using namespace SmoothDriving;
 
-		//static const TaskArray tasks[] = {
-		//	TaskArray(Accelerate(30, 15), DriveStraight(30), Accelerate(0, 15), Stop()),
-		//	TaskArray(Rotate(-2, -90), Stop()),
-		//	TaskArray(Accelerate(30, 15), DriveStraight(30), Accelerate(0, 15), Stop())
-		//};
-		//
-		//const static uint16_t numTasks = sizeof(tasks) / sizeof(*tasks);
+		static const TaskArray tasks[] = {
+			TaskArray(Accelerate(30, 15), DriveStraight(30), Accelerate(0, 15), Stop()),
+		};
+		
+		const static uint16_t numTasks = sizeof(tasks) / sizeof(*tasks);
 
-		//static uint16_t i = 0;
+		static uint16_t i = 0;
 
-		//if (SmoothDriving::isTaskFinished() && i < numTasks)
-		//{
-		//	if (SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(tasks[i]) != ReturnCode::ok)
-		//	{
-		//		Serial.println(i);
-		//	}
+		if (SmoothDriving::isTaskFinished() && i < numTasks)
+		{
+			SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(tasks[i]);
 
-		//	i++;
-		//}
+			i++;
+			i %= numTasks;
+		}
 
 		SensorFusion::updateSensors();
 		SensorFusion::untimedFusion();

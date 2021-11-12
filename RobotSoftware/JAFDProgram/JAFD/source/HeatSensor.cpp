@@ -64,7 +64,6 @@ namespace JAFD
 
 				I2CMultiplexer::selectChannel(JAFDSettings::HeatSensors::Left::i2cChannel);
 				int leftAmbient = tpaLeft.getAll(pixels);
-
 				if (leftAmbient == 0 || leftAmbient > 40) return ReturnCode::error;
 
 				for (size_t i = 0; i < 8; i++)
@@ -74,7 +73,6 @@ namespace JAFD
 
 				I2CMultiplexer::selectChannel(JAFDSettings::HeatSensors::Right::i2cChannel);
 				int rightAmbient = tpaRight.getAll(pixels);
-
 				if (rightAmbient == 0 || rightAmbient > 40) return ReturnCode::error;
 
 				for (size_t i = 0; i < 8; i++)
@@ -105,8 +103,6 @@ namespace JAFD
 #endif
 			I2CMultiplexer::selectChannel(JAFDSettings::HeatSensors::Left::i2cChannel);
 			tpaLeft.setup(0xD0);
-
-
 
 			I2CMultiplexer::selectChannel(JAFDSettings::HeatSensors::Right::i2cChannel);
 			tpaRight.setup(0xD0);

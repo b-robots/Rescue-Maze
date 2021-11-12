@@ -205,6 +205,8 @@ namespace JAFD
 
 		ReturnCode resetBus()
 		{
+			Serial.println("Reset Bus!");
+
 			static auto lastReset = millis();
 
 			ReturnCode result = ReturnCode::ok;
