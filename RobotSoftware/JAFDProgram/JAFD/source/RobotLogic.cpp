@@ -15,6 +15,26 @@ namespace JAFD
 	{
 		void loop()
 		{
+			using namespace SmoothDriving;
+
+			static const TaskArray tasks[] = {
+				TaskArray(FollowWall(20, 0.01f)),
+			};
+
+			const static uint16_t numTasks = sizeof(tasks) / sizeof(*tasks);
+
+			static uint16_t i = 0;
+
+			if (isTaskFinished() && i < numTasks)
+			{
+				setNewTask<NewStateType::lastEndState>(tasks[i]);
+
+				i++;
+				i %= numTasks;
+			}
+
+			return;
+
 			GridCell cell;
 			RelativeDir relativeTurnDir;
 			bool found = false;
@@ -60,8 +80,8 @@ namespace JAFD
 
 		void timeBetweenUpdate()
 		{
-			// DEBUG
-			//CamRec::loop();
+			// TODO
+			// CamRec::loop();
 		}
 	}
 }

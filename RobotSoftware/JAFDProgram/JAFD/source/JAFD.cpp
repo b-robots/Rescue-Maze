@@ -36,6 +36,8 @@ namespace JAFD
 	// Just for testing...
 	void robotSetup()
 	{
+		delay(5000);
+
 		// Setup the SPI-Bus
 		SPI.begin();
 		SPI.beginTransaction(SPISettings(10e+6, MSBFIRST, SPI_MODE0));
@@ -60,6 +62,8 @@ namespace JAFD
 
 		NVIC_EnableIRQ(PIOD_IRQn);
 		NVIC_SetPriority(PIOD_IRQn, 0);
+
+		Switch::setup();
 
 		// Setup of power LEDs
 		if (PowerLEDs::setup() != ReturnCode::ok)
@@ -221,31 +225,10 @@ namespace JAFD
 		static float fps = 0.0f;
 
 		auto time = millis();
-		
-		using namespace SmoothDriving;
-
-		static const TaskArray tasks[] = {
-			TaskArray(Accelerate(30, 15), DriveStraight(30), Accelerate(0, 15), Stop()),
-		};
-		
-		const static uint16_t numTasks = sizeof(tasks) / sizeof(*tasks);
-
-		static uint16_t i = 0;
-
-		if (SmoothDriving::isTaskFinished() && i < numTasks)
-		{
-			SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(tasks[i]);
-
-			i++;
-			i %= numTasks;
-		}
 
 		SensorFusion::updateSensors();
 		SensorFusion::untimedFusion();
-		//RobotLogic::loop();
-		
-		auto fusedData = SensorFusion::getFusedData();
-		fusedData.robotState.globalHeading;
+		RobotLogic::loop();
 
 		auto freeRam = MemWatcher::getFreeRam();
 

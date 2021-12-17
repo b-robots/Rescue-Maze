@@ -34,7 +34,7 @@ namespace JAFD
 				Wire.write(1 << channel);
 
 				_currentChannel = channel;
-				return(Wire.endTransmission());
+				return(Wire.endTransmission(true));
 			}
 
 			return 4;

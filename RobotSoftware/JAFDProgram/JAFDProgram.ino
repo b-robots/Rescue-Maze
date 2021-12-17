@@ -25,8 +25,8 @@
 
 // The setup function runs once when you press reset or power the board
 void setup()
-{
-	// For testing
+{	
+	// DEBUG
 	Serial.begin(115200);
 
 	JAFD::robotSetup();

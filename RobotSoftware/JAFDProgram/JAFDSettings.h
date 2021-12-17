@@ -72,7 +72,7 @@ namespace JAFDSettings
 	{
 		constexpr float cmPSToPerc = 1.0f / (97.0f / 60.0f * M_PI * Mechanics::wheelDiameter);		// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed.)
 
-		constexpr uint8_t minSpeed = 10;					// Minimum speed for motor to rotate
+		constexpr uint8_t minSpeed = 20;					// Minimum speed for motor to rotate
 		constexpr uint8_t maxSpeed = 1.0f / cmPSToPerc;		// Calculated maximum speed
 		constexpr float maxRotSpeed = 2.0f * maxSpeed / Mechanics::wheelDistance;	// Calculated maximum rotation speed
 
@@ -138,25 +138,25 @@ namespace JAFDSettings
 	{
 		namespace Motor
 		{
-			constexpr JAFD::PIDSettings pidSettings(0.85f, 5.2f, 0.01f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
+			constexpr JAFD::PIDSettings pidSettings(0.9f, 5.5f, 0.03f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
 		}
 
 		namespace GoToAngle
 		{
-			constexpr float turningGainConstant = 0.1f;
+			constexpr float turningGainConstant = 0.2f;
 			constexpr float aheadDistL = Mechanics::wheelDistance / (2.0f * turningGainConstant);
-			constexpr float angleDampingBegin = 10.0f;
+			constexpr float angleDampingBegin = 5.0f;
 		}
 
 		namespace PID
 		{
-			constexpr float nonePIDPart = 0.5f;
+			constexpr float nonePIDPart = 0.6f;
 		}
 
 		namespace SmoothDriving
 		{
 			constexpr JAFD::PIDSettings forwardVelPidSettings(0.3f, 1.5f, 0.01f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
-			constexpr JAFD::PIDSettings angularVelPidSettings(0.25f, 2.0f, 0.15f, 10.0f, 5.0f, -10.0f, 10.0f);
+			constexpr JAFD::PIDSettings angularVelPidSettings(0.4f, 3.0f, 0.15f, 10.0f, 5.0f, -10.0f, 10.0f);
 		}
 	}
 
@@ -167,6 +167,8 @@ namespace JAFDSettings
 		constexpr uint16_t maxAlignStartDist = 50;					// Maximum deviation from aligned distance at beginning to start (mm)
 		constexpr uint16_t alignSpeed = MotorControl::minSpeed;		// Minimum speed to align to wall
 		constexpr uint16_t minAlignDist = 70;						// Minimum align distance, is default
+
+		constexpr float steeringToAngle = 0.157;					// Convert left right offset to controlled steering angle
 	}
 
 	namespace Dispenser
@@ -203,7 +205,7 @@ namespace JAFDSettings
 
 		constexpr uint8_t multiplexerAddr = 0x70;
 
-		constexpr uint16_t timeout = 200;
+		constexpr uint16_t timeout = 80;
 
 		namespace LeftFront
 		{

@@ -34,7 +34,6 @@ namespace JAFD
 		void waitForFinishedTask();
 	}
 
-	// TODO
 	namespace Switch
 	{
 		void setup();

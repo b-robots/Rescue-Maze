@@ -14,6 +14,11 @@ namespace JAFD
 {
 	namespace SmoothDriving
 	{
+		extern float debug1;
+		extern float debug2;
+		extern float debug3;
+		extern float debug4;
+
 		// Type of new state
 		enum class NewStateType : uint8_t
 		{
@@ -107,6 +112,17 @@ namespace JAFD
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
 
+		class FollowWall : public ITask
+		{
+		private:
+			int16_t _speeds;					// Speeds of both wheels
+			float _distance;					// Distance the robot has to travel 
+		public:
+			explicit FollowWall(int16_t speed = 0, float distance = 0);
+			ReturnCode startTask(RobotState startState);
+			WheelSpeeds updateSpeeds(const uint8_t freq);
+		};
+
 		class TaskArray : public ITask
 		{
 		private:
@@ -117,7 +133,8 @@ namespace JAFD
 				stop,
 				rotate,
 				forceSpeed,
-				alignFront
+				alignFront,
+				followWall
 			} _taskTypes[JAFDSettings::SmoothDriving::maxArrrayedTasks];
 
 			union _TaskCopies
@@ -128,6 +145,7 @@ namespace JAFD
 				Rotate rotate;
 				ForceSpeed forceSpeed;
 				AlignFront alignFront;
+				FollowWall followWall;
 
 				_TaskCopies() : stop() {};
 				~_TaskCopies() {}
@@ -149,6 +167,7 @@ namespace JAFD
 			TaskArray(const Rotate& task);
 			TaskArray(const ForceSpeed& task);
 			TaskArray(const AlignFront& task);
+			TaskArray(const FollowWall& task);
 
 			// Uses SFINAE to prohibit more than maximum arguments.
 			template<typename ...Rem, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rem)]>
@@ -201,6 +220,15 @@ namespace JAFD
 			{
 				_taskTypes[_numTasks] = _TaskType::alignFront;
 				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].alignFront)) AlignFront(task);
+				_numTasks++;
+			}
+
+			// Uses SFINAE to prohibit more than maximum arguments.
+			template<typename ...Rem, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rem)]>
+			TaskArray(const FollowWall& task, const Rem&... rem) : TaskArray(rem...)
+			{
+				_taskTypes[_numTasks] = _TaskType::followWall;
+				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].followWall)) FollowWall(task);
 				_numTasks++;
 			}
 
@@ -283,6 +311,18 @@ namespace JAFD
 		ReturnCode setNewTask<NewStateType::lastEndState>(const AlignFront& newTask, const bool forceOverride);
 
 		ReturnCode setNewTask(const AlignFront& newTask, RobotState startState, const bool forceOverride = false);
+
+		// Set new FollowWall task
+		template<NewStateType stateType>
+		ReturnCode setNewTask(const FollowWall& newTask, const bool forceOverride = false);
+
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const FollowWall& newTask, const bool forceOverride);
+
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const FollowWall& newTask, const bool forceOverride);
+
+		ReturnCode setNewTask(const FollowWall& newTask, RobotState startState, const bool forceOverride = false);
 
 		// Set new TaskArray task
 		template<NewStateType stateType>

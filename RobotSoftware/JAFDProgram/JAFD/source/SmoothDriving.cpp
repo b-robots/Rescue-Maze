@@ -23,6 +23,11 @@ namespace JAFD
 {
 	namespace SmoothDriving
 	{
+		float debug1 = 0.0;
+		float debug2 = 0.0;
+		float debug3 = 0.0;
+		float debug4 = 0.0;
+
 		using namespace JAFDSettings::Controller;
 
 		namespace
@@ -37,6 +42,7 @@ namespace JAFD
 				ForceSpeed forceSpeed;
 				TaskArray taskArray;
 				AlignFront alignFront;
+				FollowWall followWall;
 
 				_TaskCopies() : stop() {};
 				~_TaskCopies() {}
@@ -141,16 +147,22 @@ namespace JAFD
 				desiredSpeed = _endSpeeds;
 			}
 
+			// TODO
 			// GoToAngle Algorithm - funktionier nicht
-			Vec3f goToVec = _endState.position - (Vec3f)currentPosition;
+			Vec3f goToVec = _endState.position - tempRobotState.position;
 
 			float angleDamping = std::max(GoToAngle::angleDampingBegin - fabsf(fabsf(drivenDistance) - fabsf(_distance)), 0.0f) / GoToAngle::angleDampingBegin;
 
 			float errorAngle = fitAngleToInterval(getGlobalHeading(goToVec) - tempRobotState.globalHeading);
 			errorAngle *= 1.0f - angleDamping;
 
-			desAngularVel = desiredSpeed / GoToAngle::aheadDistL * sinf(errorAngle);
-			desiredSpeed = desiredSpeed * cosf(errorAngle);
+			desAngularVel = desiredSpeed / GoToAngle::aheadDistL * sinf(-errorAngle);
+			desiredSpeed = desiredSpeed * cosf(-errorAngle);
+
+			debug1 = _endState.position.x;
+			debug2 = tempRobotState.position.x;
+			debug3 = _endState.position.y;
+			debug4 = tempRobotState.position.y;
 
 			//// A variation of pure pursuits controller where the goal point is a lookahead distance on the path away (not a lookahead distance from the robot).
 			//// Furthermore, the lookahead distance is dynamically adapted to the speed
@@ -672,6 +684,130 @@ namespace JAFD
 
 		// AlignFront class - end
 
+		// FollowWall class - begin
+
+		FollowWall::FollowWall(int16_t speed, float distance) : ITask(), _speeds(speed), _distance(distance) {}
+
+		ReturnCode FollowWall::startTask(RobotState startState) {
+			// TODO
+			return ReturnCode::ok;
+		}
+
+		WheelSpeeds FollowWall::updateSpeeds(const uint8_t freq) {
+			const auto tempFusedData = SensorFusion::getFusedData();
+
+			struct {
+				bool lf = false;
+				bool lb = false;
+				bool rf = false;
+				bool rb = false;
+			} usableData;
+
+			struct {
+				int lf = 0;
+				int lb = 0;
+				int rf = 0;
+				int rb = 0;
+			} distances;
+
+			if ((tempFusedData.distSensorState.leftFront == DistSensorStatus::ok &&
+				tempFusedData.distances.leftFront < 30 - JAFDSettings::Mechanics::distSensLeftRightDist) ||
+				tempFusedData.distSensorState.leftFront == DistSensorStatus::underflow) {
+				usableData.lf = true;
+				distances.lf = tempFusedData.distSensorState.leftFront == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist / 10 : tempFusedData.distances.leftFront;
+			}
+
+			if ((tempFusedData.distSensorState.leftBack == DistSensorStatus::ok &&
+				tempFusedData.distances.leftBack < 30 - JAFDSettings::Mechanics::distSensLeftRightDist) ||
+				tempFusedData.distSensorState.leftBack == DistSensorStatus::underflow) {
+				usableData.lb = true;
+				distances.lb = tempFusedData.distSensorState.leftBack == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist / 10 : tempFusedData.distances.leftBack;
+			}
+
+			if ((tempFusedData.distSensorState.rightFront == DistSensorStatus::ok &&
+				tempFusedData.distances.rightFront < 30 - JAFDSettings::Mechanics::distSensLeftRightDist) ||
+				tempFusedData.distSensorState.rightFront == DistSensorStatus::underflow) {
+				usableData.rf = true;
+				distances.rf = tempFusedData.distSensorState.rightFront == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist / 10 : tempFusedData.distances.rightFront;
+			}
+
+			if ((tempFusedData.distSensorState.rightBack == DistSensorStatus::ok &&
+				tempFusedData.distances.rightBack < 30 - JAFDSettings::Mechanics::distSensLeftRightDist) ||
+				tempFusedData.distSensorState.rightBack == DistSensorStatus::underflow) {
+				usableData.rb = true;
+				distances.rb = tempFusedData.distSensorState.rightBack == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist / 10 : tempFusedData.distances.rightBack;
+			}
+
+			float steering = 0;
+
+			if (usableData.lf && usableData.lb && usableData.rb && usableData.rf) {
+				// All 4 values available
+				float front = distances.lf - distances.rf;
+				float back = distances.rb - distances.lb;
+
+				steering = (front + back) / 2.0;
+			}
+			else if (usableData.lf && usableData.rf) {
+				steering = distances.lf - distances.rf;
+			}
+			else if (usableData.lb && usableData.rb) {
+				steering = distances.rb - distances.lb;
+			}
+			else if (usableData.lf && usableData.rb) {
+				float left = distances.lf - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 2.0;
+				float right = distances.rb - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 2.0;
+
+				steering = left + right;
+			}
+			else if (usableData.lb && usableData.rf) {
+				float left = distances.lb - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 2.0;
+				float right = distances.rf - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 2.0;
+
+				steering = -(left + right);
+			}
+			else if (usableData.lb) {
+				steering = -(distances.lb - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 2.0);
+			}
+			else if (usableData.lf) {
+				steering = distances.lf - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 2.0;
+			}
+			else if (usableData.rb) {
+				steering = distances.rb - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 2.0;
+			}
+			else if (usableData.rf) {
+				steering = -(distances.rf - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 2.0);
+			}
+
+			float errorAngle = steering * JAFDSettings::SmoothDriving::steeringToAngle;
+
+			float correctedAngularVel = _speeds / GoToAngle::aheadDistL * sinf(errorAngle);
+			float correctedForwardVel = _speeds * cosf(errorAngle);
+
+			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
+			WheelSpeeds output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
+
+			// Correct speed if it is too low 
+			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed)
+			{
+				_forwardVelPID.reset();
+				_angularVelPID.reset();
+
+				output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			}
+
+			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed)
+			{
+				_forwardVelPID.reset();
+				_angularVelPID.reset();
+
+				output.right = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			}
+
+			return output;
+		}
+
+		// FollowWall class - end
+
 		// TaskArray class - begin
 
 		TaskArray::TaskArray(const TaskArray& taskArray) : ITask(), _numTasks(taskArray._numTasks), _currentTaskNum(taskArray._numTasks - 1)
@@ -698,6 +834,8 @@ namespace JAFD
 					break;
 				case _TaskType::forceSpeed:
 					_taskArray[i] = new (&(_taskCopies[i].forceSpeed)) ForceSpeed(taskArray._taskCopies[i].forceSpeed);
+				case _TaskType::followWall:
+					_taskArray[i] = new (&(_taskCopies[i].followWall)) FollowWall(taskArray._taskCopies[i].followWall);
 				default:
 					break;
 				}
@@ -748,6 +886,14 @@ namespace JAFD
 		{
 			_taskTypes[_numTasks] = _TaskType::alignFront;
 			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].alignFront)) AlignFront(task);
+			_currentTaskNum = _numTasks;
+			_numTasks++;
+		}
+
+		TaskArray::TaskArray(const FollowWall& task) : ITask()
+		{
+			_taskTypes[_numTasks] = _TaskType::followWall;
+			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].alignFront)) FollowWall(task);
 			_currentTaskNum = _numTasks;
 			_numTasks++;
 		}
@@ -1301,6 +1447,89 @@ namespace JAFD
 				if (returnCode == ReturnCode::ok)
 				{
 					_currentTask = new (&(_taskCopies.alignFront)) AlignFront(temp);
+					_stopped = false;
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new FollowWall task (use last end state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const FollowWall& newTask, const bool forceOverride)
+		{
+			static RobotState endState;
+			static ReturnCode returnCode;
+			static FollowWall temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				endState = static_cast<RobotState>(_currentTask->getEndState());
+
+				temp = newTask;
+				returnCode = temp.startTask(endState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.followWall)) FollowWall(temp);
+					_stopped = false;
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new FollowWall task (use current state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const FollowWall& newTask, const bool forceOverride)
+		{
+			static ReturnCode returnCode;
+			static FollowWall temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				temp = newTask;
+				returnCode = temp.startTask(SensorFusion::getFusedData().robotState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.followWall)) FollowWall(temp);
+					_stopped = false;
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new AlignFront task (use specified state to start)
+		ReturnCode setNewTask(const FollowWall& newTask, RobotState startState, const bool forceOverride)
+		{
+			static ReturnCode returnCode;
+			static FollowWall temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				temp = newTask;
+				returnCode = temp.startTask(startState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.followWall)) FollowWall(temp);
 					_stopped = false;
 				}
 			}

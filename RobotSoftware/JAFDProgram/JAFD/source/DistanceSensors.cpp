@@ -128,7 +128,7 @@ namespace JAFD
 			// Recommended : Public registers - See data sheet for more detail
 			write8(0x0011, 0x10);	// Enables polling for ‘New Sample ready’
 									// when measurement completes
-			write8(0x010a, 0x28);	// Set the averaging sample period
+			write8(0x010a, 48);		// Set the averaging sample period
 									// (compromise between lower noise and
 									// increased execution time)
 			write8(0x003f, 0x46);	// Sets the light and dark gain (upper
@@ -142,14 +142,11 @@ namespace JAFD
 			write8(0x0014, 0x24);	// Configures interrupt on ‘New Sample
 									// Ready threshold event’
 
-			// 10 Hz continuos mode
-			write8(0x001c, 63);		// max convergence time = 63ms
-			write8(0x001b, 9);		// inter measurement period = 100ms (= 9 * 10ms + 10ms)
+			delay(10);
 
-			// Select single mode (to stop eventual continuous )
-			write8(_regRangeStart, 0x01);
-
-			delay(100);
+			// 25 Hz continuos mode
+			write8(0x001c, 30);		// max convergence time = 30ms
+			write8(0x001b, 3);		// inter measurement period = 40ms (= 3 * 10ms + 10ms)
 
 			// Start continuous mode
 			write8(_regRangeStart, 0x03);
@@ -162,7 +159,7 @@ namespace JAFD
 			Wire.write(address >> 8);
 			Wire.write(address);
 			Wire.write(data);
-			Wire.endTransmission();
+			Wire.endTransmission(true);
 		}
 
 		// Write 2 bytes
@@ -173,7 +170,7 @@ namespace JAFD
 			Wire.write(address);
 			Wire.write(data >> 8);
 			Wire.write(data);
-			Wire.endTransmission();
+			Wire.endTransmission(true);
 		}
 
 		// Read 1 byte
@@ -182,7 +179,7 @@ namespace JAFD
 			Wire.beginTransmission(_i2cAddr);
 			Wire.write(address >> 8);
 			Wire.write(address);
-			Wire.endTransmission();
+			Wire.endTransmission(true);
 
 			Wire.requestFrom(_i2cAddr, (uint8_t)1);
 
@@ -197,7 +194,7 @@ namespace JAFD
 			Wire.beginTransmission(_i2cAddr);
 			Wire.write(address >> 8);
 			Wire.write(address);
-			Wire.endTransmission();
+			Wire.endTransmission(true);
 
 			Wire.requestFrom(_i2cAddr, (uint8_t)2);
 			data = Wire.read();
@@ -218,17 +215,25 @@ namespace JAFD
 
 			// Poll until data is available
 			auto startMillis = millis();
-			while (!(read8(_regIntStatus) & 0x04))
+			uint8_t state;
+
+			do
 			{
+				state = read8(_regIntStatus);
+
 				if (millis() - startMillis > JAFDSettings::DistanceSensors::timeout)
 				{
-					// Select single mode (to stop eventual continuous )
-					write8(_regRangeStart, 0x01);
+					clearInterrupt();
 
-					delay(100);
+					// Select single mode (to stop eventual continuous)
+					write8(_regRangeStart, 0x00);
+
+					delay(10);
 
 					// Start continuous mode
 					write8(_regRangeStart, 0x03);
+
+					delay(10);
 
 					if (read8(_regModelID) != 0xB4)
 					{
@@ -240,11 +245,11 @@ namespace JAFD
 					Serial.println(_id);
 
 					// Timeout
-					clearInterrupt();
+					_status = static_cast<Status>(read8(_regRangeStatus) >> 4);
 					_status = Status::timeout;
 					return 0;
 				}
-			}
+			} while (state == 255 || (state & 0b111) != 4 || (state & 0b11000000 == 0 && (state & 0b111) != 4));
 
 			// Read range in mm
 			float tempDist = read8(_regRangeResult) * _k + _d;
@@ -283,7 +288,7 @@ namespace JAFD
 			}
 
 			// Clear interrupt
-			write8(_regIntClear, 0x07);
+			write8(_regIntClear, 0x05);
 		}
 
 		VL6180::Status VL6180::getStatus() const

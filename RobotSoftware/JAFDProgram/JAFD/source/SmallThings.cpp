@@ -60,6 +60,7 @@ namespace JAFD
 			if (PinMapping::toABPeripheral(lPWM))
 			{
 				lPWM.port->PIO_ABSR |= lPWM.pin;
+
 			}
 			else
 			{
@@ -191,6 +192,7 @@ namespace JAFD
 
 			for (uint8_t ch = 0; ch < I2CMultiplexer::maxCh; ch++)
 			{
+				manualClockingWire0();
 				I2CMultiplexer::selectChannel(ch);
 				manualClockingWire0();
 			}
@@ -328,12 +330,17 @@ namespace JAFD
 
 		void setup()
 		{
+			pin.port->PIO_PER = pin.pin;
+			pin.port->PIO_ODR = pin.pin;
+			pin.port->PIO_DIFSR = pin.pin;
+			pin.port->PIO_IFER = pin.pin;
 
+			pin.port->PIO_SCDR = 0x8ff; // (DIV + 1) * 31us = ~70ms
 		}
 
 		bool getState()
 		{
-
+			return (pin.port->PIO_PDSR & pin.pin) != 0;
 		}
 	}
 
