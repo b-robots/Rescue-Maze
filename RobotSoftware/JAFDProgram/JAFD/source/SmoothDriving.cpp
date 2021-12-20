@@ -711,31 +711,31 @@ namespace JAFD
 			} distances;
 
 			if ((tempFusedData.distSensorState.leftFront == DistSensorStatus::ok &&
-				tempFusedData.distances.leftFront < 30 - JAFDSettings::Mechanics::distSensLeftRightDist) ||
+				tempFusedData.distances.leftFront < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10) ||
 				tempFusedData.distSensorState.leftFront == DistSensorStatus::underflow) {
 				usableData.lf = true;
-				distances.lf = tempFusedData.distSensorState.leftFront == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist / 10 : tempFusedData.distances.leftFront;
+				distances.lf = tempFusedData.distSensorState.leftFront == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist : tempFusedData.distances.leftFront;
 			}
 
 			if ((tempFusedData.distSensorState.leftBack == DistSensorStatus::ok &&
-				tempFusedData.distances.leftBack < 30 - JAFDSettings::Mechanics::distSensLeftRightDist) ||
+				tempFusedData.distances.leftBack < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10) ||
 				tempFusedData.distSensorState.leftBack == DistSensorStatus::underflow) {
 				usableData.lb = true;
-				distances.lb = tempFusedData.distSensorState.leftBack == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist / 10 : tempFusedData.distances.leftBack;
+				distances.lb = tempFusedData.distSensorState.leftBack == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist : tempFusedData.distances.leftBack;
 			}
 
 			if ((tempFusedData.distSensorState.rightFront == DistSensorStatus::ok &&
-				tempFusedData.distances.rightFront < 30 - JAFDSettings::Mechanics::distSensLeftRightDist) ||
+				tempFusedData.distances.rightFront < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10) ||
 				tempFusedData.distSensorState.rightFront == DistSensorStatus::underflow) {
 				usableData.rf = true;
-				distances.rf = tempFusedData.distSensorState.rightFront == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist / 10 : tempFusedData.distances.rightFront;
+				distances.rf = tempFusedData.distSensorState.rightFront == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist : tempFusedData.distances.rightFront;
 			}
 
 			if ((tempFusedData.distSensorState.rightBack == DistSensorStatus::ok &&
-				tempFusedData.distances.rightBack < 30 - JAFDSettings::Mechanics::distSensLeftRightDist) ||
+				tempFusedData.distances.rightBack < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10) ||
 				tempFusedData.distSensorState.rightBack == DistSensorStatus::underflow) {
 				usableData.rb = true;
-				distances.rb = tempFusedData.distSensorState.rightBack == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist / 10 : tempFusedData.distances.rightBack;
+				distances.rb = tempFusedData.distSensorState.rightBack == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist : tempFusedData.distances.rightBack;
 			}
 
 			float steering = 0;
@@ -754,34 +754,50 @@ namespace JAFD
 				steering = distances.rb - distances.lb;
 			}
 			else if (usableData.lf && usableData.rb) {
-				float left = distances.lf - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 2.0;
-				float right = distances.rb - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 2.0;
+				float left = distances.lf - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 0.2;
+				float right = distances.rb - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 0.2;
 
 				steering = left + right;
 			}
 			else if (usableData.lb && usableData.rf) {
-				float left = distances.lb - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 2.0;
-				float right = distances.rf - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 2.0;
+				float left = distances.lb - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 0.2;
+				float right = distances.rf - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 0.2;
 
 				steering = -(left + right);
 			}
+			else if (usableData.lb && usableData.lf) {
+				float front = 2 * distances.lf - (300.0 - JAFDSettings::Mechanics::distSensLeftRightDist * 10);
+				float back = 2 * distances.lb - (300.0 - JAFDSettings::Mechanics::distSensLeftRightDist * 10);
+
+				steering = (front + back) / 2.0;
+			}
+			else if (usableData.rb && usableData.rf) {
+				float front = 2 * distances.rf - (300.0 - JAFDSettings::Mechanics::distSensLeftRightDist * 10);
+				float back = 2 * distances.rb - (300.0 - JAFDSettings::Mechanics::distSensLeftRightDist * 10);
+
+				steering = -(front + back) / 2.0;
+			}
 			else if (usableData.lb) {
-				steering = -(distances.lb - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 2.0);
+				steering = -(distances.lb - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 0.2);
 			}
 			else if (usableData.lf) {
-				steering = distances.lf - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 2.0;
+				steering = distances.lf - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 0.2;
 			}
 			else if (usableData.rb) {
-				steering = distances.rb - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 2.0;
+				steering = distances.rb - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 0.2;
 			}
 			else if (usableData.rf) {
-				steering = -(distances.rf - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 2.0);
+				steering = -(distances.rf - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 0.2);
 			}
 
 			float errorAngle = steering * JAFDSettings::SmoothDriving::steeringToAngle;
+			errorAngle = fmaxf(fminf(errorAngle, PI / 2), -PI / 2);
 
 			float correctedAngularVel = _speeds / GoToAngle::aheadDistL * sinf(errorAngle);
 			float correctedForwardVel = _speeds * cosf(errorAngle);
+
+			debug1 = steering;
+			debug2 = errorAngle;
 
 			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
 			WheelSpeeds output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };

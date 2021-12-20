@@ -72,7 +72,7 @@ namespace JAFDSettings
 	{
 		constexpr float cmPSToPerc = 1.0f / (97.0f / 60.0f * M_PI * Mechanics::wheelDiameter);		// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed.)
 
-		constexpr uint8_t minSpeed = 20;					// Minimum speed for motor to rotate
+		constexpr uint8_t minSpeed = 10;					// Minimum speed for motor to rotate
 		constexpr uint8_t maxSpeed = 1.0f / cmPSToPerc;		// Calculated maximum speed
 		constexpr float maxRotSpeed = 2.0f * maxSpeed / Mechanics::wheelDistance;	// Calculated maximum rotation speed
 
@@ -143,7 +143,7 @@ namespace JAFDSettings
 
 		namespace GoToAngle
 		{
-			constexpr float turningGainConstant = 0.2f;
+			constexpr float turningGainConstant = 0.3f;
 			constexpr float aheadDistL = Mechanics::wheelDistance / (2.0f * turningGainConstant);
 			constexpr float angleDampingBegin = 5.0f;
 		}
@@ -168,7 +168,7 @@ namespace JAFDSettings
 		constexpr uint16_t alignSpeed = MotorControl::minSpeed;		// Minimum speed to align to wall
 		constexpr uint16_t minAlignDist = 70;						// Minimum align distance, is default
 
-		constexpr float steeringToAngle = 0.157;					// Convert left right offset to controlled steering angle
+		constexpr float steeringToAngle = 0.03;					// Convert left right offset to controlled steering angle
 	}
 
 	namespace Dispenser

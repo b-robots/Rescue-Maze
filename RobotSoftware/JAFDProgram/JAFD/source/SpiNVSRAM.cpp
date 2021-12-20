@@ -30,7 +30,22 @@ namespace JAFD
 			_ssPin.port->PIO_PER = _ssPin.pin;
 			_ssPin.port->PIO_OER = _ssPin.pin;
 
-			return ReturnCode::ok;
+			uint8_t origByte = readByte(0x0);
+
+			writeByte(0x0, 42);
+
+			uint8_t read = readByte(0x0);
+
+			writeByte(0x0, origByte);
+
+			if (read != 42) {
+				Serial.print("Original value at 0x0: ");
+				Serial.println(origByte);
+				return ReturnCode::fatalError;
+			}
+			else {
+				return ReturnCode::ok;
+			}
 		}
 
 		void enable()

@@ -36,8 +36,6 @@ namespace JAFD
 	// Just for testing...
 	void robotSetup()
 	{
-		delay(5000);
-
 		// Setup the SPI-Bus
 		SPI.begin();
 		SPI.beginTransaction(SPISettings(10e+6, MSBFIRST, SPI_MODE0));
@@ -215,8 +213,8 @@ namespace JAFD
 		//Set start for 9DOF
 		Bno055::tare();
 
-		delay(1000);
-		
+		delay(500);
+
 		return;
 	}
 

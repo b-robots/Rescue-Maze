@@ -58,6 +58,11 @@ namespace JAFD
 
 		void VL6180::storeCalibData()
 		{
+			Serial.print("k: ");
+			Serial.print(_k);
+			Serial.print("; d:");
+			Serial.println(_d);
+
 			uint32_t startAddr = JAFDSettings::SpiNVSRAM::distSensStartAddr + JAFDSettings::DistanceSensors::bytesPerCalibData * _id;
 
 			uint16_t storeK = _k * 100.0f;
@@ -148,6 +153,12 @@ namespace JAFD
 			write8(0x001c, 30);		// max convergence time = 30ms
 			write8(0x001b, 3);		// inter measurement period = 40ms (= 3 * 10ms + 10ms)
 
+			// Select single mode (to stop eventual continuous)
+			write8(_regRangeStart, 0x00);
+			write8(_regRangeStart, 0x01);
+
+			delay(100);
+
 			// Start continuous mode
 			write8(_regRangeStart, 0x03);
 		}
@@ -225,15 +236,18 @@ namespace JAFD
 				{
 					clearInterrupt();
 
+					// TODO: try to recover
+
 					// Select single mode (to stop eventual continuous)
 					write8(_regRangeStart, 0x00);
+					write8(_regRangeStart, 0x01);
 
-					delay(10);
+					delay(100);
 
 					// Start continuous mode
 					write8(_regRangeStart, 0x03);
 
-					delay(10);
+					delay(50);
 
 					if (read8(_regModelID) != 0xB4)
 					{
@@ -497,6 +511,11 @@ namespace JAFD
 
 		void TFMini::storeCalibData()
 		{
+			Serial.print("k: ");
+			Serial.print(_k);
+			Serial.print("; d:");
+			Serial.println(_d);
+
 			uint32_t startAddr = JAFDSettings::SpiNVSRAM::distSensStartAddr + JAFDSettings::DistanceSensors::bytesPerCalibData * _id;
 
 			uint16_t storeK = _k * 100.0f;
@@ -619,6 +638,11 @@ namespace JAFD
 
 		void VL53L0::storeCalibData()
 		{
+			Serial.print("k: ");
+			Serial.print(_k);
+			Serial.print("; d:");
+			Serial.println(_d);
+
 			uint32_t startAddr = JAFDSettings::SpiNVSRAM::distSensStartAddr + JAFDSettings::DistanceSensors::bytesPerCalibData * _id;
 
 			uint16_t storeK = _k * 100.0f;
@@ -1075,61 +1099,194 @@ namespace JAFD
 			rightBack.clearInterrupt();
 		}
 
-		void averagedCalibration()
+		float getSingleCalibData(int sensorId)
 		{
+			switch (sensorId)
+			{
+			case 0:
+				DistanceSensors::rightBack.resetCalibData();
+				break;
+			case 1:
+				DistanceSensors::rightFront.resetCalibData();
+				break;
+			case 2:
+				DistanceSensors::leftBack.resetCalibData();
+				break;
+			case 3:
+				DistanceSensors::leftFront.resetCalibData();
+				break;
+			case 4:
+				DistanceSensors::frontLeft.resetCalibData();
+				break;
+			case 5:
+				DistanceSensors::frontRight.resetCalibData();
+				break;
+			case 6:
+				DistanceSensors::frontLong.resetCalibData();
+				break;
+			default:
+				break;
+			}
+
 			auto startCalibTime = millis();
-			auto avgDist = 0.0f;
+			float avgDist = 0.0f;
 			uint16_t avgCount = 0;
 
-			DistanceSensors::rightBack.resetCalibData();
-
 			while (millis() - startCalibTime < 1000)
 			{
 				SensorFusion::updateSensors();
 				SensorFusion::untimedFusion();
 				auto fusedData = SensorFusion::getFusedData();
 
-				if (fusedData.distSensorState.rightBack == DistSensorStatus::ok)
+				DistSensorStatus state = DistSensorStatus::error;
+
+				switch (sensorId)
 				{
-					avgDist += fusedData.distances.rightBack;
+				case 0:
+					state = fusedData.distSensorState.rightBack;
+					break;
+				case 1:
+					state = fusedData.distSensorState.rightFront;
+					break;
+				case 2:
+					state = fusedData.distSensorState.leftBack;
+					break;
+				case 3:
+					state = fusedData.distSensorState.leftFront;
+					break;
+				case 4:
+					state = fusedData.distSensorState.frontLeft;
+					break;
+				case 5:
+					state = fusedData.distSensorState.frontRight;
+					break;
+				case 6:
+					state = fusedData.distSensorState.frontLong;
+					break;
+				default:
+					break;
+				}
+
+				if (state == DistSensorStatus::ok)
+				{
+					switch (sensorId)
+					{
+					case 0:
+						avgDist += fusedData.distances.rightBack;
+						break;
+					case 1:
+						avgDist += fusedData.distances.rightFront;
+						break;
+					case 2:
+						avgDist += fusedData.distances.leftBack;
+						break;
+					case 3:
+						avgDist += fusedData.distances.leftFront;
+						break;
+					case 4:
+						avgDist += fusedData.distances.frontLeft;
+						break;
+					case 5:
+						avgDist += fusedData.distances.frontRight;
+						break;
+					case 6:
+						avgDist += fusedData.distances.frontLong;
+						break;
+					default:
+						break;
+					}
+					
 					avgCount++;
 				}
 			}
 
-			Serial.println(avgDist / (float)avgCount);
-			while (!Serial.available());
-			auto trueFirst = (uint16_t)Serial.parseInt();
-			auto measFirst = (uint16_t)(avgDist / (float)avgCount);
+			return avgDist / (float)avgCount;
+		}
 
-			do
+		void averagedCalibration()
+		{
+			// TODO: currently not calibrating frontLong
+			for (int i = 0; i <= 5; i++)
 			{
+				switch (i)
+				{
+				case 0:
+					Serial.println("rb");
+					break;
+				case 1:
+					Serial.println("rf");
+					break;
+				case 2:
+					Serial.println("lb");
+					break;
+				case 3:
+					Serial.println("lf");
+					break;
+				case 4:
+					Serial.println("fl");
+					break;
+				case 5:
+					Serial.println("fr");
+					break;
+				case 6:
+					Serial.println("flong");
+					break;
+				default:
+					break;
+				}
+
+				while (Serial.available()) Serial.read();
 				while (!Serial.available());
-			} while (Serial.readString().indexOf('o') != -1);
+				while (Serial.available()) Serial.read();
 
-			startCalibTime = millis();
-			avgDist = 0.0f;
-			avgCount = 0;
+				float measFirst = getSingleCalibData(i);
+				Serial.println(measFirst);
+				while (!Serial.available());
+				uint16_t trueFirst = (uint16_t)Serial.parseInt();
 
-			while (millis() - startCalibTime < 1000)
-			{
-				SensorFusion::updateSensors();
-				SensorFusion::untimedFusion();
-				auto fusedData = SensorFusion::getFusedData();
+				while (Serial.available()) Serial.read();
+				while (!Serial.available());
+				while (Serial.available()) Serial.read();
 
-				if (fusedData.distSensorState.rightBack == DistSensorStatus::ok)
+				float measSecond = getSingleCalibData(i);
+				Serial.println(measSecond);
+				while (!Serial.available());
+				uint16_t trueSecond = (uint16_t)Serial.parseInt();
+
+				switch (i)
 				{
-					avgDist += fusedData.distances.rightBack;
-					avgCount++;
+				case 0:
+					DistanceSensors::rightBack.calcCalibData(trueFirst, measFirst, trueSecond, measSecond);
+					DistanceSensors::rightBack.storeCalibData();
+					break;
+				case 1:
+					DistanceSensors::rightFront.calcCalibData(trueFirst, measFirst, trueSecond, measSecond);
+					DistanceSensors::rightFront.storeCalibData();
+					break;
+				case 2:
+					DistanceSensors::leftBack.calcCalibData(trueFirst, measFirst, trueSecond, measSecond);
+					DistanceSensors::leftBack.storeCalibData();
+					break;
+				case 3:
+					DistanceSensors::leftFront.calcCalibData(trueFirst, measFirst, trueSecond, measSecond);
+					DistanceSensors::leftFront.storeCalibData();
+					break;
+				case 4:
+					DistanceSensors::frontLeft.calcCalibData(trueFirst, measFirst, trueSecond, measSecond);
+					DistanceSensors::frontLeft.storeCalibData();
+					break;
+				case 5:
+					DistanceSensors::frontRight.calcCalibData(trueFirst, measFirst, trueSecond, measSecond);
+					DistanceSensors::frontRight.storeCalibData();
+					break;
+				case 6:
+					DistanceSensors::frontLong.calcCalibData(trueFirst, measFirst, trueSecond, measSecond);
+					DistanceSensors::frontLong.storeCalibData();
+					break;
+				default:
+					break;
 				}
 			}
-
-			Serial.println(avgDist / (float)avgCount);
-			while (!Serial.available());
-			auto trueSecond = (uint16_t)Serial.parseInt();
-			auto measSecond = (uint16_t)(avgDist / (float)avgCount);
-
-			DistanceSensors::rightBack.calcCalibData(trueFirst, measFirst, trueSecond, measSecond);
-			DistanceSensors::rightBack.storeCalibData();
 		}
 	}
 }
