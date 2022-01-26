@@ -116,7 +116,8 @@ namespace JAFD
 		{
 		private:
 			int16_t _speeds;					// Speeds of both wheels
-			float _distance;					// Distance the robot has to travel 
+			float _distance;					// Distance the robot has to travel
+			Vec2f _startPos;					// Start position
 		public:
 			explicit FollowWall(int16_t speed = 0, float distance = 0);
 			ReturnCode startTask(RobotState startState);

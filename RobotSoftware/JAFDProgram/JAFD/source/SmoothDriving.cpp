@@ -689,7 +689,18 @@ namespace JAFD
 		FollowWall::FollowWall(int16_t speed, float distance) : ITask(), _speeds(speed), _distance(distance) {}
 
 		ReturnCode FollowWall::startTask(RobotState startState) {
-			// TODO
+			_finished = false;
+			_startPos = (Vec2f)(startState.position);
+			_speeds = startState.forwardVel;
+
+			if (sgn(_speeds) != sgn(_distance)) return ReturnCode::error;
+
+			_endState.wheelSpeeds = FloatWheelSpeeds{ _speeds, _speeds };
+			_endState.forwardVel = static_cast<float>(_speeds);
+			_endState.position = startState.position + (Vec3f)(Vec2f(cosf(startState.globalHeading), sinf(startState.globalHeading)) * fabsf(_distance));
+			_endState.angularVel = Vec3f(0.0f, 0.0f, 0.0f);
+			_endState.globalHeading = startState.globalHeading;
+
 			return ReturnCode::ok;
 		}
 
@@ -753,6 +764,18 @@ namespace JAFD
 			else if (usableData.lb && usableData.rb) {
 				steering = distances.rb - distances.lb;
 			}
+			else if (usableData.lb && usableData.lf) {
+				float front = 2 * distances.lf - (300.0 - JAFDSettings::Mechanics::distSensLeftRightDist * 10);
+				float back = 2 * distances.lb - (300.0 - JAFDSettings::Mechanics::distSensLeftRightDist * 10);
+
+				steering = (front - back) / 2.0;
+			}
+			else if (usableData.rb && usableData.rf) {
+				float front = 2 * distances.rf - (300.0 - JAFDSettings::Mechanics::distSensLeftRightDist * 10);
+				float back = 2 * distances.rb - (300.0 - JAFDSettings::Mechanics::distSensLeftRightDist * 10);
+
+				steering = (back - front) / 2.0;
+			}
 			else if (usableData.lf && usableData.rb) {
 				float left = distances.lf - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 0.2;
 				float right = distances.rb - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 0.2;
@@ -764,18 +787,6 @@ namespace JAFD
 				float right = distances.rf - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 0.2;
 
 				steering = -(left + right);
-			}
-			else if (usableData.lb && usableData.lf) {
-				float front = 2 * distances.lf - (300.0 - JAFDSettings::Mechanics::distSensLeftRightDist * 10);
-				float back = 2 * distances.lb - (300.0 - JAFDSettings::Mechanics::distSensLeftRightDist * 10);
-
-				steering = (front + back) / 2.0;
-			}
-			else if (usableData.rb && usableData.rf) {
-				float front = 2 * distances.rf - (300.0 - JAFDSettings::Mechanics::distSensLeftRightDist * 10);
-				float back = 2 * distances.rb - (300.0 - JAFDSettings::Mechanics::distSensLeftRightDist * 10);
-
-				steering = -(front + back) / 2.0;
 			}
 			else if (usableData.lb) {
 				steering = -(distances.lb - (30.0 - JAFDSettings::Mechanics::distSensLeftRightDist) / 0.2);
@@ -794,10 +805,7 @@ namespace JAFD
 			errorAngle = fmaxf(fminf(errorAngle, PI / 2), -PI / 2);
 
 			float correctedAngularVel = _speeds / GoToAngle::aheadDistL * sinf(errorAngle);
-			float correctedForwardVel = _speeds * cosf(errorAngle);
-
-			debug1 = steering;
-			debug2 = errorAngle;
+			float correctedForwardVel = _speeds * cosf(errorAngle / 2.0f);
 
 			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
 			WheelSpeeds output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
@@ -818,6 +826,9 @@ namespace JAFD
 
 				output.right = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
 			}
+
+			debug1 = output.right;
+			debug2 = output.left;
 
 			return output;
 		}

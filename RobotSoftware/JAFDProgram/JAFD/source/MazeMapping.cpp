@@ -1,5 +1,5 @@
 /*
-This part of the Library is responsible for mapping the maze and finding the shortest paths.
+This part of the library is responsible for mapping the maze and finding the shortest paths.
 */
 
 #include "../header/MazeMapping.h"

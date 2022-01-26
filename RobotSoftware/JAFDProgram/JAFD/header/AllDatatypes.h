@@ -198,10 +198,10 @@ namespace JAFD
 	// Heading direction
 	enum class AbsoluteDir : uint8_t
 	{
-		north,
-		east,
-		south,
-		west
+		north = 1 << 0,
+		east = 1 << 1,
+		south = 1 << 2,
+		west = 1 << 3
 	};
 	
 	// Relative direction for robot

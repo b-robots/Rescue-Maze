@@ -39,7 +39,7 @@ namespace JAFD
 
 		void sensorFiltering(const uint8_t freq)
 		{
-			// DEBUG
+			// Temporarily disable speed, position, angle from distance sensors.
 			distSensAngleTrust = 0.0;
 			distSensSpeedTrust = 0.0;
 			distSensXTrust = 0.0;
