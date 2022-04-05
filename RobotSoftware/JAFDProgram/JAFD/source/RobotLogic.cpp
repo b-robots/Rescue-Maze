@@ -14,31 +14,55 @@ namespace JAFD
 	namespace RobotLogic
 	{
 		namespace {
+			void updateNextMapPosHeading(AbsoluteDir absDir, MapCoordinate& mapCoordinate, AbsoluteDir& heading) {
+				heading = absDir;
+
+				switch (absDir)
+				{
+				case AbsoluteDir::north:
+					mapCoordinate.x += 1;
+					break;
+				case AbsoluteDir::east:
+					mapCoordinate.y -= 1;
+					break;
+				case AbsoluteDir::south:
+					mapCoordinate.x -= 1;
+					break;
+				case AbsoluteDir::west:
+					mapCoordinate.y += 1;
+					break;
+				default:
+					break;
+				}
+			}
+
 			void startRelativeTurnDirDrive(RelativeDir dir) {
+				using namespace SmoothDriving;
+
 				switch (dir)
 				{
 				case RelativeDir::forward:
-					SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
-						SmoothDriving::FollowWall(20, 30.0f),
-						SmoothDriving::Stop()));
+					setNewTask<NewStateType::currentState>(TaskArray(Stop(),
+						FollowWall(25, 30.0f),
+						Stop()));
 					break;
 				case RelativeDir::right:
-					SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
-						SmoothDriving::Rotate(-2.0f, -90.0f),
-						SmoothDriving::FollowWall(20, 30.0f),
-						SmoothDriving::Stop()));
+					setNewTask<NewStateType::currentState>(TaskArray(Stop(),
+						Rotate(-1.0f, -90.0f),
+						FollowWall(25, 30.0f),
+						Stop()));
 					break;
 				case RelativeDir::backward:
-					SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
-						SmoothDriving::Rotate(3.0f, 180.0f),
-						SmoothDriving::FollowWall(20, 30.0f),
-						SmoothDriving::Stop()));
+					setNewTask<NewStateType::currentState>(TaskArray(Stop(),
+						Rotate(1.0f, 180.0f),
+						FollowWall(25, 30.0f),	
+						Stop()));
 					break;
 				case RelativeDir::left:
-					SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(SmoothDriving::Stop(),
-						SmoothDriving::Rotate(2.0f, 90.0f),
-						SmoothDriving::FollowWall(20, 30.0f),
-						SmoothDriving::Stop()));
+					setNewTask<NewStateType::currentState>(TaskArray(Stop(),
+						Rotate(1.0f, 90.0f),
+						FollowWall(25, 30.0f),
+						Stop()));
 					break;
 				default:
 					break;
@@ -51,64 +75,99 @@ namespace JAFD
 			using namespace SmoothDriving;
 
 			static bool start = true;
+			static MapCoordinate nextMapCoordinate;
+			static AbsoluteDir nextHeading;
 
-			const auto tempFusedData = SensorFusion::getFusedData();
+			//static const TaskArray tasks[] = {
+			//	TaskArray(SmoothDriving::Stop(),
+			//			SmoothDriving::FollowWall(25, 30.0f),
+			//			SmoothDriving::Stop()),
+			//	TaskArray(SmoothDriving::Stop(),
+			//			SmoothDriving::FollowWall(25, 60.0f),
+			//			SmoothDriving::Stop()),
+			//	TaskArray(SmoothDriving::Stop(),
+			//			SmoothDriving::Rotate(-0.5f, -90.0f),
+			//			SmoothDriving::Stop()),
+			//	//TaskArray(SmoothDriving::Stop(),
+			//	//		SmoothDriving::FollowWall(25, 30.0f),
+			//	//		SmoothDriving::Stop()),
+			//	//TaskArray(SmoothDriving::Stop(),
+			//	//		SmoothDriving::FollowWall(25, 60.0f),
+			//	//		SmoothDriving::Stop())
+			//};
 
-			static const TaskArray tasks[] = {
-				ForceSpeed(15, 50.0f),
-				Rotate(2.0f, -90.0f)
-			};
+			//const static uint16_t numTasks = sizeof(tasks) / sizeof(*tasks);
 
-			const static uint16_t numTasks = sizeof(tasks) / sizeof(*tasks);
+			//static uint16_t i = 0;
 
-			static uint16_t i = 0;
+			//if (isTaskFinished() && i < numTasks)
+			//{
+			//	setNewTask<NewStateType::lastEndState>(tasks[i]);
+			//	i++;
+			//	// i %= numTasks;
+			//}
 
-			if (isTaskFinished() && i < numTasks)
-			{
-				setNewTask<NewStateType::currentState>(tasks[i]);
-				i++;
-				i %= numTasks;
-			}
-
-			return;
+			//return;
 
 			if (start) {
-				if (tempFusedData.gridCellCertainty >= 0.5f) {
-					if (tempFusedData.gridCell.cellConnections && EntranceDirections::north) {
-						startRelativeTurnDirDrive(RelativeDir::forward);
-					}
-					else if (tempFusedData.gridCell.cellConnections && EntranceDirections::east) {
-						startRelativeTurnDirDrive(RelativeDir::right);
-					}
-					else if (tempFusedData.gridCell.cellConnections && EntranceDirections::west) {
-						startRelativeTurnDirDrive(RelativeDir::left);
-					}
-					else if (tempFusedData.gridCell.cellConnections && EntranceDirections::south) {
-						startRelativeTurnDirDrive(RelativeDir::backward);
-					}
-					else {
-						Serial.println("No direction to drive from starting position!");
-						return;
-					}
 
-					start = false;
+				if (!SensorFusion::scanSurrounding()) {
+					return;
 				}
+
+				const auto tempFusedData = SensorFusion::getFusedData();
+
+				if (tempFusedData.gridCell.cellConnections & EntranceDirections::north) {
+					startRelativeTurnDirDrive(RelativeDir::forward);
+					updateNextMapPosHeading(AbsoluteDir::north, nextMapCoordinate, nextHeading);
+				}
+				else if (tempFusedData.gridCell.cellConnections & EntranceDirections::east) {
+					startRelativeTurnDirDrive(RelativeDir::right);
+					updateNextMapPosHeading(AbsoluteDir::east, nextMapCoordinate, nextHeading);
+				}
+				else if (tempFusedData.gridCell.cellConnections & EntranceDirections::west) {
+					startRelativeTurnDirDrive(RelativeDir::left);
+					updateNextMapPosHeading(AbsoluteDir::west, nextMapCoordinate, nextHeading);
+				}
+				else {
+					startRelativeTurnDirDrive(RelativeDir::backward);
+					updateNextMapPosHeading(AbsoluteDir::south, nextMapCoordinate, nextHeading);
+				}
+
+				start = false;
 			}
 
-			if (SmoothDriving::isTaskFinished() && tempFusedData.gridCellCertainty >= 0.5f)
+			if (SmoothDriving::isTaskFinished())
 			{
+				SensorFusion::setMapPosHeading(nextMapCoordinate, nextHeading);
+
+				if (!SensorFusion::scanSurrounding()) {
+					return;
+				}
+
+				const auto tempFusedData = SensorFusion::getFusedData();
+
 				// left wall following
-				if (tempFusedData.gridCell.cellConnections && static_cast<uint8_t>(makeAbsolute(RelativeDir::left, tempFusedData.robotState.heading))) {
+				AbsoluteDir absLeft = makeAbsolute(RelativeDir::left, tempFusedData.robotState.heading);
+				AbsoluteDir absForward = makeAbsolute(RelativeDir::forward, tempFusedData.robotState.heading);
+				AbsoluteDir absRight = makeAbsolute(RelativeDir::right, tempFusedData.robotState.heading);
+				AbsoluteDir absBack = makeAbsolute(RelativeDir::backward, tempFusedData.robotState.heading);
+
+				if (tempFusedData.gridCell.cellConnections & static_cast<uint8_t>(absLeft)) {
 					startRelativeTurnDirDrive(RelativeDir::left);
+					updateNextMapPosHeading(absLeft, nextMapCoordinate, nextHeading);
 				}
-				else if (tempFusedData.gridCell.cellConnections && static_cast<uint8_t>(makeAbsolute(RelativeDir::forward, tempFusedData.robotState.heading))) {
+				else if (tempFusedData.gridCell.cellConnections & static_cast<uint8_t>(absForward)) {
 					startRelativeTurnDirDrive(RelativeDir::forward);
+					updateNextMapPosHeading(absForward, nextMapCoordinate, nextHeading);
 				}
-				else if (tempFusedData.gridCell.cellConnections && static_cast<uint8_t>(makeAbsolute(RelativeDir::right, tempFusedData.robotState.heading))) {
+				else if (tempFusedData.gridCell.cellConnections & static_cast<uint8_t>(absRight)) {
 					startRelativeTurnDirDrive(RelativeDir::right);
+					updateNextMapPosHeading(absRight, nextMapCoordinate, nextHeading);
 				}
-				else if (tempFusedData.gridCell.cellConnections && static_cast<uint8_t>(makeAbsolute(RelativeDir::backward, tempFusedData.robotState.heading))) {
+				else if (tempFusedData.gridCell.cellConnections & static_cast<uint8_t>(absBack)) {
 					startRelativeTurnDirDrive(RelativeDir::backward);
+					updateNextMapPosHeading(absBack, nextMapCoordinate, nextHeading);
 				}
 				else {
 					Serial.println("No direction to drive!");

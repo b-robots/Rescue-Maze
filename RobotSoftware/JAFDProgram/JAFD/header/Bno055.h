@@ -25,6 +25,7 @@ namespace JAFD
 
 		void calibToRAM();
 		void calibFromRAM();
+		uint8_t getOverallCalibStatus();
 
 		Vec3f getLinAcc();
 		Vec3f getForwardVec();

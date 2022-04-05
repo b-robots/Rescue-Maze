@@ -11,6 +11,7 @@ This part of the library is responsible for mapping the maze and finding the sho
 #include "../../JAFDSettings.h"
 
 #include <algorithm>
+#include <cmath>
 
 namespace JAFD
 {
@@ -23,7 +24,7 @@ namespace JAFD
 			const uint8_t randVal2 = random(UINT8_MAX + 1);
 			const uint8_t randBFVal = random(UINT8_MAX + 1);
 
-			const MapCoordinate randCoor(random(minX, maxX + 1), random(minY, minY + 1));
+			const MapCoordinate randCoor(random(minX, maxX + 1), random(minY, maxY + 1));
 
 			const GridCell randomCell(randVal1, randVal2);
 
@@ -169,6 +170,393 @@ namespace JAFD
 		{
 			currentCertainty = 0.25f * updateCertainty + 0.5f * updateCertainty * updateCertainty + 0.15f * currentCertainty + 0.55f * currentCertainty * updateCertainty - 0.7f * currentCertainty * updateCertainty * updateCertainty + 0.3f * currentCertainty * currentCertainty + 0.1f * currentCertainty * currentCertainty * updateCertainty - 0.2f * currentCertainty * currentCertainty * updateCertainty * updateCertainty + 0.05;
 			setGridCell(gridCell, coor);
+		}
+
+		// Detect walls
+		void manageDetectedWalls(uint8_t frontWallsDetected, uint8_t leftWallsDetected, uint8_t rightWallsDetected, volatile FusedData* fusedData) {
+			// TODO
+			// If on start tile, wall behind is unknown
+			
+			auto tempFusedData = *fusedData;
+
+			static MapCoordinate lastDifferentPosittion = homePosition;
+			static MapCoordinate lastPosition = homePosition;
+			GridCell tempCell;
+			float updateCertainty = 1.0f;
+			tempCell.cellState = CellState::visited;
+			tempCell.cellConnections = EntranceDirections::nowhere;
+			uint8_t walls = 0b0000;											// Where are the walls; inverted to cellConnections
+
+			if (lastPosition != tempFusedData.robotState.mapCoordinate)
+			{
+				lastDifferentPosittion = lastPosition;
+
+				getGridCell(&tempFusedData.gridCell, tempFusedData.robotState.mapCoordinate);
+
+				if (tempFusedData.gridCell.cellState & CellState::visited)
+				{
+					tempFusedData.gridCellCertainty = 0.6f;
+					tempCell.cellState = tempFusedData.gridCell.cellState;
+				}
+				else
+				{
+					tempFusedData.gridCellCertainty = 0.0f;
+				}
+			}
+
+			if (frontWallsDetected > 0)
+			{
+				switch (makeAbsolute(RelativeDir::forward, tempFusedData.robotState.heading))
+				{
+
+				case AbsoluteDir::north:
+				{
+					if ((~tempFusedData.gridCell.cellConnections & EntranceDirections::north && tempFusedData.gridCell.cellState & CellState::visited) || frontWallsDetected > 1)
+					{
+						walls |= EntranceDirections::north;
+					}
+					else if (!(tempFusedData.gridCell.cellState & CellState::visited))
+					{
+						walls |= EntranceDirections::north;
+						updateCertainty -= 0.08f;
+					}
+					else if (frontWallsDetected < 2)
+					{
+						updateCertainty -= 0.15f;
+					}
+					else
+					{
+						updateCertainty -= 0.25f;
+					}
+
+					break;
+				}
+
+				case AbsoluteDir::east:
+				{
+					if ((~tempFusedData.gridCell.cellConnections & EntranceDirections::east && tempFusedData.gridCell.cellState & CellState::visited) || frontWallsDetected > 1)
+					{
+						walls |= EntranceDirections::east;
+					}
+					else if (!(tempFusedData.gridCell.cellState & CellState::visited))
+					{
+						walls |= EntranceDirections::east;
+						updateCertainty -= 0.08f;
+					}
+					else if (frontWallsDetected < 2)
+					{
+						updateCertainty -= 0.15f;
+					}
+					else
+					{
+						updateCertainty -= 0.25f;
+					}
+
+					break;
+				}
+
+				case AbsoluteDir::south:
+				{
+					if ((~tempFusedData.gridCell.cellConnections & EntranceDirections::south && tempFusedData.gridCell.cellState & CellState::visited) || frontWallsDetected > 1)
+					{
+						walls |= EntranceDirections::south;
+					}
+					else if (!(tempFusedData.gridCell.cellState & CellState::visited))
+					{
+						walls |= EntranceDirections::south;
+						updateCertainty -= 0.08f;
+					}
+					else if (frontWallsDetected < 2)
+					{
+						updateCertainty -= 0.15f;
+					}
+					else
+					{
+						updateCertainty -= 0.25f;
+					}
+
+					break;
+				}
+
+				case AbsoluteDir::west:
+				{
+					if ((~tempFusedData.gridCell.cellConnections & EntranceDirections::west && tempFusedData.gridCell.cellState & CellState::visited) || frontWallsDetected > 1)
+					{
+						walls |= EntranceDirections::west;
+					}
+					else if (!(tempFusedData.gridCell.cellState & CellState::visited))
+					{
+						walls |= EntranceDirections::west;
+						updateCertainty -= 0.08f;
+					}
+					else if (frontWallsDetected < 2)
+					{
+						updateCertainty -= 0.15f;
+					}
+					else
+					{
+						updateCertainty -= 0.25f;
+					}
+
+					break;
+				}
+
+				default:
+					break;
+				}
+			}
+
+			if (leftWallsDetected > 0)
+			{
+				switch (makeAbsolute(RelativeDir::left, tempFusedData.robotState.heading))
+				{
+
+				case AbsoluteDir::north:
+				{
+					if ((~tempFusedData.gridCell.cellConnections & EntranceDirections::north && tempFusedData.gridCell.cellState & CellState::visited) || leftWallsDetected > 1)
+					{
+						walls |= EntranceDirections::north;
+					}
+					else if (!(tempFusedData.gridCell.cellState & CellState::visited))
+					{
+						walls |= EntranceDirections::north;
+						updateCertainty -= 0.08f;
+					}
+					else if (leftWallsDetected < 2)
+					{
+						updateCertainty -= 0.15f;
+					}
+					else
+					{
+						updateCertainty -= 0.25f;
+					}
+
+					break;
+				}
+
+				case AbsoluteDir::east:
+				{
+					if ((~tempFusedData.gridCell.cellConnections & EntranceDirections::east && tempFusedData.gridCell.cellState & CellState::visited) || leftWallsDetected > 1)
+					{
+						walls |= EntranceDirections::east;
+					}
+					else if (!(tempFusedData.gridCell.cellState & CellState::visited))
+					{
+						walls |= EntranceDirections::east;
+						updateCertainty -= 0.08f;
+					}
+					else if (leftWallsDetected < 2)
+					{
+						updateCertainty -= 0.15f;
+					}
+					else
+					{
+						updateCertainty -= 0.25f;
+					}
+
+					break;
+				}
+
+				case AbsoluteDir::south:
+				{
+					if ((~tempFusedData.gridCell.cellConnections & EntranceDirections::south && tempFusedData.gridCell.cellState & CellState::visited) || leftWallsDetected > 1)
+					{
+						walls |= EntranceDirections::south;
+					}
+					else if (!(tempFusedData.gridCell.cellState & CellState::visited))
+					{
+						walls |= EntranceDirections::south;
+						updateCertainty -= 0.08f;
+					}
+					else if (leftWallsDetected < 2)
+					{
+						updateCertainty -= 0.15f;
+					}
+					else
+					{
+						updateCertainty -= 0.25f;
+					}
+
+					break;
+				}
+
+				case AbsoluteDir::west:
+				{
+					if ((~tempFusedData.gridCell.cellConnections & EntranceDirections::west && tempFusedData.gridCell.cellState & CellState::visited) || leftWallsDetected > 1)
+					{
+						walls |= EntranceDirections::west;
+					}
+					else if (!(tempFusedData.gridCell.cellState & CellState::visited))
+					{
+						walls |= EntranceDirections::west;
+						updateCertainty -= 0.08f;
+					}
+					else if (leftWallsDetected < 2)
+					{
+						updateCertainty -= 0.15f;
+					}
+					else
+					{
+						updateCertainty -= 0.25f;
+					}
+
+					break;
+				}
+
+				default:
+					break;
+				}
+			}
+
+			if (rightWallsDetected > 0)
+			{
+				switch (makeAbsolute(RelativeDir::right, tempFusedData.robotState.heading))
+				{
+
+				case AbsoluteDir::north:
+				{
+					if ((~tempFusedData.gridCell.cellConnections & EntranceDirections::north && tempFusedData.gridCell.cellState & CellState::visited) || rightWallsDetected > 1)
+					{
+						walls |= EntranceDirections::north;
+					}
+					else if (!(tempFusedData.gridCell.cellState & CellState::visited))
+					{
+						walls |= EntranceDirections::north;
+						updateCertainty -= 0.08f;
+					}
+					else if (rightWallsDetected < 2)
+					{
+						updateCertainty -= 0.15f;
+					}
+					else
+					{
+						updateCertainty -= 0.25f;
+					}
+
+					break;
+				}
+
+				case AbsoluteDir::east:
+				{
+					if ((~tempFusedData.gridCell.cellConnections & EntranceDirections::east && tempFusedData.gridCell.cellState & CellState::visited) || rightWallsDetected > 1)
+					{
+						walls |= EntranceDirections::east;
+					}
+					else if (!(tempFusedData.gridCell.cellState & CellState::visited))
+					{
+						walls |= EntranceDirections::east;
+						updateCertainty -= 0.08f;
+					}
+					else if (rightWallsDetected < 2)
+					{
+						updateCertainty -= 0.15f;
+					}
+					else
+					{
+						updateCertainty -= 0.25f;
+					}
+
+					break;
+				}
+
+				case AbsoluteDir::south:
+				{
+					if ((~tempFusedData.gridCell.cellConnections & EntranceDirections::south && tempFusedData.gridCell.cellState & CellState::visited) || rightWallsDetected > 1)
+					{
+						walls |= EntranceDirections::south;
+					}
+					else if (!(tempFusedData.gridCell.cellState & CellState::visited))
+					{
+						walls |= EntranceDirections::south;
+						updateCertainty -= 0.08f;
+					}
+					else if (rightWallsDetected < 2)
+					{
+						updateCertainty -= 0.15f;
+					}
+					else
+					{
+						updateCertainty -= 0.25f;
+					}
+
+					break;
+				}
+
+				case AbsoluteDir::west:
+				{
+					if ((~tempFusedData.gridCell.cellConnections & EntranceDirections::west && tempFusedData.gridCell.cellState & CellState::visited) || rightWallsDetected > 1)
+					{
+						walls |= EntranceDirections::west;
+					}
+					else if (!(tempFusedData.gridCell.cellState & CellState::visited))
+					{
+						walls |= EntranceDirections::west;
+						updateCertainty -= 0.08f;
+					}
+					else if (rightWallsDetected < 2)
+					{
+						updateCertainty -= 0.15f;
+					}
+					else
+					{
+						updateCertainty -= 0.25f;
+					}
+
+					break;
+				}
+
+				default:
+					break;
+				}
+			}
+
+			if (tempFusedData.robotState.mapCoordinate.x > lastDifferentPosittion.x)
+			{
+				walls |= EntranceDirections::south;
+
+				if (!(~tempFusedData.gridCell.cellConnections & EntranceDirections::south) && tempFusedData.gridCell.cellState & CellState::visited)
+				{
+					updateCertainty -= 0.25f;
+				}
+			}
+			else if (tempFusedData.robotState.mapCoordinate.x < lastDifferentPosittion.x)
+			{
+				walls |= EntranceDirections::north;
+
+				if (!(~tempFusedData.gridCell.cellConnections & EntranceDirections::north) && tempFusedData.gridCell.cellState & CellState::visited)
+				{
+					updateCertainty -= 0.25f;
+				}
+			}
+
+			if (tempFusedData.robotState.mapCoordinate.y > lastDifferentPosittion.y)
+			{
+				walls |= EntranceDirections::east;
+
+				if (!(~tempFusedData.gridCell.cellConnections & EntranceDirections::east) && tempFusedData.gridCell.cellState & CellState::visited)
+				{
+					updateCertainty -= 0.25f;
+				}
+			}
+			else if (tempFusedData.robotState.mapCoordinate.y < lastDifferentPosittion.y)
+			{
+				walls |= EntranceDirections::west;
+
+				if (!(~tempFusedData.gridCell.cellConnections & EntranceDirections::west) && tempFusedData.gridCell.cellState & CellState::visited)
+				{
+					updateCertainty -= 0.25f;
+				}
+			}
+
+			if (updateCertainty < 0.0f) updateCertainty = 0.0f;
+
+			tempCell.cellConnections = (~walls) & CellConnections::directionMask;
+
+			setCurrentCell(tempCell, tempFusedData.gridCellCertainty, updateCertainty, tempFusedData.robotState.mapCoordinate);
+
+			lastPosition = tempFusedData.robotState.mapCoordinate;
+			fusedData->gridCell = tempCell;
+			fusedData->gridCellCertainty = tempFusedData.gridCellCertainty;
 		}
 
 		namespace BFAlgorithm

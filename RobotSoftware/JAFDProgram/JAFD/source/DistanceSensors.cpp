@@ -58,11 +58,6 @@ namespace JAFD
 
 		void VL6180::storeCalibData()
 		{
-			Serial.print("k: ");
-			Serial.print(_k);
-			Serial.print("; d:");
-			Serial.println(_d);
-
 			uint32_t startAddr = JAFDSettings::SpiNVSRAM::distSensStartAddr + JAFDSettings::DistanceSensors::bytesPerCalibData * _id;
 
 			uint16_t storeK = _k * 100.0f;
@@ -83,6 +78,12 @@ namespace JAFD
 
 			uint16_t storeD = SpiNVSRAM::readByte(startAddr + 2) | ((uint16_t)SpiNVSRAM::readByte(startAddr + 3) << 8);
 			_d = (storeD & 0x7fff) * ((storeD >> 15) ? -1 : 1);
+
+			if (_k > 1.5f || _k < 0.5f || _d > 100) {
+				Serial.println("No useful distance sensor calibration data could be restored!");
+				resetCalibData();
+				storeCalibData();
+			}
 		}
 
 		void VL6180::resetCalibData()
@@ -511,11 +512,6 @@ namespace JAFD
 
 		void TFMini::storeCalibData()
 		{
-			Serial.print("k: ");
-			Serial.print(_k);
-			Serial.print("; d:");
-			Serial.println(_d);
-
 			uint32_t startAddr = JAFDSettings::SpiNVSRAM::distSensStartAddr + JAFDSettings::DistanceSensors::bytesPerCalibData * _id;
 
 			uint16_t storeK = _k * 100.0f;
@@ -536,6 +532,12 @@ namespace JAFD
 
 			uint16_t storeD = SpiNVSRAM::readByte(startAddr + 2) | ((uint16_t)SpiNVSRAM::readByte(startAddr + 3) << 8);
 			_d = (storeD & 0x7fff) * ((storeD >> 15) ? -1 : 1);
+
+			if (_k > 1.5f || _k < 0.5f || _d > 100) {
+				Serial.println("No useful distance sensor calibration data could be restored!");
+				resetCalibData();
+				storeCalibData();
+			}
 		}
 
 		void TFMini::resetCalibData()
@@ -638,11 +640,6 @@ namespace JAFD
 
 		void VL53L0::storeCalibData()
 		{
-			Serial.print("k: ");
-			Serial.print(_k);
-			Serial.print("; d:");
-			Serial.println(_d);
-
 			uint32_t startAddr = JAFDSettings::SpiNVSRAM::distSensStartAddr + JAFDSettings::DistanceSensors::bytesPerCalibData * _id;
 
 			uint16_t storeK = _k * 100.0f;
@@ -663,6 +660,12 @@ namespace JAFD
 
 			uint16_t storeD = SpiNVSRAM::readByte(startAddr + 2) | ((uint16_t)SpiNVSRAM::readByte(startAddr + 3) << 8);
 			_d = (storeD & 0x7fff) * ((storeD >> 15) ? -1 : 1);
+
+			if (_k > 1.5f || _k < 0.5f || _d > 100) {
+				Serial.println("No useful distance sensor calibration data could be restored!");
+				resetCalibData();
+				storeCalibData();
+			}
 		}
 
 		void VL53L0::resetCalibData()
@@ -731,11 +734,11 @@ namespace JAFD
 				code = ReturnCode::fatalError;
 			}
 
-			//if (frontLong.setup() != ReturnCode::ok)
-			//{
-			//	Serial.println("f");
-			//	code = ReturnCode::fatalError;
-			//}
+			if (frontLong.setup() != ReturnCode::ok)
+			{
+				Serial.println("f");
+				code = ReturnCode::fatalError;
+			}
 
 			// Read calibration data for distance sensors
 			DistanceSensors::leftFront.restoreCalibData();
@@ -744,6 +747,7 @@ namespace JAFD
 			DistanceSensors::rightFront.restoreCalibData();
 			DistanceSensors::frontRight.restoreCalibData();
 			DistanceSensors::frontLeft.restoreCalibData();
+			DistanceSensors::frontLong.restoreCalibData();
 
 			return code;
 		}
@@ -763,37 +767,37 @@ namespace JAFD
 
 			auto tempFusedData = SensorFusion::getFusedData();
 
-			//// Front long
-			//tempDist = DistanceSensors::frontLong.getDistance();
+			// Front long
+			tempDist = DistanceSensors::frontLong.getDistance();
 
-			//if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::noError)
-			//{
-			//	if (tempFusedData.distSensorState.frontLong == DistSensorStatus::ok)
-			//	{
-			//		tempFusedData.distances.frontLong = tempDist * JAFDSettings::SensorFusion::longDistSensIIRFactor + tempFusedData.distances.frontLong * (1.0f - JAFDSettings::SensorFusion::longDistSensIIRFactor);
-			//	}
-			//	else
-			//	{
-			//		tempFusedData.distances.frontLong = tempDist;
-			//	}
+			if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::noError)
+			{
+				if (tempFusedData.distSensorState.frontLong == DistSensorStatus::ok)
+				{
+					tempFusedData.distances.frontLong = tempDist * JAFDSettings::SensorFusion::longDistSensIIRFactor + tempFusedData.distances.frontLong * (1.0f - JAFDSettings::SensorFusion::longDistSensIIRFactor);
+				}
+				else
+				{
+					tempFusedData.distances.frontLong = tempDist;
+				}
 
-			//	tempFusedData.distSensorState.frontLong = DistSensorStatus::ok;
-			//}
-			//else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::overflow)
-			//{
-			//	tempFusedData.distSensorState.frontLong = DistSensorStatus::overflow;
-			//	tempFusedData.distances.frontLong = 0;
-			//}
-			//else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::underflow)
-			//{
-			//	tempFusedData.distSensorState.frontLong = DistSensorStatus::underflow;
-			//	tempFusedData.distances.frontLong = 0;
-			//}
-			//else
-			//{
-			//	tempFusedData.distSensorState.frontLong = DistSensorStatus::error;
-			//	tempFusedData.distances.frontLong = 0;
-			//}
+				tempFusedData.distSensorState.frontLong = DistSensorStatus::ok;
+			}
+			else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::overflow)
+			{
+				tempFusedData.distSensorState.frontLong = DistSensorStatus::overflow;
+				tempFusedData.distances.frontLong = 0;
+			}
+			else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::underflow)
+			{
+				tempFusedData.distSensorState.frontLong = DistSensorStatus::underflow;
+				tempFusedData.distances.frontLong = 0;
+			}
+			else
+			{
+				tempFusedData.distSensorState.frontLong = DistSensorStatus::error;
+				tempFusedData.distances.frontLong = 0;
+			}
 
 			tempFusedData.distSensorState.frontLong = DistSensorStatus::error;
 
@@ -1132,7 +1136,7 @@ namespace JAFD
 			float avgDist = 0.0f;
 			uint16_t avgCount = 0;
 
-			while (millis() - startCalibTime < 1000)
+			while (millis() - startCalibTime < 2000)
 			{
 				SensorFusion::updateSensors();
 				SensorFusion::untimedFusion();
@@ -1205,8 +1209,23 @@ namespace JAFD
 
 		void averagedCalibration()
 		{
-			// TODO: currently not calibrating frontLong
-			for (int i = 0; i <= 5; i++)
+			/*
+			* calibration data:
+				rb
+					k: 1.12
+					d: 3
+				rf
+					k: 1.13
+					d: 3
+				lb
+					k: 1.05
+					d: -6
+				lf
+					k: 1.05
+					d: 0
+			*/
+
+			for (int i = 4; i <= 5; i++)
 			{
 				switch (i)
 				{
@@ -1237,20 +1256,26 @@ namespace JAFD
 
 				while (Serial.available()) Serial.read();
 				while (!Serial.available());
+				delay(10);
 				while (Serial.available()) Serial.read();
 
 				float measFirst = getSingleCalibData(i);
 				Serial.println(measFirst);
 				while (!Serial.available());
+				delay(10);
 				uint16_t trueFirst = (uint16_t)Serial.parseInt();
+
+				Serial.println("begin second measurement");
 
 				while (Serial.available()) Serial.read();
 				while (!Serial.available());
+				delay(10);
 				while (Serial.available()) Serial.read();
 
 				float measSecond = getSingleCalibData(i);
 				Serial.println(measSecond);
 				while (!Serial.available());
+				delay(10);
 				uint16_t trueSecond = (uint16_t)Serial.parseInt();
 
 				switch (i)

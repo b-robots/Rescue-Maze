@@ -31,6 +31,8 @@
 #include <SPI.h>
 #include <Wire.h>
 
+#include <utility/imumaths.h>
+
 namespace JAFD
 {
 	// Just for testing...
@@ -109,7 +111,7 @@ namespace JAFD
 		{
 			Serial.println("Error Dispenser");
 		}
-		
+
 		// Setup of Distance Sensors
 		if (DistanceSensors::setup() != ReturnCode::ok)
 		{
@@ -120,7 +122,7 @@ namespace JAFD
 				Serial.println("Error resetting I2C Bus");
 			}
 		}
-		
+
 		// Setup of Bno055
 		if (Bno055::setup() != ReturnCode::ok)
 		{
@@ -208,12 +210,28 @@ namespace JAFD
 		NVIC_SetPriority(TC5_IRQn, 1);
 		TC1->TC_CHANNEL[2].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
 
-		delay(500);
+		Serial.println("Finished, setup!");
+
+		Serial.println("Wait for initial BNO055 calibration...");
+
+		uint8_t bno_sys = 0;
+		do {
+			Bno055::updateValues();
+			bno_sys = Bno055::getOverallCalibStatus();
+			delay(100);
+		}
+		while (bno_sys < 3);
+
+		Serial.println("BNO055 ready!");
+
+		while (!Switch::getState());
+
+		Serial.println("Start!");
 
 		//Set start for 9DOF
 		Bno055::tare();
 
-		delay(500);
+		//DistanceSensors::averagedCalibration();
 
 		return;
 	}
@@ -228,7 +246,16 @@ namespace JAFD
 		SensorFusion::untimedFusion();
 		RobotLogic::loop();
 
-		auto freeRam = MemWatcher::getFreeRam();
+		auto fusedData = SensorFusion::getFusedData();
+		
+		float angularVel = fusedData.robotState.angularVel.x;
+		float heading = fusedData.robotState.globalHeading;
+		float pitch = fusedData.robotState.pitch;
+		float x = fusedData.robotState.position.x;
+		float y = fusedData.robotState.position.y;
+		float bnoErr = SensorFusion::bnoErr;
+
+		//auto freeRam = MemWatcher::getFreeRam();
 
 		if (fps < 0.01f) fps = 1000.0f / (millis() - time);
 		else fps = fps * 0.4f + 600.0f / (millis() - time);

@@ -4,10 +4,17 @@ This private file of the library is responsible for math functions (fast trig fu
 
 #pragma once
 
+#include "math.h"
 #include "AllDatatypes.h"
 
 namespace JAFD
 {
+	inline void calcAngleWallOffsetFromTwoDistances(float* angle, float* distToWall, int distA, int distB, float spacing, float doubleDistToMiddle) {
+		float dif = (distA - distB) / 10.0f;
+		*angle = atanf(dif / spacing);
+		*distToWall = (doubleDistToMiddle + (distA + distB) / 10.0f) / (2.0f * cosf(*angle));
+	}
+
 	inline int8_t sgn(const int val) {
 		if (val < 0) return -1;
 		else if (val == 0) return 0;
@@ -38,22 +45,14 @@ namespace JAFD
 	inline float interpolateAngle(const float a, const float b, const float factor)
 	{
 		float corrFact = factor;
-		float newA = a;
-		float newB = b;
 
 		if (factor > 1.0f) corrFact = 1.0f;
 		else if (factor < 0.0f) corrFact = 0.0f;
 
-		float result;
+		float avgSin = corrFact * sinf(b) + (1.0f - corrFact) * sinf(a);
+		float avgCos = corrFact * cosf(b) + (1.0f - corrFact) * cosf(a);
 
-		if (fabsf(a - b) > M_PI)
-		{
-			if (a > b) newA += M_TWOPI;
-			else newB += M_TWOPI;
-		}
-
-		result = newB * corrFact + newA * (1.0f - corrFact);
-		return fitAngleToInterval(result);
+		return atan2f(avgSin, avgCos);
 	}
 
 	// Make an angle change coherent, based on the previous angle. Assuming the angle did not change more than 180°

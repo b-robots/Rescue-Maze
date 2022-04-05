@@ -28,10 +28,11 @@ namespace JAFD
 			Adafruit_BNO055 bno055;
 
 			//Variables for getting the sensor values
-			sensors_event_t	linearAccelEvent;
-			sensors_event_t rotSpeedEvent;
-			imu::Quaternion quat;				// tared quaternion
-			imu::Quaternion tareQuat;			// conjugate of quaternion to tare
+			volatile sensors_event_t linearAccelEvent;
+			volatile sensors_event_t rotSpeedEvent;
+			volatile imu::Quaternion quat;				// tared quaternion
+			volatile imu::Quaternion tareQuat;			// conjugate of quaternion to tare
+			volatile uint8_t overallCalib = 0;
 
 			// Convert linear motion to the global axis based on the robot start orientation
 			Vec3f toXYZ(Vec3f vec)
@@ -44,14 +45,24 @@ namespace JAFD
 		{
 			bno055 = Adafruit_BNO055(55, 0x28, &Wire1);
 
-			if (!bno055.begin())
+			if (!bno055.begin(bno055.OPERATION_MODE_IMUPLUS))
 			{
 				return ReturnCode::error;
 			}
 
-			delay(500);
+			bno055.setMode(bno055.OPERATION_MODE_CONFIG);
+			delay(25);
+			Wire1.beginTransmission(0x28);
+			Wire1.write(bno055.BNO055_AXIS_MAP_CONFIG_ADDR);
+			Wire1.write(0b010010);
+			Wire1.endTransmission();
+			delay(10);
+			bno055.setMode(bno055.OPERATION_MODE_IMUPLUS);
+			delay(25);
 
 			bno055.setExtCrystalUse(true);
+
+			delay(100);
 
 			calibFromRAM();
 
@@ -60,42 +71,32 @@ namespace JAFD
 
 		ReturnCode calibrate()								// how to calibrate
 		{
-			bno055.setMode(bno055.OPERATION_MODE_NDOF_FMC_OFF);
+			bno055.setMode(bno055.OPERATION_MODE_IMUPLUS);
 
-			delay(30);
+			delay(600);
 
 			uint8_t system, gyro, accel, mag; //system is 3 when accel and magn are 3
 
-
-			//Calibration accelerometer
-
-			Serial.println("Calibration accelerometer:");
-
+			int num_calibrated = 0;
 			do {
-
 				bno055.getCalibration(&system, &gyro, &accel, &mag);
+				overallCalib = fminl(gyro, accel);
+				Serial.print("CALIBRATION: ");
+				Serial.print(" Gyro=");
+				Serial.print(gyro, DEC);
+				Serial.print(" Accel=");
+				Serial.println(accel, DEC);
 
-			} while (accel < 2); 
+				delay(200);
 
-			//Calibration magnetometer
+				if (overallCalib == 3) {
+					num_calibrated++;
+				}
+				else {
+					num_calibrated = 0;
+				}
 
-			Serial.println("Calibration magnetometer:");
-
-			do {
-
-				bno055.getCalibration(&system, &gyro, &accel, &mag);
-
-			} while (mag < 2);
-
-			//Calibration gyro
-
-			Serial.println("Calibration gyro:");
-			
-			do {
-
-				bno055.getCalibration(&system, &gyro, &accel, &mag);
-
-			} while (gyro < 2);
+			} while (num_calibrated < 20);
 
 			Serial.println("Calibration complete!");
 
@@ -104,29 +105,47 @@ namespace JAFD
 
 		void tare()
 		{
-			tareQuat = bno055.getQuat().conjugate();
+			auto isQuat = bno055.getQuat();
+			while (fabsf(isQuat.magnitude() - 1) > 0.1) {
+				isQuat = bno055.getQuat();
+			}
+			isQuat.normalize();
+
+			*(imu::Quaternion*)(&tareQuat) = isQuat.conjugate();
 		}
 
 		// Global heading in rad
 		void tare(float globalHeading)
 		{
-			updateValues();
-
 			auto isQuat = bno055.getQuat();
+			while (fabsf(isQuat.magnitude() - 1) > 0.1) {
+				isQuat = bno055.getQuat();
+			}
+			isQuat.normalize();
 
-			imu::Quaternion shouldQuat;
-			shouldQuat.fromAxisAngle(imu::Vector<3>(0, 1.0f, 0), globalHeading);
+			imu::Quaternion a;
+			a.fromAxisAngle(imu::Vector<3>(0.0f, 0.0f, 1.0f), globalHeading);
 
-			tareQuat = isQuat * shouldQuat.conjugate();
+			*(imu::Quaternion*)(&tareQuat) = isQuat.conjugate() * a;
 		}
 
 		void updateValues()					//gets values from the sensors
 		{
-			bno055.getEvent(&linearAccelEvent, Adafruit_BNO055::VECTOR_LINEARACCEL);
+			bno055.getEvent((sensors_event_t*)&linearAccelEvent, Adafruit_BNO055::VECTOR_LINEARACCEL);
 
-			quat = bno055.getQuat() * tareQuat;
+			auto isQuat = bno055.getQuat();
+			while (fabsf(isQuat.magnitude() - 1) > 0.1) {
+				isQuat = bno055.getQuat();
+			}
+			isQuat.normalize();
 
-			bno055.getEvent(&rotSpeedEvent, Adafruit_BNO055::VECTOR_GYROSCOPE);
+			*(imu::Quaternion*)&quat = isQuat * (*(imu::Quaternion*)&tareQuat);
+
+			bno055.getEvent((sensors_event_t*)&rotSpeedEvent, Adafruit_BNO055::VECTOR_GYROSCOPE);
+
+			uint8_t system, gyro, accel, mag;
+			bno055.getCalibration(&system, &gyro, &accel, &mag);
+			overallCalib = fminl(gyro, accel+1);
 		}
 
 		Vec3f getLinAcc()
@@ -149,11 +168,14 @@ namespace JAFD
 		{
 			Vec3f forwardVec;
 
-			forwardVec.x = 1.0f - 2.0f * (quat.x() * quat.x() + quat.z() * quat.z());
-			forwardVec.y = -2.0f * (quat.x() * quat.y() - quat.w() * quat.z());
-			forwardVec.z = -2.0f * (quat.y() * quat.z() + quat.w() * quat.x());
+			auto currQuat = *(imu::Quaternion*)&quat;
+			currQuat.normalize();
 
-			forwardVec = forwardVec.normalized();
+			auto rotatedVec = currQuat.rotateVector(imu::Vector<3>(1.0f, 0.0f, 0.0f));
+
+			forwardVec.x = rotatedVec.x();
+			forwardVec.y = rotatedVec.y();
+			forwardVec.z = rotatedVec.z();
 
 			return forwardVec;
 		}
@@ -162,32 +184,83 @@ namespace JAFD
 		{
 			if (rotSpeedEvent.type == SENSOR_TYPE_GYROSCOPE || rotSpeedEvent.type == SENSOR_TYPE_ROTATION_VECTOR)
 			{
-
 				return rotSpeedEvent.gyro.y;
 			}
 
 			return 0.0;
 		}
 
+		uint8_t getOverallCalibStatus() {
+			return overallCalib;
+		}
+
 		void calibToRAM()								//save Offsets
 		{
 			adafruit_bno055_offsets_t calib_data;	//Calibration data of bno055 structure
 
+			bno055.setMode(bno055.OPERATION_MODE_CONFIG);
+			delay(100);
 			bno055.getSensorOffsets(calib_data);		//write values in structure calib_data
+			
+			bno055.setMode(bno055.OPERATION_MODE_IMUPLUS);
+			delay(600);
 
-			auto accel_offset_x = calib_data.accel_offset_x;
-			auto accel_offset_y = calib_data.accel_offset_y;
-			auto accel_offset_z = calib_data.accel_offset_z;
-			auto accel_radius = calib_data.accel_radius;
+			adafruit_bno055_offsets_t old_calib_data;
 
-			auto gyro_offset_x = calib_data.gyro_offset_x;
-			auto gyro_offset_y = calib_data.gyro_offset_y;
-			auto gyro_offset_z = calib_data.gyro_offset_z;
+			old_calib_data.accel_offset_x = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 1);
+			old_calib_data.accel_offset_y = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 2) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 3);
+			old_calib_data.accel_offset_z = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 4) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 5);
+			old_calib_data.accel_radius = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 6) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 7);
 
-			auto mag_offset_x = calib_data.mag_offset_x;
-			auto mag_offset_y = calib_data.mag_offset_y;
-			auto mag_offset_z = calib_data.mag_offset_z;
-			auto mag_radius = calib_data.mag_radius;
+			old_calib_data.gyro_offset_x = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 8) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 9);
+			old_calib_data.gyro_offset_y = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 10) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 11);
+			old_calib_data.gyro_offset_z = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 12) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 13);
+
+			old_calib_data.mag_offset_x = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 14) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 15);
+			old_calib_data.mag_offset_y = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 16) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 17);
+			old_calib_data.mag_offset_z = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 18) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 19);
+			old_calib_data.mag_radius = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 20) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 21);
+
+			auto accel_offset_x = calib_data.accel_offset_x;	// 22351
+			Serial.println(accel_offset_x);
+			auto accel_offset_y = calib_data.accel_offset_y;	// 8
+			Serial.println(accel_offset_y);
+			auto accel_offset_z = calib_data.accel_offset_z;	// -15639
+			Serial.println(accel_offset_z);
+			auto accel_radius = calib_data.accel_radius;		// 16398
+			Serial.println(accel_radius);
+
+			auto gyro_offset_x = calib_data.gyro_offset_x;		// 0
+			Serial.println(gyro_offset_x);
+			auto gyro_offset_y = calib_data.gyro_offset_y;		// 0
+			Serial.println(gyro_offset_y);
+			auto gyro_offset_z = calib_data.gyro_offset_z;		// 6656
+			Serial.println(gyro_offset_z);
+
+			auto mag_offset_x = calib_data.mag_offset_x;		// 8
+			Serial.println(mag_offset_x);
+			auto mag_offset_y = calib_data.mag_offset_y;		// 4292
+			Serial.println(mag_offset_y);
+			auto mag_offset_z = calib_data.mag_offset_z;		// 8199
+			Serial.println(mag_offset_z);
+			auto mag_radius = calib_data.mag_radius;			// 22423
+			Serial.println(mag_radius);
+
+			if (fabsf(old_calib_data.accel_offset_x - 22400) < 7000 && fabsf(old_calib_data.mag_offset_y - 4300) < 2000 && fabsf(old_calib_data.accel_offset_z + 15600) < 5000) {
+				accel_offset_x = (accel_offset_x + old_calib_data.accel_offset_x) / 2;
+				accel_offset_y = (accel_offset_y + old_calib_data.accel_offset_y) / 2;
+				accel_offset_z = (accel_offset_z + old_calib_data.accel_offset_z) / 2;
+				accel_radius = (accel_radius + old_calib_data.accel_radius) / 2;
+
+				mag_offset_x = (mag_offset_x + old_calib_data.mag_offset_x) / 2;
+				mag_offset_y = (mag_offset_y + old_calib_data.mag_offset_y) / 2;
+				mag_offset_z = (mag_offset_z + old_calib_data.mag_offset_z) / 2;
+				mag_radius = (mag_radius + old_calib_data.mag_radius) / 2;
+
+				gyro_offset_x = (gyro_offset_x + old_calib_data.gyro_offset_x) / 2;
+				gyro_offset_y = (gyro_offset_y + old_calib_data.gyro_offset_y) / 2;
+				gyro_offset_z = (gyro_offset_z + old_calib_data.gyro_offset_z) / 2;
+			}
 
 			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr, (accel_offset_x >> 8));		//schreibt obere tetrade des 16 Bit int auf Startaddresse
 			SpiNVSRAM::writeByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 1, (accel_offset_x & 0xFF));
@@ -241,7 +314,12 @@ namespace JAFD
 			calib_data.mag_offset_z = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 18) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 19);
 			calib_data.mag_radius = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 20) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 21);
 
+			bno055.setMode(bno055.OPERATION_MODE_CONFIG);
+			delay(100);
 			bno055.setSensorOffsets(calib_data);	//write values to sensor offsets
+
+			bno055.setMode(bno055.OPERATION_MODE_IMUPLUS);
+			delay(600);
 		}
 	}
 }

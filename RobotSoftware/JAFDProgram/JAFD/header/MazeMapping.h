@@ -58,5 +58,8 @@ namespace JAFD
 
 		// Set current cell and recalculate certainty
 		void setCurrentCell(const GridCell gridCell, float& currentCertainty, const float updateCertainty, MapCoordinate coor);
+
+		// Detect walls and entrances
+		void manageDetectedWalls(uint8_t frontWallsDetected, uint8_t leftWallsDetected, uint8_t rightWallsDetected, volatile FusedData* outputFusedData);
 	}
 }

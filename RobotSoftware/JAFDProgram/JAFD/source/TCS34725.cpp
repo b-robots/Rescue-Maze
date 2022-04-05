@@ -61,9 +61,9 @@ namespace JAFD
 
 				*colorTemp = sensor.calculateColorTemperature(r, g, b);
 				*lux = sensor.calculateLux(r, g, b);
-
-				dataReady = false;
+				
 				sensor.clearInterrupt();
+				dataReady = false;
 			}
 			else
 			{

@@ -216,6 +216,9 @@ namespace JAFD
 			manualClockingWire1();
 			manualClockingWire0();
 
+			Wire.end();
+			Wire1.end();
+
 			Wire.begin();
 			Wire1.begin();
 
@@ -320,7 +323,6 @@ namespace JAFD
 		}
 	}
 
-	// TODO
 	namespace Switch
 	{
 		namespace

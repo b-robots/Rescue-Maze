@@ -38,13 +38,13 @@ namespace JAFDSettings
 		constexpr float axialSpacing = 9.7f;
 		constexpr float wheelDistToMiddle = 8.93f;			// !!! ALWAYS = sqrt(axialSpacing^2 + wheelDistance^2) / 2
 		constexpr float distSensLeftRightDist = 12.2f;
-		constexpr float distSensFrontBackDist = 13.0f;
-		constexpr float distSensFrontSpacing = 10.5f;
+		constexpr float distSensFrontBackDist = 14.0f;
+		constexpr float distSensFrontSpacing = 9.2f;
 		constexpr float distSensFrontDistToMiddle = 8.4f;		// !!! ALWAYS = sqrt(distSensFrontBackDist^2 + distSensFrontSpacing^2) / 2
-		constexpr float distSensFrontAngleToMiddle = 0.6794f;	// !!! ALWAYS = arctan(distSensFrontSpacing / distSensFrontBackDist)
-		constexpr float distSensLRSpacing = 11.0f;
-		constexpr float distSensLRDistToMiddle = 8.2f;		// !!! ALWAYS = sqrt(distSensLeftRightDist^2 + distSensLRSpacing^2) / 2
-		constexpr float distSensLRAngleToMiddle = 0.7337f;	// !!! ALWAYS = arctan(distSensLRSpacing / distSensLeftRightDist)
+		constexpr float distSensFrontAngleToMiddle = 0.581f;	// !!! ALWAYS = arctan(distSensFrontSpacing / distSensFrontBackDist)
+		constexpr float distSensLRSpacing = 10.0f;
+		constexpr float distSensLRDistToMiddle = 7.9f;		// !!! ALWAYS = sqrt(distSensLeftRightDist^2 + distSensLRSpacing^2) / 2
+		constexpr float distSensLRAngleToMiddle = 0.687f;	// !!! ALWAYS = arctan(distSensLRSpacing / distSensLeftRightDist)
 		constexpr float robotLength = 20.0f;
 		constexpr float robotWidth = 14.0f;
 	}
@@ -121,17 +121,18 @@ namespace JAFDSettings
 		constexpr float distSensSpeedIIRFactor = 0.8f;					// Factor used for IIR-Filter for speed measured by distance sensors
 		constexpr float longDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for high range distance measurements
 		constexpr float shortDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for short range distance measurements
-		constexpr float distSpeedPortion = 0.2f;						// How much is a perfect distance sensor measured speed worth?
+		constexpr float distSpeedPortion = 0.3f;						// How much is a perfect distance sensor measured speed worth?
 
 		// Position
-		constexpr float distSensOffsetPortion = 1.0f;					// How much does the center-offset measured by all distance sensors count?
+		constexpr float distSensOffsetPortion = 0.8f;					// How much does the center-offset measured by all distance sensors count?
 
 		// Rotation
-		constexpr float bno055RotPortion = 0.1f;						// How much is a Bno055 rotation measurement worth?
-		constexpr float angularVelIIRFactor = 0.9f;						// Factor used for IIR-Filter for angular velocity
-		constexpr float angularVelDiffPortion = 0.5f;					// How much of the angular yaw velocity is based on differentiation?
+		constexpr float bno055DiffPortion = 0.5f;						// How much is the differentiation of the BNO055 angle worth?
+		constexpr float bno055RotPortion = 0.4f;						// How much is a Bno055 rotation measurement worth?
+		constexpr float angularVelIIRFactor = 0.8f;						// Factor used for IIR-Filter for angular velocity
 		constexpr float pitchIIRFactor = 0.5f;							// Factor used for IIR-Filter for pitch angle
-		constexpr float distAngularPortion = 1.0f;						// How much is a perfect distance sensor measured angle worth?
+		constexpr float distAngularPortion = 0.8f;						// How much is a perfect distance sensor measured angle worth?
+		constexpr float angleDiffPortion = 0.8f;						// How much is the heading influenced by the angular velocity instead of the absolute orientation values?
 	}
 
 	namespace Controller
@@ -143,9 +144,9 @@ namespace JAFDSettings
 
 		namespace GoToAngle
 		{
-			constexpr float turningGainConstant = 0.3f;
+			constexpr float turningGainConstant = 0.5f;
 			constexpr float aheadDistL = Mechanics::wheelDistance / (2.0f * turningGainConstant);
-			constexpr float angleDampingBegin = 5.0f;
+			constexpr float angleDampingBegin = 10.0f;
 		}
 
 		namespace PID
@@ -167,8 +168,6 @@ namespace JAFDSettings
 		constexpr uint16_t maxAlignStartDist = 50;					// Maximum deviation from aligned distance at beginning to start (mm)
 		constexpr uint16_t alignSpeed = MotorControl::minSpeed;		// Minimum speed to align to wall
 		constexpr uint16_t minAlignDist = 70;						// Minimum align distance, is default
-
-		constexpr float steeringToAngle = 0.03;					// Convert left right offset to controlled steering angle
 	}
 
 	namespace Dispenser
@@ -177,16 +176,16 @@ namespace JAFDSettings
 
 		namespace Left
 		{
-			constexpr float startDty = 0.03f;	// duty cylce for start
-			constexpr float endDty = 0.12f;		// duty cylce for start
+			constexpr float startDty = 0.11f;	// duty cylce for start
+			constexpr float endDty = 0.07f;		// duty cylce for end
 			constexpr uint8_t servoPin = 35;
 			constexpr uint8_t startCubeCount = 6;
 		}
 
 		namespace Right
 		{
-			constexpr float startDty = 0.12f;	// duty cylce for start
-			constexpr float endDty = 0.03f;		// duty cylce for start
+			constexpr float startDty = 0.08f;	// duty cylce for start
+			constexpr float endDty = 0.011f;		// duty cylce for end
 			constexpr uint8_t servoPin = 37;
 			constexpr uint8_t startCubeCount = 6;
 		}
