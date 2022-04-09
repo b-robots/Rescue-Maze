@@ -70,9 +70,11 @@ namespace JAFDSettings
 
 	namespace MotorControl
 	{
+		constexpr float magicFactor = 1.13f;
+
 		constexpr float cmPSToPerc = 1.0f / (97.0f / 60.0f * M_PI * Mechanics::wheelDiameter);		// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed.)
 
-		constexpr uint8_t minSpeed = 10;					// Minimum speed for motor to rotate
+		constexpr uint8_t minSpeed = 7;					// Minimum speed for motor to rotate
 		constexpr uint8_t maxSpeed = 1.0f / cmPSToPerc;		// Calculated maximum speed
 		constexpr float maxRotSpeed = 2.0f * maxSpeed / Mechanics::wheelDistance;	// Calculated maximum rotation speed
 
@@ -121,7 +123,7 @@ namespace JAFDSettings
 		constexpr float distSensSpeedIIRFactor = 0.8f;					// Factor used for IIR-Filter for speed measured by distance sensors
 		constexpr float longDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for high range distance measurements
 		constexpr float shortDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for short range distance measurements
-		constexpr float distSpeedPortion = 0.3f;						// How much is a perfect distance sensor measured speed worth?
+		constexpr float distSpeedPortion = 0.2f;						// How much is a perfect distance sensor measured speed worth?
 
 		// Position
 		constexpr float distSensOffsetPortion = 0.8f;					// How much does the center-offset measured by all distance sensors count?
@@ -129,8 +131,8 @@ namespace JAFDSettings
 		// Rotation
 		constexpr float bno055DiffPortion = 0.5f;						// How much is the differentiation of the BNO055 angle worth?
 		constexpr float bno055RotPortion = 0.4f;						// How much is a Bno055 rotation measurement worth?
-		constexpr float angularVelIIRFactor = 0.8f;						// Factor used for IIR-Filter for angular velocity
-		constexpr float pitchIIRFactor = 0.5f;							// Factor used for IIR-Filter for pitch angle
+		constexpr float angularVelIIRFactor = 0.95f;						// Factor used for IIR-Filter for angular velocity
+		constexpr float pitchIIRFactor = 0.8f;							// Factor used for IIR-Filter for pitch angle
 		constexpr float distAngularPortion = 0.8f;						// How much is a perfect distance sensor measured angle worth?
 		constexpr float angleDiffPortion = 0.8f;						// How much is the heading influenced by the angular velocity instead of the absolute orientation values?
 	}
@@ -144,14 +146,14 @@ namespace JAFDSettings
 
 		namespace GoToAngle
 		{
-			constexpr float turningGainConstant = 0.5f;
+			constexpr float turningGainConstant = 0.62f;
 			constexpr float aheadDistL = Mechanics::wheelDistance / (2.0f * turningGainConstant);
 			constexpr float angleDampingBegin = 10.0f;
 		}
 
 		namespace PID
 		{
-			constexpr float nonePIDPart = 0.6f;
+			constexpr float nonePIDPart = 0.5f;
 		}
 
 		namespace SmoothDriving
@@ -163,7 +165,7 @@ namespace JAFDSettings
 
 	namespace SmoothDriving
 	{
-		constexpr uint8_t maxArrrayedTasks = 5;						// Maximum number of tasks in TaskArray
+		constexpr uint8_t maxArrrayedTasks = 6;						// Maximum number of tasks in TaskArray
 		constexpr uint16_t maxAlignDistError = 10;					// Maximum deviation from perfect aligned distance (mm)
 		constexpr uint16_t maxAlignStartDist = 50;					// Maximum deviation from aligned distance at beginning to start (mm)
 		constexpr uint16_t alignSpeed = MotorControl::minSpeed;		// Minimum speed to align to wall
@@ -266,7 +268,7 @@ namespace JAFDSettings
 	{
 		constexpr uint8_t averagingNumber = 5;
 
-		constexpr float threshold = 10.0f;
+		constexpr float threshold = 7.0f;
 
 		namespace Left
 		{

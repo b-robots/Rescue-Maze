@@ -53,6 +53,7 @@ namespace JAFD
 			void restoreCalibData();
 			void resetCalibData();
 			void clearInterrupt();
+			void setKD(float k, int d);
 
 		private:
 			// Register addresses
@@ -154,6 +155,7 @@ namespace JAFD
 			void restoreCalibData();
 			void resetCalibData();
 			void clearInterrupt();
+			void setKD(float k, int d);
 
 		private:
 			const uint8_t _multiplexCh;

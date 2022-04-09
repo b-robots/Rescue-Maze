@@ -29,6 +29,7 @@ namespace JAFD
 
 			//Variables for getting the sensor values
 			volatile sensors_event_t linearAccelEvent;
+			volatile sensors_event_t gravityEvent;
 			volatile sensors_event_t rotSpeedEvent;
 			volatile imu::Quaternion quat;				// tared quaternion
 			volatile imu::Quaternion tareQuat;			// conjugate of quaternion to tare
@@ -109,7 +110,6 @@ namespace JAFD
 			while (fabsf(isQuat.magnitude() - 1) > 0.1) {
 				isQuat = bno055.getQuat();
 			}
-			isQuat.normalize();
 
 			*(imu::Quaternion*)(&tareQuat) = isQuat.conjugate();
 		}
@@ -121,7 +121,6 @@ namespace JAFD
 			while (fabsf(isQuat.magnitude() - 1) > 0.1) {
 				isQuat = bno055.getQuat();
 			}
-			isQuat.normalize();
 
 			imu::Quaternion a;
 			a.fromAxisAngle(imu::Vector<3>(0.0f, 0.0f, 1.0f), globalHeading);
@@ -132,12 +131,12 @@ namespace JAFD
 		void updateValues()					//gets values from the sensors
 		{
 			bno055.getEvent((sensors_event_t*)&linearAccelEvent, Adafruit_BNO055::VECTOR_LINEARACCEL);
+			bno055.getEvent((sensors_event_t*)&gravityEvent, Adafruit_BNO055::VECTOR_GRAVITY);
 
 			auto isQuat = bno055.getQuat();
 			while (fabsf(isQuat.magnitude() - 1) > 0.1) {
 				isQuat = bno055.getQuat();
 			}
-			isQuat.normalize();
 
 			*(imu::Quaternion*)&quat = isQuat * (*(imu::Quaternion*)&tareQuat);
 
@@ -145,7 +144,7 @@ namespace JAFD
 
 			uint8_t system, gyro, accel, mag;
 			bno055.getCalibration(&system, &gyro, &accel, &mag);
-			overallCalib = fminl(gyro, accel+1);
+			overallCalib = fminl(gyro, accel);
 		}
 
 		Vec3f getLinAcc()

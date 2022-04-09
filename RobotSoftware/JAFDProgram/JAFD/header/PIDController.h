@@ -12,7 +12,7 @@ namespace JAFD
 	{
 		float kp;			// Proportional gain
 		float ki;			// Integral gain
-		float kd;			// Differentia gain
+		float kd;			// Differential gain
 		float maxAbsInt;	// Maximum absolute value of integral term to prevent windup
 		float maxAbsDiff;	// Macimum absolute value of differential term to prevent massive overshoot
 		float minOutput;	// Minimum output
@@ -24,13 +24,13 @@ namespace JAFD
 	class PIDController
 	{
 	private:
-		const PIDSettings settings;		// Settings 
+		PIDSettings settings;			// Settings 
 		float errorInt;					// Error integral
 		float lastErr;					// Last error
 		uint32_t lastTimePoint;			// Last time 'process()' has been called in ms.
 		bool firstCall;					// Is it the first call to process after a reset?
 	public:
-		PIDController(const PIDSettings settings);
+		PIDController(PIDSettings settings);
 		float process(const float setPoint, const float currentValue);					// Process inputs and get controller output
 		float process(const float setPoint, const float currentValue, const float dt);	// Process inputs and get controller output with specified dt.
 		void reset();																	// Reset the controller

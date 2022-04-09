@@ -81,7 +81,7 @@ namespace JAFD
 				}
 
 				ambientTemp /= (2.0f * 8.0f);
-				ambientTemp = (ambientTemp + leftAmbient + rightAmbient) / 3.0f;
+				ambientTemp = (ambientTemp + fmaxf(leftAmbient, rightAmbient)) / 2.0f;
 #endif
 				return ReturnCode::ok;
 			}
@@ -144,8 +144,7 @@ namespace JAFD
 #else
 			std::sort(pixels, pixels + numPix, std::greater<int>());
 #endif
-			float avgHigh = (pixels[0] + pixels[1]) / 2.0f;
-
+			float avgHigh = (pixels[0] * 0.6f + pixels[1] * 0.4f);
 			if (avgHigh >= JAFDSettings::HeatSensors::threshold + ambientTemp) return true;
 			else return false;
 		}

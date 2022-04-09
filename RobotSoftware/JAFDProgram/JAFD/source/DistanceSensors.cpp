@@ -84,6 +84,9 @@ namespace JAFD
 				resetCalibData();
 				storeCalibData();
 			}
+
+			resetCalibData();
+			storeCalibData();
 		}
 
 		void VL6180::resetCalibData()
@@ -162,6 +165,12 @@ namespace JAFD
 
 			// Start continuous mode
 			write8(_regRangeStart, 0x03);
+		}
+
+		void VL6180::setKD(float k, int d)
+		{
+			_k = k;
+			_d = d;
 		}
 
 		// Write 1 byte
@@ -677,6 +686,12 @@ namespace JAFD
 		VL53L0::Status VL53L0::getStatus() const
 		{
 			return _status;
+		}
+
+		void VL53L0::setKD(float k, int d)
+		{
+			_k = k;
+			_d = d;
 		}
 
 		// VL53L0 class - end
@@ -1212,20 +1227,26 @@ namespace JAFD
 			/*
 			* calibration data:
 				rb
-					k: 1.12
-					d: 3
+					k: 0.99
+					d: 7
 				rf
-					k: 1.13
-					d: 3
+					k: 1.01
+					d: 7
 				lb
-					k: 1.05
-					d: -6
+					k: 1.04
+					d: -11
 				lf
-					k: 1.05
+					k: 1.01
 					d: 0
+				fl
+					k: 0.97
+					d: -13
+				fr
+					k: 0.97
+					d: -25
 			*/
 
-			for (int i = 4; i <= 5; i++)
+			for (int i = 0; i <= 6; i++)
 			{
 				switch (i)
 				{

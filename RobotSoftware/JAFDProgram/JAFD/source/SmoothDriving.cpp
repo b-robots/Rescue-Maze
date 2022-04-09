@@ -18,6 +18,7 @@ This part of the Library is responsible for driving smoothly.
 #include "../header/PIDController.h"
 #include "../header/DistanceSensors.h"
 #include "../header/SensorFusion.h"
+#include "cmath"
 
 namespace JAFD
 {
@@ -41,7 +42,7 @@ namespace JAFD
 				Rotate rotate;
 				ForceSpeed forceSpeed;
 				TaskArray taskArray;
-				AlignFront alignFront;
+				AlignWalls alignWalls;
 				FollowWall followWall;
 
 				_TaskCopies() : stop() {};
@@ -52,7 +53,7 @@ namespace JAFD
 
 			PIDController _forwardVelPID(JAFDSettings::Controller::SmoothDriving::forwardVelPidSettings);	// PID controller for forward velocity
 			PIDController _angularVelPID(JAFDSettings::Controller::SmoothDriving::angularVelPidSettings);	// PID controller for angular velocity
-		
+
 			volatile bool _stopped = false;		// Is current task stopped?
 		}
 
@@ -70,7 +71,7 @@ namespace JAFD
 
 		// Accelerate class - begin 
 
-		Accelerate::Accelerate(int16_t endSpeeds, float distance) : ITask(), _endSpeeds(endSpeeds), _distance(distance), _targetDir(1.0f, 0.0f){}
+		Accelerate::Accelerate(int16_t endSpeeds, float distance) : ITask(), _endSpeeds(endSpeeds), _distance(distance), _targetDir(1.0f, 0.0f) {}
 
 		ReturnCode Accelerate::startTask(RobotState startState)
 		{
@@ -203,7 +204,7 @@ namespace JAFD
 
 				output.right = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
 			}
-			
+
 			return output;
 		}
 
@@ -423,7 +424,7 @@ namespace JAFD
 
 			// Kind of PID - controller
 			correctedAngularVel = desAngularVel * 0.8f + _angularVelPID.process(desAngularVel, tempRobotState.angularVel.x, 1.0f / freq);
-	
+
 			// Compute wheel speeds -- w = (v_r - v_l) / wheelDistance; v_l = -v_r; => v_l = -w * wheelDistance / 2; v_r = w * wheelDistance / 2
 			output = WheelSpeeds{ -JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
 
@@ -552,132 +553,58 @@ namespace JAFD
 
 		// ForceSpeed class - end
 
-		// AlignFront class - begin
+		// AlignWalls class - begin
+		AlignWalls::AlignWalls() : ITask(), _avgAngle(0.0f), _first(true) {
+		}
 
-		AlignFront::AlignFront(uint16_t alignDist) : ITask(), _alignDist(alignDist) {}
-
-		ReturnCode AlignFront::startTask(RobotState startState)
+		ReturnCode AlignWalls::startTask(RobotState startState)
 		{
-			float headingOffset;
-
 			_finished = false;
+			_endState = startState;
 
-			if (_alignDist < JAFDSettings::SmoothDriving::minAlignDist) return ReturnCode::fatalError;
-
-			_angularVelPID.reset();
-			_forwardVelPID.reset();
-
-			_endState.position.x = roundf(startState.position.x / JAFDSettings::Field::cellWidth) * JAFDSettings::Field::cellWidth;
-			_endState.position.y = roundf(startState.position.y / JAFDSettings::Field::cellWidth) * JAFDSettings::Field::cellWidth;
-			_endState.position.z = 0;
-
-			float positiveAngle = startState.globalHeading;
-
-			while (positiveAngle < 0.0f) positiveAngle += M_TWOPI;
-			while (positiveAngle > M_TWOPI) positiveAngle -= M_TWOPI;
-
-			if (positiveAngle > 315.0f * DEG_TO_RAD || positiveAngle <= 45.0f * DEG_TO_RAD)
-			{
-				headingOffset = startState.globalHeading;
-
-				_endState.position.x += JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
-			}
-			else if (positiveAngle > 45.0f * DEG_TO_RAD && positiveAngle <= 135.0f * DEG_TO_RAD)
-			{
-				headingOffset = startState.globalHeading - M_PI_2;
-
-				_endState.position.y += JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
-			}
-			else if (positiveAngle > 135.0f * DEG_TO_RAD && positiveAngle <= 225.0f * DEG_TO_RAD)
-			{
-				headingOffset = startState.globalHeading - M_PI;
-
-				_endState.position.x -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
-			}
-			else
-			{
-				headingOffset = startState.globalHeading - M_PI_2 * 3;
-
-				_endState.position.y -= JAFDSettings::Field::cellWidth / 2.0f - _alignDist / 10.0f - JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f;
-			}
-
-			while (headingOffset < 0.0f) headingOffset += M_TWOPI;
-			while (headingOffset > M_PI) headingOffset -= M_TWOPI;
-
-			_endState.globalHeading -= headingOffset;
-
-			_endState.wheelSpeeds = FloatWheelSpeeds{ 0.0f, 0.0f };
-			_endState.forwardVel = static_cast<float>(0.0f);
-			_endState.angularVel = Vec3f(0.0f, 0.0f, 0.0f);
-			
 			return ReturnCode::ok;
 		}
 
-		// Update speeds for both wheels
-		// Check for distance sensor errors is missing.
-		WheelSpeeds AlignFront::updateSpeeds(const uint8_t freq)
+		WheelSpeeds AlignWalls::updateSpeeds(const uint8_t freq)
 		{
 			static WheelSpeeds output;
-			const auto tempDistances = SensorFusion::getFusedData().distances;
-			const auto tempDistSensStates = SensorFusion::getFusedData().distSensorState;
+
+			float angle = SensorFusion::getAngleRelToWall();
+
+			if (std::isnan(angle) || fabsf(_avgAngle) < 0.05) {
+				_finished = true;
+			}
+			else {
+				if (_first) {
+					_avgAngle = angle;
+					_first = false;
+				}
+				else {
+					_avgAngle = angle * 0.7 + _avgAngle * 0.3;
+				}
+			}
+
+			debug4 = _avgAngle;
 
 			if (_finished)
 			{
+				debug4 = NAN;
 				return WheelSpeeds{ 0,0 };
 			}
 
-			if (abs(tempDistances.frontLeft - _alignDist) < JAFDSettings::SmoothDriving::maxAlignDistError && abs(tempDistances.frontRight - _alignDist) < JAFDSettings::SmoothDriving::maxAlignDistError)
-			{
-				_finished = true;
-				return WheelSpeeds{ 0,0 };
+			if (_avgAngle > 0.0f) {
+				output.left = JAFDSettings::MotorControl::minSpeed;
+				output.right = -JAFDSettings::MotorControl::minSpeed;
 			}
-			else
-			{
-				if (tempDistances.frontLeft != 0)
-				{
-					if (tempDistances.frontLeft > _alignDist + JAFDSettings::SmoothDriving::maxAlignDistError)
-					{
-						output.left = JAFDSettings::SmoothDriving::alignSpeed;
-					}
-					else if ((int32_t)tempDistances.frontLeft < (int32_t)_alignDist - (int32_t)JAFDSettings::SmoothDriving::maxAlignDistError)
-					{
-						output.left = -JAFDSettings::SmoothDriving::alignSpeed;
-					}
-					else
-					{
-						output.left = 0;
-					}
-				}
-				else
-				{
-					output.left = 0;
-				}
-
-				if (tempDistances.frontRight != 0)
-				{
-					if (tempDistances.frontRight > _alignDist + JAFDSettings::SmoothDriving::maxAlignDistError)
-					{
-						output.right = JAFDSettings::SmoothDriving::alignSpeed;
-					}
-					else if ((int32_t)tempDistances.frontRight < (int32_t)_alignDist - (int32_t)JAFDSettings::SmoothDriving::maxAlignDistError)
-					{
-						output.right = -JAFDSettings::SmoothDriving::alignSpeed;
-					}
-					else
-					{
-						output.right = 0;
-					}
-				}
-				else
-				{
-					output.right = 0;
-				}
+			else {
+				output.left = -JAFDSettings::MotorControl::minSpeed;
+				output.right = JAFDSettings::MotorControl::minSpeed;
 			}
 
 			return output;
 		}
 
-		// AlignFront class - end
+		// AlignWalls class - end
 
 		// FollowWall class - begin
 
@@ -685,6 +612,9 @@ namespace JAFD
 
 		ReturnCode FollowWall::startTask(RobotState startState) {
 			_finished = false;
+			//_finishedDriving = false;
+			//_first = true;
+			//_avgAngle = NAN;
 			_startPos = (Vec2f)(startState.position);
 			_startAngle = startState.globalHeading;
 
@@ -713,18 +643,55 @@ namespace JAFD
 				_finished = true;
 			}
 
-			if (tempFusedData.distSensorState.frontRight == DistSensorStatus::underflow ||
-				(tempFusedData.distSensorState.frontRight == DistSensorStatus::ok &&
-					tempFusedData.distances.frontRight < (JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::distSensFrontBackDist) / 2 * 10)) {
+			if (tempFusedData.distSensorState.frontRight == DistSensorStatus::ok &&
+				tempFusedData.distances.frontRight < (JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::distSensFrontBackDist) / 2 * 10 * 0.9f) {
 				_finished = true;
 			}
 
-
-			if (tempFusedData.distSensorState.frontLeft == DistSensorStatus::underflow ||
-				(tempFusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
-					tempFusedData.distances.frontLeft < (JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::distSensFrontBackDist) / 2 * 10)) {
+			if (tempFusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
+				tempFusedData.distances.frontLeft < (JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::distSensFrontBackDist) / 2 * 10 * 0.9f) {
 				_finished = true;
 			}
+
+			/*
+			if (_finishedDriving) {
+				WheelSpeeds output;
+
+				SensorFusion::setDrivingStraight(false);
+
+				float angle = SensorFusion::getAngleRelToWall();
+
+				if (std::isnan(angle) || fabsf(_avgAngle) < 0.05) {
+					_finished = true;
+				}
+				else {
+					if (_first) {
+						_avgAngle = angle;
+						_first = false;
+					}
+					else {
+						_avgAngle = angle * 0.7 + _avgAngle * 0.3;
+					}
+				}
+
+				if (_finished)
+				{
+					debug4 = NAN;
+					return WheelSpeeds{ 0,0 };
+				}
+
+				if (_avgAngle > 0.0f) {
+					output.left = JAFDSettings::MotorControl::minSpeed;
+					output.right = -JAFDSettings::MotorControl::minSpeed;
+				}
+				else {
+					output.left = -JAFDSettings::MotorControl::minSpeed;
+					output.right = JAFDSettings::MotorControl::minSpeed;
+				}
+
+				return output;
+			}
+			*/
 
 			if (_finished) {
 				SensorFusion::setDrivingStraight(false);
@@ -776,6 +743,7 @@ namespace JAFD
 			}
 
 			float errorAngle = 0.0f;
+			float angle = tempFusedData.robotState.globalHeading;
 
 			if (usableData.lf && usableData.lb && usableData.rb && usableData.rf) {
 				float angleL = 0.0f;
@@ -787,9 +755,9 @@ namespace JAFD
 				calcAngleWallOffsetFromTwoDistances(&angleR, &distToWallR, distances.rf, distances.rb, JAFDSettings::Mechanics::distSensLRSpacing, JAFDSettings::Mechanics::distSensLeftRightDist);
 				angleL *= -1.0f;
 
-				float angle = (angleL + angleR) / 2.0;
+				angle = (angleL + angleR) / 2.0;
 				float combinedDistToLeftWall = (distToWallL + (JAFDSettings::Field::cellWidth - distToWallR)) / 2.0;
-			
+
 				float goalAngle = -atanf((JAFDSettings::Field::cellWidth / 2.0f - combinedDistToLeftWall) / GoToAngle::aheadDistL);
 				errorAngle = goalAngle - angle;
 
@@ -797,25 +765,25 @@ namespace JAFD
 				debug2 = goalAngle;
 			}
 			else if (usableData.lf && usableData.lb) {
-				float angle = 0.0f;
+				angle = 0.0f;
 				float distToWall = 0.0f;
 
 				calcAngleWallOffsetFromTwoDistances(&angle, &distToWall, distances.lf, distances.lb, JAFDSettings::Mechanics::distSensLRSpacing, JAFDSettings::Mechanics::distSensLeftRightDist);
 				angle *= -1.0f;
 
-				float goalAngle = -atanf((JAFDSettings::Field::cellWidth / 2.0f - distToWall) / GoToAngle::aheadDistL);
+				float goalAngle = -atanf((JAFDSettings::Field::cellWidth / 2.0f - 1.0f - distToWall) / GoToAngle::aheadDistL);
 				errorAngle = goalAngle - angle;
 
 				debug1 = angle;
 				debug2 = goalAngle;
 			}
 			else if (usableData.rf && usableData.rb) {
-				float angle = 0.0f;
+				angle = 0.0f;
 				float distToWall = 0.0f;
 
 				calcAngleWallOffsetFromTwoDistances(&angle, &distToWall, distances.rf, distances.rb, JAFDSettings::Mechanics::distSensLRSpacing, JAFDSettings::Mechanics::distSensLeftRightDist);
 
-				float goalAngle = atanf((JAFDSettings::Field::cellWidth / 2.0f - distToWall) / GoToAngle::aheadDistL);
+				float goalAngle = atanf((JAFDSettings::Field::cellWidth / 2.0f - 1.0f - distToWall) / GoToAngle::aheadDistL);
 				errorAngle = goalAngle - angle;
 
 				debug1 = angle;
@@ -829,11 +797,12 @@ namespace JAFD
 
 			// point forward steering http://faculty.salina.k-state.edu/tim/robot_prog/MobileBot/Steering/pointFwd.html
 			errorAngle = fmaxf(fminf(errorAngle, M_PI_2), -M_PI_2);
-			float correctedAngularVel = _speeds / GoToAngle::aheadDistL * powf(sinf(fabsf(errorAngle)), 0.5f) * sgn(errorAngle);
+			debug3 = errorAngle;
+			float correctedAngularVel = _speeds / GoToAngle::aheadDistL * sinf(errorAngle);
 			float correctedForwardVel = fmaxf(fabsf(_speeds * cosf(errorAngle)), JAFDSettings::MotorControl::minSpeed) * sgn(_speeds);
 
 			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
-			WheelSpeeds output = WheelSpeeds { correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
+			WheelSpeeds output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
 
 			// Correct speed if it is too low 
 			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed)
@@ -927,10 +896,10 @@ namespace JAFD
 			_numTasks++;
 		}
 
-		TaskArray::TaskArray(const AlignFront& task) : ITask()
+		TaskArray::TaskArray(const AlignWalls& task)
 		{
-			_taskTypes[_numTasks] = _TaskType::alignFront;
-			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].alignFront)) AlignFront(task);
+			_taskTypes[_numTasks] = _TaskType::alignWalls;
+			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].alignWalls)) AlignWalls(task);
 			_currentTaskNum = _numTasks;
 			_numTasks++;
 		}
@@ -959,7 +928,7 @@ namespace JAFD
 			}
 
 			_endState = state;
-			
+
 			return code;
 		}
 
@@ -1414,13 +1383,13 @@ namespace JAFD
 			return returnCode;
 		}
 
-		// Set new AlignFront task (use last end state to start)
+		// Set new AlignWalls task (use last end state to start)
 		template<>
-		ReturnCode setNewTask<NewStateType::lastEndState>(const AlignFront& newTask, const bool forceOverride)
+		ReturnCode setNewTask<NewStateType::lastEndState>(const AlignWalls& newTask, const bool forceOverride)
 		{
 			static RobotState endState;
 			static ReturnCode returnCode;
-			static AlignFront temp;
+			static AlignWalls temp;
 
 			returnCode = ReturnCode::ok;
 
@@ -1435,7 +1404,7 @@ namespace JAFD
 
 				if (returnCode == ReturnCode::ok)
 				{
-					_currentTask = new (&(_taskCopies.alignFront)) AlignFront(temp);
+					_currentTask = new (&(_taskCopies.alignWalls)) AlignWalls(temp);
 					_stopped = false;
 				}
 			}
@@ -1444,12 +1413,12 @@ namespace JAFD
 			return returnCode;
 		}
 
-		// Set new AlignFront task (use current state to start)
+		// Set new AlignWalls task (use current state to start)
 		template<>
-		ReturnCode setNewTask<NewStateType::currentState>(const AlignFront& newTask, const bool forceOverride)
+		ReturnCode setNewTask<NewStateType::currentState>(const AlignWalls& newTask, const bool forceOverride)
 		{
 			static ReturnCode returnCode;
-			static AlignFront temp;
+			static AlignWalls temp;
 
 			returnCode = ReturnCode::ok;
 
@@ -1462,7 +1431,7 @@ namespace JAFD
 
 				if (returnCode == ReturnCode::ok)
 				{
-					_currentTask = new (&(_taskCopies.alignFront)) AlignFront(temp);
+					_currentTask = new (&(_taskCopies.alignWalls)) AlignWalls(temp);
 					_stopped = false;
 				}
 			}
@@ -1471,11 +1440,11 @@ namespace JAFD
 			return returnCode;
 		}
 
-		// Set new AlignFront task (use specified state to start)
-		ReturnCode setNewTask(const AlignFront& newTask, RobotState startState, const bool forceOverride)
+		// Set new AlignWalls task (use specified state to start)
+		ReturnCode setNewTask(const AlignWalls& newTask, RobotState startState, const bool forceOverride)
 		{
 			static ReturnCode returnCode;
-			static AlignFront temp;
+			static AlignWalls temp;
 
 			returnCode = ReturnCode::ok;
 
@@ -1488,7 +1457,7 @@ namespace JAFD
 
 				if (returnCode == ReturnCode::ok)
 				{
-					_currentTask = new (&(_taskCopies.alignFront)) AlignFront(temp);
+					_currentTask = new (&(_taskCopies.alignWalls)) AlignWalls(temp);
 					_stopped = false;
 				}
 			}

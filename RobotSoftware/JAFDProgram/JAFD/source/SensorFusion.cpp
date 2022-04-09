@@ -38,6 +38,16 @@ namespace JAFD
 				float r = -1.0f;
 				float f = -1.0f;
 			} distToWalls;
+
+			volatile struct {
+				bool zeroPitch = false;
+				bool newX = false;
+				bool newY = false;
+				bool newHeading = false;
+				float x;
+				float y;
+				float heading;
+			} correctedState;
 		}
 
 		volatile bool bnoErr = false;
@@ -50,6 +60,7 @@ namespace JAFD
 		{
 			if (!isDrivingStraight) {
 				distSensAngleTrust = 0.0f;
+				distSensSpeedTrust = 0.0f;
 			}
 
 			RobotState tempRobotState = fusedData.robotState;
@@ -71,18 +82,18 @@ namespace JAFD
 			bnoErr = false;
 
 			// too much angular change (max. 3 rad/s) -> BNO error
-			if (fabsf(fitAngleToInterval(bnoHeading - lastBnoHeading)) > 3.0f / freq || Bno055::getOverallCalibStatus() < 1 || fabsf(fitAngleToInterval(getPitch(bnoForwardVec) - tempRobotState.pitch)) > 3.0f / freq)
+			if (fabsf(fitAngleToInterval(bnoHeading - lastBnoHeading)) > 3.0f / freq || Bno055::getOverallCalibStatus() < 1 || fabsf(fitAngleToInterval(getPitch(bnoForwardVec) - lastPitch)) > 3.0f / freq)
 			{
 				bnoErr = true;
 			}
 
 			if (bnoErr)
 			{
-				tempRobotState.pitch += tempRobotState.angularVel.z / freq * 0.8f;
+				//tempRobotState.pitch += tempRobotState.angularVel.z / freq * 0.2f;
 			}
 			else
 			{
-				tempRobotState.pitch = getPitch(bnoForwardVec) * JAFDSettings::SensorFusion::pitchIIRFactor + tempRobotState.pitch * (1.0f - JAFDSettings::SensorFusion::pitchIIRFactor);
+				tempRobotState.pitch = getPitch(bnoForwardVec) * JAFDSettings::SensorFusion::pitchIIRFactor + lastPitch * (1.0f - JAFDSettings::SensorFusion::pitchIIRFactor);
 			}
 
 			tempRobotState.angularVel.z = (tempRobotState.pitch - lastPitch) * freq;
@@ -92,7 +103,7 @@ namespace JAFD
 			if (trustWheels)
 			{
 				// Magic factor: *1.13
-				float encoderYawVel = (tempRobotState.wheelSpeeds.right - tempRobotState.wheelSpeeds.left) / (JAFDSettings::Mechanics::wheelDistToMiddle * 2.0f * 1.13f);
+				float encoderYawVel = (tempRobotState.wheelSpeeds.right - tempRobotState.wheelSpeeds.left) / (JAFDSettings::Mechanics::wheelDistToMiddle * 2.0f * JAFDSettings::MotorControl::magicFactor);
 				
 				if (!bnoErr) {
 					trustYawVel = 1.0f;
@@ -103,7 +114,7 @@ namespace JAFD
 					tempRobotState.angularVel.x = encoderYawVel;
 				}
 
-				currHeading = (MotorControl::getDistance(Motor::right) - MotorControl::getDistance(Motor::left)) / (JAFDSettings::Mechanics::wheelDistToMiddle * 2.0f * 1.13f);
+				currHeading = (MotorControl::getDistance(Motor::right) - MotorControl::getDistance(Motor::left)) / (JAFDSettings::Mechanics::wheelDistToMiddle * 2.0f * JAFDSettings::MotorControl::magicFactor);
 				currHeading -= totalHeadingOff;
 
 				if (!bnoErr) {
@@ -138,6 +149,17 @@ namespace JAFD
 
 			tempRobotState.angularVel = tempRobotState.angularVel * JAFDSettings::SensorFusion::angularVelIIRFactor + lastAngularVel * (1.0f - JAFDSettings::SensorFusion::angularVelIIRFactor);
 
+			if (correctedState.newHeading) {
+				currHeading = correctedState.heading;
+				correctedState.newHeading = false;
+			}
+
+			if (correctedState.zeroPitch) {
+				tempRobotState.pitch = 0.0f;
+				tempRobotState.angularVel.z = 0.0f;
+				correctedState.zeroPitch = false;
+			}
+
 			tempRobotState.globalHeading = makeRotationCoherent(lastHeading, currHeading);
 
 			tempRobotState.forwardVec = toForwardVec(tempRobotState.globalHeading, tempRobotState.pitch);		// Calculate forward vector
@@ -149,6 +171,39 @@ namespace JAFD
 
 			// Position
 			tempRobotState.position += tempRobotState.forwardVec * (tempRobotState.forwardVel / (float)freq);
+
+			if (correctedState.newX) {
+				tempRobotState.position.x = correctedState.x;
+				correctedState.newX = false;
+			}
+
+			if (correctedState.newY) {
+				tempRobotState.position.y = correctedState.y;
+				correctedState.newY = false;
+			}
+
+			// Map absolute heading & position (MAYBE just for DEBUGGING)
+			if (currHeading > M_PI_4 && currHeading < M_3PI_4) {
+				tempRobotState.heading = AbsoluteDir::west;
+			}
+			else if (currHeading < -M_PI_4 && currHeading > -M_3PI_4) {
+				tempRobotState.heading = AbsoluteDir::east;
+			}
+			else if (currHeading < M_PI_4 && currHeading > -M_PI_4) {
+				tempRobotState.heading = AbsoluteDir::north;
+			}
+			else {
+				tempRobotState.heading = AbsoluteDir::south;
+			}
+
+			auto prevCoord = tempRobotState.mapCoordinate;
+
+			tempRobotState.mapCoordinate.x = (int8_t)roundf(tempRobotState.position.x / JAFDSettings::Field::cellWidth);
+			tempRobotState.mapCoordinate.y = (int8_t)roundf(tempRobotState.position.y / JAFDSettings::Field::cellWidth);
+
+			if (tempRobotState.mapCoordinate != prevCoord) {
+				fusedData.gridCell = GridCell();
+			}
 
 			fusedData.robotState = tempRobotState;
 
@@ -450,9 +505,33 @@ namespace JAFD
 				rightWallsDetected++;
 			}
 
-			MazeMapping::manageDetectedWalls(frontWallsDetected, leftWallsDetected, rightWallsDetected, &fusedData);
+			GridCell newCell;
+			static int consecutiveOk = 0;
 
-			return fusedData.gridCellCertainty > 0.7;
+			//Serial.print("before: ");
+			//Serial.println(tempFusedData.gridCell.cellConnections, BIN);
+
+			bool isOk = MazeMapping::manageDetectedWalls(frontWallsDetected, leftWallsDetected, rightWallsDetected, tempFusedData, newCell);
+			tempFusedData.gridCell = newCell;
+
+			if (isOk) {
+				consecutiveOk++;
+			}
+			else {
+				consecutiveOk = 0;
+			}
+
+			if (consecutiveOk > 10) {
+				MazeMapping::setGridCell(newCell, fusedData.robotState.mapCoordinate);
+				//Serial.println("<" + String(frontWallsDetected) + ", " + String(leftWallsDetected) + ", " + String(rightWallsDetected) + ">");
+				//Serial.println(newCell.cellConnections, BIN);
+			}
+
+			__disable_irq();
+			fusedData = tempFusedData;
+			__enable_irq();
+
+			return consecutiveOk > 10;
 		}
 
 		void calcOffsetAngleFromDistSens() {
@@ -477,42 +556,42 @@ namespace JAFD
 			auto tempFusedData = fusedData;
 
 			if ((tempFusedData.distSensorState.leftFront == DistSensorStatus::ok &&
-				tempFusedData.distances.leftFront < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10) ||
+				tempFusedData.distances.leftFront < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10 * 0.9) ||
 				tempFusedData.distSensorState.leftFront == DistSensorStatus::underflow) {
 				usableData.lf = true;
 				distances.lf = tempFusedData.distSensorState.leftFront == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist : tempFusedData.distances.leftFront;
 			}
 
 			if ((tempFusedData.distSensorState.leftBack == DistSensorStatus::ok &&
-				tempFusedData.distances.leftBack < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10) ||
+				tempFusedData.distances.leftBack < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10 * 0.9) ||
 				tempFusedData.distSensorState.leftBack == DistSensorStatus::underflow) {
 				usableData.lb = true;
 				distances.lb = tempFusedData.distSensorState.leftBack == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist : tempFusedData.distances.leftBack;
 			}
 
 			if ((tempFusedData.distSensorState.rightFront == DistSensorStatus::ok &&
-				tempFusedData.distances.rightFront < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10) ||
+				tempFusedData.distances.rightFront < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10 * 0.9) ||
 				tempFusedData.distSensorState.rightFront == DistSensorStatus::underflow) {
 				usableData.rf = true;
 				distances.rf = tempFusedData.distSensorState.rightFront == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist : tempFusedData.distances.rightFront;
 			}
 
 			if ((tempFusedData.distSensorState.rightBack == DistSensorStatus::ok &&
-				tempFusedData.distances.rightBack < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10) ||
+				tempFusedData.distances.rightBack < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10 * 0.9) ||
 				tempFusedData.distSensorState.rightBack == DistSensorStatus::underflow) {
 				usableData.rb = true;
 				distances.rb = tempFusedData.distSensorState.rightBack == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist : tempFusedData.distances.rightBack;
 			}
 
 			if ((tempFusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
-				tempFusedData.distances.frontLeft < 300 - JAFDSettings::Mechanics::distSensFrontBackDist * 10) ||
+				tempFusedData.distances.frontLeft < 300 - JAFDSettings::Mechanics::distSensFrontBackDist * 10 * 0.9) ||
 				tempFusedData.distSensorState.frontLeft == DistSensorStatus::underflow) {
 				usableData.fl = true;
 				distances.fl = tempFusedData.distSensorState.frontLeft == DistSensorStatus::underflow ? DistanceSensors::VL53L0::minDist : tempFusedData.distances.frontLeft;
 			}
 
 			if ((tempFusedData.distSensorState.frontRight == DistSensorStatus::ok &&
-				tempFusedData.distances.frontRight < 300 - JAFDSettings::Mechanics::distSensFrontBackDist * 10) ||
+				tempFusedData.distances.frontRight < 300 - JAFDSettings::Mechanics::distSensFrontBackDist * 10 * 0.9) ||
 				tempFusedData.distSensorState.frontRight == DistSensorStatus::underflow) {
 				usableData.fr = true;
 				distances.fr = tempFusedData.distSensorState.frontRight == DistSensorStatus::underflow ? DistanceSensors::VL53L0::minDist : tempFusedData.distances.frontRight;
@@ -554,7 +633,25 @@ namespace JAFD
 
 			if (numData > 0) {
 				float angle = (angleL + angleR + angleF) / numData;
-				float wallAngle = -(ffs((uint8_t)tempFusedData.robotState.heading) - 1) * PI / 2.0f;
+
+				float wallAngle = 0.0f;
+				switch (tempFusedData.robotState.heading)
+				{
+				case AbsoluteDir::north:
+					wallAngle = 0.0f;
+					break;
+				case AbsoluteDir::east:
+					wallAngle = -M_PI_2;
+					break;
+				case AbsoluteDir::south:
+					wallAngle = M_PI;
+					break;
+				case AbsoluteDir::west:
+					wallAngle = M_PI_2;
+					break;
+				default:
+					break;
+				}
 
 				distSensAngle = fitAngleToInterval(angle + wallAngle);
 				distSensAngleTrust = (numData + 2.0f) / 5.0f;
@@ -913,26 +1010,138 @@ namespace JAFD
 			lastTime = now;
 		}
 
-		void setMapPosHeading(MapCoordinate coor, AbsoluteDir heading) {
-			fusedData.robotState.mapCoordinate = coor;
-			fusedData.robotState.heading = heading;
-		}
+		void updatePosAndRotFromDist() {
+			float totAngleWeight = 0.0f;
+			float avgCos = 0.0f;
+			float avgSin = 0.0f;
+			float avgX = 0.0f;
+			int totXNum = 0.0f;
+			float avgY = 0.0f;
+			int totYNum = 0.0f;
 
-		// "heading" in rad
-		void setCertainRobotPosition(Vec3f pos, float heading)
-		{
 			auto tempRobotState = fusedData.robotState;
 
-			tempRobotState.position = pos;
-			tempRobotState.globalHeading = makeRotationCoherent(tempRobotState.globalHeading, heading);
+			for (int i = 0; i < 10; i++) {
+				DistanceSensors::updateDistSensors();
+				calcOffsetAngleFromDistSens();
 
-			float currentRotEncAngle = (MotorControl::getDistance(Motor::right) - MotorControl::getDistance(Motor::left)) / (JAFDSettings::Mechanics::wheelDistToMiddle * 2.0f * 1.173f);
+				if (distSensAngleTrust > 0.01f) {
+					totAngleWeight += distSensAngleTrust;
+					avgCos += cosf(distSensAngle) * distSensAngleTrust;
+					avgSin += sinf(distSensAngle) * distSensAngleTrust;
+				}
 
-			totalHeadingOff = fitAngleToInterval(heading - currentRotEncAngle);
+				switch (tempRobotState.heading)
+				{
+				case AbsoluteDir::north:
+					if (distToWalls.l > 0.0f) {
+						avgY += (tempRobotState.mapCoordinate.y + 0.5f) * JAFDSettings::Field::cellWidth - distToWalls.l;
+						totYNum++;
+					}
 
-			Bno055::tare(heading);
+					if (distToWalls.r > 0.0f) {
+						avgY += (tempRobotState.mapCoordinate.y - 0.5f) * JAFDSettings::Field::cellWidth + distToWalls.r;
+						totYNum++;
+					}
 
-			fusedData.robotState = tempRobotState;
+					if (distToWalls.f > 0.0f) {
+						avgX += (tempRobotState.mapCoordinate.x + 0.5f) * JAFDSettings::Field::cellWidth - distToWalls.f;
+						totXNum++;
+					}
+					break;
+				case AbsoluteDir::east:
+					if (distToWalls.l > 0.0f) {
+						avgX += (tempRobotState.mapCoordinate.x + 0.5f) * JAFDSettings::Field::cellWidth - distToWalls.l;
+						totXNum++;
+					}
+
+					if (distToWalls.r > 0.0f) {
+						avgX += (tempRobotState.mapCoordinate.x - 0.5f) * JAFDSettings::Field::cellWidth + distToWalls.r;
+						totXNum++;
+					}
+
+					if (distToWalls.f > 0.0f) {
+						avgY += (tempRobotState.mapCoordinate.y - 0.5f) * JAFDSettings::Field::cellWidth + distToWalls.f;
+						totYNum++;
+					}
+					break;
+				case AbsoluteDir::south:
+					if (distToWalls.l > 0.0f) {
+						avgY += (tempRobotState.mapCoordinate.y - 0.5f) * JAFDSettings::Field::cellWidth + distToWalls.l;
+						totYNum++;
+					}
+
+					if (distToWalls.r > 0.0f) {
+						avgY += (tempRobotState.mapCoordinate.y + 0.5f) * JAFDSettings::Field::cellWidth - distToWalls.r;
+						totYNum++;
+					}
+
+					if (distToWalls.f > 0.0f) {
+						avgX += (tempRobotState.mapCoordinate.x - 0.5f) * JAFDSettings::Field::cellWidth + distToWalls.f;
+						totXNum++;
+					}
+					break;
+				case AbsoluteDir::west:
+					if (distToWalls.l > 0.0f) {
+						avgX += (tempRobotState.mapCoordinate.x - 0.5f) * JAFDSettings::Field::cellWidth + distToWalls.l;
+						totXNum++;
+					}
+
+					if (distToWalls.r > 0.0f) {
+						avgX += (tempRobotState.mapCoordinate.x + 0.5f) * JAFDSettings::Field::cellWidth - distToWalls.r;
+						totXNum++;
+					}
+
+					if (distToWalls.f > 0.0f) {
+						avgY += (tempRobotState.mapCoordinate.y + 0.5f) * JAFDSettings::Field::cellWidth - distToWalls.f;
+						totYNum++;
+					}
+					break;
+				default:
+					break;
+				}
+			}
+
+			//Serial.println("......");
+			//Serial.println(distToWalls.f);
+			//Serial.println(distToWalls.l);
+			//Serial.println(distToWalls.r);
+			//Serial.println("......");
+
+			noInterrupts();
+
+			correctedState.zeroPitch = true;
+
+			if (totXNum > 0) {
+				avgX /= totXNum;
+				correctedState.x = avgX;
+				correctedState.newX = true;
+			}
+
+			if (totYNum > 0) {
+				avgY /= totYNum;
+				correctedState.y = avgY;
+				correctedState.newY = true;
+			}
+
+			float avgAngle = 0.0f;
+			if (totAngleWeight > 0.01f) {
+				avgCos /= totAngleWeight;
+				avgSin /= totAngleWeight;
+				avgAngle = atan2f(avgSin, avgCos);
+
+				correctedState.heading = makeRotationCoherent(tempRobotState.globalHeading, avgAngle);
+				correctedState.newHeading = true;
+
+				float currentRotEncAngle = (MotorControl::getDistance(Motor::right) - MotorControl::getDistance(Motor::left)) / (JAFDSettings::Mechanics::wheelDistToMiddle * 2.0f * JAFDSettings::MotorControl::magicFactor);
+				totalHeadingOff = fitAngleToInterval(avgAngle - currentRotEncAngle);
+			}
+
+			interrupts();
+
+			if (totAngleWeight > 0.01f) {
+				Bno055::tare(avgAngle);
+			}
 		}
 
 		FusedData getFusedData()
@@ -969,7 +1178,7 @@ namespace JAFD
 		}
 
 		float getAngleRelToWall() {
-			return distSensAngleTrust > 0.01f ? distSensAngle : -1.0f;
+			return distSensAngleTrust > 0.01f ? distSensAngle : NAN;
 		}
 	}
 }

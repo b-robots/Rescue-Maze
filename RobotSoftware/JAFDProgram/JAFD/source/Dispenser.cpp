@@ -200,6 +200,10 @@ namespace JAFD
 			}
 			else
 			{
+				// DEBUG
+				// Just for testing
+				return ReturnCode::aborted;
+
 				uint16_t remainPacks = num - getLeftCubeCount();
 
 				for (int i = 0; i < getLeftCubeCount(); i++)

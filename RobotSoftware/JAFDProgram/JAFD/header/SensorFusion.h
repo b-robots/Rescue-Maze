@@ -21,12 +21,11 @@ namespace JAFD
 		void untimedFusion();										// Update sensor values
 		void updateSensors();										// Update all sensors
 		FusedData getFusedData();									// Get current robot state
-		void setCertainRobotPosition(Vec3f pos, float heading);		// Set a certain robot position and angle
 		void setDistances(Distances distances);
 		void setDistSensStates(DistSensorStates distSensorStates);
 		bool scanSurrounding();
-		void updatePosAngleFromDistSens();
-		void setMapPosHeading(MapCoordinate coor, AbsoluteDir heading);
+		void updatePosAndRotFromDist();
+		float getAngleRelToWall();
 
 		extern volatile bool bnoErr;
 	}

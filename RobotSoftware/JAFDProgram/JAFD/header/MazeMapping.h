@@ -56,10 +56,7 @@ namespace JAFD
 		void getGridCell(uint8_t* bfsValue, const MapCoordinate coor);
 		void getGridCell(GridCell* gridCell, uint8_t* bfsValue, const MapCoordinate coor);
 
-		// Set current cell and recalculate certainty
-		void setCurrentCell(const GridCell gridCell, float& currentCertainty, const float updateCertainty, MapCoordinate coor);
-
 		// Detect walls and entrances
-		void manageDetectedWalls(uint8_t frontWallsDetected, uint8_t leftWallsDetected, uint8_t rightWallsDetected, volatile FusedData* outputFusedData);
+		bool manageDetectedWalls(uint8_t frontWallsDetected, uint8_t leftWallsDetected, uint8_t rightWallsDetected, FusedData outputFusedData, GridCell &newcell);
 	}
 }
