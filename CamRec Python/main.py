@@ -1,4 +1,6 @@
 from ast import Pass
+
+from matplotlib.pyplot import gray
 from FisheyeCorrection.undistort import undistort, get_undistort_map
 import cv2 as cv
 import pytesseract
@@ -6,8 +8,27 @@ import re
 import subprocess 
 import numpy as np
 import serial
+import math 
 
-def detect_letter(img):
+def get_trainData(path, letter):
+    img = cv.imread("../../" + letter + ".jpg")
+    print(img.shape)
+    #get roi
+    map1, map2 = get_undistort_map(0.8, 1.0)
+    img = undistort(img, map1, map2)
+
+    #[y:y+h, x:x+w] the ":" means from to 
+    #img = img[100:300, 50:190]
+    cv.imwrite("test2.jpg", img)
+    return img
+
+def get_features(img):
+    gray_image = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    blur = cv.GaussianBlur(gray_image,(5,5),0)
+    ret3,oth_image = cv.threshold(blur,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
+    cv.imwrite("test.jpg", oth_image)
+
+def detect_letter(features):
     pass
 
 def get_undist_roi(img, map1, map2, is_right=False):
@@ -63,6 +84,16 @@ def read_all_serial(port):
         return [None]
     return port.read(port.in_waiting)
         
+def get_HU(img):
+    # Calculate Moments
+    moments = cv.moments(img)
+    # Calculate Hu Moments
+    hu_moments = cv.HuMoments(moments)
+    # Log scale hu moments
+    for i in range(0,7):
+	    hu_moments[i] = (-1* math.copysign(1.0, hu_moments[i]) * math.log10(abs(hu_moments[i]) + 1e-100))
+    
+    print(hu_moments)
 
 def main():
     port = serial.Serial('/dev/serial0', baudrate=9600, timeout=0)
@@ -98,6 +129,17 @@ def main():
             imgr = get_undist_roi(imgr, map1, map2, True)
             imgl = get_undist_roi(imgl, map1, map2, False)
 
+            bin_imgl = cv.cvtColor(imgl, cv.COLOR_BGR2GRAY)
+            bin_imgl = cv.adaptiveThreshold(bin_imgl, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY_INV, 21, 11)
+
+            bin_imgr = cv.cvtColor(imgr, cv.COLOR_BGR2GRAY)
+            bin_imgr = cv.adaptiveThreshold(bin_imgr, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY_INV, 21, 11)
+
+            get_HU(bin_imgr)
+
+            #cv.imwrite("testL.jpg", bin_imgl)
+            #cv.imwrite("testR.jpg", bin_imgr)
+
             rightOut = colorLookup[detect_Color(imgr)]
             leftOut = colorLookup[detect_Color(imgl)]
         
@@ -117,4 +159,5 @@ def main():
     #cv.imwrite("testR.jpg", imgr)
 
 if __name__ == "__main__":
-    main()
+    img = get_trainData("","U")
+    get_features(img)
