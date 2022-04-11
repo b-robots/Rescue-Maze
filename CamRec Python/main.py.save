@@ -20,7 +20,7 @@ def get_undist_roi(img, map1, map2, is_right=False):
         img = cv.rotate(img, cv.ROTATE_90_CLOCKWISE)
 
     #[y:y+h, x:x+w] the ":" means from to 
-    img = img[100:300, 50:190]
+    img = img[20:300, 45:195]
 
     return img
 
@@ -47,7 +47,7 @@ def detect_Color(img):
     pixels = cv.cvtColor(img, cv.COLOR_BGR2HSV)
     sat = pixels[:, :, 1]
     mask = np.where(np.logical_and(sat > 100, pixels[:, :, 2] > 30), 255, 0)
-    if(np.count_nonzero(mask > 80) / 200.0 / 140.0 > 0.06):
+    if(np.count_nonzero(mask > 80) / 280.0 / 150.0 > 0.05):
         hues = np.float32(pixels[np.where(mask > 127)][:, 0])
         hues *= 2.0
         hue_mean = np.arctan2(np.mean(np.sin(hues / 180 * np.pi)), np.mean(np.cos(hues / 180 * np.pi)))
@@ -86,10 +86,12 @@ def main():
     camr.set(cv.CAP_PROP_FRAME_WIDTH, 320)
     camr.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
 
-    while True:
-        try:
-            if b'B' in read_all_serial(port):
-                port.write(b'OK\n')
+    # Wait for 'B' to begin
+    while b'B' not in read_all_serial(port):
+        pass
+
+    port.write(b'OK\n')
+
             #get picture
             _, imgl = caml.read()
             _, imgr = camr.read()
@@ -106,10 +108,10 @@ def main():
 
         #if leftOut == colorLookup[0]:
         #    leftOut = letterLookup[detect_letter(imgl)]
+
             port.write(b'l' + leftOut + b'r' + rightOut + b'\n')
-            print("l: " + str(leftOut), "r: " + str(rightOut))
-        except Exception as e:
-            print(e)
+            print("l: " + leftOut, "r: " + rightOut)
+        except:
             continue
 
         
