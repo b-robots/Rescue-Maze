@@ -110,10 +110,10 @@ def main():
         leftOut = colorLookup[detect_Color(imgl)]
 
         if rightOut == colorLookup[0]:
-            rightOut = letterLookup[detect_letter()]
+            rightOut = letterLookup[detect_letter(imgr)]
 
         if leftOut == colorLookup[0]:
-            leftOut = letterLookup[detect_letter()]
+            leftOut = letterLookup[detect_letter(imgl)]
 
         port.write(b'l' + leftOut + b'r' + rightOut + b'\n')
 
