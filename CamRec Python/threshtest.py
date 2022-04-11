@@ -70,15 +70,15 @@ def main():
             
             imgl = cv.cvtColor(imgl, cv.COLOR_BGR2GRAY)
             imgl = cv.adaptiveThreshold(imgl, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY_INV, 21, 11)
-            cv.imshow("",imgl)
+            #cv.imshow("",imgl)
             cv.waitKey(1)
         except Exception as e:
             print(e)
             continue
 
         
-    #cv.imwrite("testL.jpg", imgl)
-    #cv.imwrite("testR.jpg", imgr)
+        cv.imwrite("testL.jpg", imgl)
+        cv.imwrite("testR.jpg", imgr)
 
 if __name__ == "__main__":
     main()
