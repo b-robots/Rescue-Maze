@@ -10,6 +10,7 @@ This is the heart of the robot
 #include "../header/HeatSensor.h"
 #include "../header/Dispenser.h"
 #include "../header/CamRec.h"
+#include "../header/TCS34725.h"
 
 namespace JAFD
 {
@@ -44,26 +45,33 @@ namespace JAFD
 				switch (dir)
 				{
 				case RelativeDir::forward:
-					setNewTask<NewStateType::currentState>(TaskArray(Stop(),
-						FollowWall(20, 30.0f),
+					setNewTask<NewStateType::lastEndState>(TaskArray(Stop(),
+						FollowWall(25, 30.0f),
+						AlignWalls(),
 						Stop()));
 					break;
 				case RelativeDir::right:
-					setNewTask<NewStateType::currentState>(TaskArray(Stop(),
-						Rotate(-0.5f, -90.0f),
-						FollowWall(20, 30.0f),
+					setNewTask<NewStateType::lastEndState>(TaskArray(Stop(),
+						Rotate(-1.0f, -90.0f),
+						AlignWalls(),
+						FollowWall(25, 30.0f),
+						AlignWalls(),
 						Stop()));
 					break;
 				case RelativeDir::backward:
-					setNewTask<NewStateType::currentState>(TaskArray(Stop(),
-						Rotate(0.5f, 180.0f),
-						FollowWall(20, 30.0f),
+					setNewTask<NewStateType::lastEndState>(TaskArray(Stop(),
+						Rotate(1.0f, 180.0f),
+						AlignWalls(),
+						FollowWall(25, 30.0f),
+						AlignWalls(),
 						Stop()));
 					break;
 				case RelativeDir::left:
-					setNewTask<NewStateType::currentState>(TaskArray(Stop(),
-						Rotate(0.5f, 90.0f),
-						FollowWall(20, 30.0f),
+					setNewTask<NewStateType::lastEndState>(TaskArray(Stop(),
+						Rotate(1.0f, 90.0f),
+						AlignWalls(),
+						FollowWall(25, 30.0f),
+						AlignWalls(),
 						Stop()));
 					break;
 				default:
@@ -88,19 +96,24 @@ namespace JAFD
 				if (tempFusedData.gridCell.cellConnections & static_cast<uint8_t>(absLeft) && tempFusedData.gridCell.cellConnections & static_cast<uint8_t>(absRight))
 				{
 					if (random(2) == 0) {
+						Serial.println("start first left");
 						startRelativeTurnDirDrive(RelativeDir::left);
 					}
 					else {
+						Serial.println("start first right");
 						startRelativeTurnDirDrive(RelativeDir::right);
 					}
 				}
 				else if (tempFusedData.gridCell.cellConnections & static_cast<uint8_t>(absLeft)) {
+					Serial.println("start first left");
 					startRelativeTurnDirDrive(RelativeDir::left);
 				}
 				else if (tempFusedData.gridCell.cellConnections & static_cast<uint8_t>(absRight)) {
+					Serial.println("start first right");
 					startRelativeTurnDirDrive(RelativeDir::right);
 				}
 				else if (tempFusedData.gridCell.cellConnections & static_cast<uint8_t>(absBack)) {
+					Serial.println("start first back");
 					startRelativeTurnDirDrive(RelativeDir::backward);
 				}
 				else {
@@ -108,6 +121,96 @@ namespace JAFD
 					return;
 				}
 			}
+		}
+
+		bool getNextDrivingDir(FusedData tempFusedData, RelativeDir& nextDir) {
+			const AbsoluteDir absLeft = makeAbsolute(RelativeDir::left, tempFusedData.robotState.heading);
+			const AbsoluteDir absForward = makeAbsolute(RelativeDir::forward, tempFusedData.robotState.heading);
+			const AbsoluteDir absRight = makeAbsolute(RelativeDir::right, tempFusedData.robotState.heading);
+			const AbsoluteDir absBack = makeAbsolute(RelativeDir::backward, tempFusedData.robotState.heading);
+
+			struct {
+				bool F = true;
+				bool R = true;
+				bool L = true;
+				bool B = true;
+			} possibleRelDir;
+
+			if (!(tempFusedData.gridCell.cellConnections & (uint8_t) absLeft)) {
+				possibleRelDir.L = false;
+			}
+
+			if (!(tempFusedData.gridCell.cellConnections & (uint8_t)absRight)) {
+				possibleRelDir.R = false;
+			}
+
+			if (!(tempFusedData.gridCell.cellConnections & (uint8_t)absForward)) {
+				possibleRelDir.F = false;
+			}
+
+			if (!(tempFusedData.gridCell.cellConnections & (uint8_t)absBack)) {
+				possibleRelDir.B = false;
+			}
+
+			GridCell cell;
+
+			if (possibleRelDir.L) {
+				MazeMapping::getGridCell(&cell, tempFusedData.robotState.mapCoordinate.getCoordinateInDir(absLeft));
+				if (cell.cellState & CellState::blackTile) {
+					possibleRelDir.L = false;
+				}
+			}
+
+			if (possibleRelDir.R) {
+				MazeMapping::getGridCell(&cell, tempFusedData.robotState.mapCoordinate.getCoordinateInDir(absRight));
+				if (cell.cellState & CellState::blackTile) {
+					possibleRelDir.R = false;
+				}
+			}
+
+			if (possibleRelDir.F) {
+				MazeMapping::getGridCell(&cell, tempFusedData.robotState.mapCoordinate.getCoordinateInDir(absForward));
+				if (cell.cellState & CellState::blackTile) {
+					possibleRelDir.F = false;
+				}
+			}
+
+			if (possibleRelDir.B) {
+				MazeMapping::getGridCell(&cell, tempFusedData.robotState.mapCoordinate.getCoordinateInDir(absBack));
+				if (cell.cellState & CellState::blackTile) {
+					possibleRelDir.B = false;
+				}
+			}
+
+			if (possibleRelDir.F) {
+				nextDir = RelativeDir::forward;
+			}
+			else if (possibleRelDir.L && possibleRelDir.R) {
+				if (random(2) == 0) {
+					nextDir = RelativeDir::left;
+				}
+				else {
+					nextDir = RelativeDir::right;
+				}
+			}
+			else if (possibleRelDir.L) {
+				nextDir = RelativeDir::left;
+			}
+			else if (possibleRelDir.R) {
+				nextDir = RelativeDir::right;
+			}
+			else if (possibleRelDir.B) {
+				nextDir = RelativeDir::backward;
+			}
+			else {
+				nextDir = RelativeDir::forward;
+				Serial.println("No direction to drive! (2)");
+				return false;
+			}
+
+			return true;
+
+			// TODO
 		}
 
 		void loop()
@@ -119,7 +222,7 @@ namespace JAFD
 			static MapCoordinate nextMapCoordinate;
 			static AbsoluteDir nextHeading;
 
-			const auto tempFusedData = SensorFusion::getFusedData();
+			const FusedData tempFusedData = SensorFusion::getFusedData();
 
 			if (start) {
 				if (!SensorFusion::scanSurrounding()) {
@@ -129,14 +232,18 @@ namespace JAFD
 				SensorFusion::updatePosAndRotFromDist();
 
 				if (tempFusedData.gridCell.cellConnections & EntranceDirections::east) {
-					setNewTask<NewStateType::currentState>(TaskArray(Stop(),
-						Rotate(-0.5f, 90.0f),
+					Serial.println("start rot. east");
+					setNewTask<NewStateType::lastEndState>(TaskArray(Stop(),
+						Rotate(-1.0f, -90.0f),
+						AlignWalls(),
 						Stop()));
 					startAfterRotation = true;
 				}
 				else {
-					setNewTask<NewStateType::currentState>(TaskArray(Stop(),
-						Rotate(0.5f, 90.0f),
+					Serial.println("start rot. west");
+					setNewTask<NewStateType::lastEndState>(TaskArray(Stop(),
+						Rotate(1.0f, 90.0f),
+						AlignWalls(),
 						Stop()));
 					startAfterRotation = true;
 				}
@@ -152,25 +259,19 @@ namespace JAFD
 					return;
 				}
 
+				Serial.println("startAfterRotation -> updatePos");
 				SensorFusion::updatePosAndRotFromDist();
 
-				startAfterRotation = false;
-
 				startFirstTask(tempFusedData);
+
+				startAfterRotation = false;
 			}
 			else {
-				if (SmoothDriving::isTaskFinished()) {
-					if (SensorFusion::scanSurrounding()) {
-						SensorFusion::updatePosAndRotFromDist();
-						GridCell cell;
-						MazeMapping::getGridCell(&cell, tempFusedData.robotState.mapCoordinate);
-						startFirstTask(tempFusedData);
-					}
-				}
-
 				static int consecutiveLHeat = 0;
 				static int consecutiveRHeat = 0;
-				static MapCoordinate lastFoundVictim = homePosition;
+				static bool leftHeat = false;
+				static bool rightHeat = false;
+				static MapCoordinate lastHeatVictim = homePosition;
 
 				if (HeatSensor::detectVictim(HeatSensorSide::left) &&
 					!(tempFusedData.gridCell.cellConnections & static_cast<uint8_t>(makeAbsolute(RelativeDir::left, tempFusedData.robotState.heading)))) {
@@ -188,17 +289,75 @@ namespace JAFD
 					consecutiveRHeat = 0;
 				}
 
-				if (lastFoundVictim != tempFusedData.robotState.mapCoordinate) {
-					if (consecutiveLHeat > 5) {
-						SmoothDriving::stopTask();
-						Dispenser::dispenseLeft(3);
-						lastFoundVictim = tempFusedData.robotState.mapCoordinate;
+				if (consecutiveLHeat > 5 && lastHeatVictim != tempFusedData.robotState.mapCoordinate)
+					leftHeat = true;
+				else if (consecutiveRHeat > 5 && lastHeatVictim != tempFusedData.robotState.mapCoordinate)
+					rightHeat = true;
+
+				if (rightHeat || leftHeat) {
+					Serial.println("heat");
+					lastHeatVictim = tempFusedData.robotState.mapCoordinate;
+
+					GridCell currentCell;
+					MazeMapping::getGridCell(&currentCell, tempFusedData.robotState.mapCoordinate);
+
+					if (!(currentCell.cellState & CellState::victim)) {
+						if (isTaskFinished() || isDrivingStraight()) {
+							Serial.println("start disp");
+							auto startDisp = millis();
+
+							SmoothDriving::stopTask();
+
+							currentCell.cellState |= CellState::victim;
+							MazeMapping::setGridCell(currentCell, tempFusedData.robotState.mapCoordinate);
+
+							if (leftHeat) {
+								Dispenser::dispenseLeft(1);
+							}
+							else {
+								Dispenser::dispenseRight(1);
+							}
+
+							delay(6000 - (millis() - startDisp));
+						}
+					}
+				}
+
+				static bool returnFromBlack = false;
+
+				if (isDrivingStraight()) {
+					FloorTileColour tileColour = ColorSensor::detectTileColour(tempFusedData.colorSensData.lux);
+
+					if (tileColour == FloorTileColour::black && !returnFromBlack) {
+						Serial.println("start return from black");
+						Serial.println(tempFusedData.robotState.position.y);
+						setNewTask<NewStateType::lastEndState>(TaskArray(FollowWall(-25, -30.0f), AlignWalls(), Stop()), true);
+						returnFromBlack = true;
+						return;
+					}
+				}
+
+				if (SmoothDriving::isTaskFinished()) {
+					if (returnFromBlack) {
+						GridCell cell;
+						MazeMapping::getGridCell(&cell, tempFusedData.robotState.mapCoordinate.getCoordinateInDir(tempFusedData.robotState.heading));
+						cell.cellState = cell.cellState | CellState::blackTile;
+						MazeMapping::setGridCell(cell, tempFusedData.robotState.mapCoordinate.getCoordinateInDir(tempFusedData.robotState.heading));
+						Serial.println(tempFusedData.robotState.position.y);
+						Serial.println("store black tile");
+						returnFromBlack = false;
 					}
 
-					if (consecutiveRHeat > 5) {
-						SmoothDriving::stopTask();
-						Dispenser::dispenseLeft(3);
-						lastFoundVictim = tempFusedData.robotState.mapCoordinate;
+					if (SensorFusion::scanSurrounding()) {
+						Serial.println("scanned surr. -> update pos");
+						SensorFusion::updatePosAndRotFromDist();
+
+						RelativeDir driveDir;
+						if (getNextDrivingDir(tempFusedData, driveDir)) {
+							Serial.print("start new turn dir. drive: ");
+							Serial.println((int)driveDir);
+							startRelativeTurnDirDrive(driveDir);
+						}
 					}
 				}
 			}

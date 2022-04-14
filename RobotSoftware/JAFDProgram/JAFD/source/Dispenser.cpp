@@ -143,8 +143,9 @@ namespace JAFD
 
 				SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(
 					SmoothDriving::Stop(),
-					SmoothDriving::Rotate(4.0f, 180.0f),
-					SmoothDriving::Stop()), true);
+					SmoothDriving::Rotate(0.5f, 180.0f),
+					SmoothDriving::AlignWalls(),
+					SmoothDriving::Stop()));
 
 				Wait::waitForFinishedTask();
 
@@ -162,6 +163,14 @@ namespace JAFD
 
 					leftCubeCount--;
 				}
+
+				SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(
+					SmoothDriving::Stop(),
+					SmoothDriving::Rotate(-0.5f, -180.0f),
+					SmoothDriving::AlignWalls(),
+					SmoothDriving::Stop()));
+
+				Wait::waitForFinishedTask();
 
 				return ReturnCode::ok;
 			}
@@ -200,10 +209,6 @@ namespace JAFD
 			}
 			else
 			{
-				// DEBUG
-				// Just for testing
-				return ReturnCode::aborted;
-
 				uint16_t remainPacks = num - getLeftCubeCount();
 
 				for (int i = 0; i < getLeftCubeCount(); i++)
@@ -223,8 +228,9 @@ namespace JAFD
 				
 				SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(
 					SmoothDriving::Stop(),
-					SmoothDriving::Rotate(4.0f, 180.0f),
-					SmoothDriving::Stop()), true);
+					SmoothDriving::Rotate(0.5f, 180.0f),
+					SmoothDriving::AlignWalls(),
+					SmoothDriving::Stop()));
 
 				Wait::waitForFinishedTask();
 
@@ -242,6 +248,14 @@ namespace JAFD
 
 					rightCubeCount--;
 				}
+
+				SmoothDriving::setNewTask<SmoothDriving::NewStateType::lastEndState>(SmoothDriving::TaskArray(
+					SmoothDriving::Stop(),
+					SmoothDriving::Rotate(-0.5f, -180.0f),
+					SmoothDriving::AlignWalls(),
+					SmoothDriving::Stop()));
+
+				Wait::waitForFinishedTask();
 
 				return ReturnCode::ok;
 			}

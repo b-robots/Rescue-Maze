@@ -19,5 +19,7 @@ namespace JAFD
 		void interrupt(const Interrupts::InterruptSource source, const uint32_t isr);
 		bool dataIsReady();
 		void getData(uint16_t* colorTemp, uint16_t* lux);
+		void calibrate();
+		FloorTileColour detectTileColour(uint16_t lux);
 	}
 }

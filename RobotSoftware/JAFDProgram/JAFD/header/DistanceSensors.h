@@ -48,7 +48,7 @@ namespace JAFD
 			ReturnCode setup() const;
 			uint16_t getDistance();		// Get distance in mm
 			Status getStatus() const;
-			void calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure);
+			void calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure, uint16_t thirdTrue, uint16_t thirdMeasure);
 			void storeCalibData();
 			void restoreCalibData();
 			void resetCalibData();
@@ -105,7 +105,7 @@ namespace JAFD
 			ReturnCode setup();
 			uint16_t getDistance();	// Get distance in mm
 			Status getStatus() const;
-			void calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure);
+			void calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure, uint16_t thirdTrue, uint16_t thirdMeasure);
 			void storeCalibData();
 			void restoreCalibData();
 			void resetCalibData();
@@ -150,7 +150,7 @@ namespace JAFD
 			ReturnCode setup();
 			uint16_t getDistance();		// Get distance in mm
 			Status getStatus() const;
-			void calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure);
+			void calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure, uint16_t thirdTrue, uint16_t thirdMeasure);
 			void storeCalibData();
 			void restoreCalibData();
 			void resetCalibData();
@@ -182,5 +182,6 @@ namespace JAFD
 		void updateDistSensors();
 		void forceNewMeasurement();
 		void averagedCalibration();
+		void resetHardCodedCalib();
 	}
 }

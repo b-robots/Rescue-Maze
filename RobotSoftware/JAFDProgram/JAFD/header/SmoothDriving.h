@@ -33,6 +33,7 @@ namespace JAFD
 			virtual ReturnCode startTask(RobotState startState) = 0;
 			bool isFinished();
 			RobotState getEndState();
+			virtual bool isDrivingStraight() = 0;
 			virtual ~ITask() = default;
 		protected:
 			volatile bool _finished;			// Is the task already finished?
@@ -50,6 +51,9 @@ namespace JAFD
 			int16_t _startSpeeds;				// Average start speed of both wheels
 			float _totalTime;					// Calculated time needed to drive
 		public:
+			bool isDrivingStraight() {
+				return !_finished;
+			}
 			explicit Accelerate(int16_t endSpeeds = 0, float distance = 0.0f);
 			ReturnCode startTask(RobotState startState);
 			WheelSpeeds updateSpeeds(const uint8_t freq);
@@ -63,6 +67,9 @@ namespace JAFD
 			Vec2f _targetDir;					// Target direction (guranteed to be normalized)
 			Vec2f _startPos;					// Start position
 		public:
+			bool isDrivingStraight() {
+				return !_finished;
+			}
 			explicit DriveStraight(float distance = 0);
 			ReturnCode startTask(RobotState startState);
 			WheelSpeeds updateSpeeds(const uint8_t freq);
@@ -71,6 +78,9 @@ namespace JAFD
 		class Stop : public ITask
 		{
 		public:
+			bool isDrivingStraight() {
+				return false;
+			}
 			ReturnCode startTask(RobotState startState);
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
@@ -84,6 +94,9 @@ namespace JAFD
 			float _totalTime;				// Calculated time needed to drive
 			bool _accelerate;				// Still accelerating?	
 		public:
+			bool isDrivingStraight() {
+				return false;
+			}
 			explicit Rotate(float maxAngularVel = 0, float angle = 0.0f);			// Set angular velocity in rad/s and angle in degree
 			ReturnCode startTask(RobotState startState);
 			WheelSpeeds updateSpeeds(const uint8_t freq);
@@ -94,21 +107,27 @@ namespace JAFD
 		private:
 			int16_t _speeds;					// Speeds of both wheels
 			float _distance;					// Distance the robot has to travel
-			Vec2f _targetDir;					// Target direction (guranteed to be normalized)
 			Vec2f _startPos;					// Start position
 		public:
+			bool isDrivingStraight() {
+				return !_finished;
+			}
 			explicit ForceSpeed(int16_t speed = 0, float distance = 0);
 			ReturnCode startTask(RobotState startState);
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
 
-		// funktioniert nicht
 		class AlignWalls : public ITask
 		{
 		private:
 			float _avgAngle;
 			bool _first;
+			uint32_t _cnt;
+			bool _waitForPosReset;
 		public:
+			bool isDrivingStraight() {
+				return !_finished;
+			}
 			AlignWalls();
 			ReturnCode startTask(RobotState startState);
 			WheelSpeeds updateSpeeds(const uint8_t freq);
@@ -121,10 +140,11 @@ namespace JAFD
 			float _distance;					// Distance the robot has to travel
 			Vec2f _startPos;					// Start position
 			float _startAngle;
-			//bool _finishedDriving;
-			//bool _first;
-			//float _avgAngle;
+			PIDController _pid;
 		public:
+			bool isDrivingStraight() {
+				return !_finished;
+			}
 			explicit FollowWall(int16_t speed = 0, float distance = 0);
 			ReturnCode startTask(RobotState startState);
 			WheelSpeeds updateSpeeds(const uint8_t freq);
@@ -164,6 +184,10 @@ namespace JAFD
 			int16_t _currentTaskNum = 0;
 
 		public:
+			bool isDrivingStraight() {
+				return _taskArray[_currentTaskNum]->isDrivingStraight();
+			}
+
 			TaskArray() = delete;
 
 			TaskArray(const TaskArray& taskArray);
@@ -246,6 +270,8 @@ namespace JAFD
 		void updateSpeeds(const uint8_t freq);								// Update speeds for both wheels
 
 		bool isTaskFinished();												// Is the current task finished?
+
+		bool isDrivingStraight();
 
 		// Set new Accelerate task
 		template<NewStateType stateType>

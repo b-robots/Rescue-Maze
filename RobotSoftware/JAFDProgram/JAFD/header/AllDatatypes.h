@@ -161,6 +161,24 @@ namespace JAFD
 		ok
 	};
 
+	// Heading direction
+	enum class AbsoluteDir : uint8_t
+	{
+		north = 1 << 0,
+		east = 1 << 1,
+		south = 1 << 2,
+		west = 1 << 3
+	};
+
+	// Relative direction for robot
+	enum class RelativeDir : uint8_t
+	{
+		forward,
+		backward,
+		left,
+		right
+	};
+
 	// Coordinate on the map
 	struct MapCoordinate
 	{
@@ -186,6 +204,30 @@ namespace JAFD
 
 			return *this;
 		}
+
+		MapCoordinate getCoordinateInDir(AbsoluteDir dir) const {
+			MapCoordinate result = *this;
+
+			switch (dir)
+			{
+			case AbsoluteDir::north:
+				result.x++;
+				break;
+			case AbsoluteDir::east:
+				result.y--;
+				break;
+			case AbsoluteDir::south:
+				result.x--;
+				break;
+			case AbsoluteDir::west:
+				result.y++;
+				break;
+			default:
+				break;
+			}
+
+			return result;
+		}
 	};
 
 	// Home Position
@@ -194,24 +236,6 @@ namespace JAFD
 	// Comparison operators for MapCoordinate
 	inline bool operator==(const MapCoordinate& lhs, const MapCoordinate& rhs) { return (lhs.x == rhs.x && lhs.y == rhs.y); }
 	inline bool operator!=(const MapCoordinate& lhs, const MapCoordinate& rhs) { return !(lhs == rhs); }
-	
-	// Heading direction
-	enum class AbsoluteDir : uint8_t
-	{
-		north = 1 << 0,
-		east = 1 << 1,
-		south = 1 << 2,
-		west = 1 << 3
-	};
-	
-	// Relative direction for robot
-	enum class RelativeDir : uint8_t
-	{
-		forward,
-		backward,
-		left,
-		right
-	};
 
 	inline RelativeDir makeRelative(const AbsoluteDir& absoluteDir, const AbsoluteDir heading)
 	{
@@ -670,6 +694,12 @@ namespace JAFD
 
 			return *this;
 		}
+	};
+
+	enum class FloorTileColour : uint8_t {
+		white,
+		silver,
+		black
 	};
 
 	// Data fused by SensorFusion

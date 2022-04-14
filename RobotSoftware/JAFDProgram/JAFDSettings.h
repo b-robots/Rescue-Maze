@@ -60,8 +60,8 @@ namespace JAFDSettings
 	namespace ColorSensor
 	{
 		constexpr uint8_t interruptPin = 34;
-		constexpr tcs34725IntegrationTime_t tcsIntegrationTime = TCS34725_INTEGRATIONTIME_154MS;
-		constexpr tcs34725Gain_t tcsGain = TCS34725_GAIN_1X;
+		constexpr tcs34725IntegrationTime_t tcsIntegrationTime = TCS34725_INTEGRATIONTIME_24MS;
+		constexpr tcs34725Gain_t tcsGain = TCS34725_GAIN_16X;
 	}
 
 	namespace CamRec
@@ -70,11 +70,11 @@ namespace JAFDSettings
 
 	namespace MotorControl
 	{
-		constexpr float magicFactor = 1.13f;
+		constexpr float magicFactor = 1.1f;
 
 		constexpr float cmPSToPerc = 1.0f / (97.0f / 60.0f * M_PI * Mechanics::wheelDiameter);		// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed.)
 
-		constexpr uint8_t minSpeed = 7;					// Minimum speed for motor to rotate
+		constexpr uint8_t minSpeed = 5;					// Minimum speed for motor to rotate
 		constexpr uint8_t maxSpeed = 1.0f / cmPSToPerc;		// Calculated maximum speed
 		constexpr float maxRotSpeed = 2.0f * maxSpeed / Mechanics::wheelDistance;	// Calculated maximum rotation speed
 
@@ -131,9 +131,9 @@ namespace JAFDSettings
 		// Rotation
 		constexpr float bno055DiffPortion = 0.5f;						// How much is the differentiation of the BNO055 angle worth?
 		constexpr float bno055RotPortion = 0.4f;						// How much is a Bno055 rotation measurement worth?
-		constexpr float angularVelIIRFactor = 0.95f;						// Factor used for IIR-Filter for angular velocity
+		constexpr float angularVelIIRFactor = 0.95f;					// Factor used for IIR-Filter for angular velocity
 		constexpr float pitchIIRFactor = 0.8f;							// Factor used for IIR-Filter for pitch angle
-		constexpr float distAngularPortion = 0.8f;						// How much is a perfect distance sensor measured angle worth?
+		constexpr float distAngularPortion = 0.2f;						// How much is a perfect distance sensor measured angle worth?
 		constexpr float angleDiffPortion = 0.8f;						// How much is the heading influenced by the angular velocity instead of the absolute orientation values?
 	}
 
@@ -141,13 +141,13 @@ namespace JAFDSettings
 	{
 		namespace Motor
 		{
-			constexpr JAFD::PIDSettings pidSettings(0.9f, 5.5f, 0.03f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
+			constexpr JAFD::PIDSettings pidSettings(0.95f, 5.7f, 0.05f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
 		}
 
 		namespace GoToAngle
 		{
-			constexpr float turningGainConstant = 0.62f;
-			constexpr float aheadDistL = Mechanics::wheelDistance / (2.0f * turningGainConstant);
+			constexpr JAFD::PIDSettings pidSettings(0.2f, 0.005f, 0.01f, 3.0f, 3.0f, -3.0f, 3.0f);
+			constexpr float aheadDistL = 15.0f;
 			constexpr float angleDampingBegin = 10.0f;
 		}
 

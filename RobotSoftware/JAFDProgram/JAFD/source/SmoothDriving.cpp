@@ -443,24 +443,33 @@ namespace JAFD
 
 		// ForceSpeed class - begin
 
-		ForceSpeed::ForceSpeed(int16_t speed, float distance) : ITask(), _speeds(speed), _distance(distance), _targetDir(1.0f, 0.0f) {}
+		ForceSpeed::ForceSpeed(int16_t speed, float distance) : ITask(), _speeds(speed), _distance(distance) {}
 
 		ReturnCode ForceSpeed::startTask(RobotState startState)
 		{
 			_finished = false;
-			_targetDir = Vec2f(cosf(startState.globalHeading), sinf(startState.globalHeading));
 			_startPos = (Vec2f)(startState.position);
 
-			if (sgn(_speeds) != sgn(_distance)) return ReturnCode::error;
+			float startAngle = startState.globalHeading;
+			startAngle = fitAngleToInterval(startAngle);
 
-			if (_speeds <= 0)
+			if (startAngle > -M_PI_4 && startAngle < M_PI_4) {
+				startAngle = 0.0f;
+			}
+			else if (startAngle > M_PI_4 && startAngle < M_3PI_4) {
+				startAngle = M_PI_2;
+			}
+			else if (startAngle < -M_PI_4 && startAngle > -M_3PI_4) {
+				startAngle = -M_PI_2;
+			}
+			else
 			{
-				_targetDir *= -1;
+				startAngle = M_PI;
 			}
 
 			_endState.wheelSpeeds = FloatWheelSpeeds{ _speeds, _speeds };
 			_endState.forwardVel = static_cast<float>(_speeds);
-			_endState.position = startState.position + (Vec3f)(_targetDir * fabsf(_distance));
+			_endState.position = startState.position + (Vec3f)(Vec2f(cosf(startAngle), sinf(startAngle)) * _distance);
 			_endState.angularVel = Vec3f(0.0f, 0.0f, 0.0f);
 			_endState.globalHeading = startState.globalHeading;
 
@@ -470,98 +479,27 @@ namespace JAFD
 		// Update speeds for both wheels
 		WheelSpeeds ForceSpeed::updateSpeeds(const uint8_t freq)
 		{
-			Vec2f currentPosition;			// Current position of robot
-			float currentHeading;			// Current heading of robot;
-			Vec2f posRelToStart;			// Position relative to start
-			float absDrivenDist;			// Absolute distance to startpoint
-			float radiant;					// Needed as temporary value for acceleration/decceleration
-			float calculatedTime;			// Calculated time based on driven distance
-			float desAngularVel;			// Desired angular velocity
-			float desiredSpeed;				// Desired speed
-			WheelSpeeds output;				// Speed output for both wheels
-			float correctedForwardVel;		// Corrected forward velocity
-			float correctedAngularVel;		// Corrected angular velocity
-
-			const auto tempRobotState = SensorFusion::getFusedData().robotState;
-
-			currentPosition = (Vec2f)(tempRobotState.position);
-			currentHeading = tempRobotState.globalHeading;
-
-			// Calculate driven distance
-			posRelToStart = currentPosition - _startPos;
-			absDrivenDist = posRelToStart.length();
-
-			// Check if I am there
-			if (absDrivenDist >= fabsf(_distance))
-			{
+			if (((Vec2f)SensorFusion::getFusedData().robotState.position - _startPos).length() > fabsf(_distance)) {
 				_finished = true;
 			}
 
-			// GoToAngle Algorithm
-			Vec3f goToVec = _endState.position - (Vec3f)currentPosition;
-
-			float angleDamping = std::max(GoToAngle::angleDampingBegin - fabsf(absDrivenDist - fabsf(_distance)), 0.0f) / GoToAngle::angleDampingBegin;
-
-			float errorAngle = fitAngleToInterval(getGlobalHeading(goToVec) - tempRobotState.globalHeading);
-			errorAngle *= 1.0f - angleDamping;
-
-			desAngularVel = _speeds / GoToAngle::aheadDistL * sinf(errorAngle);
-			desiredSpeed = _speeds * cosf(errorAngle);
-
-			//// A variation of pure pursuits controller where the goal point is a lookahead distance on the path away (not a lookahead distance from the robot).
-			//// Furthermore, the lookahead distance is dynamically adapted to the speed
-			//// Calculate goal point
-			//lookAheadDistance = JAFDSettings::Controller::PurePursuit::lookAheadGain * _speeds;
-			//lookAheadDistance = fabsf(lookAheadDistance);
-
-			//if (lookAheadDistance < JAFDSettings::Controller::PurePursuit::minLookAheadDist) lookAheadDistance = JAFDSettings::Controller::PurePursuit::minLookAheadDist;
-
-			//goalPointGlobal = _startPos + _targetDir * (absDrivenDist + lookAheadDistance);
-
-			//// Transform goal point to robot coordinates
-			//goalPointRobot.x = (goalPointGlobal.x - currentPosition.x)  * cosf(currentHeading) + (goalPointGlobal.y - currentPosition.y) * sinf(currentHeading);
-			//goalPointRobot.y = -(goalPointGlobal.x - currentPosition.x) * sinf(currentHeading) + (goalPointGlobal.y - currentPosition.y) * cosf(currentHeading);
-
-			//// Calculate curvature and angular velocity
-			//desCurvature = 2.0f * goalPointRobot.y / (goalPointRobot.x * goalPointRobot.x + goalPointRobot.y * goalPointRobot.y);
-
-			//if (desCurvature > JAFDSettings::Controller::PurePursuit::maxCurvature) desCurvature = JAFDSettings::Controller::PurePursuit::maxCurvature;
-			//else if (desCurvature < -JAFDSettings::Controller::PurePursuit::maxCurvature) desCurvature = -JAFDSettings::Controller::PurePursuit::maxCurvature;
-
-			//desAngularVel = _speeds * desCurvature;
-
-			// Kind of PID - controller
-			correctedForwardVel = desiredSpeed * PID::nonePIDPart + _forwardVelPID.process(_speeds, tempRobotState.forwardVel, 1.0f / freq);
-			correctedAngularVel = desAngularVel * PID::nonePIDPart + _angularVelPID.process(desAngularVel, tempRobotState.angularVel.x, 1.0f / freq);
-
-			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
-			output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
-
-			// Correct speed if it is too low 
-			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed)
-			{
-				output.left = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
+			if (_finished) {
+				return WheelSpeeds{ 0, 0 };
 			}
 
-			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed)
-			{
-				output.right = JAFDSettings::MotorControl::minSpeed * sgn(_distance);
-			}
-
-			return output;
+			return WheelSpeeds{ _speeds, _speeds};
 		}
 
 		// ForceSpeed class - end
 
 		// AlignWalls class - begin
-		AlignWalls::AlignWalls() : ITask(), _avgAngle(0.0f), _first(true) {
+		AlignWalls::AlignWalls() : ITask(), _avgAngle(0.0f), _first(true), _cnt(0), _waitForPosReset(false) {
 		}
 
 		ReturnCode AlignWalls::startTask(RobotState startState)
 		{
 			_finished = false;
 			_endState = startState;
-
 			return ReturnCode::ok;
 		}
 
@@ -569,26 +507,37 @@ namespace JAFD
 		{
 			static WheelSpeeds output;
 
+			_cnt++;
+
 			float angle = SensorFusion::getAngleRelToWall();
 
-			if (std::isnan(angle) || fabsf(_avgAngle) < 0.05) {
-				_finished = true;
+			if (_cnt / (float)freq > 2.0f || (fabsf(_avgAngle) < 0.04 && !_first)) {
+				if (!_waitForPosReset) {
+					SensorFusion::forceAnglePosReset = true;
+					_waitForPosReset = true;
+				}
 			}
 			else {
+				if (std::isnan(angle)) {
+					return WheelSpeeds{ 0,0 };
+				}
+
 				if (_first) {
 					_avgAngle = angle;
 					_first = false;
 				}
 				else {
-					_avgAngle = angle * 0.7 + _avgAngle * 0.3;
+					_avgAngle = angle * 0.8 + _avgAngle * 0.2;
 				}
 			}
 
-			debug4 = _avgAngle;
+			if (_waitForPosReset && !SensorFusion::forceAnglePosReset) {
+				_finished = true;
+				_waitForPosReset = false;
+			}
 
-			if (_finished)
+			if (_finished || _waitForPosReset)
 			{
-				debug4 = NAN;
 				return WheelSpeeds{ 0,0 };
 			}
 
@@ -608,37 +557,68 @@ namespace JAFD
 
 		// FollowWall class - begin
 
-		FollowWall::FollowWall(int16_t speed, float distance) : ITask(), _speeds(speed), _distance(distance) {}
+		FollowWall::FollowWall(int16_t speed, float distance) : ITask(), _speeds(speed), _distance(distance), _pid(JAFDSettings::Controller::GoToAngle::pidSettings) {}
 
 		ReturnCode FollowWall::startTask(RobotState startState) {
 			_finished = false;
-			//_finishedDriving = false;
-			//_first = true;
-			//_avgAngle = NAN;
 			_startPos = (Vec2f)(startState.position);
 			_startAngle = startState.globalHeading;
+			_startAngle = fitAngleToInterval(_startAngle);
+
+			if (_startAngle > -M_PI_4 && _startAngle < M_PI_4) {
+				_startAngle = 0.0f;
+			}
+			else if (_startAngle > M_PI_4 && _startAngle < M_3PI_4) {
+				_startAngle = M_PI_2;
+			}
+			else if (_startAngle < -M_PI_4 && _startAngle > -M_3PI_4) {
+				_startAngle = -M_PI_2;
+			}
+			else
+			{
+				_startAngle = M_PI;
+			}
 
 			if (sgn(_speeds) != sgn(_distance)) return ReturnCode::error;
 
 			_endState.wheelSpeeds = FloatWheelSpeeds{ _speeds, _speeds };
 			_endState.forwardVel = static_cast<float>(_speeds);
-			_endState.position = startState.position + (Vec3f)(Vec2f(cosf(startState.globalHeading), sinf(startState.globalHeading)) * fabsf(_distance));
+			_endState.position = startState.position + (Vec3f)(Vec2f(cosf(_startAngle), sinf(_startAngle)) * _distance);
 			_endState.angularVel = Vec3f(0.0f, 0.0f, 0.0f);
-			_endState.globalHeading = startState.globalHeading;
+			_endState.globalHeading = makeRotationCoherent(startState.globalHeading, _startAngle);
+
+			_pid.reset();
 
 			return ReturnCode::ok;
 		}
 
 		WheelSpeeds FollowWall::updateSpeeds(const uint8_t freq) {
 			const auto tempFusedData = SensorFusion::getFusedData();
-
-			const auto tempRobotState = SensorFusion::getFusedData().robotState;
+			const auto tempRobotState = tempFusedData.robotState;
 
 			const Vec2f currentPosition = (Vec2f)(tempRobotState.position);
-			const float drivenDistance = (currentPosition - _startPos).length();
 
-			// Check if I am there
-			if (drivenDistance >= fabsf(_distance))
+			float drivenDistance;
+
+			if (fabsf(_startAngle - 0.0f) < 0.1f || fabsf(_startAngle - M_PI) < 0.1f) {
+				drivenDistance = fabsf(currentPosition.x - _startPos.x);
+			}
+			else {
+				drivenDistance = fabsf(currentPosition.y - _startPos.y);
+			}
+
+			bool stopWithWall = false;
+			if (_speeds > 0) {
+				if (tempFusedData.distSensorState.frontRight == DistSensorStatus::ok &&
+					(tempFusedData.distances.frontRight / 10.0f - 15.0f + JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f + drivenDistance) * 0.8f < _distance) {
+					if (tempFusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
+						(tempFusedData.distances.frontLeft / 10.0f - 15.0f + JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f + drivenDistance) * 0.8f < _distance) {
+						stopWithWall = true;
+					}
+				}
+			}
+
+			if (drivenDistance >= fabsf(_distance) * 0.95 && !stopWithWall)
 			{
 				_finished = true;
 			}
@@ -653,58 +633,17 @@ namespace JAFD
 				_finished = true;
 			}
 
-			/*
-			if (_finishedDriving) {
-				WheelSpeeds output;
-
-				SensorFusion::setDrivingStraight(false);
-
-				float angle = SensorFusion::getAngleRelToWall();
-
-				if (std::isnan(angle) || fabsf(_avgAngle) < 0.05) {
-					_finished = true;
-				}
-				else {
-					if (_first) {
-						_avgAngle = angle;
-						_first = false;
-					}
-					else {
-						_avgAngle = angle * 0.7 + _avgAngle * 0.3;
-					}
-				}
-
-				if (_finished)
-				{
-					debug4 = NAN;
-					return WheelSpeeds{ 0,0 };
-				}
-
-				if (_avgAngle > 0.0f) {
-					output.left = JAFDSettings::MotorControl::minSpeed;
-					output.right = -JAFDSettings::MotorControl::minSpeed;
-				}
-				else {
-					output.left = -JAFDSettings::MotorControl::minSpeed;
-					output.right = JAFDSettings::MotorControl::minSpeed;
-				}
-
-				return output;
-			}
-			*/
-
 			if (_finished) {
-				SensorFusion::setDrivingStraight(false);
 				return WheelSpeeds(0, 0);
 			}
-
-			SensorFusion::setDrivingStraight(true);
 
 			struct {
 				bool lf = false;
 				bool lb = false;
 				bool rf = false;
 				bool rb = false;
+				bool fl = false;
+				bool fr = false;
 			} usableData;
 
 			struct {
@@ -712,6 +651,8 @@ namespace JAFD
 				int lb = 0;
 				int rf = 0;
 				int rb = 0;
+				int fl = 0;
+				int fr = 0;
 			} distances;
 
 			if ((tempFusedData.distSensorState.leftFront == DistSensorStatus::ok &&
@@ -742,8 +683,21 @@ namespace JAFD
 				distances.rb = tempFusedData.distSensorState.rightBack == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist : tempFusedData.distances.rightBack;
 			}
 
+			if (tempFusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
+				tempFusedData.distances.frontLeft < 300) {
+				usableData.fl = true;
+				distances.fl = tempFusedData.distances.frontLeft;
+			}
+
+			if (tempFusedData.distSensorState.frontRight == DistSensorStatus::ok &&
+				tempFusedData.distances.frontRight < 300) {
+				usableData.fr = true;
+				distances.fr = tempFusedData.distances.frontRight;
+			}
+
 			float errorAngle = 0.0f;
 			float angle = tempFusedData.robotState.globalHeading;
+			float goalAngle = _startAngle;
 
 			if (usableData.lf && usableData.lb && usableData.rb && usableData.rf) {
 				float angleL = 0.0f;
@@ -758,11 +712,7 @@ namespace JAFD
 				angle = (angleL + angleR) / 2.0;
 				float combinedDistToLeftWall = (distToWallL + (JAFDSettings::Field::cellWidth - distToWallR)) / 2.0;
 
-				float goalAngle = -atanf((JAFDSettings::Field::cellWidth / 2.0f - combinedDistToLeftWall) / GoToAngle::aheadDistL);
-				errorAngle = goalAngle - angle;
-
-				debug1 = angle;
-				debug2 = goalAngle;
+				goalAngle = -atanf((JAFDSettings::Field::cellWidth / 2.0f - combinedDistToLeftWall) / GoToAngle::aheadDistL * sgn(_speeds));
 			}
 			else if (usableData.lf && usableData.lb) {
 				angle = 0.0f;
@@ -771,11 +721,7 @@ namespace JAFD
 				calcAngleWallOffsetFromTwoDistances(&angle, &distToWall, distances.lf, distances.lb, JAFDSettings::Mechanics::distSensLRSpacing, JAFDSettings::Mechanics::distSensLeftRightDist);
 				angle *= -1.0f;
 
-				float goalAngle = -atanf((JAFDSettings::Field::cellWidth / 2.0f - 1.0f - distToWall) / GoToAngle::aheadDistL);
-				errorAngle = goalAngle - angle;
-
-				debug1 = angle;
-				debug2 = goalAngle;
+				goalAngle = -atanf((JAFDSettings::Field::cellWidth / 2.0f - 1.0f - distToWall) / GoToAngle::aheadDistL * sgn(_speeds));
 			}
 			else if (usableData.rf && usableData.rb) {
 				angle = 0.0f;
@@ -783,23 +729,16 @@ namespace JAFD
 
 				calcAngleWallOffsetFromTwoDistances(&angle, &distToWall, distances.rf, distances.rb, JAFDSettings::Mechanics::distSensLRSpacing, JAFDSettings::Mechanics::distSensLeftRightDist);
 
-				float goalAngle = atanf((JAFDSettings::Field::cellWidth / 2.0f - 1.0f - distToWall) / GoToAngle::aheadDistL);
-				errorAngle = goalAngle - angle;
+				goalAngle = atanf((JAFDSettings::Field::cellWidth / 2.0f - 1.0f - distToWall) / GoToAngle::aheadDistL * sgn(_speeds));
+			}
 
-				debug1 = angle;
-				debug2 = goalAngle;
-			}
-			else {
-				// TODO make position controller
-				errorAngle = fitAngleToInterval(_startAngle - tempFusedData.robotState.globalHeading);
-				debug3 = errorAngle;
-			}
+			errorAngle = fitAngleToInterval(goalAngle - angle);
 
 			// point forward steering http://faculty.salina.k-state.edu/tim/robot_prog/MobileBot/Steering/pointFwd.html
 			errorAngle = fmaxf(fminf(errorAngle, M_PI_2), -M_PI_2);
-			debug3 = errorAngle;
-			float correctedAngularVel = _speeds / GoToAngle::aheadDistL * sinf(errorAngle);
-			float correctedForwardVel = fmaxf(fabsf(_speeds * cosf(errorAngle)), JAFDSettings::MotorControl::minSpeed) * sgn(_speeds);
+			errorAngle = _pid.process(0.0f, -errorAngle, 1.0f / freq);
+			float correctedAngularVel = fabsf(_speeds) * errorAngle;
+			float correctedForwardVel = fmaxf(fabsf(_speeds * cosf(fmaxf(fminf(errorAngle, M_PI_2), -M_PI_2))), JAFDSettings::MotorControl::minSpeed) * sgn(_speeds);
 
 			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
 			WheelSpeeds output = WheelSpeeds{ correctedForwardVel - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
@@ -849,6 +788,9 @@ namespace JAFD
 					break;
 				case _TaskType::followWall:
 					_taskArray[i] = new (&(_taskCopies[i].followWall)) FollowWall(taskArray._taskCopies[i].followWall);
+					break;
+				case _TaskType::alignWalls:
+					_taskArray[i] = new (&(_taskCopies[i].alignWalls)) AlignWalls(taskArray._taskCopies[i].alignWalls);
 					break;
 				default:
 					break;
@@ -1633,6 +1575,10 @@ namespace JAFD
 		bool isTaskFinished()
 		{
 			return _currentTask->isFinished();
+		}
+
+		bool isDrivingStraight() {
+			return _currentTask->isDrivingStraight();
 		}
 
 		void stopTask()

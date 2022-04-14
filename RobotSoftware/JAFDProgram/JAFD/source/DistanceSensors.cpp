@@ -37,20 +37,14 @@ namespace JAFD
 			return ReturnCode::ok;
 		}
 
-		void VL6180::calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure)
+		void VL6180::calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure, uint16_t thirdTrue, uint16_t thirdMeasure)
 		{
-			if (abs((int32_t)secondMeasure - firstMeasure) < JAFDSettings::DistanceSensors::minCalibDataDiff)
-			{
-				_k = 1.0f;
-			}
-			else
-			{
-				_k = (float)((int32_t)secondTrue - firstTrue) / (float)((int32_t)secondMeasure - firstMeasure);
+			float xMid = (firstMeasure + secondMeasure + thirdMeasure) / 3.0f;
+			float yMid = (firstTrue + secondTrue + thirdTrue) / 3.0f;
 
-				if (_k < 0.0f) _k = 1.0f;
-			}
-
-			_d = (int16_t)(((firstTrue - _k * firstMeasure) + (secondTrue - _k * secondMeasure)) / 2.0f);
+			_k = ((firstMeasure - xMid) * (firstTrue - yMid) + (secondMeasure - xMid) * (secondTrue - yMid) + (thirdMeasure - xMid) * (thirdTrue - yMid)) /
+						(sq(firstMeasure - xMid) + sq(secondMeasure - xMid) + sq(thirdMeasure - xMid));
+			_d = (int16_t)(yMid - _k * xMid);
 
 			Serial.println(_k);
 			Serial.println(_d);
@@ -503,20 +497,17 @@ namespace JAFD
 			return _distance;
 		}
 
-		void TFMini::calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure)
+		void TFMini::calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure, uint16_t thirdTrue, uint16_t thirdMeasure)
 		{
-			if (abs((int32_t)secondMeasure - firstMeasure) < JAFDSettings::DistanceSensors::minCalibDataDiff)
-			{
-				_k = 1.0f;
-			}
-			else
-			{
-				_k = (float)((int32_t)secondTrue - firstTrue) / (float)((int32_t)secondMeasure - firstMeasure);
+			float xMid = (firstMeasure + secondMeasure + thirdMeasure) / 3.0f;
+			float yMid = (firstTrue + secondTrue + thirdTrue) / 3.0f;
 
-				if (_k < 0.0f) _k = 1.0f;
-			}
+			_k = ((firstMeasure - xMid) * (firstTrue - yMid) + (secondMeasure - xMid) * (secondTrue - yMid) + (thirdMeasure - xMid) * (thirdTrue - yMid)) /
+				(sq(firstMeasure - xMid) + sq(secondMeasure - xMid) + sq(thirdMeasure - xMid));
+			_d = yMid - _k * xMid;
 
-			_d = (int16_t)(((firstTrue - _k * firstMeasure) + (secondTrue - _k * secondMeasure)) / 2.0f);
+			Serial.println(_k);
+			Serial.println(_d);
 		}
 
 		void TFMini::storeCalibData()
@@ -628,20 +619,14 @@ namespace JAFD
 			_sensor.writeReg(_sensor.SYSTEM_INTERRUPT_CLEAR, 0x01);
 		}
 
-		void VL53L0::calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure)
+		void VL53L0::calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure, uint16_t thirdTrue, uint16_t thirdMeasure)
 		{
-			if (abs((int32_t)secondMeasure - firstMeasure) < JAFDSettings::DistanceSensors::minCalibDataDiff)
-			{
-				_k = 1.0f;
-			}
-			else
-			{
-				_k = (float)((int32_t)secondTrue - firstTrue) / (float)((int32_t)secondMeasure - firstMeasure);
+			float xMid = (firstMeasure + secondMeasure + thirdMeasure) / 3.0f;
+			float yMid = (firstTrue + secondTrue + thirdTrue) / 3.0f;
 
-				if (_k < 0.0f) _k = 1.0f;
-			}
-
-			_d = (int16_t)(((firstTrue - _k * firstMeasure) + (secondTrue - _k * secondMeasure)) / 2.0f);
+			_k = ((firstMeasure - xMid) * (firstTrue - yMid) + (secondMeasure - xMid) * (secondTrue - yMid) + (thirdMeasure - xMid) * (thirdTrue - yMid)) /
+				(sq(firstMeasure - xMid) + sq(secondMeasure - xMid) + sq(thirdMeasure - xMid));
+			_d = yMid - _k * xMid;
 
 			Serial.println(_k);
 			Serial.println(_d);
@@ -1227,26 +1212,26 @@ namespace JAFD
 			/*
 			* calibration data:
 				rb
-					k: 0.99
+					k: 1.03
 					d: 7
 				rf
-					k: 1.01
-					d: 7
+					k: 1.05
+					d: 3
 				lb
-					k: 1.04
-					d: -11
+					k: 1.06
+					d: -12
 				lf
-					k: 1.01
-					d: 0
+					k: 1.04
+					d: -2
 				fl
-					k: 0.97
-					d: -13
+					k: 0.94
+					d: 0
 				fr
-					k: 0.97
-					d: -25
+					k: 0.94
+					d: -14
 			*/
 
-			for (int i = 0; i <= 6; i++)
+			for (int i = 2; i <= 3; i++)
 			{
 				switch (i)
 				{
@@ -1299,40 +1284,73 @@ namespace JAFD
 				delay(10);
 				uint16_t trueSecond = (uint16_t)Serial.parseInt();
 
+				Serial.println("begin third measurement");
+
+				while (Serial.available()) Serial.read();
+				while (!Serial.available());
+				delay(10);
+				while (Serial.available()) Serial.read();
+
+				float measThird = getSingleCalibData(i);
+				Serial.println(measThird);
+				while (!Serial.available());
+				delay(10);
+				uint16_t trueThird = (uint16_t)Serial.parseInt();
+
 				switch (i)
 				{
 				case 0:
-					DistanceSensors::rightBack.calcCalibData(trueFirst, measFirst, trueSecond, measSecond);
+					DistanceSensors::rightBack.calcCalibData(trueFirst, measFirst, trueSecond, measSecond, trueThird, measThird);
 					DistanceSensors::rightBack.storeCalibData();
 					break;
 				case 1:
-					DistanceSensors::rightFront.calcCalibData(trueFirst, measFirst, trueSecond, measSecond);
+					DistanceSensors::rightFront.calcCalibData(trueFirst, measFirst, trueSecond, measSecond, trueThird, measThird);
 					DistanceSensors::rightFront.storeCalibData();
 					break;
 				case 2:
-					DistanceSensors::leftBack.calcCalibData(trueFirst, measFirst, trueSecond, measSecond);
+					DistanceSensors::leftBack.calcCalibData(trueFirst, measFirst, trueSecond, measSecond, trueThird, measThird);
 					DistanceSensors::leftBack.storeCalibData();
 					break;
 				case 3:
-					DistanceSensors::leftFront.calcCalibData(trueFirst, measFirst, trueSecond, measSecond);
+					DistanceSensors::leftFront.calcCalibData(trueFirst, measFirst, trueSecond, measSecond, trueThird, measThird);
 					DistanceSensors::leftFront.storeCalibData();
 					break;
 				case 4:
-					DistanceSensors::frontLeft.calcCalibData(trueFirst, measFirst, trueSecond, measSecond);
+					DistanceSensors::frontLeft.calcCalibData(trueFirst, measFirst, trueSecond, measSecond, trueThird, measThird);
 					DistanceSensors::frontLeft.storeCalibData();
 					break;
 				case 5:
-					DistanceSensors::frontRight.calcCalibData(trueFirst, measFirst, trueSecond, measSecond);
+					DistanceSensors::frontRight.calcCalibData(trueFirst, measFirst, trueSecond, measSecond, trueThird, measThird);
 					DistanceSensors::frontRight.storeCalibData();
 					break;
 				case 6:
-					DistanceSensors::frontLong.calcCalibData(trueFirst, measFirst, trueSecond, measSecond);
+					DistanceSensors::frontLong.calcCalibData(trueFirst, measFirst, trueSecond, measSecond, trueThird, measThird);
 					DistanceSensors::frontLong.storeCalibData();
 					break;
 				default:
 					break;
 				}
 			}
+		}
+
+		void resetHardCodedCalib() {
+			rightBack.setKD(1.03f, 7);
+			rightBack.storeCalibData();
+
+			rightFront.setKD(1.05f, 3);
+			rightFront.storeCalibData();
+
+			leftBack.setKD(1.06f, -12);
+			leftBack.storeCalibData();
+
+			leftFront.setKD(1.04f, -2);
+			leftFront.storeCalibData();
+
+			frontLeft.setKD(0.94f, 0);
+			frontLeft.storeCalibData();
+
+			frontRight.setKD(0.94f, -14);
+			frontRight.storeCalibData();
 		}
 	}
 }

@@ -16,7 +16,6 @@ namespace JAFD
 {
 	namespace SensorFusion
 	{
-		void setDrivingStraight(bool _isDrivingStraight);
 		void sensorFiltering(const uint8_t freq);					// Apply filter and calculate robot state
 		void untimedFusion();										// Update sensor values
 		void updateSensors();										// Update all sensors
@@ -28,5 +27,6 @@ namespace JAFD
 		float getAngleRelToWall();
 
 		extern volatile bool bnoErr;
+		extern volatile bool forceAnglePosReset;
 	}
 }

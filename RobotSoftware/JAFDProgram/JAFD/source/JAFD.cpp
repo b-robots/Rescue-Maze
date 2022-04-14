@@ -123,6 +123,8 @@ namespace JAFD
 			}
 		}
 
+		DistanceSensors::resetHardCodedCalib();
+
 		// Setup of Bno055
 		if (Bno055::setup() != ReturnCode::ok)
 		{
@@ -246,6 +248,11 @@ namespace JAFD
 
 		auto fusedData = SensorFusion::getFusedData();
 
+		//if (!(fusedData.robotState.mapCoordinate.x == 0 &&
+		//	fusedData.robotState.mapCoordinate.y == 1)) {
+		//	RobotLogic::loop();
+		//}
+
 		float heading = fusedData.robotState.globalHeading;
 		float pitch = fusedData.robotState.pitch;
 		float x = fusedData.robotState.position.x;
@@ -253,10 +260,12 @@ namespace JAFD
 		int mapX = fusedData.robotState.mapCoordinate.x;
 		int mapY = fusedData.robotState.mapCoordinate.y;
 
+		float ct = fusedData.colorSensData.colorTemp;
+		float lux = fusedData.colorSensData.lux;
+
 		//auto freeRam = MemWatcher::getFreeRam();
 
 		// Serial.println(String(SmoothDriving::debug1) + ", " + String(SmoothDriving::debug2) + ", " + String(SmoothDriving::debug3));
-		// Serial.println(SmoothDriving::debug4);
 
 		if (fps < 0.01f) fps = 1000.0f / (millis() - time);
 		else fps = fps * 0.4f + 600.0f / (millis() - time);
