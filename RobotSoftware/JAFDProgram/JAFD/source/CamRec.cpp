@@ -36,10 +36,14 @@ namespace JAFD
 		{
 			auto start = millis();
 
+			if (!Serial1.available()) {
+				return;
+			}
+
 			// Wait for at least one full package
 			while (true)
 			{
-				if ((millis() - start) > 50)
+				if ((millis() - start) > 10)
 				{
 					return;
 				}

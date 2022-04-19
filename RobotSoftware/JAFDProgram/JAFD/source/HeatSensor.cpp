@@ -83,6 +83,7 @@ namespace JAFD
 				ambientTemp /= (2.0f * 8.0f);
 				ambientTemp = (ambientTemp + fmaxf(leftAmbient, rightAmbient)) / 2.0f;
 #endif
+				ambientTemp = 21.0f;
 				return ReturnCode::ok;
 			}
 		}

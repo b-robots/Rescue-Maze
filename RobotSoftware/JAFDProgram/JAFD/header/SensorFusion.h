@@ -22,7 +22,7 @@ namespace JAFD
 		FusedData getFusedData();									// Get current robot state
 		void setDistances(Distances distances);
 		void setDistSensStates(DistSensorStates distSensorStates);
-		bool scanSurrounding();
+		bool scanSurrounding(uint8_t &outCumSureWalls);
 		void updatePosAndRotFromDist();
 		float getAngleRelToWall();
 

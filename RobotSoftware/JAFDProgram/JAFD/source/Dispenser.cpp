@@ -53,6 +53,11 @@ namespace JAFD
 				PWM->PWM_CH_NUM[leftPWMCh].PWM_CMR |= PWM_CMR_CPOL;
 			}
 
+			PWM->PWM_CH_NUM[rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::endDty * PWM->PWM_CH_NUM[rightPWMCh].PWM_CPRD;
+			PWM->PWM_CH_NUM[leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::endDty * PWM->PWM_CH_NUM[leftPWMCh].PWM_CPRD;
+
+			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
+
 			leftPWMPin.port->PIO_PDR = leftPWMPin.pin;
 			rightPWMPin.port->PIO_PDR = rightPWMPin.pin;
 
@@ -73,11 +78,6 @@ namespace JAFD
 			{
 				rightPWMPin.port->PIO_ABSR &= ~rightPWMPin.pin;
 			}
-
-			PWM->PWM_CH_NUM[rightPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Right::endDty * PWM->PWM_CH_NUM[rightPWMCh].PWM_CPRD;
-			PWM->PWM_CH_NUM[leftPWMCh].PWM_CDTYUPD = JAFDSettings::Dispenser::Left::endDty * PWM->PWM_CH_NUM[leftPWMCh].PWM_CPRD;
-
-			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 
 			return ReturnCode::ok;
 		}

@@ -604,6 +604,51 @@ namespace JAFD
 			{
 				if (distance > maxDist) _status = Status::overflow;
 				else if (distance < minDist) _status = Status::underflow;
+
+				if (((fabsf(_lastDist - 512 * _k + _d) > 20 && _lastStatus == Status::noError) || _lastStatus != Status::noError) && fabsf(distance - 512 * _k + _d) < 20) {
+					uint16_t retVal = _lastDist;
+					_lastDist = distance;
+					_status = _lastStatus;
+					return retVal;
+				}
+
+				if (_status == Status::overflow) {
+					_consectuiveOver++;
+					_consecutiveUnder = 0;
+					_consecutiveNormal = 0;
+				}
+				else if (_status == Status::underflow) {
+					_consecutiveUnder++;
+					_consectuiveOver = 0;
+					_consecutiveNormal = 0;
+				}
+				else if (_status == Status::noError) {
+					_consecutiveNormal++;
+					_consecutiveUnder = 0;
+					_consectuiveOver = 0;
+				}
+				else {
+					_consectuiveOver = 0;
+					_consecutiveUnder = 0;
+					_consecutiveNormal = 0;
+				}
+
+				if (_consectuiveOver >= 2) {
+					_status = Status::overflow;
+				}
+				else if (_consecutiveUnder >= 2) {
+					_status = Status::underflow;
+				}
+				else if (_consecutiveNormal >= 2) {
+					_status = Status::noError;
+				}
+				else {
+					_status = _lastStatus;
+					distance = _lastDist;
+				}
+
+				_lastStatus = _status;
+				_lastDist = distance;
 			}
 
 			return distance;
@@ -843,7 +888,7 @@ namespace JAFD
 				lbData.numCorrectSamples++;
 				lbData.tempAverageDist += tempDist;
 			}
-			else if (DistanceSensors::leftBack.getStatus() == decltype(DistanceSensors::leftBack)::Status::overflow)
+			else if (DistanceSensors::leftBack.getStatus() == decltype(DistanceSensors::leftBack)::Status::overflow || DistanceSensors::leftBack.getStatus() == decltype(DistanceSensors::leftBack)::Status::noConvergence)
 			{
 				lbData.numOverflowSamples++;
 			}
@@ -860,7 +905,7 @@ namespace JAFD
 				lfData.numCorrectSamples++;
 				lfData.tempAverageDist += tempDist;
 			}
-			else if (DistanceSensors::leftFront.getStatus() == decltype(DistanceSensors::leftFront)::Status::overflow)
+			else if (DistanceSensors::leftFront.getStatus() == decltype(DistanceSensors::leftFront)::Status::overflow || DistanceSensors::leftFront.getStatus() == decltype(DistanceSensors::leftFront)::Status::noConvergence)
 			{
 				lfData.numOverflowSamples++;
 			}
@@ -877,7 +922,7 @@ namespace JAFD
 				rbData.numCorrectSamples++;
 				rbData.tempAverageDist += tempDist;
 			}
-			else if (DistanceSensors::rightBack.getStatus() == decltype(DistanceSensors::rightBack)::Status::overflow)
+			else if (DistanceSensors::rightBack.getStatus() == decltype(DistanceSensors::rightBack)::Status::overflow || DistanceSensors::rightBack.getStatus() == decltype(DistanceSensors::rightBack)::Status::noConvergence)
 			{
 				rbData.numOverflowSamples++;
 			}
@@ -894,7 +939,7 @@ namespace JAFD
 				rfData.numCorrectSamples++;
 				rfData.tempAverageDist += tempDist;
 			}
-			else if (DistanceSensors::rightFront.getStatus() == decltype(DistanceSensors::rightFront)::Status::overflow)
+			else if (DistanceSensors::rightFront.getStatus() == decltype(DistanceSensors::rightFront)::Status::overflow || DistanceSensors::rightFront.getStatus() == decltype(DistanceSensors::rightFront)::Status::noConvergence)
 			{
 				rfData.numOverflowSamples++;
 			}
@@ -1224,14 +1269,14 @@ namespace JAFD
 					k: 1.04
 					d: -2
 				fl
-					k: 0.94
-					d: 0
-				fr
-					k: 0.94
+					k: 0.92
 					d: -14
+				fr
+					k: 0.93
+					d: 7
 			*/
 
-			for (int i = 2; i <= 3; i++)
+			for (int i = 4; i <= 5; i++)
 			{
 				switch (i)
 				{
@@ -1346,10 +1391,10 @@ namespace JAFD
 			leftFront.setKD(1.04f, -2);
 			leftFront.storeCalibData();
 
-			frontLeft.setKD(0.94f, 0);
+			frontLeft.setKD(0.92f, -14);
 			frontLeft.storeCalibData();
 
-			frontRight.setKD(0.94f, -14);
+			frontRight.setKD(0.93f, 7);
 			frontRight.storeCalibData();
 		}
 	}

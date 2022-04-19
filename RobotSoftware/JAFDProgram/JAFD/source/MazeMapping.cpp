@@ -166,7 +166,7 @@ namespace JAFD
 		}
 
 		// Detect walls
-		bool manageDetectedWalls(uint8_t frontWallsDetected, uint8_t leftWallsDetected, uint8_t rightWallsDetected, FusedData fusedData, GridCell &newCell) {
+		bool manageDetectedWalls(uint8_t frontWallsDetected, uint8_t leftWallsDetected, uint8_t rightWallsDetected, FusedData fusedData, GridCell &newCell, uint8_t &curSureWalls) {
 			static MapCoordinate lastPosition = homePosition;
 			static AbsoluteDir lastDir = AbsoluteDir::north;
 			GridCell tempCell;
@@ -174,17 +174,7 @@ namespace JAFD
 			tempCell.cellConnections = EntranceDirections::nowhere;
 			uint8_t walls = 0b0000;											// Where are the walls; inverted to cellConnections
 
-			//if (lastPosition != fusedData.robotState.mapCoordinate)
-			//{
-			//	lastDifferentPosittion = lastPosition;
-
-			//	getGridCell(&fusedData.gridCell, fusedData.robotState.mapCoordinate);
-
-			//	if (fusedData.gridCell.cellState & CellState::visited)
-			//	{
-			//		tempCell.cellState = fusedData.gridCell.cellState;
-			//	}
-			//}
+			uint8_t sureWalls = 0b0000;
 
 			if (frontWallsDetected > 0)
 			{
@@ -194,24 +184,36 @@ namespace JAFD
 				case AbsoluteDir::north:
 				{
 					walls |= EntranceDirections::north;
+					if (frontWallsDetected >= 2) {
+						sureWalls |= EntranceDirections::north;
+					}
 					break;
 				}
 
 				case AbsoluteDir::east:
 				{
 					walls |= EntranceDirections::east;
+					if (frontWallsDetected >= 2) {
+						sureWalls |= EntranceDirections::east;
+					}
 					break;
 				}
 
 				case AbsoluteDir::south:
 				{
 					walls |= EntranceDirections::south;
+					if (frontWallsDetected >= 2) {
+						sureWalls |= EntranceDirections::south;
+					}
 					break;
 				}
 
 				case AbsoluteDir::west:
 				{
 					walls |= EntranceDirections::west;
+					if (frontWallsDetected >= 2) {
+						sureWalls |= EntranceDirections::west;
+					}
 					break;
 				}
 
@@ -228,24 +230,36 @@ namespace JAFD
 				case AbsoluteDir::north:
 				{
 					walls |= EntranceDirections::north;
+					if (leftWallsDetected >= 2) {
+						sureWalls |= EntranceDirections::north;
+					}
 					break;
 				}
 
 				case AbsoluteDir::east:
 				{
 					walls |= EntranceDirections::east;
+					if (leftWallsDetected >= 2) {
+						sureWalls |= EntranceDirections::east;
+					}
 					break;
 				}
 
 				case AbsoluteDir::south:
 				{
 					walls |= EntranceDirections::south;
+					if (leftWallsDetected >= 2) {
+						sureWalls |= EntranceDirections::south;
+					}
 					break;
 				}
 
 				case AbsoluteDir::west:
 				{
 					walls |= EntranceDirections::west;
+					if (leftWallsDetected >= 2) {
+						sureWalls |= EntranceDirections::west;
+					}
 					break;
 				}
 
@@ -262,24 +276,36 @@ namespace JAFD
 				case AbsoluteDir::north:
 				{
 					walls |= EntranceDirections::north;
+					if (rightWallsDetected >= 2) {
+						sureWalls |= EntranceDirections::north;
+					}
 					break;
 				}
 
 				case AbsoluteDir::east:
 				{
 					walls |= EntranceDirections::east;
+					if (rightWallsDetected >= 2) {
+						sureWalls |= EntranceDirections::east;
+					}
 					break;
 				}
 
 				case AbsoluteDir::south:
 				{
 					walls |= EntranceDirections::south;
+					if (rightWallsDetected >= 2) {
+						sureWalls |= EntranceDirections::south;
+					}
 					break;
 				}
 
 				case AbsoluteDir::west:
 				{
 					walls |= EntranceDirections::west;
+					if (rightWallsDetected >= 2) {
+						sureWalls |= EntranceDirections::west;
+					}
 					break;
 				}
 
@@ -320,6 +346,7 @@ namespace JAFD
 			lastDir = fusedData.robotState.heading;
 
 			newCell = tempCell;
+			curSureWalls = sureWalls;
 
 			return isOk;
 		}

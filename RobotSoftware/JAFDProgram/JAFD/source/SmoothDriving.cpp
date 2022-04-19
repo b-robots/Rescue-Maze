@@ -511,7 +511,11 @@ namespace JAFD
 
 			float angle = SensorFusion::getAngleRelToWall();
 
-			if (_cnt / (float)freq > 2.0f || (fabsf(_avgAngle) < 0.04 && !_first)) {
+			if (_cnt / (float)freq > 2.0f && !_waitForPosReset)
+			{
+				_finished = true;
+			}
+			else if ((fabsf(_avgAngle) < 0.04 && !_first)) {
 				if (!_waitForPosReset) {
 					SensorFusion::forceAnglePosReset = true;
 					_waitForPosReset = true;
@@ -610,9 +614,9 @@ namespace JAFD
 			bool stopWithWall = false;
 			if (_speeds > 0) {
 				if (tempFusedData.distSensorState.frontRight == DistSensorStatus::ok &&
-					(tempFusedData.distances.frontRight / 10.0f - 15.0f + JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f + drivenDistance) * 0.8f < _distance) {
+					(tempFusedData.distances.frontRight / 10.0f - 15.0f + JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f + drivenDistance) * 0.7f < _distance) {
 					if (tempFusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
-						(tempFusedData.distances.frontLeft / 10.0f - 15.0f + JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f + drivenDistance) * 0.8f < _distance) {
+						(tempFusedData.distances.frontLeft / 10.0f - 15.0f + JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f + drivenDistance) * 0.7f < _distance) {
 						stopWithWall = true;
 					}
 				}

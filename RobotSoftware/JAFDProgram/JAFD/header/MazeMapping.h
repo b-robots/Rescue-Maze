@@ -57,6 +57,6 @@ namespace JAFD
 		void getGridCell(GridCell* gridCell, uint8_t* bfsValue, const MapCoordinate coor);
 
 		// Detect walls and entrances
-		bool manageDetectedWalls(uint8_t frontWallsDetected, uint8_t leftWallsDetected, uint8_t rightWallsDetected, FusedData outputFusedData, GridCell &newcell);
+		bool manageDetectedWalls(uint8_t frontWallsDetected, uint8_t leftWallsDetected, uint8_t rightWallsDetected, FusedData outputFusedData, GridCell &newcell, uint8_t &sureWalls);
 	}
 }

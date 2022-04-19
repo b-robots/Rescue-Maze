@@ -220,32 +220,32 @@ namespace JAFD
 			old_calib_data.mag_offset_z = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 18) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 19);
 			old_calib_data.mag_radius = (SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 20) << 8) + SpiNVSRAM::readByte(JAFDSettings::SpiNVSRAM::bno055StartAddr + 21);
 
-			auto accel_offset_x = calib_data.accel_offset_x;	// 22351
+			auto accel_offset_x = calib_data.accel_offset_x;	// -20027
 			Serial.println(accel_offset_x);
 			auto accel_offset_y = calib_data.accel_offset_y;	// 8
 			Serial.println(accel_offset_y);
-			auto accel_offset_z = calib_data.accel_offset_z;	// -15639
+			auto accel_offset_z = calib_data.accel_offset_z;	// 18701
 			Serial.println(accel_offset_z);
 			auto accel_radius = calib_data.accel_radius;		// 16398
 			Serial.println(accel_radius);
 
-			auto gyro_offset_x = calib_data.gyro_offset_x;		// 0
+			auto gyro_offset_x = calib_data.gyro_offset_x;		// 20
 			Serial.println(gyro_offset_x);
 			auto gyro_offset_y = calib_data.gyro_offset_y;		// 0
 			Serial.println(gyro_offset_y);
 			auto gyro_offset_z = calib_data.gyro_offset_z;		// 6656
 			Serial.println(gyro_offset_z);
 
-			auto mag_offset_x = calib_data.mag_offset_x;		// 8
+			auto mag_offset_x = calib_data.mag_offset_x;		// 9
 			Serial.println(mag_offset_x);
-			auto mag_offset_y = calib_data.mag_offset_y;		// 4292
+			auto mag_offset_y = calib_data.mag_offset_y;		// 4944
 			Serial.println(mag_offset_y);
 			auto mag_offset_z = calib_data.mag_offset_z;		// 8199
 			Serial.println(mag_offset_z);
-			auto mag_radius = calib_data.mag_radius;			// 22423
+			auto mag_radius = calib_data.mag_radius;			// -19955
 			Serial.println(mag_radius);
 
-			if (fabsf(old_calib_data.accel_offset_x - 22400) < 7000 && fabsf(old_calib_data.mag_offset_y - 4300) < 2000 && fabsf(old_calib_data.accel_offset_z + 15600) < 5000) {
+			if (fabsf(old_calib_data.accel_offset_x + 20000) < 5000 && fabsf(old_calib_data.mag_offset_y - 5000) < 2000 && fabsf(old_calib_data.accel_offset_z - 18700) < 5000) {
 				accel_offset_x = (accel_offset_x + old_calib_data.accel_offset_x) / 2;
 				accel_offset_y = (accel_offset_y + old_calib_data.accel_offset_y) / 2;
 				accel_offset_z = (accel_offset_z + old_calib_data.accel_offset_z) / 2;

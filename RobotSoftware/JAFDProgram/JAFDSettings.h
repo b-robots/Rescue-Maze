@@ -116,13 +116,13 @@ namespace JAFDSettings
 	namespace SensorFusion
 	{
 		// Maze
-		constexpr float maxPitchForDistSensor = DEG_TO_RAD * 10.0f;		// Maximum pitch of robot for correct front distance measurements
+		constexpr float maxPitchForDistSensor = DEG_TO_RAD * 8.0f;		// Maximum pitch of robot for correct front distance measurements
 		constexpr uint16_t minDeltaDistForEdge = 30;					// Minimum change in distance that corresponds to an edge (in mm)
 
 		// Distance & Speed
 		constexpr float distSensSpeedIIRFactor = 0.8f;					// Factor used for IIR-Filter for speed measured by distance sensors
 		constexpr float longDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for high range distance measurements
-		constexpr float shortDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for short range distance measurements
+		constexpr float shortDistSensIIRFactor = 0.9f;					// Factor used for IIR-Filter for short range distance measurements
 		constexpr float distSpeedPortion = 0.2f;						// How much is a perfect distance sensor measured speed worth?
 
 		// Position
@@ -132,7 +132,7 @@ namespace JAFDSettings
 		constexpr float bno055DiffPortion = 0.5f;						// How much is the differentiation of the BNO055 angle worth?
 		constexpr float bno055RotPortion = 0.4f;						// How much is a Bno055 rotation measurement worth?
 		constexpr float angularVelIIRFactor = 0.95f;					// Factor used for IIR-Filter for angular velocity
-		constexpr float pitchIIRFactor = 0.8f;							// Factor used for IIR-Filter for pitch angle
+		constexpr float pitchIIRFactor = 0.7f;							// Factor used for IIR-Filter for pitch angle
 		constexpr float distAngularPortion = 0.2f;						// How much is a perfect distance sensor measured angle worth?
 		constexpr float angleDiffPortion = 0.8f;						// How much is the heading influenced by the angular velocity instead of the absolute orientation values?
 	}
@@ -178,16 +178,16 @@ namespace JAFDSettings
 
 		namespace Left
 		{
-			constexpr float startDty = 0.11f;	// duty cylce for start
-			constexpr float endDty = 0.07f;		// duty cylce for end
+			constexpr float startDty = 0.11f;		// duty cylce for start
+			constexpr float endDty = 0.076f;		// duty cylce for end
 			constexpr uint8_t servoPin = 35;
 			constexpr uint8_t startCubeCount = 6;
 		}
 
 		namespace Right
 		{
-			constexpr float startDty = 0.08f;	// duty cylce for start
-			constexpr float endDty = 0.011f;		// duty cylce for end
+			constexpr float startDty = 0.035f;		// duty cylce for start
+			constexpr float endDty = 0.068f;		// duty cylce for end
 			constexpr uint8_t servoPin = 37;
 			constexpr uint8_t startCubeCount = 6;
 		}
@@ -230,12 +230,12 @@ namespace JAFDSettings
 
 		namespace FrontLeft
 		{
-			constexpr uint8_t multiplexCh = 0;
+			constexpr uint8_t multiplexCh = 1;
 		}
 
 		namespace FrontRight
 		{
-			constexpr uint8_t multiplexCh = 1;
+			constexpr uint8_t multiplexCh = 0;
 		}
 
 		namespace FrontLong
@@ -251,7 +251,7 @@ namespace JAFDSettings
 
 	namespace PowerLEDs
 	{
-		constexpr float defaultPower = 0.4f;
+		constexpr float defaultPower = 0.0f;	// TODO change for competition
 
 		namespace Left
 		{
@@ -266,8 +266,6 @@ namespace JAFDSettings
 
 	namespace HeatSensors
 	{
-		constexpr uint8_t averagingNumber = 5;
-
 		constexpr float threshold = 7.0f;
 
 		namespace Left

@@ -271,6 +271,8 @@ namespace JAFD
 		else fps = fps * 0.4f + 600.0f / (millis() - time);
 
 		if (!Switch::getState()) {
+			SmoothDriving::stopTask();
+			while (!SmoothDriving::isTaskFinished());
 			__disable_irq();
 			while (!Switch::getState());
 			__enable_irq();

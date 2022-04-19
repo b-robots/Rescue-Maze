@@ -143,8 +143,8 @@ namespace JAFD
 				undefinedError	// Undefined error
 			};
 
-			static const uint16_t minDist = 35;
-			static const uint16_t maxDist = 1200;
+			static const uint16_t minDist = 50;
+			static const uint16_t maxDist = 700;
 
 			VL53L0(uint8_t multiplexCh, uint8_t id);
 			ReturnCode setup();
@@ -160,6 +160,13 @@ namespace JAFD
 		private:
 			const uint8_t _multiplexCh;
 			const uint8_t _id;
+
+			bool _strangeError = false;
+			uint8_t _consectuiveOver = 0;
+			uint8_t _consecutiveUnder = 0;
+			uint8_t _consecutiveNormal = 0;
+			uint16_t _lastDist = 0;
+			Status _lastStatus = Status::undefinedError;
 
 			// Calibration data
 			float _k = 1.0f;

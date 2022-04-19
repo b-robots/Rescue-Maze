@@ -12,6 +12,7 @@ namespace JAFD
 	{
 		ReturnCode setup();
 		void setBrightness(float perc);
+		void setBrightness(bool left, float perc);
 	}
 
 	namespace I2CBus

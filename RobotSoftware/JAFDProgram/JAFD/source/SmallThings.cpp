@@ -93,6 +93,18 @@ namespace JAFD
 			PWM->PWM_CH_NUM[rPWMCh].PWM_CDTYUPD = static_cast<uint16_t>(PWM->PWM_CH_NUM[rPWMCh].PWM_CPRD * perc);
 			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 		}
+
+		void setBrightness(bool left, float perc)
+		{
+			if (left) {
+				PWM->PWM_CH_NUM[lPWMCh].PWM_CDTYUPD = static_cast<uint16_t>(PWM->PWM_CH_NUM[lPWMCh].PWM_CPRD * perc);
+			}
+			else {
+				PWM->PWM_CH_NUM[rPWMCh].PWM_CDTYUPD = static_cast<uint16_t>(PWM->PWM_CH_NUM[rPWMCh].PWM_CPRD * perc);
+			}
+
+			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
+		}
 	}
 
 	namespace I2CBus
