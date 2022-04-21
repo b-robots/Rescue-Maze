@@ -17,6 +17,7 @@ namespace JAFD
 	namespace RobotLogic
 	{
 		void loop();
-		void timeBetweenUpdate();	// Gets executed once while waiting for distance sensor measurements. Has to be faster than ~100ms
+		void timeBetweenUpdate(bool blink = false);	// Gets executed once while waiting for distance sensor measurements. Has to be faster than ~100ms
+		void triggerFrontDistSnapshot();
 	}
 }

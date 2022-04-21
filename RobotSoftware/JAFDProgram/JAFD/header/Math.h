@@ -5,10 +5,24 @@ This private file of the library is responsible for math functions (fast trig fu
 #pragma once
 
 #include "math.h"
+#include "limits.h"
 #include "AllDatatypes.h"
 
 namespace JAFD
 {
+	inline size_t argMax(int* arr, size_t size) {
+		int maxVal = INT_MIN;
+		size_t maxIdx = 0;
+		for (int i = 0; i < size; i++) {
+			if (arr[i] >= maxVal) {
+				maxVal = arr[i];
+				maxIdx = i;
+			}
+		}
+
+		return maxIdx;
+	}
+
 	inline void calcAngleWallOffsetFromTwoDistances(float* angle, float* distToWall, int distA, int distB, float spacing, float doubleDistToMiddle) {
 		float dif = (distA - distB) / 10.0f;
 		*angle = atanf(dif / spacing);

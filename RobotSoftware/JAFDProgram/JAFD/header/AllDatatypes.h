@@ -22,48 +22,17 @@ namespace JAFD
 		none
 	};
 
-	class VisVictimProb
+	class VisVictimCount
 	{
 	public:
-		float harmed;
-		float stable;
-		float unharmed;
-		float red;
-		float green;
-		float yellow;
-		float none;
+		uint16_t harmed;
+		uint16_t stable;
+		uint16_t unharmed;
+		uint16_t red;
+		uint16_t green;
+		uint16_t yellow;
 
-		explicit VisVictimProb(float val = 0.0f) : harmed(val), stable(val), unharmed(val), red(val), green(val), yellow(val), none(val) {}
-
-		inline VisVictimProb operator/(const float& val) const
-		{
-			VisVictimProb result = *this;
-
-			result.harmed /= val;
-			result.stable /= val;
-			result.unharmed /= val;
-			result.red /= val;
-			result.green /= val;
-			result.yellow /= val;
-			result.none /= val;
-
-			return result;
-		}
-
-		inline VisVictimProb operator/(const uint16_t& val) const
-		{
-			VisVictimProb result = *this;
-
-			result.harmed /= val;
-			result.stable /= val;
-			result.unharmed /= val;
-			result.red /= val;
-			result.green /= val;
-			result.yellow /= val;
-			result.none /= val;
-
-			return result;
-		}
+		explicit VisVictimCount(uint16_t val = 0) : harmed(val), stable(val), unharmed(val), red(val), green(val), yellow(val) {}
 	};
 
 	enum class SerialType : uint8_t
@@ -73,6 +42,17 @@ namespace JAFD
 		one,
 		two,
 		three
+	};
+
+	struct NewForcedFusionValues {
+		bool clearCell = false;
+		bool zeroPitch = false;
+		bool newX = false;
+		bool newY = false;
+		bool newHeading = false;
+		float x;
+		float y;
+		float heading;
 	};
 
 	struct FloatWheelSpeeds;
@@ -497,7 +477,7 @@ namespace JAFD
 		constexpr uint8_t checkpoint = 1 << 2;
 		constexpr uint8_t blackTile = 1 << 3;
 		constexpr uint8_t ramp = 1 << 4;
-		constexpr uint8_t obstacle = 1 << 5;
+		constexpr uint8_t stair = 1 << 5;
 		constexpr uint8_t bump = 1 << 6;
 		constexpr uint8_t none = 0;
 	}

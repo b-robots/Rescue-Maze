@@ -20,8 +20,6 @@ namespace JAFD
 
 		void loop();
 
-		VisVictimProb getVictims(bool left);
-
-		void newField();
+		Victim getVictim(bool left);
 	}
 }

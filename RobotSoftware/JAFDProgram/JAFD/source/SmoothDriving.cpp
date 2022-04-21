@@ -18,6 +18,7 @@ This part of the Library is responsible for driving smoothly.
 #include "../header/PIDController.h"
 #include "../header/DistanceSensors.h"
 #include "../header/SensorFusion.h"
+#include "../header/RobotLogic.h"
 #include "cmath"
 
 namespace JAFD
@@ -44,6 +45,8 @@ namespace JAFD
 				TaskArray taskArray;
 				AlignWalls alignWalls;
 				FollowWall followWall;
+				Ramp ramp;
+				ReturnStairs returnStairs;
 
 				_TaskCopies() : stop() {};
 				~_TaskCopies() {}
@@ -487,7 +490,7 @@ namespace JAFD
 				return WheelSpeeds{ 0, 0 };
 			}
 
-			return WheelSpeeds{ _speeds, _speeds};
+			return WheelSpeeds{ _speeds, _speeds };
 		}
 
 		// ForceSpeed class - end
@@ -559,6 +562,410 @@ namespace JAFD
 
 		// AlignWalls class - end
 
+		// Ramp class - begin
+		Ramp::Ramp(int16_t speed) : ITask(), _speed(speed), _pid(JAFDSettings::Controller::GoToAngle::pidSettings), _emaPitch(NAN), _stairsEnd(false), _rampEndPos(), _consecutiveEnd(0) {
+		}
+
+		ReturnCode Ramp::startTask(RobotState startState)
+		{
+			_finished = false;
+			_endState = startState;
+			_startAngle = fitAngleToInterval(startState.globalHeading);
+
+			if (_startAngle > -M_PI_4 && _startAngle < M_PI_4) {
+				_startAngle = 0.0f;
+			}
+			else if (_startAngle > M_PI_4 && _startAngle < M_3PI_4) {
+				_startAngle = M_PI_2;
+			}
+			else if (_startAngle < -M_PI_4 && _startAngle > -M_3PI_4) {
+				_startAngle = -M_PI_2;
+			}
+			else
+			{
+				_startAngle = M_PI;
+			}
+
+			// TESTING
+			_rampEndPos = (Vec2f)(startState.position);
+
+			return ReturnCode::ok;
+		}
+
+		WheelSpeeds Ramp::updateSpeeds(const uint8_t freq)
+		{
+			const auto tempFusedData = SensorFusion::getFusedData();
+			const auto tempRobotState = tempFusedData.robotState;
+
+			if (std::isnan(_emaPitch)) {
+				_emaPitch = tempRobotState.pitch;
+			}
+			else {
+				if (fabsf(tempRobotState.pitch - _emaPitch) < 0.2f) {
+					_emaPitch = tempRobotState.pitch * 0.7f + _emaPitch * 0.3f;
+				}
+			}
+
+			const Vec2f currentPosition = (Vec2f)(tempRobotState.position);
+
+			if (fabsf(_emaPitch) < 0.1f && !_stairsEnd) {
+				_consecutiveEnd++;
+			}
+			else {
+				_consecutiveEnd = 0;
+			}
+
+			if (_consecutiveEnd > 2) {
+				_stairsEnd = true;
+				_rampEndPos = currentPosition;
+			}
+
+			if (_stairsEnd) {
+				float drivenDistance = (currentPosition - _rampEndPos).length();
+
+				if (drivenDistance >= 10.0f)
+				{
+					_finished = true;
+				}
+
+				if (tempFusedData.distSensorState.frontRight == DistSensorStatus::underflow ||
+					(tempFusedData.distSensorState.frontRight == DistSensorStatus::ok &&
+						tempFusedData.distances.frontRight < (JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::distSensFrontBackDist) / 2 * 10 * 0.9f)) {
+					_finished = true;
+				}
+
+				if (tempFusedData.distSensorState.frontLeft == DistSensorStatus::underflow ||
+					(tempFusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
+						tempFusedData.distances.frontLeft < (JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::distSensFrontBackDist) / 2 * 10 * 0.9f)) {
+					_finished = true;
+				}
+			}
+
+			if (tempFusedData.distSensorState.frontRight == DistSensorStatus::underflow ||
+				(tempFusedData.distSensorState.frontRight == DistSensorStatus::ok &&
+					tempFusedData.distances.frontRight < 80)) {
+				_finished = true;
+			}
+
+			if (tempFusedData.distSensorState.frontLeft == DistSensorStatus::underflow ||
+				(tempFusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
+					tempFusedData.distances.frontLeft < 80)) {
+				_finished = true;
+			}
+
+			if (_finished) {
+				return WheelSpeeds(0, 0);
+			}
+
+			struct {
+				bool lf = false;
+				bool lb = false;
+				bool rf = false;
+				bool rb = false;
+				bool fl = false;
+				bool fr = false;
+			} usableData;
+
+			struct {
+				int lf = 0;
+				int lb = 0;
+				int rf = 0;
+				int rb = 0;
+				int fl = 0;
+				int fr = 0;
+			} distances;
+
+			if ((tempFusedData.distSensorState.leftFront == DistSensorStatus::ok &&
+				tempFusedData.distances.leftFront < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10) ||
+				tempFusedData.distSensorState.leftFront == DistSensorStatus::underflow) {
+				usableData.lf = true;
+				distances.lf = tempFusedData.distSensorState.leftFront == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist : tempFusedData.distances.leftFront;
+			}
+
+			if ((tempFusedData.distSensorState.leftBack == DistSensorStatus::ok &&
+				tempFusedData.distances.leftBack < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10) ||
+				tempFusedData.distSensorState.leftBack == DistSensorStatus::underflow) {
+				usableData.lb = true;
+				distances.lb = tempFusedData.distSensorState.leftBack == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist : tempFusedData.distances.leftBack;
+			}
+
+			if ((tempFusedData.distSensorState.rightFront == DistSensorStatus::ok &&
+				tempFusedData.distances.rightFront < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10) ||
+				tempFusedData.distSensorState.rightFront == DistSensorStatus::underflow) {
+				usableData.rf = true;
+				distances.rf = tempFusedData.distSensorState.rightFront == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist : tempFusedData.distances.rightFront;
+			}
+
+			if ((tempFusedData.distSensorState.rightBack == DistSensorStatus::ok &&
+				tempFusedData.distances.rightBack < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10) ||
+				tempFusedData.distSensorState.rightBack == DistSensorStatus::underflow) {
+				usableData.rb = true;
+				distances.rb = tempFusedData.distSensorState.rightBack == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist : tempFusedData.distances.rightBack;
+			}
+
+			if (tempFusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
+				tempFusedData.distances.frontLeft < 300) {
+				usableData.fl = true;
+				distances.fl = tempFusedData.distances.frontLeft;
+			}
+
+			if (tempFusedData.distSensorState.frontRight == DistSensorStatus::ok &&
+				tempFusedData.distances.frontRight < 300) {
+				usableData.fr = true;
+				distances.fr = tempFusedData.distances.frontRight;
+			}
+
+			float errorAngle = 0.0f;
+			float angle = tempFusedData.robotState.globalHeading;
+			float goalAngle = _startAngle;
+
+			if (usableData.lf && usableData.lb && usableData.rb && usableData.rf) {
+				float angleL = 0.0f;
+				float distToWallL = 0.0f;
+				float angleR = 0.0f;
+				float distToWallR = 0.0f;
+
+				calcAngleWallOffsetFromTwoDistances(&angleL, &distToWallL, distances.lf, distances.lb, JAFDSettings::Mechanics::distSensLRSpacing, JAFDSettings::Mechanics::distSensLeftRightDist);
+				calcAngleWallOffsetFromTwoDistances(&angleR, &distToWallR, distances.rf, distances.rb, JAFDSettings::Mechanics::distSensLRSpacing, JAFDSettings::Mechanics::distSensLeftRightDist);
+				angleL *= -1.0f;
+
+				angle = (angleL + angleR) / 2.0;
+				float combinedDistToLeftWall = (distToWallL + (JAFDSettings::Field::cellWidth - distToWallR)) / 2.0;
+
+				goalAngle = -atanf((JAFDSettings::Field::cellWidth / 2.0f - combinedDistToLeftWall) / GoToAngle::aheadDistL * sgn(_speed));
+			}
+			else if (usableData.lf && usableData.lb) {
+				angle = 0.0f;
+				float distToWall = 0.0f;
+
+				calcAngleWallOffsetFromTwoDistances(&angle, &distToWall, distances.lf, distances.lb, JAFDSettings::Mechanics::distSensLRSpacing, JAFDSettings::Mechanics::distSensLeftRightDist);
+				angle *= -1.0f;
+
+				goalAngle = -atanf((JAFDSettings::Field::cellWidth / 2.0f - 1.0f - distToWall) / GoToAngle::aheadDistL * sgn(_speed));
+			}
+			else if (usableData.rf && usableData.rb) {
+				angle = 0.0f;
+				float distToWall = 0.0f;
+
+				calcAngleWallOffsetFromTwoDistances(&angle, &distToWall, distances.rf, distances.rb, JAFDSettings::Mechanics::distSensLRSpacing, JAFDSettings::Mechanics::distSensLeftRightDist);
+
+				goalAngle = atanf((JAFDSettings::Field::cellWidth / 2.0f - 1.0f - distToWall) / GoToAngle::aheadDistL * sgn(_speed));
+			}
+
+			errorAngle = fitAngleToInterval(goalAngle - angle);
+
+			// point forward steering http://faculty.salina.k-state.edu/tim/robot_prog/MobileBot/Steering/pointFwd.html
+			errorAngle = fmaxf(fminf(errorAngle, M_PI_2), -M_PI_2);
+			errorAngle = _pid.process(0.0f, -errorAngle, 1.0f / freq);
+			float correctedAngularVel = fabsf(_speed) * errorAngle;
+
+			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
+			WheelSpeeds output = WheelSpeeds{ _speed - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, _speed + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
+
+			// Correct speed if it is too low
+			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed)
+			{
+				output.left = JAFDSettings::MotorControl::minSpeed;
+			}
+
+			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed)
+			{
+				output.right = JAFDSettings::MotorControl::minSpeed;
+			}
+
+			return output;
+		}
+
+		// Ramp class - end
+
+		// ReturnStairs class - begin
+		ReturnStairs::ReturnStairs(int16_t speed) : ITask(), _speed(speed), _pid(JAFDSettings::Controller::GoToAngle::pidSettings), _emaPitch(NAN), _stairsEnd(false), _rampEndPos(), _consecutiveEnd(0) {
+		}
+
+		ReturnCode ReturnStairs::startTask(RobotState startState)
+		{
+			_finished = false;
+			_endState = startState;
+			_startAngle = fitAngleToInterval(startState.globalHeading);
+
+			if (_startAngle > -M_PI_4 && _startAngle < M_PI_4) {
+				_startAngle = 0.0f;
+			}
+			else if (_startAngle > M_PI_4 && _startAngle < M_3PI_4) {
+				_startAngle = M_PI_2;
+			}
+			else if (_startAngle < -M_PI_4 && _startAngle > -M_3PI_4) {
+				_startAngle = -M_PI_2;
+			}
+			else
+			{
+				_startAngle = M_PI;
+			}
+
+			return ReturnCode::ok;
+		}
+
+		WheelSpeeds ReturnStairs::updateSpeeds(const uint8_t freq)
+		{
+			const auto tempFusedData = SensorFusion::getFusedData();
+			const auto tempRobotState = tempFusedData.robotState;
+
+			if (std::isnan(_emaPitch)) {
+				_emaPitch = tempRobotState.pitch;
+			}
+			else {
+				if (fabsf(tempRobotState.pitch - _emaPitch) < 0.2f) {
+					_emaPitch = tempRobotState.pitch * 0.7f + _emaPitch * 0.3f;
+				}
+			}
+
+			const Vec2f currentPosition = (Vec2f)(tempRobotState.position);
+
+			if (_emaPitch < 0.1f && !_stairsEnd) {
+				_consecutiveEnd++;
+			}
+			else {
+				_consecutiveEnd = 0;
+			}
+
+			if (_consecutiveEnd >= 2) {
+				_stairsEnd = true;
+				_rampEndPos = currentPosition;
+			}
+
+			if (_stairsEnd) {
+				float drivenDistance = (currentPosition - _rampEndPos).length();
+
+				if (drivenDistance >= 4.0f)
+				{
+					_finished = true;
+				}
+			}
+
+			if (_finished) {
+				return WheelSpeeds(0, 0);
+			}
+
+			struct {
+				bool lf = false;
+				bool lb = false;
+				bool rf = false;
+				bool rb = false;
+				bool fl = false;
+				bool fr = false;
+			} usableData;
+
+			struct {
+				int lf = 0;
+				int lb = 0;
+				int rf = 0;
+				int rb = 0;
+				int fl = 0;
+				int fr = 0;
+			} distances;
+
+			if ((tempFusedData.distSensorState.leftFront == DistSensorStatus::ok &&
+				tempFusedData.distances.leftFront < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10) ||
+				tempFusedData.distSensorState.leftFront == DistSensorStatus::underflow) {
+				usableData.lf = true;
+				distances.lf = tempFusedData.distSensorState.leftFront == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist : tempFusedData.distances.leftFront;
+			}
+
+			if ((tempFusedData.distSensorState.leftBack == DistSensorStatus::ok &&
+				tempFusedData.distances.leftBack < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10) ||
+				tempFusedData.distSensorState.leftBack == DistSensorStatus::underflow) {
+				usableData.lb = true;
+				distances.lb = tempFusedData.distSensorState.leftBack == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist : tempFusedData.distances.leftBack;
+			}
+
+			if ((tempFusedData.distSensorState.rightFront == DistSensorStatus::ok &&
+				tempFusedData.distances.rightFront < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10) ||
+				tempFusedData.distSensorState.rightFront == DistSensorStatus::underflow) {
+				usableData.rf = true;
+				distances.rf = tempFusedData.distSensorState.rightFront == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist : tempFusedData.distances.rightFront;
+			}
+
+			if ((tempFusedData.distSensorState.rightBack == DistSensorStatus::ok &&
+				tempFusedData.distances.rightBack < 300 - JAFDSettings::Mechanics::distSensLeftRightDist * 10) ||
+				tempFusedData.distSensorState.rightBack == DistSensorStatus::underflow) {
+				usableData.rb = true;
+				distances.rb = tempFusedData.distSensorState.rightBack == DistSensorStatus::underflow ? DistanceSensors::VL6180::minDist : tempFusedData.distances.rightBack;
+			}
+
+			if (tempFusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
+				tempFusedData.distances.frontLeft < 300) {
+				usableData.fl = true;
+				distances.fl = tempFusedData.distances.frontLeft;
+			}
+
+			if (tempFusedData.distSensorState.frontRight == DistSensorStatus::ok &&
+				tempFusedData.distances.frontRight < 300) {
+				usableData.fr = true;
+				distances.fr = tempFusedData.distances.frontRight;
+			}
+
+			float errorAngle = 0.0f;
+			float angle = tempFusedData.robotState.globalHeading;
+			float goalAngle = _startAngle;
+
+			if (usableData.lf && usableData.lb && usableData.rb && usableData.rf) {
+				float angleL = 0.0f;
+				float distToWallL = 0.0f;
+				float angleR = 0.0f;
+				float distToWallR = 0.0f;
+
+				calcAngleWallOffsetFromTwoDistances(&angleL, &distToWallL, distances.lf, distances.lb, JAFDSettings::Mechanics::distSensLRSpacing, JAFDSettings::Mechanics::distSensLeftRightDist);
+				calcAngleWallOffsetFromTwoDistances(&angleR, &distToWallR, distances.rf, distances.rb, JAFDSettings::Mechanics::distSensLRSpacing, JAFDSettings::Mechanics::distSensLeftRightDist);
+				angleL *= -1.0f;
+
+				angle = (angleL + angleR) / 2.0;
+				float combinedDistToLeftWall = (distToWallL + (JAFDSettings::Field::cellWidth - distToWallR)) / 2.0;
+
+				goalAngle = -atanf((JAFDSettings::Field::cellWidth / 2.0f - combinedDistToLeftWall) / GoToAngle::aheadDistL * sgn(_speed));
+			}
+			else if (usableData.lf && usableData.lb) {
+				angle = 0.0f;
+				float distToWall = 0.0f;
+
+				calcAngleWallOffsetFromTwoDistances(&angle, &distToWall, distances.lf, distances.lb, JAFDSettings::Mechanics::distSensLRSpacing, JAFDSettings::Mechanics::distSensLeftRightDist);
+				angle *= -1.0f;
+
+				goalAngle = -atanf((JAFDSettings::Field::cellWidth / 2.0f - 1.0f - distToWall) / GoToAngle::aheadDistL * sgn(_speed));
+			}
+			else if (usableData.rf && usableData.rb) {
+				angle = 0.0f;
+				float distToWall = 0.0f;
+
+				calcAngleWallOffsetFromTwoDistances(&angle, &distToWall, distances.rf, distances.rb, JAFDSettings::Mechanics::distSensLRSpacing, JAFDSettings::Mechanics::distSensLeftRightDist);
+
+				goalAngle = atanf((JAFDSettings::Field::cellWidth / 2.0f - 1.0f - distToWall) / GoToAngle::aheadDistL * sgn(_speed));
+			}
+
+			errorAngle = fitAngleToInterval(goalAngle - angle);
+
+			// point forward steering http://faculty.salina.k-state.edu/tim/robot_prog/MobileBot/Steering/pointFwd.html
+			errorAngle = fmaxf(fminf(errorAngle, M_PI_2), -M_PI_2);
+			errorAngle = _pid.process(0.0f, -errorAngle, 1.0f / freq);
+			float correctedAngularVel = fabsf(_speed) * errorAngle;
+			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
+			WheelSpeeds output = WheelSpeeds{ _speed - JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, _speed + JAFDSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
+
+			// Correct speed if it is too low
+			if (output.left < JAFDSettings::MotorControl::minSpeed && output.left > -JAFDSettings::MotorControl::minSpeed)
+			{
+				output.left = JAFDSettings::MotorControl::minSpeed * sgn(_speed);
+			}
+
+			if (output.right < JAFDSettings::MotorControl::minSpeed && output.right > -JAFDSettings::MotorControl::minSpeed)
+			{
+				output.right = JAFDSettings::MotorControl::minSpeed * sgn(_speed);
+			}
+
+			return output;
+		}
+
+		// ReturnStairs class - end
+
 		// FollowWall class - begin
 
 		FollowWall::FollowWall(int16_t speed, float distance) : ITask(), _speeds(speed), _distance(distance), _pid(JAFDSettings::Controller::GoToAngle::pidSettings) {}
@@ -593,6 +1000,8 @@ namespace JAFD
 
 			_pid.reset();
 
+			RobotLogic::triggerFrontDistSnapshot();
+
 			return ReturnCode::ok;
 		}
 
@@ -614,9 +1023,9 @@ namespace JAFD
 			bool stopWithWall = false;
 			if (_speeds > 0) {
 				if (tempFusedData.distSensorState.frontRight == DistSensorStatus::ok &&
-					(tempFusedData.distances.frontRight / 10.0f - 15.0f + JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f + drivenDistance) * 0.7f < _distance) {
+					(tempFusedData.distances.frontRight / 10.0f - 15.0f + JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f + drivenDistance) * 0.8f < _distance) {
 					if (tempFusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
-						(tempFusedData.distances.frontLeft / 10.0f - 15.0f + JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f + drivenDistance) * 0.7f < _distance) {
+						(tempFusedData.distances.frontLeft / 10.0f - 15.0f + JAFDSettings::Mechanics::distSensFrontBackDist / 2.0f + drivenDistance) * 0.8f < _distance) {
 						stopWithWall = true;
 					}
 				}
@@ -627,13 +1036,15 @@ namespace JAFD
 				_finished = true;
 			}
 
-			if (tempFusedData.distSensorState.frontRight == DistSensorStatus::ok &&
-				tempFusedData.distances.frontRight < (JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::distSensFrontBackDist) / 2 * 10 * 0.9f) {
+			if (tempFusedData.distSensorState.frontRight == DistSensorStatus::underflow ||
+				(tempFusedData.distSensorState.frontRight == DistSensorStatus::ok &&
+					tempFusedData.distances.frontRight < (JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::distSensFrontBackDist) / 2 * 10 * 0.9f)) {
 				_finished = true;
 			}
 
-			if (tempFusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
-				tempFusedData.distances.frontLeft < (JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::distSensFrontBackDist) / 2 * 10 * 0.9f) {
+			if (tempFusedData.distSensorState.frontLeft == DistSensorStatus::underflow ||
+				(tempFusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
+					tempFusedData.distances.frontLeft < (JAFDSettings::Field::cellWidth - JAFDSettings::Mechanics::distSensFrontBackDist) / 2 * 10 * 0.9f)) {
 				_finished = true;
 			}
 
@@ -796,6 +1207,11 @@ namespace JAFD
 				case _TaskType::alignWalls:
 					_taskArray[i] = new (&(_taskCopies[i].alignWalls)) AlignWalls(taskArray._taskCopies[i].alignWalls);
 					break;
+				case _TaskType::ramp:
+					_taskArray[i] = new (&(_taskCopies[i].ramp)) Ramp(taskArray._taskCopies[i].ramp);
+					break;
+				case _TaskType::returnStairs:
+					_taskArray[i] = new (&(_taskCopies[i].returnStairs)) ReturnStairs(taskArray._taskCopies[i].returnStairs);
 				default:
 					break;
 				}
@@ -854,6 +1270,20 @@ namespace JAFD
 		{
 			_taskTypes[_numTasks] = _TaskType::followWall;
 			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].followWall)) FollowWall(task);
+			_currentTaskNum = _numTasks;
+			_numTasks++;
+		}
+
+		TaskArray::TaskArray(const Ramp& task) {
+			_taskTypes[_numTasks] = _TaskType::ramp;
+			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].ramp)) Ramp(task);
+			_currentTaskNum = _numTasks;
+			_numTasks++;
+		}
+
+		TaskArray::TaskArray(const ReturnStairs& task) {
+			_taskTypes[_numTasks] = _TaskType::returnStairs;
+			_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].returnStairs)) ReturnStairs(task);
 			_currentTaskNum = _numTasks;
 			_numTasks++;
 		}
@@ -1495,6 +1925,172 @@ namespace JAFD
 			return returnCode;
 		}
 
+		// Set new Ramp task (use last end state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const Ramp& newTask, const bool forceOverride)
+		{
+			static RobotState endState;
+			static ReturnCode returnCode;
+			static Ramp temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				endState = static_cast<RobotState>(_currentTask->getEndState());
+
+				temp = newTask;
+				returnCode = temp.startTask(endState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.ramp)) Ramp(temp);
+					_stopped = false;
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new Ramp task (use current state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const Ramp& newTask, const bool forceOverride)
+		{
+			static ReturnCode returnCode;
+			static Ramp temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				temp = newTask;
+				returnCode = temp.startTask(SensorFusion::getFusedData().robotState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.ramp)) Ramp(temp);
+					_stopped = false;
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new Ramp task (use specified state to start)
+		ReturnCode setNewTask(const Ramp& newTask, RobotState startState, const bool forceOverride)
+		{
+			static ReturnCode returnCode;
+			static Ramp temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				temp = newTask;
+				returnCode = temp.startTask(startState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.ramp)) Ramp(temp);
+					_stopped = false;
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new ReturnStairs task (use last end state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const ReturnStairs& newTask, const bool forceOverride)
+		{
+			static RobotState endState;
+			static ReturnCode returnCode;
+			static ReturnStairs temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				endState = static_cast<RobotState>(_currentTask->getEndState());
+
+				temp = newTask;
+				returnCode = temp.startTask(endState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.returnStairs)) ReturnStairs(temp);
+					_stopped = false;
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new ReturnStairs task (use current state to start)
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const ReturnStairs& newTask, const bool forceOverride)
+		{
+			static ReturnCode returnCode;
+			static ReturnStairs temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				temp = newTask;
+				returnCode = temp.startTask(SensorFusion::getFusedData().robotState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.returnStairs)) ReturnStairs(temp);
+					_stopped = false;
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
+		// Set new ReturnStairs task (use specified state to start)
+		ReturnCode setNewTask(const ReturnStairs& newTask, RobotState startState, const bool forceOverride)
+		{
+			static ReturnCode returnCode;
+			static ReturnStairs temp;
+
+			returnCode = ReturnCode::ok;
+
+			__disable_irq();
+
+			if (_currentTask->isFinished() || forceOverride)
+			{
+				temp = newTask;
+				returnCode = temp.startTask(startState);
+
+				if (returnCode == ReturnCode::ok)
+				{
+					_currentTask = new (&(_taskCopies.returnStairs)) ReturnStairs(temp);
+					_stopped = false;
+				}
+			}
+
+			__enable_irq();
+			return returnCode;
+		}
+
 		// Set new TaskArray task (use last end state to start)
 		template<>
 		ReturnCode setNewTask<NewStateType::lastEndState>(const TaskArray& newTask, const bool forceOverride)
@@ -1589,6 +2185,10 @@ namespace JAFD
 		{
 			_stopped = true;
 			setNewTask<NewStateType::currentState>(Stop(), true);
+		}
+
+		RobotState getEndState() {
+			return _currentTask->getEndState();
 		}
 	}
 }

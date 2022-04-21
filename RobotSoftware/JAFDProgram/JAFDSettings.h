@@ -132,7 +132,7 @@ namespace JAFDSettings
 		constexpr float bno055DiffPortion = 0.5f;						// How much is the differentiation of the BNO055 angle worth?
 		constexpr float bno055RotPortion = 0.4f;						// How much is a Bno055 rotation measurement worth?
 		constexpr float angularVelIIRFactor = 0.95f;					// Factor used for IIR-Filter for angular velocity
-		constexpr float pitchIIRFactor = 0.7f;							// Factor used for IIR-Filter for pitch angle
+		constexpr float pitchIIRFactor = 0.8f;							// Factor used for IIR-Filter for pitch angle
 		constexpr float distAngularPortion = 0.2f;						// How much is a perfect distance sensor measured angle worth?
 		constexpr float angleDiffPortion = 0.8f;						// How much is the heading influenced by the angular velocity instead of the absolute orientation values?
 	}
@@ -195,8 +195,9 @@ namespace JAFDSettings
 
 	namespace MazeMapping
 	{
-		constexpr float distLongerThanBorder = 7.0f;		// Distance longer than border from which next field is empty (cm)
-		constexpr float widthSecureDetectFactor = 0.85f;	// Factor of cell width in which border the distance measurement safely hits the front wall	
+		constexpr float distLongerThanBorder = 5.0f;		// Distance longer than border from which next field is empty (cm)
+		constexpr float widthSecureDetectFactor = 0.85f;	// Factor of cell width in which border the distance measurement safely hits the front wall
+		constexpr float minRampAngle = 0.2f;
 	}
 
 	namespace DistanceSensors
@@ -251,7 +252,7 @@ namespace JAFDSettings
 
 	namespace PowerLEDs
 	{
-		constexpr float defaultPower = 0.0f;	// TODO change for competition
+		constexpr float defaultPower = 1.0f;
 
 		namespace Left
 		{

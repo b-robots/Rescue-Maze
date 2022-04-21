@@ -33,6 +33,7 @@ namespace JAFD
 			volatile sensors_event_t rotSpeedEvent;
 			volatile imu::Quaternion quat;				// tared quaternion
 			volatile imu::Quaternion tareQuat;			// conjugate of quaternion to tare
+			volatile float tarePitch = 0.0f;
 			volatile uint8_t overallCalib = 0;
 
 			// Convert linear motion to the global axis based on the robot start orientation
@@ -112,6 +113,14 @@ namespace JAFD
 			}
 
 			*(imu::Quaternion*)(&tareQuat) = isQuat.conjugate();
+
+			uint8_t i = 0;
+			while (fabsf(atan2f(gravityEvent.acceleration.x, gravityEvent.acceleration.z)) > 0.1 && i < 5) {
+				bno055.getEvent((sensors_event_t*)&gravityEvent, Adafruit_BNO055::VECTOR_GRAVITY);
+				i++;
+			}
+
+			tarePitch = atan2f(gravityEvent.acceleration.x, gravityEvent.acceleration.z);
 		}
 
 		// Global heading in rad
@@ -126,12 +135,27 @@ namespace JAFD
 			a.fromAxisAngle(imu::Vector<3>(0.0f, 0.0f, 1.0f), globalHeading);
 
 			*(imu::Quaternion*)(&tareQuat) = isQuat.conjugate() * a;
+
+			uint8_t i = 0;
+			while (fabsf(atan2f(gravityEvent.acceleration.x, gravityEvent.acceleration.z)) > 0.1 && i < 5) {
+				bno055.getEvent((sensors_event_t*)&gravityEvent, Adafruit_BNO055::VECTOR_GRAVITY);
+				i++;
+			}
+
+			tarePitch = atan2f(gravityEvent.acceleration.x, gravityEvent.acceleration.z);
 		}
 
 		void updateValues()					//gets values from the sensors
 		{
 			bno055.getEvent((sensors_event_t*)&linearAccelEvent, Adafruit_BNO055::VECTOR_LINEARACCEL);
+
+			auto lastGravity = *(sensors_event_t*)&gravityEvent;
+
 			bno055.getEvent((sensors_event_t*)&gravityEvent, Adafruit_BNO055::VECTOR_GRAVITY);
+
+			if ((sqrtf(gravityEvent.acceleration.x * gravityEvent.acceleration.x + gravityEvent.acceleration.y * gravityEvent.acceleration.y + gravityEvent.acceleration.z * gravityEvent.acceleration.z) - 9.81f) > 0.5f) {
+				*(sensors_event_t*)&gravityEvent = lastGravity;
+			}
 
 			auto isQuat = bno055.getQuat();
 			while (fabsf(isQuat.magnitude() - 1) > 0.1) {
@@ -172,11 +196,15 @@ namespace JAFD
 
 			auto rotatedVec = currQuat.rotateVector(imu::Vector<3>(1.0f, 0.0f, 0.0f));
 
+			float pitch = atan2f(gravityEvent.acceleration.x, gravityEvent.acceleration.z) - tarePitch;
+
 			forwardVec.x = rotatedVec.x();
 			forwardVec.y = rotatedVec.y();
 			forwardVec.z = rotatedVec.z();
 
-			return forwardVec;
+			float heading = getGlobalHeading(forwardVec);
+
+			return toForwardVec(heading, pitch);
 		}
 
 		float getRotSpeed()

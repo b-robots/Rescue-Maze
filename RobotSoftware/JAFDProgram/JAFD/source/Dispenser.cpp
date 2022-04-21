@@ -103,7 +103,7 @@ namespace JAFD
 			{
 				return ReturnCode::error;
 			}
-			else if (getRightCubeCount() >= num)
+			else //if (getRightCubeCount() >= num)
 			{
 				for (int i = 0; i < num; i++)
 				{
@@ -122,7 +122,7 @@ namespace JAFD
 
 				return ReturnCode::ok;
 			}
-			else
+			/*else
 			{
 				uint16_t remainPacks = num - getRightCubeCount();
 
@@ -173,7 +173,7 @@ namespace JAFD
 				Wait::waitForFinishedTask();
 
 				return ReturnCode::ok;
-			}
+			}*/
 			return ReturnCode::ok;
 		}
 
@@ -188,7 +188,7 @@ namespace JAFD
 			{
 				return ReturnCode::error;
 			}
-			else if (getLeftCubeCount() >= num)
+			else// if (getLeftCubeCount() >= num)
 			{
 				for (int i = 0; i < num; i++)
 				{
@@ -207,6 +207,7 @@ namespace JAFD
 
 				return ReturnCode::ok;
 			}
+			/*
 			else
 			{
 				uint16_t remainPacks = num - getLeftCubeCount();
@@ -258,7 +259,7 @@ namespace JAFD
 				Wait::waitForFinishedTask();
 
 				return ReturnCode::ok;
-			}
+			}*/
 			return ReturnCode::ok;
 		}
 	}

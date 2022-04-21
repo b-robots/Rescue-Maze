@@ -3,6 +3,7 @@ This private part of the Library is responsible for the communication with the R
 */
 
 #include "../header/CamRec.h"
+#include "../header/Math.h"
 
 namespace JAFD
 {
@@ -10,10 +11,8 @@ namespace JAFD
 	{
 		namespace
 		{
-			VisVictimProb leftProb;
-			VisVictimProb rightProb;
-			uint16_t leftDet = 0;
-			uint16_t rightDet = 0;
+			VisVictimCount leftConsecutiveCnt;
+			VisVictimCount rightConsecutiveCnt;
 		}
 
 		ReturnCode setup()
@@ -66,115 +65,182 @@ namespace JAFD
 				auto rightByte = Serial1.read();	// right victim code
 				Serial1.read();						// Discard '\n'
 
-				leftDet++;
-
 				switch (leftByte)
 				{
 				case 'H':
-					leftProb.harmed++;
+					leftConsecutiveCnt.harmed++;
+					leftConsecutiveCnt.green = 0;
+					leftConsecutiveCnt.red = 0;
+					leftConsecutiveCnt.stable = 0;
+					leftConsecutiveCnt.unharmed = 0;
+					leftConsecutiveCnt.yellow = 0;
 					break;
 
 				case 'S':
-					leftProb.stable++;
+					leftConsecutiveCnt.harmed = 0;
+					leftConsecutiveCnt.green = 0;
+					leftConsecutiveCnt.red = 0;
+					leftConsecutiveCnt.stable++;
+					leftConsecutiveCnt.unharmed = 0;
+					leftConsecutiveCnt.yellow = 0;
 					break;
 
 				case 'U':
-					leftProb.unharmed++;
+					leftConsecutiveCnt.harmed = 0;
+					leftConsecutiveCnt.green = 0;
+					leftConsecutiveCnt.red = 0;
+					leftConsecutiveCnt.stable = 0;
+					leftConsecutiveCnt.unharmed++;
+					leftConsecutiveCnt.yellow = 0;
 					break;
 
 				case 'R':
-					leftProb.red++;
+					leftConsecutiveCnt.harmed = 0;
+					leftConsecutiveCnt.green = 0;
+					leftConsecutiveCnt.red++;
+					leftConsecutiveCnt.stable = 0;
+					leftConsecutiveCnt.unharmed = 0;
+					leftConsecutiveCnt.yellow = 0;
 					break;
 
 				case 'G':
-					leftProb.green++;
+					leftConsecutiveCnt.harmed = 0;
+					leftConsecutiveCnt.green++;
+					leftConsecutiveCnt.red = 0;
+					leftConsecutiveCnt.stable = 0;
+					leftConsecutiveCnt.unharmed = 0;
+					leftConsecutiveCnt.yellow = 0;
 					break;
 
 				case 'Y':
-					leftProb.yellow++;
-					break;
-
-				case 'N':
-					leftProb.none++;
+					leftConsecutiveCnt.harmed = 0;
+					leftConsecutiveCnt.green = 0;
+					leftConsecutiveCnt.red = 0;
+					leftConsecutiveCnt.stable = 0;
+					leftConsecutiveCnt.unharmed = 0;
+					leftConsecutiveCnt.yellow++;
 					break;
 
 				default:
-					leftDet--;
+					leftConsecutiveCnt.harmed = 0;
+					leftConsecutiveCnt.green = 0;
+					leftConsecutiveCnt.red = 0;
+					leftConsecutiveCnt.stable = 0;
+					leftConsecutiveCnt.unharmed = 0;
+					leftConsecutiveCnt.yellow = 0;
 					break;
 				}
-
-				rightDet++;
 
 				switch (rightByte)
 				{
 				case 'H':
-					rightProb.harmed++;
+					rightConsecutiveCnt.harmed++;
+					rightConsecutiveCnt.green = 0;
+					rightConsecutiveCnt.red = 0;
+					rightConsecutiveCnt.stable = 0;
+					rightConsecutiveCnt.unharmed = 0;
+					rightConsecutiveCnt.yellow = 0;
 					break;
 
 				case 'S':
-					rightProb.stable++;
+					rightConsecutiveCnt.harmed = 0;
+					rightConsecutiveCnt.green = 0;
+					rightConsecutiveCnt.red = 0;
+					rightConsecutiveCnt.stable++;
+					rightConsecutiveCnt.unharmed = 0;
+					rightConsecutiveCnt.yellow = 0;
 					break;
 
 				case 'U':
-					rightProb.unharmed++;
+					rightConsecutiveCnt.harmed = 0;
+					rightConsecutiveCnt.green = 0;
+					rightConsecutiveCnt.red = 0;
+					rightConsecutiveCnt.stable = 0;
+					rightConsecutiveCnt.unharmed++;
+					rightConsecutiveCnt.yellow = 0;
 					break;
 
 				case 'R':
-					rightProb.red++;
+					rightConsecutiveCnt.harmed = 0;
+					rightConsecutiveCnt.green = 0;
+					rightConsecutiveCnt.red++;
+					rightConsecutiveCnt.stable = 0;
+					rightConsecutiveCnt.unharmed = 0;
+					rightConsecutiveCnt.yellow = 0;
 					break;
 
 				case 'G':
-					rightProb.green++;
+					rightConsecutiveCnt.harmed = 0;
+					rightConsecutiveCnt.green++;
+					rightConsecutiveCnt.red = 0;
+					rightConsecutiveCnt.stable = 0;
+					rightConsecutiveCnt.unharmed = 0;
+					rightConsecutiveCnt.yellow = 0;
 					break;
 
 				case 'Y':
-					rightProb.yellow++;
-					break;
-
-				case 'N':
-					rightProb.none++;
+					rightConsecutiveCnt.harmed = 0;
+					rightConsecutiveCnt.green = 0;
+					rightConsecutiveCnt.red = 0;
+					rightConsecutiveCnt.stable = 0;
+					rightConsecutiveCnt.unharmed = 0;
+					rightConsecutiveCnt.yellow++;
 					break;
 
 				default:
-					rightDet--;
+					rightConsecutiveCnt.harmed = 0;
+					rightConsecutiveCnt.green = 0;
+					rightConsecutiveCnt.red = 0;
+					rightConsecutiveCnt.stable = 0;
+					rightConsecutiveCnt.unharmed = 0;
+					rightConsecutiveCnt.yellow = 0;
 					break;
 				}
 			}
+
+			while (Serial1.available()) {
+				Serial1.read();
+			}
 		}
 
-		VisVictimProb getVictims(bool left)
+		Victim getVictim(bool left, uint16_t& consecutiveCnt)
 		{
+			size_t maxIdx;
+
 			if (left)
 			{
-				if (leftDet > 0)
-				{
-					return leftProb / leftDet;
-				}
-				else
-				{
-					return VisVictimProb();
-				}
+				// green, harmed, red, stable, unharmed, yellow
+				int arr[] = {leftConsecutiveCnt.green, leftConsecutiveCnt.harmed, leftConsecutiveCnt.red, leftConsecutiveCnt.stable, leftConsecutiveCnt.unharmed, leftConsecutiveCnt.yellow};
+				maxIdx = argMax(arr, sizeof(arr) / sizeof(arr[0]));
+				consecutiveCnt = arr[maxIdx];
+				
 			}
 			else
 			{
-				if (rightDet > 0)
-				{
-					return rightProb / rightDet;
-				}
-				else
-				{
-					return VisVictimProb();
-				}
+				// green, harmed, red, stable, unharmed, yellow
+				int arr[] = { rightConsecutiveCnt.green, rightConsecutiveCnt.harmed, rightConsecutiveCnt.red, rightConsecutiveCnt.stable, rightConsecutiveCnt.unharmed, rightConsecutiveCnt.yellow };
+				maxIdx = argMax(arr, sizeof(arr) / sizeof(arr[0]));
+				consecutiveCnt = arr[maxIdx];
 			}
-		}
 
-		void newField()
-		{
-			leftDet = 0;
-			rightDet = 0;
-
-			leftProb = VisVictimProb();
-			rightProb = VisVictimProb();
+			switch (maxIdx)
+			{
+			case 0:
+				return Victim::green;
+			case 1:
+				return Victim::harmed;
+			case 2:
+				return Victim::red;
+			case 3:
+				return Victim::stable;
+			case 4:
+				return Victim::unharmed;
+			case 5:
+				return Victim::yellow;
+			default:
+				return Victim::none;
+				break;
+			}
 		}
 	}
 }

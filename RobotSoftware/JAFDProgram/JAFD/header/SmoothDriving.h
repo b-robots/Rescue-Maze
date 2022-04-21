@@ -150,6 +150,44 @@ namespace JAFD
 			WheelSpeeds updateSpeeds(const uint8_t freq);
 		};
 
+		class Ramp : public ITask
+		{
+		private:
+			int16_t _speed;
+			PIDController _pid;
+			float _startAngle;
+			float _emaPitch;
+			bool _stairsEnd;
+			Vec2f _rampEndPos;
+			uint8_t _consecutiveEnd;
+		public:
+			bool isDrivingStraight() {
+				return !_finished;
+			}
+			explicit Ramp(int16_t speed = 40);
+			ReturnCode startTask(RobotState startState);
+			WheelSpeeds updateSpeeds(const uint8_t freq);
+		};
+
+		class ReturnStairs : public ITask
+		{
+		private:
+			int16_t _speed;
+			PIDController _pid;
+			float _startAngle;
+			float _emaPitch;
+			bool _stairsEnd;
+			Vec2f _rampEndPos;
+			uint8_t _consecutiveEnd;
+		public:
+			bool isDrivingStraight() {
+				return !_finished;
+			}
+			explicit ReturnStairs(int16_t speed = -30);
+			ReturnCode startTask(RobotState startState);
+			WheelSpeeds updateSpeeds(const uint8_t freq);
+		};
+
 		class TaskArray : public ITask
 		{
 		private:
@@ -162,6 +200,8 @@ namespace JAFD
 				forceSpeed,
 				followWall,
 				alignWalls,
+				ramp,
+				returnStairs
 			} _taskTypes[JAFDSettings::SmoothDriving::maxArrrayedTasks];
 
 			union _TaskCopies
@@ -173,6 +213,8 @@ namespace JAFD
 				ForceSpeed forceSpeed;
 				FollowWall followWall;
 				AlignWalls alignWalls;
+				Ramp ramp;
+				ReturnStairs returnStairs;
 
 				_TaskCopies() : stop() {};
 				~_TaskCopies() {}
@@ -199,6 +241,8 @@ namespace JAFD
 			TaskArray(const ForceSpeed& task);
 			TaskArray(const AlignWalls& task);
 			TaskArray(const FollowWall& task);
+			TaskArray(const Ramp& ramp);
+			TaskArray(const ReturnStairs& ramp);
 
 			// Uses SFINAE to prohibit more than maximum arguments.
 			template<typename ...Rem, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rem)]>
@@ -260,6 +304,24 @@ namespace JAFD
 			{
 				_taskTypes[_numTasks] = _TaskType::followWall;
 				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].followWall)) FollowWall(task);
+				_numTasks++;
+			}
+
+			// Uses SFINAE to prohibit more than maximum arguments.
+			template<typename ...Rem, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rem)]>
+			TaskArray(const Ramp& task, const Rem&... rem) : TaskArray(rem...)
+			{
+				_taskTypes[_numTasks] = _TaskType::ramp;
+				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].ramp)) Ramp(task);
+				_numTasks++;
+			}
+
+			// Uses SFINAE to prohibit more than maximum arguments.
+			template<typename ...Rem, typename = char[JAFDSettings::SmoothDriving::maxArrrayedTasks - sizeof ...(Rem)]>
+			TaskArray(const ReturnStairs& task, const Rem&... rem) : TaskArray(rem...)
+			{
+				_taskTypes[_numTasks] = _TaskType::ramp;
+				_taskArray[_numTasks] = new(&(_taskCopies[_numTasks].returnStairs)) ReturnStairs(task);
 				_numTasks++;
 			}
 
@@ -357,6 +419,31 @@ namespace JAFD
 
 		ReturnCode setNewTask(const FollowWall& newTask, RobotState startState, const bool forceOverride = false);
 
+		// Set new Ramp task
+		template<NewStateType stateType>
+		ReturnCode setNewTask(const Ramp& newTask, const bool forceOverride = false);
+
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const Ramp& newTask, const bool forceOverride);
+
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const Ramp& newTask, const bool forceOverride);
+
+		ReturnCode setNewTask(const Ramp& newTask, RobotState startState, const bool forceOverride = false);
+
+		// Set new ReturnStairs task
+		template<NewStateType stateType>
+		ReturnCode setNewTask(const ReturnStairs& newTask, const bool forceOverride = false);
+
+		template<>
+		ReturnCode setNewTask<NewStateType::currentState>(const ReturnStairs& newTask, const bool forceOverride);
+
+		template<>
+		ReturnCode setNewTask<NewStateType::lastEndState>(const ReturnStairs& newTask, const bool forceOverride);
+
+		ReturnCode setNewTask(const ReturnStairs& newTask, RobotState startState, const bool forceOverride = false);
+
+
 		// Set new TaskArray task
 		template<NewStateType stateType>
 		ReturnCode setNewTask(const TaskArray& newTask, const bool forceOverride = false);
@@ -371,5 +458,7 @@ namespace JAFD
 
 		// Stop current task
 		void stopTask();
+
+		RobotState getEndState();
 	}
 }

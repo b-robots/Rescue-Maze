@@ -240,8 +240,6 @@ namespace JAFD
 				{
 					clearInterrupt();
 
-					// TODO: try to recover
-
 					// Select single mode (to stop eventual continuous)
 					write8(_regRangeStart, 0x00);
 					write8(_regRangeStart, 0x01);
@@ -256,7 +254,7 @@ namespace JAFD
 					if (read8(_regModelID) != 0xB4)
 					{
 						Serial.println("I2C problem");
-						I2CBus::resetBus();
+						// I2CBus::resetBus();
 					}
 
 					Serial.print("to");
@@ -598,7 +596,7 @@ namespace JAFD
 				Serial.print("to");
 				Serial.println(_id);
 				_status = Status::timeOut;
-				I2CBus::resetBus();
+				// I2CBus::resetBus();
 			}
 			else
 			{
@@ -1257,26 +1255,26 @@ namespace JAFD
 			/*
 			* calibration data:
 				rb
-					k: 1.03
-					d: 7
+					k: 1.10
+					d: -1
 				rf
-					k: 1.05
-					d: 3
+					k: 1.03
+					d: 5
 				lb
-					k: 1.06
-					d: -12
+					k: 0.95
+					d: 0
 				lf
-					k: 1.04
-					d: -2
+					k: 1.05
+					d: -5
 				fl
-					k: 0.92
-					d: -14
+					k: 0.86
+					d: -17
 				fr
-					k: 0.93
-					d: 7
+					k: 0.87
+					d: 6
 			*/
 
-			for (int i = 4; i <= 5; i++)
+			for (int i = 0; i <= 5; i++)
 			{
 				switch (i)
 				{
@@ -1379,22 +1377,22 @@ namespace JAFD
 		}
 
 		void resetHardCodedCalib() {
-			rightBack.setKD(1.03f, 7);
+			rightBack.setKD(1.10f, -1);
 			rightBack.storeCalibData();
 
-			rightFront.setKD(1.05f, 3);
+			rightFront.setKD(1.03f, 5);
 			rightFront.storeCalibData();
 
-			leftBack.setKD(1.06f, -12);
+			leftBack.setKD(1.00f, -5);
 			leftBack.storeCalibData();
 
-			leftFront.setKD(1.04f, -2);
+			leftFront.setKD(1.05f, -5);
 			leftFront.storeCalibData();
 
-			frontLeft.setKD(0.92f, -14);
+			frontLeft.setKD(0.86f, -17);
 			frontLeft.storeCalibData();
 
-			frontRight.setKD(0.93f, 7);
+			frontRight.setKD(0.87f, 6);
 			frontRight.storeCalibData();
 		}
 	}

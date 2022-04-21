@@ -325,7 +325,7 @@ namespace JAFD
 
 			while ((millis() - start) < ms)
 			{
-				RobotLogic::timeBetweenUpdate();
+				RobotLogic::timeBetweenUpdate(true);
 			}
 		}
 

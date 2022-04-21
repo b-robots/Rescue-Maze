@@ -14,8 +14,8 @@ namespace JAFD
 		namespace {
 			Adafruit_TCS34725 sensor;
 			// volatile bool dataReady;
-			float _whiteThresh = 600.0f;
-			float _silverThresh = 80.0f;
+			float _whiteThresh = 300.0f;
+			float _silverThresh = 90.0f;
 			volatile uint32_t _lastRead;
 		}
 		

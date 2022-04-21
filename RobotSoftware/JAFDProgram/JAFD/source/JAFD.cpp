@@ -199,11 +199,11 @@ namespace JAFD
 
 		//TC1->TC_CHANNEL[1].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
 
-		// Setup TC4 for an interrupt every 20ms -> 50Hz (MCK / 128 / 13125)
+		// Setup TC4 for an interrupt every 25ms -> 40Hz (MCK / 128 / 16406)
 		PMC->PMC_PCER1 = PMC_PCER1_PID32;
 
 		TC1->TC_CHANNEL[2].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;
-		TC1->TC_CHANNEL[2].TC_RC = 13125;
+		TC1->TC_CHANNEL[2].TC_RC = 16406;
 
 		TC1->TC_CHANNEL[2].TC_IER = TC_IER_CPCS;
 		TC1->TC_CHANNEL[2].TC_IDR = ~TC_IER_CPCS;
@@ -248,11 +248,6 @@ namespace JAFD
 
 		auto fusedData = SensorFusion::getFusedData();
 
-		//if (!(fusedData.robotState.mapCoordinate.x == 0 &&
-		//	fusedData.robotState.mapCoordinate.y == 1)) {
-		//	RobotLogic::loop();
-		//}
-
 		float heading = fusedData.robotState.globalHeading;
 		float pitch = fusedData.robotState.pitch;
 		float x = fusedData.robotState.position.x;
@@ -263,7 +258,17 @@ namespace JAFD
 		float ct = fusedData.colorSensData.colorTemp;
 		float lux = fusedData.colorSensData.lux;
 
-		//auto freeRam = MemWatcher::getFreeRam();
+		//Serial.println("rb");
+		//Serial.println((int)fusedData.distSensorState.rightBack);
+		//Serial.println(fusedData.distances.rightBack);
+
+		//Serial.println("rf");
+		//Serial.println((int)fusedData.distSensorState.rightFront);
+		//Serial.println(fusedData.distances.rightFront);
+
+		//Serial.println("lux: " + String(lux));
+
+		// auto freeRam = MemWatcher::getFreeRam();
 
 		// Serial.println(String(SmoothDriving::debug1) + ", " + String(SmoothDriving::debug2) + ", " + String(SmoothDriving::debug3));
 
@@ -271,6 +276,7 @@ namespace JAFD
 		else fps = fps * 0.4f + 600.0f / (millis() - time);
 
 		if (!Switch::getState()) {
+			Serial.println("game switch");
 			SmoothDriving::stopTask();
 			while (!SmoothDriving::isTaskFinished());
 			__disable_irq();

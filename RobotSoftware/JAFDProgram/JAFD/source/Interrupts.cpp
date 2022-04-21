@@ -68,7 +68,7 @@ void TC4_Handler()
 	}
 }
 
-// 50Hz
+// 40Hz
 // Active
 void TC5_Handler()
 {
@@ -82,12 +82,12 @@ void TC5_Handler()
 
 	if (i % 2 == 0)
 	{
-		// 25Hz:
-		JAFD::MotorControl::calcMotorSpeed(25);
+		// 20Hz:
+		JAFD::MotorControl::calcMotorSpeed(20);
 	}
 
 	// 50Hz:
-	JAFD::SensorFusion::sensorFiltering(50);
-	JAFD::SmoothDriving::updateSpeeds(50);
-	JAFD::MotorControl::speedPID(50);
+	JAFD::SensorFusion::sensorFiltering(40);
+	JAFD::SmoothDriving::updateSpeeds(40);
+	JAFD::MotorControl::speedPID(40);
 }
