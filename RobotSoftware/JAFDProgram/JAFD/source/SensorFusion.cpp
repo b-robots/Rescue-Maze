@@ -179,7 +179,7 @@ namespace JAFD
 
 			// Linear velocitys
 			tempRobotState.forwardVel = ((tempRobotState.wheelSpeeds.left + tempRobotState.wheelSpeeds.right) / 2.0f) * (1.0f - correctedDistSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion) + distSensSpeed * (correctedDistSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion);
-			tempRobotState.forwardVec *= 1.07;
+			tempRobotState.forwardVec *= JAFDSettings::MotorControl::magicFactor;
 			tempRobotState.forwardVel = distSensSpeed * (correctedDistSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion) + tempRobotState.forwardVel * (1.0f - correctedDistSensSpeedTrust * JAFDSettings::SensorFusion::distSpeedPortion);
 
 			// Position
@@ -357,7 +357,7 @@ namespace JAFD
 				consecutiveOk = 0;
 			}
 
-			if (consecutiveOk >= 5) {
+			if (consecutiveOk >= 3) {
 				Serial.print("successful scan: ");
 				Serial.print(sureWalls, BIN);
 				Serial.print(", at: ");
@@ -375,7 +375,7 @@ namespace JAFD
 
 			lastCoordinate = tempFusedData.robotState.mapCoordinate;
 
-			return consecutiveOk >= 5;
+			return consecutiveOk >= 3;
 		}
 
 		void calcOffsetAngleFromDistSens() {
@@ -1050,7 +1050,7 @@ namespace JAFD
 				fusedData.colorSensData.lux = lux;
 			}
 
-			Bno055::updateValues();
+			// Bno055::updateValues();
 
 			RobotLogic::timeBetweenUpdate();
 

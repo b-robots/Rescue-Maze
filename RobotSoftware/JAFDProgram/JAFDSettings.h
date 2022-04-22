@@ -70,7 +70,7 @@ namespace JAFDSettings
 
 	namespace MotorControl
 	{
-		constexpr float magicFactor = 1.1f;
+		constexpr float magicFactor = 1.17f;
 
 		constexpr float cmPSToPerc = 1.0f / (97.0f / 60.0f * M_PI * Mechanics::wheelDiameter);		// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed.)
 
@@ -129,12 +129,12 @@ namespace JAFDSettings
 		constexpr float distSensOffsetPortion = 0.8f;					// How much does the center-offset measured by all distance sensors count?
 
 		// Rotation
-		constexpr float bno055DiffPortion = 0.5f;						// How much is the differentiation of the BNO055 angle worth?
-		constexpr float bno055RotPortion = 0.4f;						// How much is a Bno055 rotation measurement worth?
+		constexpr float bno055DiffPortion = 0.0f; // DEBUG 0.5f						// How much is the differentiation of the BNO055 angle worth?
+		constexpr float bno055RotPortion = 0.0f; // DEBUG 0.3f						// How much is a Bno055 rotation measurement worth?
 		constexpr float angularVelIIRFactor = 0.95f;					// Factor used for IIR-Filter for angular velocity
 		constexpr float pitchIIRFactor = 0.8f;							// Factor used for IIR-Filter for pitch angle
 		constexpr float distAngularPortion = 0.2f;						// How much is a perfect distance sensor measured angle worth?
-		constexpr float angleDiffPortion = 0.8f;						// How much is the heading influenced by the angular velocity instead of the absolute orientation values?
+		constexpr float angleDiffPortion = 0.4f;						// How much is the heading influenced by the angular velocity instead of the absolute orientation values?
 	}
 
 	namespace Controller
@@ -187,7 +187,7 @@ namespace JAFDSettings
 		namespace Right
 		{
 			constexpr float startDty = 0.035f;		// duty cylce for start
-			constexpr float endDty = 0.068f;		// duty cylce for end
+			constexpr float endDty = 0.07f;		// duty cylce for end
 			constexpr uint8_t servoPin = 37;
 			constexpr uint8_t startCubeCount = 6;
 		}
@@ -267,7 +267,7 @@ namespace JAFDSettings
 
 	namespace HeatSensors
 	{
-		constexpr float threshold = 6.0f;
+		constexpr float threshold = 7.0f;
 
 		namespace Left
 		{

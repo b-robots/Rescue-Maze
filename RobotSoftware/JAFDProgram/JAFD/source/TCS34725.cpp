@@ -15,7 +15,7 @@ namespace JAFD
 			Adafruit_TCS34725 sensor;
 			// volatile bool dataReady;
 			float _whiteThresh = 300.0f;
-			float _silverThresh = 90.0f;
+			float _silverThresh = 130.0f;
 			volatile uint32_t _lastRead;
 		}
 		
@@ -163,7 +163,7 @@ namespace JAFD
 			else if (lux > _silverThresh) {
 				return FloorTileColour::silver;
 			}
-			else if (lux > 5) {
+			else if (lux > 1) {
 				return FloorTileColour::black;
 			}
 

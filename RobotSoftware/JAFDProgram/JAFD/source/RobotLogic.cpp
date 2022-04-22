@@ -85,11 +85,15 @@ namespace JAFD
 			}
 			volatile DistSensorStates _triggeredStates;
 			volatile Distances _triggeredDistances;
+			bool lop = false;
 		}
 
 		// Start task which prefers straigth over left over right over back
 		// Intended for the first maneuver after starting
 		void startFirstTask(FusedData tempFusedData) {
+			startRelativeTurnDirDrive(RelativeDir::forward, tempFusedData);
+			return;
+			
 			AbsoluteDir absLeft = makeAbsolute(RelativeDir::left, tempFusedData.robotState.heading);
 			AbsoluteDir absForward = makeAbsolute(RelativeDir::forward, tempFusedData.robotState.heading);
 			AbsoluteDir absRight = makeAbsolute(RelativeDir::right, tempFusedData.robotState.heading);
@@ -131,6 +135,9 @@ namespace JAFD
 		}
 
 		bool getNextDrivingDir(FusedData tempFusedData, RelativeDir& nextDir) {
+			static bool leftHandRule = true;
+			static int turnCnt = 0;
+
 			const AbsoluteDir absLeft = makeAbsolute(RelativeDir::left, tempFusedData.robotState.heading);
 			const AbsoluteDir absForward = makeAbsolute(RelativeDir::forward, tempFusedData.robotState.heading);
 			const AbsoluteDir absRight = makeAbsolute(RelativeDir::right, tempFusedData.robotState.heading);
@@ -142,6 +149,11 @@ namespace JAFD
 				bool L = true;
 				bool B = true;
 			} possibleRelDir;
+
+			if (lop) {
+				leftHandRule = !leftHandRule;
+				lop = false;
+			}
 
 			// Check for walls
 			if (!(tempFusedData.gridCell.cellConnections & (uint8_t)absLeft)) {
@@ -159,7 +171,160 @@ namespace JAFD
 			if (!(tempFusedData.gridCell.cellConnections & (uint8_t)absBack)) {
 				possibleRelDir.B = false;
 			}
+			GridCell cell;
 
+			decltype(possibleRelDir) possibleOnlyWallsRelDir = possibleRelDir;
+
+			// Check for black
+			if (possibleRelDir.L) {
+				MazeMapping::getGridCell(&cell, tempFusedData.robotState.mapCoordinate.getCoordinateInDir(absLeft));
+				if (cell.cellState & CellState::blackTile) {
+					possibleRelDir.L = false;
+				}
+			}
+
+			if (possibleRelDir.R) {
+				MazeMapping::getGridCell(&cell, tempFusedData.robotState.mapCoordinate.getCoordinateInDir(absRight));
+				if (cell.cellState & CellState::blackTile) {
+					possibleRelDir.R = false;
+				}
+			}
+
+			if (possibleRelDir.F) {
+				MazeMapping::getGridCell(&cell, tempFusedData.robotState.mapCoordinate.getCoordinateInDir(absForward));
+				if (cell.cellState & CellState::blackTile) {
+					possibleRelDir.F = false;
+				}
+			}
+
+			if (possibleRelDir.B) {
+				MazeMapping::getGridCell(&cell, tempFusedData.robotState.mapCoordinate.getCoordinateInDir(absBack));
+				if (cell.cellState & CellState::blackTile) {
+					possibleRelDir.B = false;
+				}
+			}
+
+			//if (floorf(tempFusedData.robotState.globalHeading / (2.0f * M_PI)) > 0) {
+			//	leftHandRule = false;
+			//}
+
+			//turnCnt = roundf(tempFusedData.robotState.globalHeading / (2.0f * M_PI));
+
+			if (fabsf(tempFusedData.robotState.globalHeading) > 2.0f * M_PI && leftHandRule) {
+				leftHandRule = false;
+			}
+
+			if (leftHandRule) {
+				if (possibleRelDir.L) {
+					nextDir = RelativeDir::left;
+					return true;
+				}
+				else if (possibleRelDir.F) {
+					nextDir = RelativeDir::forward;
+					return true;
+				}
+				else if (possibleRelDir.R) {
+					nextDir = RelativeDir::right;
+					return true;
+				}
+				else if (possibleRelDir.B) {
+					nextDir = RelativeDir::backward;
+					return true;
+				}
+				else {
+					if (possibleOnlyWallsRelDir.L) {
+						nextDir = RelativeDir::left;
+						return true;
+					}
+					else if (possibleOnlyWallsRelDir.F) {
+						nextDir = RelativeDir::forward;
+						return true;
+					}
+					else if (possibleOnlyWallsRelDir.R) {
+						nextDir = RelativeDir::right;
+						return true;
+					}
+					else {
+						nextDir = RelativeDir::backward;
+						return true;
+					}
+				}
+			}
+			else {
+				if (possibleRelDir.R) {
+					nextDir = RelativeDir::right;
+					return true;
+				}
+				else if (possibleRelDir.F) {
+					nextDir = RelativeDir::forward;
+					return true;
+				}
+				else if (possibleRelDir.L) {
+					nextDir = RelativeDir::left;
+					return true;
+				}
+				else if (possibleRelDir.B) {
+					nextDir = RelativeDir::backward;
+					return true;
+				}
+				else {
+					if (possibleOnlyWallsRelDir.R) {
+						nextDir = RelativeDir::right;
+						return true;
+					}
+					else if (possibleOnlyWallsRelDir.F) {
+						nextDir = RelativeDir::forward;
+						return true;
+					}
+					else if (possibleOnlyWallsRelDir.L) {
+						nextDir = RelativeDir::left;
+						return true;
+					}
+					else {
+						nextDir = RelativeDir::backward;
+						return true;
+					}
+				}
+			}
+			/*
+			else {
+				if (possibleRelDir.R) {
+					nextDir = RelativeDir::left;
+					return true;
+				}
+				else if (possibleRelDir.F) {
+					nextDir = RelativeDir::forward;
+					return true;
+				}
+				else if (possibleRelDir.L) {
+					nextDir = RelativeDir::right;
+					return true;
+				}
+				else if (possibleRelDir.B) {
+					nextDir = RelativeDir::backward;
+					return true;
+				}
+				else {
+					if (possibleOnlyWallsRelDir.R) {
+						nextDir = RelativeDir::left;
+						return true;
+					}
+					else if (possibleOnlyWallsRelDir.F) {
+						nextDir = RelativeDir::forward;
+						return true;
+					}
+					else if (possibleOnlyWallsRelDir.L) {
+						nextDir = RelativeDir::right;
+						return true;
+					}
+					else {
+						nextDir = RelativeDir::backward;
+						return true;
+					}
+				}
+			}*/
+			return false;
+			/*
 			GridCell cell;
 
 			decltype(possibleRelDir) possibleOnlyWallsRelDir = possibleRelDir;
@@ -255,8 +420,9 @@ namespace JAFD
 				nextDir = RelativeDir::backward;
 				Serial.println("No univisted direction to drive!");
 			}
+			
 
-			// Select possible dir randomly
+			// Select possible dir switch between left & right wall following
 			if (possibleRelDir.F || possibleRelDir.L || possibleRelDir.R) {
 				while (true) {
 					int i = random(2);
@@ -280,6 +446,7 @@ namespace JAFD
 				return true;
 			}
 
+			
 			if (possibleOnlyWallsRelDir.F || possibleOnlyWallsRelDir.L || possibleOnlyWallsRelDir.R) {
 				while (true) {
 					int i = random(2);
@@ -307,18 +474,15 @@ namespace JAFD
 				Serial.println("No direction to drive!");
 				// return false;
 			}
-
-			return true;
+			*/
 		}
 
 		void handleVictimDetection(FusedData tempFusedData) {
-			// TODO
-
 			// heat victims
 			static int consecutiveLHeat = 0;
 			static int consecutiveRHeat = 0;
-			bool leftHeat = false;
-			bool rightHeat = false;
+			static bool leftHeat = false;
+			static bool rightHeat = false;
 			static MapCoordinate lastHeatVictim = homePosition;
 
 			if (HeatSensor::detectVictim(HeatSensorSide::left)) {
@@ -347,9 +511,9 @@ namespace JAFD
 				consecutiveRHeat = 0;
 			}
 
-			if (consecutiveLHeat > 5 && lastHeatVictim != tempFusedData.robotState.mapCoordinate)
+			if (consecutiveLHeat >= 4 && lastHeatVictim != tempFusedData.robotState.mapCoordinate)
 				leftHeat = true;
-			else if (consecutiveRHeat > 5 && lastHeatVictim != tempFusedData.robotState.mapCoordinate)
+			else if (consecutiveRHeat >= 4 && lastHeatVictim != tempFusedData.robotState.mapCoordinate)
 				rightHeat = true;
 
 			if (rightHeat || leftHeat) {
@@ -389,20 +553,15 @@ namespace JAFD
 
 			static uint16_t consLeftOneCol = 0;
 			static uint16_t consLeftZeroCol = 0;
-			if (tempFusedData.distSensorState.leftBack == DistSensorStatus::ok && tempFusedData.distances.leftBack / 10.0f < 20.0f && tempFusedData.distances.leftBack / 10.0f > 2.5f) {
-				if (CamRec::getVictim(true) == Victim::red || CamRec::getVictim(true) == Victim::yellow) {
+			
+			if (CamRec::getVictim(true) == Victim::red || CamRec::getVictim(true) == Victim::yellow) {
 					consLeftOneCol++;
 					consLeftZeroCol = 0;
 				}
-				else if (CamRec::getVictim(true) == Victim::green) {
+			else if (CamRec::getVictim(true) == Victim::green) {
 					consLeftZeroCol++;
 					consLeftOneCol = 0;
 				}
-				else {
-					consLeftZeroCol = 0;
-					consLeftOneCol = 0;
-				}
-			}
 			else {
 				consLeftZeroCol = 0;
 				consLeftOneCol = 0;
@@ -410,33 +569,53 @@ namespace JAFD
 
 			static uint16_t consRightOneCol = 0;
 			static uint16_t consRightZeroCol = 0;
-			if (tempFusedData.distSensorState.rightBack == DistSensorStatus::ok && tempFusedData.distances.rightBack / 10.0f < 20.0f && tempFusedData.distances.rightBack / 10.0f > 2.5f) {
-				if (CamRec::getVictim(false) == Victim::red || CamRec::getVictim(false) == Victim::yellow) {
-					consRightOneCol++;
-					consRightZeroCol = 0;
-				}
-				else if (CamRec::getVictim(false) == Victim::green) {
-					consRightZeroCol++;
-					consRightOneCol = 0;
-				}
-				else {
-					consRightZeroCol = 0;
-					consRightOneCol = 0;
-				}
+			
+			if (CamRec::getVictim(false) == Victim::red || CamRec::getVictim(false) == Victim::yellow) {
+				consRightOneCol++;
+				consRightZeroCol = 0;
+			}
+			else if (CamRec::getVictim(false) == Victim::green) {
+				consRightZeroCol++;
+				consRightOneCol = 0;
 			}
 			else {
 				consRightZeroCol = 0;
 				consRightOneCol = 0;
 			}
 
-			MapCoordinate lastColorVictim = homePosition;
-			if ((consRightZeroCol > 2 || consRightOneCol > 2 || consLeftZeroCol > 2 || consLeftOneCol > 2) && lastColorVictim != tempFusedData.robotState.mapCoordinate) {
+			static MapCoordinate lastColorVictim = homePosition;
+			if ((consRightZeroCol >= 2 || consRightOneCol >= 2 || consLeftZeroCol >= 2 || consLeftOneCol >= 2) && lastColorVictim != tempFusedData.robotState.mapCoordinate) {
+				if (consLeftZeroCol >= 2 || consLeftOneCol >= 2) {
+					if (tempFusedData.distSensorState.leftBack == DistSensorStatus::ok && tempFusedData.distances.leftBack < 200) {
+					}
+					else {
+						consLeftZeroCol = 0;
+						consLeftOneCol = 0;
+						return;
+					}
+				}
+				else {
+					if (tempFusedData.distSensorState.rightBack == DistSensorStatus::ok && tempFusedData.distances.rightBack < 200) {
+					}
+					else {
+						consRightZeroCol = 0;
+						consRightOneCol = 0;
+						return;
+					}
+				}
+
+				if (SmoothDriving::isDrivingStraight()) {
+					if (!SmoothDriving::isTaskFinished()) {
+						return;
+					}
+				}
+
 				lastColorVictim = tempFusedData.robotState.mapCoordinate;
 
 				GridCell currentCell;
 				MazeMapping::getGridCell(&currentCell, tempFusedData.robotState.mapCoordinate);
 
-				if (!(currentCell.cellState & CellState::victim)) {
+				if (true) {//!(currentCell.cellState & CellState::victim)) {
 					SmoothDriving::stopTask();
 
 					Serial.println("start disp");
@@ -445,12 +624,17 @@ namespace JAFD
 					currentCell.cellState |= CellState::victim;
 					MazeMapping::setGridCell(currentCell, tempFusedData.robotState.mapCoordinate);
 
-					if (consLeftOneCol > 2) {
+					if (consLeftOneCol >= 2) {
 						Dispenser::dispenseLeft(1);
 					}
-					else if (consRightOneCol > 2) {
+					else if (consRightOneCol >= 2) {
 						Dispenser::dispenseRight(1);
 					}
+
+					consRightZeroCol = 0;
+					consRightOneCol = 0;
+					consLeftZeroCol = 0;
+					consLeftOneCol = 0;
 
 					while (millis() - startDisp < 6000) {
 						PowerLEDs::setBrightness(sinf(millis() / 200.0f) * 0.5f + 0.5f);
@@ -475,7 +659,7 @@ namespace JAFD
 
 			static MapCoordinate lastCoordinate = homePosition;
 
-			static bool start = true;
+			static bool start = false; // DEBUG
 			static bool startAfterRotation = false;
 			static bool ramp = false;
 			static bool stairs = false;
@@ -499,6 +683,7 @@ namespace JAFD
 			}
 
 			if (!Switch::getState()) {
+				lop = true;
 				Serial.println("game switch");
 				SmoothDriving::stopTask();
 				while (!SmoothDriving::isTaskFinished());
@@ -518,6 +703,9 @@ namespace JAFD
 				SensorFusion::setCorrectedState(correctedState);
 				delay(10);
 				setNewTask<NewStateType::currentState>(AlignWalls());
+				while (!isTaskFinished());
+				tempFusedData = SensorFusion::getFusedData();
+				startRelativeTurnDirDrive(RelativeDir::forward, tempFusedData);
 				return;
 			}
 
@@ -526,6 +714,7 @@ namespace JAFD
 			}
 
 			static RobotState endStateRamp;
+			/*
 			if (tempFusedData.gridCell.cellState & CellState::ramp && !ramp && !stairs && isDrivingStraight()) {
 				bool detectedRamp = false;
 
@@ -553,16 +742,19 @@ namespace JAFD
 
 				endStateRamp = getEndState();
 
-				if (!detectedRamp) {
-					Serial.println("return from stairs");
-					setNewTask<NewStateType::lastEndState>(ReturnStairs(-20), true);
-					stairs = true;
-					return;
-				}
+				//if (!detectedRamp) {
+				//	Serial.println("return from stairs");
+				//	setNewTask<NewStateType::lastEndState>(ReturnStairs(-20), true);
+				//	return;
+				//}
 
 				// Do stuff for ramp
 				Serial.println("ramp detected -> ramp task");
-				setNewTask<NewStateType::lastEndState>(Ramp(tempFusedData.robotState.pitch > 0.0f ? 30 : 20), true);
+				int16_t speed = tempFusedData.robotState.pitch > 0.0f ? 30 : 20;
+				if (!detectedRamp && tempFusedData.robotState.pitch > 0.0f) {
+					speed = 40;
+				}
+				setNewTask<NewStateType::lastEndState>(Ramp(speed), true);
 				ramp = true;
 
 				int8_t mapX = roundf(endStateRamp.position.x / 30.0f);
@@ -598,8 +790,12 @@ namespace JAFD
 				cumSureWalls = 0b0000;
 				blockCellChange = true;
 			}
-
+			*/
 			if (start) {
+				startAfterRotation = true;
+				start = false;
+				return;
+
 				if (!SensorFusion::scanSurrounding(cumSureWalls)) {
 					return;
 				}
@@ -770,8 +966,6 @@ namespace JAFD
 			else {
 				if (SensorFusion::getConsRotStuck() > 10) {
 					Serial.println("rot stuck");
-					stopTask();
-					setNewTask<NewStateType::currentState>(FollowWall(-30, -30));
 				}
 
 				handleVictimDetection(tempFusedData);
@@ -841,7 +1035,7 @@ namespace JAFD
 		void timeBetweenUpdate(bool blink)
 		{
 			if (blink) {
-				PowerLEDs::setBrightness(sinf(millis() / 200) * 0.5f + 0.5f);
+				PowerLEDs::setBrightness(sinf(millis() / 200.0f) * 0.5f + 0.5f);
 			}
 
 			CamRec::loop();

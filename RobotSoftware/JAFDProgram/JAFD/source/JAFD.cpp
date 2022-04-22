@@ -72,6 +72,7 @@ namespace JAFD
 		{
 			Serial.println("Error power LEDs");
 		}
+		PowerLEDs::setBrightness(0.0f);
 
 		// Setup I2C-Bus-Power
 		if (I2CBus::setup() != ReturnCode::ok)
@@ -174,33 +175,6 @@ namespace JAFD
 			temp = PIOD->PIO_ISR;
 		}
 
-		////Setup TC3 for an interrupt every ms -> 1kHz (MCK / 32 / 2625)
-		//PMC->PMC_PCER0 = 1 << ID_TC3;
-
-		//TC1->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK3 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;
-		//TC1->TC_CHANNEL[0].TC_RC = 2625;
-
-		//TC1->TC_CHANNEL[0].TC_IER = TC_IER_CPCS;
-		//TC1->TC_CHANNEL[0].TC_IDR = ~TC_IER_CPCS;
-
-		//NVIC_EnableIRQ(TC3_IRQn);
-		//NVIC_SetPriority(TC3_IRQn, 1);
-		//TC1->TC_CHANNEL[0].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
-
-		////Setup TC4 for an interrupt every 10ms -> 100Hz (MCK / 32 / 26250)
-		//PMC->PMC_PCER0 = 1 << ID_TC4;
-
-		//TC1->TC_CHANNEL[1].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK3 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;
-		//TC1->TC_CHANNEL[1].TC_RC = 26250;
-
-		//TC1->TC_CHANNEL[1].TC_IER = TC_IER_CPCS;
-		//TC1->TC_CHANNEL[1].TC_IDR = ~TC_IER_CPCS;
-
-		//NVIC_EnableIRQ(TC4_IRQn);
-		//NVIC_SetPriority(TC4_IRQn, 1);
-
-		//TC1->TC_CHANNEL[1].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
-
 		// Setup TC4 for an interrupt every 25ms -> 40Hz (MCK / 128 / 16406)
 		PMC->PMC_PCER1 = PMC_PCER1_PID32;
 
@@ -216,7 +190,7 @@ namespace JAFD
 
 		Serial.println("Finished, setup!");
 
-		// Bno055::calibrate();
+		/*Bno055::calibrate();
 
 		Serial.println("Wait for initial BNO055 calibration...");
 
@@ -228,14 +202,16 @@ namespace JAFD
 		}
 		while (bno_sys < 3);
 
-		Serial.println("BNO055 ready!");
+		Serial.println("BNO055 ready!");*/
+
+		PowerLEDs::setBrightness(JAFDSettings::PowerLEDs::defaultPower);
 
 		while (!Switch::getState());
 
 		Serial.println("Start!");
 
-		//Set start for 9DOF
-		Bno055::tare();
+		////Set start for 9DOF
+		//Bno055::tare();
 
 		return;
 	}
@@ -250,6 +226,7 @@ namespace JAFD
 		SensorFusion::untimedFusion();
 		RobotLogic::loop();
 
+		/*
 		auto fusedData = SensorFusion::getFusedData();
 
 		float heading = fusedData.robotState.globalHeading;
@@ -278,7 +255,7 @@ namespace JAFD
 
 		if (fps < 0.01f) fps = 1000.0f / (millis() - time);
 		else fps = fps * 0.4f + 600.0f / (millis() - time);
-
+		*/
 		return;
 	}
 }

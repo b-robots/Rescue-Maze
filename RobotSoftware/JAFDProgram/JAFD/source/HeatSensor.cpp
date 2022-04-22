@@ -151,9 +151,6 @@ namespace JAFD
 				avgHigh -= 3.0f;
 			}
 
-			Serial.print(sensor == HeatSensorSide::left ? "left: " : "right: ");
-			Serial.println(avgHigh);
-
 			if (avgHigh >= JAFDSettings::HeatSensors::threshold + ambientTemp) return true;
 			else return false;
 		}

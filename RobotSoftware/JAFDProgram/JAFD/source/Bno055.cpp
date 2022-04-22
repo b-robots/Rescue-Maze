@@ -107,6 +107,7 @@ namespace JAFD
 
 		void tare()
 		{
+			return;
 			auto isQuat = bno055.getQuat();
 			while (fabsf(isQuat.magnitude() - 1) > 0.1) {
 				isQuat = bno055.getQuat();
@@ -126,6 +127,7 @@ namespace JAFD
 		// Global heading in rad
 		void tare(float globalHeading)
 		{
+			return;
 			auto isQuat = bno055.getQuat();
 			while (fabsf(isQuat.magnitude() - 1) > 0.1) {
 				isQuat = bno055.getQuat();
@@ -147,6 +149,7 @@ namespace JAFD
 
 		void updateValues()					//gets values from the sensors
 		{
+			return;
 			bno055.getEvent((sensors_event_t*)&linearAccelEvent, Adafruit_BNO055::VECTOR_LINEARACCEL);
 
 			auto lastGravity = *(sensors_event_t*)&gravityEvent;
