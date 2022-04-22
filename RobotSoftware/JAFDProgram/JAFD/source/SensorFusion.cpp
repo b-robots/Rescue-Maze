@@ -123,7 +123,7 @@ namespace JAFD
 				}
 
 				if (consecutiveRotStuck > 10) {
-					trustYawVel = 0.4f;
+					trustYawVel = 0.3f;
 					tempRobotState.angularVel.x = fitAngleToInterval(bnoHeading - lastBnoHeading) * freq;
 				}
 				else {

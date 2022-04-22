@@ -11,8 +11,8 @@ namespace JAFD
 	{
 		namespace
 		{
-			VisVictimCount leftConsecutiveCnt;
-			VisVictimCount rightConsecutiveCnt;
+			Victim leftV;
+			Victim rightV;
 		}
 
 		ReturnCode setup()
@@ -67,133 +67,57 @@ namespace JAFD
 
 				switch (leftByte)
 				{
-				case 'H':
-					leftConsecutiveCnt.harmed++;
-					leftConsecutiveCnt.green = 0;
-					leftConsecutiveCnt.red = 0;
-					leftConsecutiveCnt.stable = 0;
-					leftConsecutiveCnt.unharmed = 0;
-					leftConsecutiveCnt.yellow = 0;
-					break;
+				//case 'H':
+				//	break;
 
-				case 'S':
-					leftConsecutiveCnt.harmed = 0;
-					leftConsecutiveCnt.green = 0;
-					leftConsecutiveCnt.red = 0;
-					leftConsecutiveCnt.stable++;
-					leftConsecutiveCnt.unharmed = 0;
-					leftConsecutiveCnt.yellow = 0;
-					break;
+				//case 'S':
+				//	break;
 
-				case 'U':
-					leftConsecutiveCnt.harmed = 0;
-					leftConsecutiveCnt.green = 0;
-					leftConsecutiveCnt.red = 0;
-					leftConsecutiveCnt.stable = 0;
-					leftConsecutiveCnt.unharmed++;
-					leftConsecutiveCnt.yellow = 0;
-					break;
+				//case 'U':
+				//	break;
 
 				case 'R':
-					leftConsecutiveCnt.harmed = 0;
-					leftConsecutiveCnt.green = 0;
-					leftConsecutiveCnt.red++;
-					leftConsecutiveCnt.stable = 0;
-					leftConsecutiveCnt.unharmed = 0;
-					leftConsecutiveCnt.yellow = 0;
+					leftV = Victim::red;
 					break;
 
 				case 'G':
-					leftConsecutiveCnt.harmed = 0;
-					leftConsecutiveCnt.green++;
-					leftConsecutiveCnt.red = 0;
-					leftConsecutiveCnt.stable = 0;
-					leftConsecutiveCnt.unharmed = 0;
-					leftConsecutiveCnt.yellow = 0;
+					leftV = Victim::green;
 					break;
 
 				case 'Y':
-					leftConsecutiveCnt.harmed = 0;
-					leftConsecutiveCnt.green = 0;
-					leftConsecutiveCnt.red = 0;
-					leftConsecutiveCnt.stable = 0;
-					leftConsecutiveCnt.unharmed = 0;
-					leftConsecutiveCnt.yellow++;
+					leftV = Victim::yellow;
 					break;
 
 				default:
-					leftConsecutiveCnt.harmed = 0;
-					leftConsecutiveCnt.green = 0;
-					leftConsecutiveCnt.red = 0;
-					leftConsecutiveCnt.stable = 0;
-					leftConsecutiveCnt.unharmed = 0;
-					leftConsecutiveCnt.yellow = 0;
+					leftV = Victim::none;
 					break;
 				}
 
 				switch (rightByte)
 				{
-				case 'H':
-					rightConsecutiveCnt.harmed++;
-					rightConsecutiveCnt.green = 0;
-					rightConsecutiveCnt.red = 0;
-					rightConsecutiveCnt.stable = 0;
-					rightConsecutiveCnt.unharmed = 0;
-					rightConsecutiveCnt.yellow = 0;
-					break;
+					//case 'H':
+					//	break;
 
-				case 'S':
-					rightConsecutiveCnt.harmed = 0;
-					rightConsecutiveCnt.green = 0;
-					rightConsecutiveCnt.red = 0;
-					rightConsecutiveCnt.stable++;
-					rightConsecutiveCnt.unharmed = 0;
-					rightConsecutiveCnt.yellow = 0;
-					break;
+					//case 'S':
+					//	break;
 
-				case 'U':
-					rightConsecutiveCnt.harmed = 0;
-					rightConsecutiveCnt.green = 0;
-					rightConsecutiveCnt.red = 0;
-					rightConsecutiveCnt.stable = 0;
-					rightConsecutiveCnt.unharmed++;
-					rightConsecutiveCnt.yellow = 0;
-					break;
+					//case 'U':
+					//	break;
 
 				case 'R':
-					rightConsecutiveCnt.harmed = 0;
-					rightConsecutiveCnt.green = 0;
-					rightConsecutiveCnt.red++;
-					rightConsecutiveCnt.stable = 0;
-					rightConsecutiveCnt.unharmed = 0;
-					rightConsecutiveCnt.yellow = 0;
+					rightV = Victim::red;
 					break;
 
 				case 'G':
-					rightConsecutiveCnt.harmed = 0;
-					rightConsecutiveCnt.green++;
-					rightConsecutiveCnt.red = 0;
-					rightConsecutiveCnt.stable = 0;
-					rightConsecutiveCnt.unharmed = 0;
-					rightConsecutiveCnt.yellow = 0;
+					rightV = Victim::green;
 					break;
 
 				case 'Y':
-					rightConsecutiveCnt.harmed = 0;
-					rightConsecutiveCnt.green = 0;
-					rightConsecutiveCnt.red = 0;
-					rightConsecutiveCnt.stable = 0;
-					rightConsecutiveCnt.unharmed = 0;
-					rightConsecutiveCnt.yellow++;
+					rightV = Victim::yellow;
 					break;
 
 				default:
-					rightConsecutiveCnt.harmed = 0;
-					rightConsecutiveCnt.green = 0;
-					rightConsecutiveCnt.red = 0;
-					rightConsecutiveCnt.stable = 0;
-					rightConsecutiveCnt.unharmed = 0;
-					rightConsecutiveCnt.yellow = 0;
+					rightV = Victim::none;
 					break;
 				}
 			}
@@ -203,44 +127,46 @@ namespace JAFD
 			}
 		}
 
-		Victim getVictim(bool left, uint16_t& consecutiveCnt)
+		Victim getVictim(bool left)
 		{
 			size_t maxIdx;
 
 			if (left)
 			{
-				// green, harmed, red, stable, unharmed, yellow
-				int arr[] = {leftConsecutiveCnt.green, leftConsecutiveCnt.harmed, leftConsecutiveCnt.red, leftConsecutiveCnt.stable, leftConsecutiveCnt.unharmed, leftConsecutiveCnt.yellow};
-				maxIdx = argMax(arr, sizeof(arr) / sizeof(arr[0]));
-				consecutiveCnt = arr[maxIdx];
+				return leftV;
+				//// green, harmed, red, stable, unharmed, yellow
+				//int arr[] = {leftConsecutiveCnt.green, leftConsecutiveCnt.harmed, leftConsecutiveCnt.red, leftConsecutiveCnt.stable, leftConsecutiveCnt.unharmed, leftConsecutiveCnt.yellow};
+				//maxIdx = argMax(arr, sizeof(arr) / sizeof(arr[0]));
+				//consecutiveCnt = arr[maxIdx];
 				
 			}
 			else
 			{
-				// green, harmed, red, stable, unharmed, yellow
-				int arr[] = { rightConsecutiveCnt.green, rightConsecutiveCnt.harmed, rightConsecutiveCnt.red, rightConsecutiveCnt.stable, rightConsecutiveCnt.unharmed, rightConsecutiveCnt.yellow };
-				maxIdx = argMax(arr, sizeof(arr) / sizeof(arr[0]));
-				consecutiveCnt = arr[maxIdx];
+				return rightV;
+				//// green, harmed, red, stable, unharmed, yellow
+				//int arr[] = { rightConsecutiveCnt.green, rightConsecutiveCnt.harmed, rightConsecutiveCnt.red, rightConsecutiveCnt.stable, rightConsecutiveCnt.unharmed, rightConsecutiveCnt.yellow };
+				//maxIdx = argMax(arr, sizeof(arr) / sizeof(arr[0]));
+				//consecutiveCnt = arr[maxIdx];
 			}
 
-			switch (maxIdx)
-			{
-			case 0:
-				return Victim::green;
-			case 1:
-				return Victim::harmed;
-			case 2:
-				return Victim::red;
-			case 3:
-				return Victim::stable;
-			case 4:
-				return Victim::unharmed;
-			case 5:
-				return Victim::yellow;
-			default:
-				return Victim::none;
-				break;
-			}
+			//switch (maxIdx)
+			//{
+			//case 0:
+			//	return Victim::green;
+			//case 1:
+			//	return Victim::harmed;
+			//case 2:
+			//	return Victim::red;
+			//case 3:
+			//	return Victim::stable;
+			//case 4:
+			//	return Victim::unharmed;
+			//case 5:
+			//	return Victim::yellow;
+			//default:
+			//	return Victim::none;
+			//	break;
+			//}
 		}
 	}
 }

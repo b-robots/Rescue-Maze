@@ -1383,7 +1383,7 @@ namespace JAFD
 			rightFront.setKD(1.03f, 5);
 			rightFront.storeCalibData();
 
-			leftBack.setKD(1.00f, -5);
+			leftBack.setKD(0.95f, 0);
 			leftBack.storeCalibData();
 
 			leftFront.setKD(1.05f, -5);

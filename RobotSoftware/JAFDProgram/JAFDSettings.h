@@ -267,7 +267,7 @@ namespace JAFDSettings
 
 	namespace HeatSensors
 	{
-		constexpr float threshold = 7.0f;
+		constexpr float threshold = 6.0f;
 
 		namespace Left
 		{

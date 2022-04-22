@@ -65,6 +65,8 @@ namespace JAFD
 
 		Switch::setup();
 
+		while (Switch::getState());
+
 		// Setup of power LEDs
 		if (PowerLEDs::setup() != ReturnCode::ok)
 		{
@@ -214,6 +216,8 @@ namespace JAFD
 
 		Serial.println("Finished, setup!");
 
+		// Bno055::calibrate();
+
 		Serial.println("Wait for initial BNO055 calibration...");
 
 		uint8_t bno_sys = 0;
@@ -274,15 +278,6 @@ namespace JAFD
 
 		if (fps < 0.01f) fps = 1000.0f / (millis() - time);
 		else fps = fps * 0.4f + 600.0f / (millis() - time);
-
-		if (!Switch::getState()) {
-			Serial.println("game switch");
-			SmoothDriving::stopTask();
-			while (!SmoothDriving::isTaskFinished());
-			__disable_irq();
-			while (!Switch::getState());
-			__enable_irq();
-		}
 
 		return;
 	}

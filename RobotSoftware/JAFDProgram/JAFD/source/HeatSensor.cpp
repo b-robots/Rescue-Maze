@@ -83,7 +83,7 @@ namespace JAFD
 				ambientTemp /= (2.0f * 8.0f);
 				ambientTemp = (ambientTemp + fmaxf(leftAmbient, rightAmbient)) / 2.0f;
 #endif
-				ambientTemp = 24.0f;
+				ambientTemp = 23.0f;
 				return ReturnCode::ok;
 			}
 		}
@@ -148,8 +148,11 @@ namespace JAFD
 			float avgHigh = (pixels[0] * 0.6f + pixels[1] * 0.4f);
 
 			if (sensor == HeatSensorSide::right) {
-				avgHigh -= 5.0f;
+				avgHigh -= 3.0f;
 			}
+
+			Serial.print(sensor == HeatSensorSide::left ? "left: " : "right: ");
+			Serial.println(avgHigh);
 
 			if (avgHigh >= JAFDSettings::HeatSensors::threshold + ambientTemp) return true;
 			else return false;

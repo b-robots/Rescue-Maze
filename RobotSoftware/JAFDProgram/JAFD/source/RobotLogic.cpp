@@ -162,6 +162,8 @@ namespace JAFD
 
 			GridCell cell;
 
+			decltype(possibleRelDir) possibleOnlyWallsRelDir = possibleRelDir;
+
 			// Check for black & stair tile
 			if (possibleRelDir.L) {
 				MazeMapping::getGridCell(&cell, tempFusedData.robotState.mapCoordinate.getCoordinateInDir(absLeft));
@@ -275,6 +277,30 @@ namespace JAFD
 			}
 			else if (possibleRelDir.B) {
 				nextDir = RelativeDir::backward;
+				return true;
+			}
+
+			if (possibleOnlyWallsRelDir.F || possibleOnlyWallsRelDir.L || possibleOnlyWallsRelDir.R) {
+				while (true) {
+					int i = random(2);
+
+					if (i == 0 && possibleOnlyWallsRelDir.F) {
+						nextDir = RelativeDir::forward;
+						return true;
+					}
+					else if (i == 1 && possibleOnlyWallsRelDir.L) {
+						nextDir = RelativeDir::left;
+						return true;
+					}
+					else if (i == 1 && possibleOnlyWallsRelDir.R) {
+						nextDir = RelativeDir::right;
+						return true;
+					}
+				}
+			}
+			else if (possibleOnlyWallsRelDir.B) {
+				nextDir = RelativeDir::backward;
+				return true;
 			}
 			else {
 				nextDir = RelativeDir::backward;
@@ -291,8 +317,8 @@ namespace JAFD
 			// heat victims
 			static int consecutiveLHeat = 0;
 			static int consecutiveRHeat = 0;
-			static bool leftHeat = false;
-			static bool rightHeat = false;
+			bool leftHeat = false;
+			bool rightHeat = false;
 			static MapCoordinate lastHeatVictim = homePosition;
 
 			if (HeatSensor::detectVictim(HeatSensorSide::left)) {
@@ -349,7 +375,7 @@ namespace JAFD
 					}
 
 					while (millis() - startDisp < 6000) {
-						PowerLEDs::setBrightness(sinf(millis() / 500.0f) * 0.5f + 0.5f);
+						PowerLEDs::setBrightness(sinf(millis() / 200.0f) * 0.5f + 0.5f);
 					}
 
 					PowerLEDs::setBrightness(JAFDSettings::PowerLEDs::defaultPower);
@@ -357,6 +383,83 @@ namespace JAFD
 					leftHeat = false;
 					rightHeat = false;
 				}
+
+				return;
+			}
+
+			static uint16_t consLeftOneCol = 0;
+			static uint16_t consLeftZeroCol = 0;
+			if (tempFusedData.distSensorState.leftBack == DistSensorStatus::ok && tempFusedData.distances.leftBack / 10.0f < 20.0f && tempFusedData.distances.leftBack / 10.0f > 2.5f) {
+				if (CamRec::getVictim(true) == Victim::red || CamRec::getVictim(true) == Victim::yellow) {
+					consLeftOneCol++;
+					consLeftZeroCol = 0;
+				}
+				else if (CamRec::getVictim(true) == Victim::green) {
+					consLeftZeroCol++;
+					consLeftOneCol = 0;
+				}
+				else {
+					consLeftZeroCol = 0;
+					consLeftOneCol = 0;
+				}
+			}
+			else {
+				consLeftZeroCol = 0;
+				consLeftOneCol = 0;
+			}
+
+			static uint16_t consRightOneCol = 0;
+			static uint16_t consRightZeroCol = 0;
+			if (tempFusedData.distSensorState.rightBack == DistSensorStatus::ok && tempFusedData.distances.rightBack / 10.0f < 20.0f && tempFusedData.distances.rightBack / 10.0f > 2.5f) {
+				if (CamRec::getVictim(false) == Victim::red || CamRec::getVictim(false) == Victim::yellow) {
+					consRightOneCol++;
+					consRightZeroCol = 0;
+				}
+				else if (CamRec::getVictim(false) == Victim::green) {
+					consRightZeroCol++;
+					consRightOneCol = 0;
+				}
+				else {
+					consRightZeroCol = 0;
+					consRightOneCol = 0;
+				}
+			}
+			else {
+				consRightZeroCol = 0;
+				consRightOneCol = 0;
+			}
+
+			MapCoordinate lastColorVictim = homePosition;
+			if ((consRightZeroCol > 2 || consRightOneCol > 2 || consLeftZeroCol > 2 || consLeftOneCol > 2) && lastColorVictim != tempFusedData.robotState.mapCoordinate) {
+				lastColorVictim = tempFusedData.robotState.mapCoordinate;
+
+				GridCell currentCell;
+				MazeMapping::getGridCell(&currentCell, tempFusedData.robotState.mapCoordinate);
+
+				if (!(currentCell.cellState & CellState::victim)) {
+					SmoothDriving::stopTask();
+
+					Serial.println("start disp");
+					auto startDisp = millis();
+
+					currentCell.cellState |= CellState::victim;
+					MazeMapping::setGridCell(currentCell, tempFusedData.robotState.mapCoordinate);
+
+					if (consLeftOneCol > 2) {
+						Dispenser::dispenseLeft(1);
+					}
+					else if (consRightOneCol > 2) {
+						Dispenser::dispenseRight(1);
+					}
+
+					while (millis() - startDisp < 6000) {
+						PowerLEDs::setBrightness(sinf(millis() / 200.0f) * 0.5f + 0.5f);
+					}
+
+					PowerLEDs::setBrightness(JAFDSettings::PowerLEDs::defaultPower);
+				}
+
+				return;
 			}
 		}
 
@@ -379,7 +482,44 @@ namespace JAFD
 			static uint8_t cumSureWalls = 0b0000;
 			static bool blockCellChange = false;
 
+			static MapCoordinate lastCkpt = homePosition;
+
 			FusedData tempFusedData = SensorFusion::getFusedData();
+
+			static uint16_t consSilver = 0;
+			if (ColorSensor::detectTileColour(tempFusedData.colorSensData.lux) == FloorTileColour::silver) {
+				consSilver++;
+			}
+			else {
+				consSilver = 0;
+			}
+
+			if (consSilver > 5) {
+				lastCkpt = tempFusedData.robotState.mapCoordinate;
+			}
+
+			if (!Switch::getState()) {
+				Serial.println("game switch");
+				SmoothDriving::stopTask();
+				while (!SmoothDriving::isTaskFinished());
+				__disable_irq();
+				while (!Switch::getState());
+				__enable_irq();
+
+				NewForcedFusionValues correctedState;
+				correctedState.clearCell = true;
+				correctedState.heading = 0.0f;
+				correctedState.newHeading = true;
+				correctedState.newX = true;
+				correctedState.newY = true;
+				correctedState.x = lastCkpt.x * 30.0f;
+				correctedState.y = lastCkpt.y * 30.0f;
+				correctedState.zeroPitch = true;
+				SensorFusion::setCorrectedState(correctedState);
+				delay(10);
+				setNewTask<NewStateType::currentState>(AlignWalls());
+				return;
+			}
 
 			if (isTaskFinished()) {
 				blockCellChange = false;
@@ -409,14 +549,16 @@ namespace JAFD
 					}
 				}
 
+				consSilver = 0;
+
 				endStateRamp = getEndState();
 
-				//if (!detectedRamp) {
-				//	Serial.println("return from stairs");
-				//	setNewTask<NewStateType::lastEndState>(ReturnStairs(-20), true);
-				//	stairs = true;
-				//	return;
-				//}
+				if (!detectedRamp) {
+					Serial.println("return from stairs");
+					setNewTask<NewStateType::lastEndState>(ReturnStairs(-20), true);
+					stairs = true;
+					return;
+				}
 
 				// Do stuff for ramp
 				Serial.println("ramp detected -> ramp task");
@@ -629,6 +771,7 @@ namespace JAFD
 				if (SensorFusion::getConsRotStuck() > 10) {
 					Serial.println("rot stuck");
 					stopTask();
+					setNewTask<NewStateType::currentState>(FollowWall(-30, -30));
 				}
 
 				handleVictimDetection(tempFusedData);
@@ -673,6 +816,8 @@ namespace JAFD
 			}
 
 			if (tempFusedData.robotState.mapCoordinate != lastCoordinate && !blockCellChange) {
+				consSilver = 0;
+
 				Serial.print("left cell - x: ");
 				Serial.print(lastCoordinate.x);
 				Serial.print(", y: ");
@@ -696,7 +841,7 @@ namespace JAFD
 		void timeBetweenUpdate(bool blink)
 		{
 			if (blink) {
-				PowerLEDs::setBrightness(sinf(millis() / 500) * 0.5f + 0.5f);
+				PowerLEDs::setBrightness(sinf(millis() / 200) * 0.5f + 0.5f);
 			}
 
 			CamRec::loop();
