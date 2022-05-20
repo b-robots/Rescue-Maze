@@ -615,7 +615,7 @@ namespace JAFD
 				GridCell currentCell;
 				MazeMapping::getGridCell(&currentCell, tempFusedData.robotState.mapCoordinate);
 
-				if (true) {//!(currentCell.cellState & CellState::victim)) {
+				if (!(currentCell.cellState & CellState::victim)) {
 					SmoothDriving::stopTask();
 
 					Serial.println("start disp");
@@ -659,7 +659,7 @@ namespace JAFD
 
 			static MapCoordinate lastCoordinate = homePosition;
 
-			static bool start = false; // DEBUG
+			static bool start = false;
 			static bool startAfterRotation = false;
 			static bool ramp = false;
 			static bool stairs = false;

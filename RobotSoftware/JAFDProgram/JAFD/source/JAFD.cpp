@@ -31,8 +31,6 @@
 #include <SPI.h>
 #include <Wire.h>
 
-#include <utility/imumaths.h>
-
 namespace JAFD
 {
 	// Just for testing...
@@ -46,6 +44,10 @@ namespace JAFD
 		PMC->PMC_PCER0 = 1 << ID_PIOA | 1 << ID_PIOB | 1 << ID_PIOC | 1 << ID_PIOD;
 		PMC->PMC_PCER1 = PMC_PCER1_PID36;
 		PWM->PWM_CLK = PWM_CLK_PREB(0b111) | PWM_CLK_DIVB(1) | PWM_CLK_PREA(0) | PWM_CLK_DIVA(1);
+
+		// Enable all Timer Counter
+		PMC->PMC_PCER0 = PMC_PCER0_PID27 | PMC_PCER0_PID28 | PMC_PCER0_PID29 | PMC_PCER0_PID30 | PMC_PCER0_PID31;
+		PMC->PMC_PCER1 = PMC_PCER1_PID32 | PMC_PCER1_PID33 | PMC_PCER1_PID34 | PMC_PCER1_PID35;
 
 		// Nice
 		randomSeed(69420);
@@ -175,9 +177,7 @@ namespace JAFD
 			temp = PIOD->PIO_ISR;
 		}
 
-		// Setup TC4 for an interrupt every 25ms -> 40Hz (MCK / 128 / 16406)
-		PMC->PMC_PCER1 = PMC_PCER1_PID32;
-
+		// Setup TC5 for an interrupt every 25ms -> 40Hz (MCK / 128 / 16406)
 		TC1->TC_CHANNEL[2].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;
 		TC1->TC_CHANNEL[2].TC_RC = 16406;
 
@@ -190,7 +190,7 @@ namespace JAFD
 
 		Serial.println("Finished, setup!");
 
-		/*Bno055::calibrate();
+		Bno055::calibrate();
 
 		Serial.println("Wait for initial BNO055 calibration...");
 
@@ -202,7 +202,7 @@ namespace JAFD
 		}
 		while (bno_sys < 3);
 
-		Serial.println("BNO055 ready!");*/
+		Serial.println("BNO055 ready!");
 
 		PowerLEDs::setBrightness(JAFDSettings::PowerLEDs::defaultPower);
 
@@ -210,8 +210,8 @@ namespace JAFD
 
 		Serial.println("Start!");
 
-		////Set start for 9DOF
-		//Bno055::tare();
+		//Set start for 9DOF
+		Bno055::tare();
 
 		return;
 	}
@@ -225,8 +225,7 @@ namespace JAFD
 		SensorFusion::updateSensors();
 		SensorFusion::untimedFusion();
 		RobotLogic::loop();
-
-		/*
+		
 		auto fusedData = SensorFusion::getFusedData();
 
 		float heading = fusedData.robotState.globalHeading;
@@ -255,7 +254,7 @@ namespace JAFD
 
 		if (fps < 0.01f) fps = 1000.0f / (millis() - time);
 		else fps = fps * 0.4f + 600.0f / (millis() - time);
-		*/
+		
 		return;
 	}
 }

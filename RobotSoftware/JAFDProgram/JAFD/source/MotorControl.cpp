@@ -314,8 +314,8 @@ namespace JAFD
 			lastPWMVal = setSpeed;
 
 			// Set PWM Value
-			PWM->PWM_CH_NUM[lPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[lPWMCh].PWM_CPRD * fabsf(setSpeed.left));
-			PWM->PWM_CH_NUM[rPWMCh].PWM_CDTYUPD = (PWM->PWM_CH_NUM[rPWMCh].PWM_CPRD * fabsf(setSpeed.right));
+			PWM->PWM_CH_NUM[lPWMCh].PWM_CDTYUPD = (uint16_t)(PWM->PWM_CH_NUM[lPWMCh].PWM_CPRD * fabsf(setSpeed.left));
+			PWM->PWM_CH_NUM[rPWMCh].PWM_CDTYUPD = (uint16_t)(PWM->PWM_CH_NUM[rPWMCh].PWM_CPRD * fabsf(setSpeed.right));
 			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 		}
 

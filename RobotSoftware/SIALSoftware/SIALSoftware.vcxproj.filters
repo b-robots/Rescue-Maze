@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="SIALSoftware.ino" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="__vm\.SIALSoftware.vsarduino.h" />
+    <ClInclude Include="SIAL\SIAL.h">
+      <Filter>SIAL</Filter>
+    </ClInclude>
+    <ClInclude Include="SIAL\header\Math.h">
+      <Filter>SIAL\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SIAL\header\AllDatatypes.h">
+      <Filter>SIAL\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SIAL\header\DuePinMapping.h">
+      <Filter>SIAL\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SIAL\header\Vector.h">
+      <Filter>SIAL\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SIAL\SIALSettings.h">
+      <Filter>SIAL</Filter>
+    </ClInclude>
+    <ClInclude Include="SIAL\header\MotorControl.h">
+      <Filter>SIAL\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SIAL\header\PIDController.h">
+      <Filter>SIAL\Header</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="SIAL">
+      <UniqueIdentifier>{6a46bef3-6b47-4f4a-a689-3c2aa846ec25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIAL\Header">
+      <UniqueIdentifier>{8574dcb6-1f12-4637-b5b8-dc9a2a8560df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIAL\Source">
+      <UniqueIdentifier>{b76b546f-6222-451b-8e10-331d30aa9cd4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="SIAL\source\SIAL.cpp">
+      <Filter>SIAL\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SIAL\source\MotorControl.cpp">
+      <Filter>SIAL\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SIAL\source\PIDController.cpp">
+      <Filter>SIAL\Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
