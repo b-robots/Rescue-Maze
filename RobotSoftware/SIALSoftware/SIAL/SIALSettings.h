@@ -26,9 +26,8 @@ namespace SIALSettings {
 	{
 		constexpr float cmPSToPerc = 1.0f / (97.0f / 60.0f * M_PI * Mechanics::wheelDiameter);		// Conversion factor from cm/s to motor PWM duty cycle (NOTE: The conversion isnt linear. This factor is too low for very low speeds and too high for maximum speed.)
 
-		constexpr uint8_t minSpeed = 5;					// Minimum speed for motor to rotate
+		constexpr uint8_t minSpeed = 5;						// Minimum speed for motor to rotate
 		constexpr uint8_t maxSpeed = 1.0f / cmPSToPerc;		// Calculated maximum speed
-		constexpr float maxRotSpeed = 2.0f * maxSpeed / Mechanics::wheelDistance;	// Calculated maximum rotation speed
 
 		constexpr float pulsePerRev = 4741.44f;	// Rotary-Encoder pulses per revolution
 
@@ -73,7 +72,7 @@ namespace SIALSettings {
 	{
 		namespace Motor
 		{
-			constexpr SIAL::PIDSettings pidSettings(0.7f, 4.0f, 0.0f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
+			constexpr SIAL::PIDSettings pidSettings(0.65f, 9.5f, 0.03f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
 		}
 	}
 
@@ -81,5 +80,119 @@ namespace SIALSettings {
 		namespace Encoder {
 			constexpr float IIRFac = 0.95f;
 		}
+	}
+
+	namespace SensorFusion
+	{
+		// Maze
+		constexpr float maxPitchForDistSensor = DEG_TO_RAD * 8.0f;		// Maximum pitch of robot for correct front distance measurements
+		constexpr uint16_t minDeltaDistForEdge = 30;					// Minimum change in distance that corresponds to an edge (in mm)
+
+		// Distance & Speed
+		constexpr float distSensSpeedIIRFactor = 0.8f;					// Factor used for IIR-Filter for speed measured by distance sensors
+		constexpr float longDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for high range distance measurements
+		constexpr float shortDistSensIIRFactor = 0.9f;					// Factor used for IIR-Filter for short range distance measurements
+		constexpr float distSpeedPortion = 0.2f;						// How much is a perfect distance sensor measured speed worth?
+
+		// Position
+		constexpr float distSensOffsetPortion = 0.8f;					// How much does the center-offset measured by all distance sensors count?
+
+		// Rotation
+		constexpr float chi = 1.2f;
+		constexpr float bno055DiffPortion = 0.0f; // DEBUG 0.5f						// How much is the differentiation of the BNO055 angle worth?
+		constexpr float bno055RotPortion = 0.0f; // DEBUG 0.3f						// How much is a Bno055 rotation measurement worth?
+		constexpr float angularVelIIRFactor = 0.95f;					// Factor used for IIR-Filter for angular velocity
+		constexpr float pitchIIRFactor = 0.8f;							// Factor used for IIR-Filter for pitch angle
+		constexpr float distAngularPortion = 0.2f;						// How much is a perfect distance sensor measured angle worth?
+		constexpr float angleDiffPortion = 0.4f;						// How much is the heading influenced by the angular velocity instead of the absolute orientation values?
+	}
+
+	namespace HeatSensors
+	{
+		constexpr float threshold = 7.0f;
+
+		namespace Left
+		{
+			constexpr uint8_t i2cChannel = 7;
+		}
+
+		namespace Right
+		{
+			constexpr uint8_t i2cChannel = 6;
+		}
+	}
+
+	namespace DistanceSensors
+	{
+		constexpr uint16_t minCalibDataDiff = 20;		// Minimum difference in calibration data
+		constexpr uint8_t bytesPerCalibData = 8;
+
+		constexpr uint8_t multiplexerAddr = 0x70;
+
+		constexpr uint16_t timeout = 80;
+
+		namespace LeftFront
+		{
+			constexpr uint8_t multiplexCh = 2;
+		}
+
+		namespace LeftBack
+		{
+			constexpr uint8_t multiplexCh = 3;
+		}
+
+		namespace RightFront
+		{
+			constexpr uint8_t multiplexCh = 4;
+		}
+
+		namespace RightBack
+		{
+			constexpr uint8_t multiplexCh = 5;
+		}
+
+		namespace FrontLeft
+		{
+			constexpr uint8_t multiplexCh = 1;
+		}
+
+		namespace FrontRight
+		{
+			constexpr uint8_t multiplexCh = 0;
+		}
+
+		namespace FrontLong
+		{
+			constexpr SIAL::SerialType serialType = SIAL::SerialType::two;
+		}
+	}
+
+
+	namespace SpiNVSRAM
+	{
+		constexpr uint8_t ssPin = 39;
+		constexpr uint32_t mazeMappingStartAddr = 0;
+		constexpr uint32_t bno055StartAddr = mazeMappingStartAddr + 64 * 1024;
+		constexpr uint32_t distSensStartAddr = bno055StartAddr + 32;
+	}
+
+	namespace PowerLEDs
+	{
+		constexpr float defaultPower = 0.5f;
+
+		namespace Left
+		{
+			constexpr uint8_t pwmPin = 8;
+		}
+
+		namespace Right
+		{
+			constexpr uint8_t pwmPin = 7;
+		}
+	}
+
+	namespace Switch
+	{
+		constexpr uint8_t pin = 12;
 	}
 }

@@ -4,6 +4,17 @@
 #include "../header/PIDController.h"
 #include "../header/Math.h"
 
+// 40Hz
+void TC5_Handler()
+{
+	{
+		volatile auto dummy = TC1->TC_CHANNEL[2].TC_SR;
+	}
+
+	SIAL::MotorControl::calcMotorSpeed(40);
+	SIAL::MotorControl::speedPID(40);
+}
+
 namespace SIAL {
 	namespace MotorControl {
 		namespace
@@ -100,6 +111,8 @@ namespace SIAL {
 
 				return val;
 			}
+
+			float batVoltage = 0.0f;
 		}
 
 		ReturnCode setup()
@@ -216,6 +229,17 @@ namespace SIAL {
 				rPWM.port->PIO_ABSR &= ~rPWM.pin;
 			}
 
+			// Setup TC5 for an interrupt every 25ms -> 40Hz (MCK / 128 / 16406)
+			TC1->TC_CHANNEL[2].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;
+			TC1->TC_CHANNEL[2].TC_RC = 16406;
+
+			TC1->TC_CHANNEL[2].TC_IER = TC_IER_CPCS;
+			TC1->TC_CHANNEL[2].TC_IDR = ~TC_IER_CPCS;
+
+			NVIC_EnableIRQ(TC5_IRQn);
+
+			TC1->TC_CHANNEL[2].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN;
+
 			// Setup ADC (Freerunning mode / 21MHz); No Gain and Offset
 			PMC->PMC_PCER1 = PMC_PCER1_PID37;
 
@@ -225,31 +249,24 @@ namespace SIAL {
 			return ReturnCode::ok;
 		}
 
-		void calcMotorSpeed()
+		void calcMotorSpeed(uint8_t freq)
 		{
 			static int32_t lastLeftCnt = 0;
 			static int32_t lastRightCnt = 0;
 			static bool first = true;
-			static uint32_t lastTime = 0;
 
 			auto lEncCnt = getEncoderVal(Motor::left);
 			auto rEncCnt = getEncoderVal(Motor::right);
-			const auto t = millis();
-			const float dt = (t - lastTime) / 1000.0f;
 
-			// maximum of 40Hz
-			if (dt < 25.0f / 1000.0f) {
-				return;
-			}
+			const float dt = 1.0f / freq;
 
 			if (first) {
 				speeds.left = 0.0f;
 				speeds.right = 0.0f;
 				first = false;
-				
+
 				lastLeftCnt = lEncCnt;
 				lastRightCnt = rEncCnt;
-				lastTime = t;
 				return;
 			}
 
@@ -259,27 +276,11 @@ namespace SIAL {
 
 			lastLeftCnt = lEncCnt;
 			lastRightCnt = rEncCnt;
-			lastTime = t;
 		}
 
-		void speedPID()
+		void speedPID(uint8_t freq)
 		{
-			static bool first = true;
-			static uint32_t lastTime = 0;
-
-			const auto t = millis();
-			const float dt = (t - lastTime) / 1000.0f;
-
-			if (first) {
-				first = false;
-				lastTime = t;
-				return;
-			}
-
-			// maximum of 40Hz
-			if (dt < 25.0f / 1000.0f) {
-				return;
-			}
+			const float dt = 1.0f / freq;
 
 			FloatWheelSpeeds setSpeed;	// Speed calculated by PID
 
@@ -287,13 +288,9 @@ namespace SIAL {
 			static float leftPWMReduction = SIALSettings::MotorControl::initPWMReduction;	// PWM reduction to prevent overvoltage
 			static float rightPWMReduction = SIALSettings::MotorControl::initPWMReduction;	// PWM reduction to prevent overvoltage
 
-			//Serial.print(lastPWMVal.left);
-			//Serial.print(", ");
-			//Serial.print(getVoltage(Motor::left));
-			//Serial.print("; ");
-			//Serial.print(lastPWMVal.right);
-			//Serial.print(", ");
-			//Serial.println(getVoltage(Motor::right));
+			if ((lastPWMVal.left * leftPWMReduction > 0.1f) && (lastPWMVal.right * rightPWMReduction > 0.1f)) {
+				batVoltage = (getVoltage(Motor::left) / (lastPWMVal.left * leftPWMReduction) + getVoltage(Motor::right) / (lastPWMVal.right * rightPWMReduction)) / 2.0f * 0.2f + 0.8f * batVoltage;
+			}
 
 			// Update PWM reduction factor with IIR
 			if (lastPWMVal.left > 0.2)
@@ -314,6 +311,13 @@ namespace SIAL {
 			{
 				leftPID.reset();
 				setSpeed.left = 0.0f;
+				lastPWMVal.left = 0.0f;
+				lInA.port->PIO_SODR = lInA.pin;
+				lInB.port->PIO_SODR = lInB.pin;
+				PWM->PWM_CH_NUM[lPWMCh].PWM_CDTYUPD = 0;
+				PWM->PWM_CH_NUM[rPWMCh].PWM_CDTYUPD = 0;
+				PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
+				return;
 			}
 			else
 			{
@@ -331,6 +335,13 @@ namespace SIAL {
 			{
 				rightPID.reset();
 				setSpeed.right = 0.0f;
+				lastPWMVal.right = 0.0f;
+				rInA.port->PIO_SODR = rInA.pin;
+				rInB.port->PIO_SODR = rInB.pin;
+				PWM->PWM_CH_NUM[lPWMCh].PWM_CDTYUPD = 0;
+				PWM->PWM_CH_NUM[rPWMCh].PWM_CDTYUPD = 0;
+				PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
+				return;
 			}
 			else
 			{
@@ -376,12 +387,6 @@ namespace SIAL {
 			setSpeed.left *= leftPWMReduction;
 			setSpeed.right *= rightPWMReduction;
 
-			Serial.print(getVoltage(Motor::left));
-			Serial.print(", ");
-			Serial.println(getVoltage(Motor::right));
-
-			lastTime = t;
-
 			// Set PWM Value
 			PWM->PWM_CH_NUM[lPWMCh].PWM_CDTYUPD = (uint16_t)(PWM->PWM_CH_NUM[lPWMCh].PWM_CPRD * fabsf(setSpeed.left));
 			PWM->PWM_CH_NUM[rPWMCh].PWM_CDTYUPD = (uint16_t)(PWM->PWM_CH_NUM[rPWMCh].PWM_CPRD * fabsf(setSpeed.right));
@@ -414,6 +419,9 @@ namespace SIAL {
 
 		void setSpeeds(const WheelSpeeds wheelSpeeds)
 		{
+			// TESTING
+			// Serial.println(batVoltage);
+
 			desSpeeds.left = wheelSpeeds.left;
 			desSpeeds.right = wheelSpeeds.right;
 

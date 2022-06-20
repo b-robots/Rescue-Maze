@@ -29,6 +29,21 @@
     <ClInclude Include="SIAL\header\PIDController.h">
       <Filter>SIAL\Header</Filter>
     </ClInclude>
+    <ClInclude Include="SIAL\header\HeatSensor.h">
+      <Filter>SIAL\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SIAL\header\I2CMultiplexer.h">
+      <Filter>SIAL\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SIAL\header\Gyro.h">
+      <Filter>SIAL\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SIAL\header\SpiNVSRAM.h">
+      <Filter>SIAL\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SIAL\header\SmallThings.h">
+      <Filter>SIAL\Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="SIAL">
@@ -49,6 +64,27 @@
       <Filter>SIAL\Source</Filter>
     </ClCompile>
     <ClCompile Include="SIAL\source\PIDController.cpp">
+      <Filter>SIAL\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SIAL\source\HeatSensor.cpp">
+      <Filter>SIAL\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SIAL\source\I2CMultiplexer.cpp">
+      <Filter>SIAL\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SIAL\source\Gyro.cpp">
+      <Filter>SIAL\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SIAL\source\SpiNVSRAM.cpp">
+      <Filter>SIAL\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SIAL\source\DistanceSensors.cpp">
+      <Filter>SIAL\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SIAL\header\DistanceSensors.h">
+      <Filter>SIAL\Header</Filter>
+    </ClCompile>
+    <ClCompile Include="SIAL\source\SmallThings.cpp">
       <Filter>SIAL\Source</Filter>
     </ClCompile>
   </ItemGroup>

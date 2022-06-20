@@ -1,11 +1,18 @@
 #include <Arduino.h>
 
 #include "../SIAL.h"
+#include "../SIALSettings.h"
 #include "../header/DuePinMapping.h"
 #include "../header/AllDatatypes.h"
 #include "../header/Math.h"
 #include "../header/Vector.h"
 #include "../header/MotorControl.h"
+#include "../header/HeatSensor.h"
+#include "../header/I2CMultiplexer.h"
+#include "../header/SmallThings.h"
+#include "../header/DistanceSensors.h"
+#include "../header/Gyro.h"
+#include "../header/SpiNVSRAM.h"
 
 #include <SPI.h>
 #include <Wire.h>
@@ -16,9 +23,13 @@ namespace SIAL {
 		SPI.begin();
 		SPI.beginTransaction(SPISettings(10e+6, MSBFIRST, SPI_MODE0));
 
-		// Enable clock for all pins for interrupts
-		PMC->PMC_PCER0 = 1 << ID_PIOA | 1 << ID_PIOB | 1 << ID_PIOC | 1 << ID_PIOD;
+		// Setup I2C-Bus
+		Wire.begin();
+		Wire1.begin();
 
+		// Start clock for PIO (debouncing)
+		PMC->PMC_PCER0 = 1 << ID_PIOA | 1 << ID_PIOB | 1 << ID_PIOC | 1 << ID_PIOD;
+		 
 		// Setup PWM - CLK A for motors - CLK B unused
 		PMC->PMC_PCER1 = PMC_PCER1_PID36;
 		PWM->PWM_CLK = PWM_CLK_PREB(0b111) | PWM_CLK_DIVB(1) | PWM_CLK_PREA(0) | PWM_CLK_DIVA(1);
@@ -30,51 +41,151 @@ namespace SIAL {
 		// Initialise random number generator
 		randomSeed(69420);
 
-		//// Setup interrupts for all ports 
-		//NVIC_EnableIRQ(PIOA_IRQn);
-		//NVIC_SetPriority(PIOA_IRQn, 0);
+		Switch::setup();
 
-		//NVIC_EnableIRQ(PIOB_IRQn);
-		//NVIC_SetPriority(PIOB_IRQn, 0);
+		// Setup of power LEDs
+		if (PowerLEDs::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error power LEDs");
+		}
 
-		//NVIC_EnableIRQ(PIOC_IRQn);
-		//NVIC_SetPriority(PIOC_IRQn, 0);
+		// Setup of SPI NVSRAM
+		if (SpiNVSRAM::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error SPI NVSRAM");
+		}
 
-		//NVIC_EnableIRQ(PIOD_IRQn);
-		//NVIC_SetPriority(PIOD_IRQn, 0);
+		// Setup of I2C Multiplexer
+		if (I2CMultiplexer::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error I2CMultiplexer");
+		}
 
-		// Setup of Motor Control
+		// Setup of Distance Sensors
+		if (DistanceSensors::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error DistanceSensors");
+		}
+
+		// TESTING
+		DistanceSensors::resetHardCodedCalib();
+
+		// Setup of Gyro
+		if (Gyro::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error BNO055");
+		}
+
+		// Setup of MotorControl
 		if (MotorControl::setup() != ReturnCode::ok)
 		{
 			Serial.println("Error MotorControl!");
 		}
+
+		// Setup of HeatSensor
+		if (HeatSensor::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error HeatSensor!");
+		}
+
+		Serial.println("Finished, setup!");
+
+		// TESTING
+		// Gyro::calibrate();
+
+		//Serial.println("Wait for initial BNO055 calibration...");
+
+		//uint8_t bno_sys = 0;
+		//do {
+		//	Gyro::updateValues();
+		//	bno_sys = Gyro::getOverallCalibStatus();
+		//	delay(100);
+		//} while (bno_sys < 3);
+
+		//Serial.println("BNO055 ready!");
+
+		//PowerLEDs::setBrightness(SIALSettings::PowerLEDs::defaultPower);
+
+		//while (!Switch::getState());
+
+		Serial.println("Start!");
+
+		//Set start for 9DOF
+		Gyro::tare();
 	}
 
 	void robotLoop() {
-		MotorControl::calcMotorSpeed();
-		MotorControl::speedPID();
+		static uint32_t t = millis();
 
-		int soll = 30;
+		// Chi: ICR factor coefficient
+		constexpr float chi = 1.2f; //1.18f;
+		float angle = (MotorControl::getDistance(Motor::right) - MotorControl::getDistance(Motor::left)) / (2.0f * SIALSettings::Mechanics::wheelDistToMiddle * chi);
+		float dist = (MotorControl::getDistance(Motor::right) + MotorControl::getDistance(Motor::left)) / 2.0f;
 
-		//int i = (millis() / 4000) % 4;
+		//MotorControl::setSpeeds(WheelSpeeds{ 35, -30});
+		//static bool finished = false;
 
-		//if (i == 0) {
-		//	soll = 40;
-		//}
-		//else if (i == 1) {
-		//	soll = 15;
-		//}
-		//else if (i == 2) {
-		//	soll = -15;
-		//}
-		//else {
-		//	soll = -40;
+		////if (dist >= 50.0f) {
+		////	finished = true;
+		////}
+
+		//if (angle <= -360.0f * DEG_TO_RAD) {
+		//	finished = true;
 		//}
 
-		int ist = MotorControl::getFloatSpeeds().right;
+		//if (finished) {
+		//	MotorControl::setSpeeds(WheelSpeeds{ 0, 0 });
+		//	Serial.println(angle);
+		//}
 
-		MotorControl::setSpeeds(WheelSpeeds{ soll, soll });
+		// TESTING
+		HeatSensor::detectVictim(HeatSensorSide::left);
+		HeatSensor::detectVictim(HeatSensorSide::right);
+		DistanceSensors::updateDistSensors();
+		Gyro::updateValues();
 
-		delay(20);
+		// Serial.println(getGlobalHeading(Gyro::getForwardVec()));
+		Serial.println(1000.0f / (millis() - t));
+		t = millis();
+
+		while (Serial.available()) { Serial.read(); }
+
+		if (!I2CMultiplexer::checkI2C()) {
+			Serial.println("I2C Multiplexer Error");
+			
+			while (!Serial.available());
+			delay(10);
+			while (Serial.available()) { Serial.read(); }
+
+			Wire.end();
+
+			pinMode(SCL, OUTPUT);
+			pinMode(SDA, OUTPUT);
+
+			for (int i = 0; i < 10; i++) {
+				digitalWrite(SCL, LOW);
+				delayMicroseconds(2);
+				digitalWrite(SDA, LOW);
+				delayMicroseconds(2);
+				digitalWrite(SCL, HIGH);
+				delayMicroseconds(4);
+			}
+			digitalWrite(SDA, HIGH);
+
+			pinMode(SCL, INPUT);
+			pinMode(SDA, INPUT);
+
+			delay(10);
+			Wire.begin();
+
+			Wire.beginTransmission(0x1);
+			Wire.endTransmission(true);
+
+			while (!Serial.available());
+			delay(10);
+			while (Serial.available()) { Serial.read(); }
+		}
+
+		// delay(50);
 	}
 }

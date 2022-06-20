@@ -16,10 +16,10 @@ namespace SIAL {
 		// Get more accurate measured velocity
 		FloatWheelSpeeds getFloatSpeeds();
 
-		void calcMotorSpeed();
+		void calcMotorSpeed(uint8_t freq);
 
 		// Interrupthandler for speed PID-Loop
-		void speedPID();
+		void speedPID(uint8_t freq);
 
 		// Set motor speed (cm/s)
 		void setSpeeds(const WheelSpeeds wheelSpeeds);

@@ -40,6 +40,9 @@ namespace JAFD
 		SPI.begin();
 		SPI.beginTransaction(SPISettings(10e+6, MSBFIRST, SPI_MODE0));
 
+		// Start clock for PIO (debouncing)
+		PMC->PMC_PCER0 = 1 << ID_PIOA | 1 << ID_PIOB | 1 << ID_PIOC | 1 << ID_PIOD;
+
 		// Setup PWM - CLK A for motors - CLK B unused
 		PMC->PMC_PCER0 = 1 << ID_PIOA | 1 << ID_PIOB | 1 << ID_PIOC | 1 << ID_PIOD;
 		PMC->PMC_PCER1 = PMC_PCER1_PID36;
@@ -167,14 +170,6 @@ namespace JAFD
 		if (CamRec::setup() != ReturnCode::ok)
 		{
 			Serial.println("Error CamRec!");
-		}
-
-		// Clear all interrupts once
-		{
-			volatile auto temp = PIOA->PIO_ISR;
-			temp = PIOB->PIO_ISR;
-			temp = PIOC->PIO_ISR;
-			temp = PIOD->PIO_ISR;
 		}
 
 		// Setup TC5 for an interrupt every 25ms -> 40Hz (MCK / 128 / 16406)
