@@ -44,6 +44,21 @@
     <ClInclude Include="SIAL\header\SmallThings.h">
       <Filter>SIAL\Header</Filter>
     </ClInclude>
+    <ClInclude Include="SIAL\header\ColorSensor.h">
+      <Filter>SIAL\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SIAL\header\StaticQueue.h">
+      <Filter>SIAL\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SIAL\header\MazeMapping.h">
+      <Filter>SIAL\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SIAL\header\SensorFusion.h">
+      <Filter>SIAL\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SIAL\header\SmoothDriving.h">
+      <Filter>SIAL\Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="SIAL">
@@ -85,6 +100,18 @@
       <Filter>SIAL\Header</Filter>
     </ClCompile>
     <ClCompile Include="SIAL\source\SmallThings.cpp">
+      <Filter>SIAL\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SIAL\source\ColorSensor.cpp">
+      <Filter>SIAL\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SIAL\source\MazeMapping.cpp">
+      <Filter>SIAL\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SIAL\source\SensorFusion.cpp">
+      <Filter>SIAL\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SIAL\source\SmoothDriving.cpp">
       <Filter>SIAL\Source</Filter>
     </ClCompile>
   </ItemGroup>

@@ -17,14 +17,14 @@ namespace SIAL
 		{
 			Adafruit_BNO055 bno055;
 
-			//Variables for getting the sensor values
-			volatile sensors_event_t linearAccelEvent;
-			volatile sensors_event_t gravityEvent;
-			volatile sensors_event_t rotSpeedEvent;
-			volatile imu::Quaternion quat;				// tared quaternion
-			volatile imu::Quaternion tareQuat;			// conjugate of quaternion to tare
-			volatile float tarePitch = 0.0f;
-			volatile uint8_t overallCalib = 0;
+			// Variables for getting the sensor values
+			sensors_event_t linearAccelEvent;
+			sensors_event_t gravityEvent;
+			sensors_event_t rotSpeedEvent;
+			imu::Quaternion quat;				// tared quaternion
+			imu::Quaternion tareQuat;			// conjugate of quaternion to tare
+			float tarePitch = 0.0f;
+			uint8_t overallCalib = 0;
 
 			// Convert linear motion to the global axis based on the robot start orientation
 			Vec3f toXYZ(Vec3f vec)
@@ -102,11 +102,11 @@ namespace SIAL
 				isQuat = bno055.getQuat();
 			}
 
-			*(imu::Quaternion*)(&tareQuat) = isQuat.conjugate();
+			tareQuat = isQuat.conjugate();
 
 			uint8_t i = 0;
 			while (fabsf(atan2f(gravityEvent.acceleration.x, gravityEvent.acceleration.z)) > 0.1 && i < 5) {
-				bno055.getEvent((sensors_event_t*)&gravityEvent, Adafruit_BNO055::VECTOR_GRAVITY);
+				bno055.getEvent(&gravityEvent, Adafruit_BNO055::VECTOR_GRAVITY);
 				i++;
 			}
 
@@ -124,11 +124,11 @@ namespace SIAL
 			imu::Quaternion a;
 			a.fromAxisAngle(imu::Vector<3>(0.0f, 0.0f, 1.0f), globalHeading);
 
-			*(imu::Quaternion*)(&tareQuat) = isQuat.conjugate() * a;
+			tareQuat = isQuat.conjugate() * a;
 
 			uint8_t i = 0;
 			while (fabsf(atan2f(gravityEvent.acceleration.x, gravityEvent.acceleration.z)) > 0.1 && i < 5) {
-				bno055.getEvent((sensors_event_t*)&gravityEvent, Adafruit_BNO055::VECTOR_GRAVITY);
+				bno055.getEvent(&gravityEvent, Adafruit_BNO055::VECTOR_GRAVITY);
 				i++;
 			}
 
@@ -137,14 +137,14 @@ namespace SIAL
 
 		void updateValues()					//gets values from the sensors
 		{
-			bno055.getEvent((sensors_event_t*)&linearAccelEvent, Adafruit_BNO055::VECTOR_LINEARACCEL);
+			bno055.getEvent(&linearAccelEvent, Adafruit_BNO055::VECTOR_LINEARACCEL);
 
-			auto lastGravity = *(sensors_event_t*)&gravityEvent;
+			auto lastGravity = gravityEvent;
 
-			bno055.getEvent((sensors_event_t*)&gravityEvent, Adafruit_BNO055::VECTOR_GRAVITY);
+			bno055.getEvent(&gravityEvent, Adafruit_BNO055::VECTOR_GRAVITY);
 
 			if ((sqrtf(gravityEvent.acceleration.x * gravityEvent.acceleration.x + gravityEvent.acceleration.y * gravityEvent.acceleration.y + gravityEvent.acceleration.z * gravityEvent.acceleration.z) - 9.81f) > 0.5f) {
-				*(sensors_event_t*)&gravityEvent = lastGravity;
+				gravityEvent = lastGravity;
 			}
 
 			auto isQuat = bno055.getQuat();
@@ -152,9 +152,9 @@ namespace SIAL
 				isQuat = bno055.getQuat();
 			}
 
-			*(imu::Quaternion*)&quat = isQuat * (*(imu::Quaternion*)&tareQuat);
+			quat = isQuat * tareQuat;
 
-			bno055.getEvent((sensors_event_t*)&rotSpeedEvent, Adafruit_BNO055::VECTOR_GYROSCOPE);
+			bno055.getEvent(&rotSpeedEvent, Adafruit_BNO055::VECTOR_GYROSCOPE);
 
 			uint8_t system, gyro, accel, mag;
 			bno055.getCalibration(&system, &gyro, &accel, &mag);
@@ -181,10 +181,10 @@ namespace SIAL
 		{
 			Vec3f forwardVec;
 
-			auto currQuat = *(imu::Quaternion*)&quat;
-			currQuat.normalize();
+			auto currQuat = quat;
+			quat.normalize();
 
-			auto rotatedVec = currQuat.rotateVector(imu::Vector<3>(1.0f, 0.0f, 0.0f));
+			auto rotatedVec = quat.rotateVector(imu::Vector<3>(1.0f, 0.0f, 0.0f));
 
 			float pitch = atan2f(gravityEvent.acceleration.x, gravityEvent.acceleration.z) - tarePitch;
 

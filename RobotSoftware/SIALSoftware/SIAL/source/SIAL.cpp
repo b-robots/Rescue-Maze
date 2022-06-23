@@ -13,6 +13,10 @@
 #include "../header/DistanceSensors.h"
 #include "../header/Gyro.h"
 #include "../header/SpiNVSRAM.h"
+#include "../header/ColorSensor.h"
+#include "../header/MazeMapping.h"
+#include "../header/SensorFusion.h"
+#include "../header/SmoothDriving.h"
 
 #include <SPI.h>
 #include <Wire.h>
@@ -25,11 +29,13 @@ namespace SIAL {
 
 		// Setup I2C-Bus
 		Wire.begin();
+		Wire.setClock(400000);
 		Wire1.begin();
+		Wire1.setClock(400000);
 
 		// Start clock for PIO (debouncing)
 		PMC->PMC_PCER0 = 1 << ID_PIOA | 1 << ID_PIOB | 1 << ID_PIOC | 1 << ID_PIOD;
-		 
+
 		// Setup PWM - CLK A for motors - CLK B unused
 		PMC->PMC_PCER1 = PMC_PCER1_PID36;
 		PWM->PWM_CLK = PWM_CLK_PREB(0b111) | PWM_CLK_DIVB(1) | PWM_CLK_PREA(0) | PWM_CLK_DIVA(1);
@@ -42,6 +48,8 @@ namespace SIAL {
 		randomSeed(69420);
 
 		Switch::setup();
+
+		SmoothDriving::setNewTask(new SmoothDriving::Stop(), true);
 
 		// Setup of power LEDs
 		if (PowerLEDs::setup() != ReturnCode::ok)
@@ -88,6 +96,18 @@ namespace SIAL {
 			Serial.println("Error HeatSensor!");
 		}
 
+		// Setup of ColorSensor
+		if (ColorSensor::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error ColorSensor!");
+		}
+
+		// Setup of MazeMapping
+		if (MazeMapping::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error MazeMapping!");
+		}
+
 		Serial.println("Finished, setup!");
 
 		// TESTING
@@ -95,12 +115,12 @@ namespace SIAL {
 
 		//Serial.println("Wait for initial BNO055 calibration...");
 
-		//uint8_t bno_sys = 0;
-		//do {
-		//	Gyro::updateValues();
-		//	bno_sys = Gyro::getOverallCalibStatus();
-		//	delay(100);
-		//} while (bno_sys < 3);
+		uint8_t bno_sys = 0;
+		do {
+			Gyro::updateValues();
+			bno_sys = Gyro::getOverallCalibStatus();
+			delay(100);
+		} while (bno_sys < 3);
 
 		//Serial.println("BNO055 ready!");
 
@@ -112,80 +132,48 @@ namespace SIAL {
 
 		//Set start for 9DOF
 		Gyro::tare();
+
+		// TESTING
+		SensorFusion::updatePosAndRotFromDist();
+
+		SmoothDriving::setNewTask(new SmoothDriving::FollowWall(90, 30), true);
 	}
 
 	void robotLoop() {
-		static uint32_t t = millis();
+		SensorFusion::updateSensors();
+		SensorFusion::distSensFusion();
+		SensorFusion::sensorFusion();
 
-		// Chi: ICR factor coefficient
-		constexpr float chi = 1.2f; //1.18f;
-		float angle = (MotorControl::getDistance(Motor::right) - MotorControl::getDistance(Motor::left)) / (2.0f * SIALSettings::Mechanics::wheelDistToMiddle * chi);
-		float dist = (MotorControl::getDistance(Motor::right) + MotorControl::getDistance(Motor::left)) / 2.0f;
+		SmoothDriving::updateSpeeds();
 
-		//MotorControl::setSpeeds(WheelSpeeds{ 35, -30});
-		//static bool finished = false;
-
-		////if (dist >= 50.0f) {
-		////	finished = true;
-		////}
-
-		//if (angle <= -360.0f * DEG_TO_RAD) {
-		//	finished = true;
-		//}
-
-		//if (finished) {
-		//	MotorControl::setSpeeds(WheelSpeeds{ 0, 0 });
-		//	Serial.println(angle);
+		//static int state = 0;
+		//if (SmoothDriving::getInformation().finished) {
+		//	if (state == 0) {
+		//		SmoothDriving::setNewTask(new SmoothDriving::FollowWall(30, 30));
+		//		state = 1;
+		//	}
+		//	else {
+		//		SmoothDriving::setNewTask(new SmoothDriving::Rotate(M_PI_2, 2.0f));
+		//		state = 0;
+		//	}
 		//}
 
 		// TESTING
-		HeatSensor::detectVictim(HeatSensorSide::left);
-		HeatSensor::detectVictim(HeatSensorSide::right);
-		DistanceSensors::updateDistSensors();
-		Gyro::updateValues();
+		//HeatSensor::detectVictim(HeatSensorSide::left);
+		//HeatSensor::detectVictim(HeatSensorSide::right);
 
-		// Serial.println(getGlobalHeading(Gyro::getForwardVec()));
-		Serial.println(1000.0f / (millis() - t));
-		t = millis();
+		auto data = SensorFusion::getFusedData();
+		Serial.println(data.robotState.globalHeading);
 
-		while (Serial.available()) { Serial.read(); }
+		//const char* stateLookup[] = { "ok", "over", "under", "err" };
+		//Serial.print(stateLookup[(int)data.distSensorState.leftFront]);
+		//Serial.print("; ");
+		//Serial.println(data.distances.leftFront);
 
-		if (!I2CMultiplexer::checkI2C()) {
-			Serial.println("I2C Multiplexer Error");
-			
-			while (!Serial.available());
-			delay(10);
-			while (Serial.available()) { Serial.read(); }
+		//auto forward = Gyro::getForwardVec();
 
-			Wire.end();
-
-			pinMode(SCL, OUTPUT);
-			pinMode(SDA, OUTPUT);
-
-			for (int i = 0; i < 10; i++) {
-				digitalWrite(SCL, LOW);
-				delayMicroseconds(2);
-				digitalWrite(SDA, LOW);
-				delayMicroseconds(2);
-				digitalWrite(SCL, HIGH);
-				delayMicroseconds(4);
-			}
-			digitalWrite(SDA, HIGH);
-
-			pinMode(SCL, INPUT);
-			pinMode(SDA, INPUT);
-
-			delay(10);
-			Wire.begin();
-
-			Wire.beginTransmission(0x1);
-			Wire.endTransmission(true);
-
-			while (!Serial.available());
-			delay(10);
-			while (Serial.available()) { Serial.read(); }
-		}
-
-		// delay(50);
+		//Serial.print(getGlobalHeading(forward));
+		//Serial.print("; ");
+		//Serial.println(getPitch(forward));
 	}
 }

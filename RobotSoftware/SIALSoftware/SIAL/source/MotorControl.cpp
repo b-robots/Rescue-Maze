@@ -315,9 +315,6 @@ namespace SIAL {
 				lInA.port->PIO_SODR = lInA.pin;
 				lInB.port->PIO_SODR = lInB.pin;
 				PWM->PWM_CH_NUM[lPWMCh].PWM_CDTYUPD = 0;
-				PWM->PWM_CH_NUM[rPWMCh].PWM_CDTYUPD = 0;
-				PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-				return;
 			}
 			else
 			{
@@ -329,6 +326,24 @@ namespace SIAL {
 
 				if (setSpeed.left >= 1.0f) setSpeed.left = 1.0f;
 				else if (setSpeed.left <= -1.0f) setSpeed.left = -1.0f;
+
+				// Set direction of left motor
+				if (setSpeed.left < 0.0f)
+				{
+					lInA.port->PIO_SODR = lInA.pin;
+					lInB.port->PIO_CODR = lInB.pin;
+				}
+				else
+				{
+					lInA.port->PIO_CODR = lInA.pin;
+					lInB.port->PIO_SODR = lInB.pin;
+				}
+
+				lastPWMVal.left = fabsf(setSpeed.left);
+
+				setSpeed.left *= leftPWMReduction;
+
+				PWM->PWM_CH_NUM[lPWMCh].PWM_CDTYUPD = (uint16_t)(PWM->PWM_CH_NUM[lPWMCh].PWM_CPRD * fabsf(setSpeed.left));
 			}
 
 			if (desSpeeds.right == 0)
@@ -338,10 +353,7 @@ namespace SIAL {
 				lastPWMVal.right = 0.0f;
 				rInA.port->PIO_SODR = rInA.pin;
 				rInB.port->PIO_SODR = rInB.pin;
-				PWM->PWM_CH_NUM[lPWMCh].PWM_CDTYUPD = 0;
 				PWM->PWM_CH_NUM[rPWMCh].PWM_CDTYUPD = 0;
-				PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
-				return;
 			}
 			else
 			{
@@ -353,43 +365,26 @@ namespace SIAL {
 
 				if (setSpeed.right >= 1.0f) setSpeed.right = 1.0f;
 				else if (setSpeed.right <= -1.0f) setSpeed.right = -1.0f;
+
+				// Set direction of right motor
+				if (setSpeed.right < 0.0f)
+				{
+					rInA.port->PIO_CODR = rInA.pin;
+					rInB.port->PIO_SODR = rInB.pin;
+				}
+				else
+				{
+					rInA.port->PIO_SODR = rInA.pin;
+					rInB.port->PIO_CODR = rInB.pin;
+				}
+
+				lastPWMVal.right = fabsf(setSpeed.right);
+
+				setSpeed.right *= rightPWMReduction;
+
+				PWM->PWM_CH_NUM[rPWMCh].PWM_CDTYUPD = (uint16_t)(PWM->PWM_CH_NUM[rPWMCh].PWM_CPRD * fabsf(setSpeed.right));
 			}
 
-			// Set direction of left motor
-			if (setSpeed.left < 0.0f)
-			{
-				lInA.port->PIO_SODR = lInA.pin;
-				lInB.port->PIO_CODR = lInB.pin;
-			}
-			else
-			{
-				lInA.port->PIO_CODR = lInA.pin;
-				lInB.port->PIO_SODR = lInB.pin;
-			}
-
-			// Set direction of right motor
-			if (setSpeed.right < 0.0f)
-			{
-				rInA.port->PIO_CODR = rInA.pin;
-				rInB.port->PIO_SODR = rInB.pin;
-			}
-			else
-			{
-				rInA.port->PIO_SODR = rInA.pin;
-				rInB.port->PIO_CODR = rInB.pin;
-			}
-
-			// Update last PWM values
-			lastPWMVal.left = fabsf(setSpeed.left);
-			lastPWMVal.right = fabsf(setSpeed.right);
-
-			// Reduce PWM values
-			setSpeed.left *= leftPWMReduction;
-			setSpeed.right *= rightPWMReduction;
-
-			// Set PWM Value
-			PWM->PWM_CH_NUM[lPWMCh].PWM_CDTYUPD = (uint16_t)(PWM->PWM_CH_NUM[lPWMCh].PWM_CPRD * fabsf(setSpeed.left));
-			PWM->PWM_CH_NUM[rPWMCh].PWM_CDTYUPD = (uint16_t)(PWM->PWM_CH_NUM[rPWMCh].PWM_CPRD * fabsf(setSpeed.right));
 			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
 		}
 

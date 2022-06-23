@@ -86,6 +86,8 @@ namespace SIAL
 				avgHigh -= 3.0f;
 			}
 
+			if (avgHigh > 50.0f) return false;
+
 			if (avgHigh >= SIALSettings::HeatSensors::threshold + ambientTemp) return true;
 			else return false;
 		}

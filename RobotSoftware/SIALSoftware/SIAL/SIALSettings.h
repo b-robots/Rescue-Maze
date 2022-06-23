@@ -72,39 +72,48 @@ namespace SIALSettings {
 	{
 		namespace Motor
 		{
-			constexpr SIAL::PIDSettings pidSettings(0.65f, 9.5f, 0.03f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
+			constexpr SIAL::PIDSettings pidSettings(0.67f, 9.5f, 0.03f, 1.0f / MotorControl::cmPSToPerc, 0.5f / MotorControl::cmPSToPerc, -1.0f / MotorControl::cmPSToPerc, 1.0f / MotorControl::cmPSToPerc);
+		}
+
+		namespace GoToAngle
+		{
+			constexpr SIAL::PIDSettings pidSettings(0.1f, 0.015f, 0.01f, 3.0f, 3.0f, -3.0f, 3.0f);
+			constexpr float aheadDistL = 20.0f;
 		}
 	}
 
 	namespace SensorFiltering {
 		namespace Encoder {
-			constexpr float IIRFac = 0.95f;
+			constexpr float IIRFac = 0.9f;
 		}
 	}
 
 	namespace SensorFusion
 	{
+		constexpr uint8_t maxFreq = 50;
+
 		// Maze
 		constexpr float maxPitchForDistSensor = DEG_TO_RAD * 8.0f;		// Maximum pitch of robot for correct front distance measurements
 		constexpr uint16_t minDeltaDistForEdge = 30;					// Minimum change in distance that corresponds to an edge (in mm)
 
 		// Distance & Speed
-		constexpr float distSensSpeedIIRFactor = 0.8f;					// Factor used for IIR-Filter for speed measured by distance sensors
-		constexpr float longDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for high range distance measurements
-		constexpr float shortDistSensIIRFactor = 0.9f;					// Factor used for IIR-Filter for short range distance measurements
-		constexpr float distSpeedPortion = 0.2f;						// How much is a perfect distance sensor measured speed worth?
-
-		// Position
-		constexpr float distSensOffsetPortion = 0.8f;					// How much does the center-offset measured by all distance sensors count?
+		constexpr float longDistSensIIRFactor = 0.7f;					// Factor used for IIR-Filter for high range distance measurements
+		constexpr float shortDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for short range distance measurements
+		constexpr float speedIIRFac = 0.9f;
 
 		// Rotation
 		constexpr float chi = 1.2f;
-		constexpr float bno055DiffPortion = 0.0f; // DEBUG 0.5f						// How much is the differentiation of the BNO055 angle worth?
-		constexpr float bno055RotPortion = 0.0f; // DEBUG 0.3f						// How much is a Bno055 rotation measurement worth?
+		constexpr float bno055DiffPortion = 0.5f;						// How much is the differentiation of the BNO055 angle worth?
+		constexpr float bno055RotPortion = 0.3f;						// How much is a Bno055 rotation measurement worth?
 		constexpr float angularVelIIRFactor = 0.95f;					// Factor used for IIR-Filter for angular velocity
 		constexpr float pitchIIRFactor = 0.8f;							// Factor used for IIR-Filter for pitch angle
 		constexpr float distAngularPortion = 0.2f;						// How much is a perfect distance sensor measured angle worth?
 		constexpr float angleDiffPortion = 0.4f;						// How much is the heading influenced by the angular velocity instead of the absolute orientation values?
+	}
+
+	namespace MazeMapping
+	{
+		constexpr float minRampAngle = 0.2f;
 	}
 
 	namespace HeatSensors

@@ -237,6 +237,10 @@ namespace SIAL
 					if (read8(_regModelID) != 0xB4)
 					{
 						Serial.println("I2C problem");
+
+						if (!I2CMultiplexer::checkI2C()) {
+							I2CMultiplexer::recoverI2C();
+						}
 					}
 
 					delay(50);
@@ -598,6 +602,10 @@ namespace SIAL
 					if (_sensor.readReg(_sensor.IDENTIFICATION_MODEL_ID) != 0xEE)
 					{
 						Serial.println("I2C problem");
+
+						if (!I2CMultiplexer::checkI2C()) {
+							I2CMultiplexer::recoverI2C();
+						}
 					}
 
 					delay(50);
@@ -646,6 +654,10 @@ namespace SIAL
 				if (_sensor.readReg(_sensor.IDENTIFICATION_MODEL_ID) != 0xEE)
 				{
 					Serial.println("I2C problem");
+
+					if (!I2CMultiplexer::checkI2C()) {
+						I2CMultiplexer::recoverI2C();
+					}
 				}
 
 				delay(50);
@@ -855,7 +867,7 @@ namespace SIAL
 
 		void updateDistSensors()
 		{
-			auto tempFusedData = FusedData{};//SensorFusion::getFusedData();
+			auto fusedData =  SensorFusion::getFusedData();
 			uint16_t tempDist;
 
 			// Front long
@@ -863,31 +875,31 @@ namespace SIAL
 
 			if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::noError)
 			{
-				if (tempFusedData.distSensorState.frontLong == DistSensorStatus::ok)
+				if (fusedData.distSensorState.frontLong == DistSensorStatus::ok)
 				{
-					tempFusedData.distances.frontLong = tempDist * SIALSettings::SensorFusion::longDistSensIIRFactor + tempFusedData.distances.frontLong * (1.0f - SIALSettings::SensorFusion::longDistSensIIRFactor);
+					fusedData.distances.frontLong = tempDist * SIALSettings::SensorFusion::longDistSensIIRFactor + fusedData.distances.frontLong * (1.0f - SIALSettings::SensorFusion::longDistSensIIRFactor);
 				}
 				else
 				{
-					tempFusedData.distances.frontLong = tempDist;
+					fusedData.distances.frontLong = tempDist;
 				}
 
-				tempFusedData.distSensorState.frontLong = DistSensorStatus::ok;
+				fusedData.distSensorState.frontLong = DistSensorStatus::ok;
 			}
 			else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::overflow)
 			{
-				tempFusedData.distSensorState.frontLong = DistSensorStatus::overflow;
-				tempFusedData.distances.frontLong = 0;
+				fusedData.distSensorState.frontLong = DistSensorStatus::overflow;
+				fusedData.distances.frontLong = 0;
 			}
 			else if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::underflow)
 			{
-				tempFusedData.distSensorState.frontLong = DistSensorStatus::underflow;
-				tempFusedData.distances.frontLong = 0;
+				fusedData.distSensorState.frontLong = DistSensorStatus::underflow;
+				fusedData.distances.frontLong = 0;
 			}
 			else
 			{
-				tempFusedData.distSensorState.frontLong = DistSensorStatus::error;
-				tempFusedData.distances.frontLong = 0;
+				fusedData.distSensorState.frontLong = DistSensorStatus::error;
+				fusedData.distances.frontLong = 0;
 			}
 
 			// Front Left
@@ -896,37 +908,37 @@ namespace SIAL
 
 				if (DistanceSensors::frontLeft.getStatus() == decltype(DistanceSensors::frontLeft)::Status::noError)
 				{
-					if (tempFusedData.distSensorState.frontLeft == DistSensorStatus::ok)
+					if (fusedData.distSensorState.frontLeft == DistSensorStatus::ok)
 					{
-						tempFusedData.distances.frontLeft = tempDist * SIALSettings::SensorFusion::shortDistSensIIRFactor + tempFusedData.distances.frontLeft * (1.0f - SIALSettings::SensorFusion::shortDistSensIIRFactor);
+						fusedData.distances.frontLeft = tempDist * SIALSettings::SensorFusion::shortDistSensIIRFactor + fusedData.distances.frontLeft * (1.0f - SIALSettings::SensorFusion::shortDistSensIIRFactor);
 					}
 					else
 					{
-						tempFusedData.distances.frontLeft = tempDist;
+						fusedData.distances.frontLeft = tempDist;
 					}
 
-					tempFusedData.distSensorState.frontLeft = DistSensorStatus::ok;
+					fusedData.distSensorState.frontLeft = DistSensorStatus::ok;
 				}
 				else if (DistanceSensors::frontLeft.getStatus() == decltype(DistanceSensors::frontLeft)::Status::overflow)
 				{
-					tempFusedData.distSensorState.frontLeft = DistSensorStatus::overflow;
-					tempFusedData.distances.frontLeft = 0;
+					fusedData.distSensorState.frontLeft = DistSensorStatus::overflow;
+					fusedData.distances.frontLeft = 0;
 				}
 				else if (DistanceSensors::frontLeft.getStatus() == decltype(DistanceSensors::frontLeft)::Status::underflow)
 				{
-					tempFusedData.distSensorState.frontLeft = DistSensorStatus::underflow;
-					tempFusedData.distances.frontLeft = 0;
+					fusedData.distSensorState.frontLeft = DistSensorStatus::underflow;
+					fusedData.distances.frontLeft = 0;
 				}
 				else
 				{
-					tempFusedData.distSensorState.frontLeft = DistSensorStatus::error;
-					tempFusedData.distances.frontLeft = 0;
+					fusedData.distSensorState.frontLeft = DistSensorStatus::error;
+					fusedData.distances.frontLeft = 0;
 				}
 			}
 			else {
 				if (DistanceSensors::frontLeft.getStatus() == decltype(DistanceSensors::frontLeft)::Status::timeOut) {
-					tempFusedData.distSensorState.frontLeft = DistSensorStatus::error;
-					tempFusedData.distances.frontLeft = 0;
+					fusedData.distSensorState.frontLeft = DistSensorStatus::error;
+					fusedData.distances.frontLeft = 0;
 				}
 			}
 
@@ -936,37 +948,37 @@ namespace SIAL
 
 				if (DistanceSensors::frontRight.getStatus() == decltype(DistanceSensors::frontRight)::Status::noError)
 				{
-					if (tempFusedData.distSensorState.frontRight == DistSensorStatus::ok)
+					if (fusedData.distSensorState.frontRight == DistSensorStatus::ok)
 					{
-						tempFusedData.distances.frontRight = tempDist * SIALSettings::SensorFusion::shortDistSensIIRFactor + tempFusedData.distances.frontRight * (1.0f - SIALSettings::SensorFusion::shortDistSensIIRFactor);
+						fusedData.distances.frontRight = tempDist * SIALSettings::SensorFusion::shortDistSensIIRFactor + fusedData.distances.frontRight * (1.0f - SIALSettings::SensorFusion::shortDistSensIIRFactor);
 					}
 					else
 					{
-						tempFusedData.distances.frontRight = tempDist;
+						fusedData.distances.frontRight = tempDist;
 					}
 
-					tempFusedData.distSensorState.frontRight = DistSensorStatus::ok;
+					fusedData.distSensorState.frontRight = DistSensorStatus::ok;
 				}
 				else if (DistanceSensors::frontRight.getStatus() == decltype(DistanceSensors::frontRight)::Status::overflow)
 				{
-					tempFusedData.distSensorState.frontRight = DistSensorStatus::overflow;
-					tempFusedData.distances.frontRight = 0;
+					fusedData.distSensorState.frontRight = DistSensorStatus::overflow;
+					fusedData.distances.frontRight = 0;
 				}
 				else if (DistanceSensors::frontRight.getStatus() == decltype(DistanceSensors::frontRight)::Status::underflow)
 				{
-					tempFusedData.distSensorState.frontRight = DistSensorStatus::underflow;
-					tempFusedData.distances.frontRight = 0;
+					fusedData.distSensorState.frontRight = DistSensorStatus::underflow;
+					fusedData.distances.frontRight = 0;
 				}
 				else
 				{
-					tempFusedData.distSensorState.frontRight = DistSensorStatus::error;
-					tempFusedData.distances.frontRight = 0;
+					fusedData.distSensorState.frontRight = DistSensorStatus::error;
+					fusedData.distances.frontRight = 0;
 				}
 			}
 			else {
 				if (DistanceSensors::frontRight.getStatus() == decltype(DistanceSensors::frontRight)::Status::timeOut) {
-					tempFusedData.distSensorState.frontRight = DistSensorStatus::error;
-					tempFusedData.distances.frontRight = 0;
+					fusedData.distSensorState.frontRight = DistSensorStatus::error;
+					fusedData.distances.frontRight = 0;
 				}
 			}
 
@@ -976,37 +988,37 @@ namespace SIAL
 
 				if (DistanceSensors::leftBack.getStatus() == decltype(DistanceSensors::leftBack)::Status::noError)
 				{
-					if (tempFusedData.distSensorState.leftBack == DistSensorStatus::ok)
+					if (fusedData.distSensorState.leftBack == DistSensorStatus::ok)
 					{
-						tempFusedData.distances.leftBack = tempDist * SIALSettings::SensorFusion::shortDistSensIIRFactor + tempFusedData.distances.leftBack * (1.0f - SIALSettings::SensorFusion::shortDistSensIIRFactor);
+						fusedData.distances.leftBack = tempDist * SIALSettings::SensorFusion::shortDistSensIIRFactor + fusedData.distances.leftBack * (1.0f - SIALSettings::SensorFusion::shortDistSensIIRFactor);
 					}
 					else
 					{
-						tempFusedData.distances.leftBack = tempDist;
+						fusedData.distances.leftBack = tempDist;
 					}
 
-					tempFusedData.distSensorState.leftBack = DistSensorStatus::ok;
+					fusedData.distSensorState.leftBack = DistSensorStatus::ok;
 				}
 				else if (DistanceSensors::leftBack.getStatus() == decltype(DistanceSensors::leftBack)::Status::overflow || DistanceSensors::leftBack.getStatus() == decltype(DistanceSensors::leftBack)::Status::noConvergence)
 				{
-					tempFusedData.distSensorState.leftBack = DistSensorStatus::overflow;
-					tempFusedData.distances.leftBack = 0;
+					fusedData.distSensorState.leftBack = DistSensorStatus::overflow;
+					fusedData.distances.leftBack = 0;
 				}
 				else if (DistanceSensors::leftBack.getStatus() == decltype(DistanceSensors::leftBack)::Status::underflow)
 				{
-					tempFusedData.distSensorState.leftBack = DistSensorStatus::underflow;
-					tempFusedData.distances.leftBack = 0;
+					fusedData.distSensorState.leftBack = DistSensorStatus::underflow;
+					fusedData.distances.leftBack = 0;
 				}
 				else
 				{
-					tempFusedData.distSensorState.leftBack = DistSensorStatus::error;
-					tempFusedData.distances.leftBack = 0;
+					fusedData.distSensorState.leftBack = DistSensorStatus::error;
+					fusedData.distances.leftBack = 0;
 				}
 			}
 			else {
 				if (DistanceSensors::leftBack.getStatus() == decltype(DistanceSensors::leftBack)::Status::timeOut) {
-					tempFusedData.distSensorState.leftBack = DistSensorStatus::error;
-					tempFusedData.distances.leftBack = 0;
+					fusedData.distSensorState.leftBack = DistSensorStatus::error;
+					fusedData.distances.leftBack = 0;
 				}
 			}
 
@@ -1016,37 +1028,37 @@ namespace SIAL
 
 				if (DistanceSensors::leftFront.getStatus() == decltype(DistanceSensors::leftFront)::Status::noError)
 				{
-					if (tempFusedData.distSensorState.leftFront == DistSensorStatus::ok)
+					if (fusedData.distSensorState.leftFront == DistSensorStatus::ok)
 					{
-						tempFusedData.distances.leftFront = tempDist * SIALSettings::SensorFusion::shortDistSensIIRFactor + tempFusedData.distances.leftFront * (1.0f - SIALSettings::SensorFusion::shortDistSensIIRFactor);
+						fusedData.distances.leftFront = tempDist * SIALSettings::SensorFusion::shortDistSensIIRFactor + fusedData.distances.leftFront * (1.0f - SIALSettings::SensorFusion::shortDistSensIIRFactor);
 					}
 					else
 					{
-						tempFusedData.distances.leftFront = tempDist;
+						fusedData.distances.leftFront = tempDist;
 					}
 
-					tempFusedData.distSensorState.leftFront = DistSensorStatus::ok;
+					fusedData.distSensorState.leftFront = DistSensorStatus::ok;
 				}
 				else if (DistanceSensors::leftFront.getStatus() == decltype(DistanceSensors::leftFront)::Status::overflow || DistanceSensors::leftFront.getStatus() == decltype(DistanceSensors::leftFront)::Status::noConvergence)
 				{
-					tempFusedData.distSensorState.leftFront = DistSensorStatus::overflow;
-					tempFusedData.distances.leftFront = 0;
+					fusedData.distSensorState.leftFront = DistSensorStatus::overflow;
+					fusedData.distances.leftFront = 0;
 				}
 				else if (DistanceSensors::leftFront.getStatus() == decltype(DistanceSensors::leftFront)::Status::underflow)
 				{
-					tempFusedData.distSensorState.leftFront = DistSensorStatus::underflow;
-					tempFusedData.distances.leftFront = 0;
+					fusedData.distSensorState.leftFront = DistSensorStatus::underflow;
+					fusedData.distances.leftFront = 0;
 				}
 				else
 				{
-					tempFusedData.distSensorState.leftFront = DistSensorStatus::error;
-					tempFusedData.distances.leftFront = 0;
+					fusedData.distSensorState.leftFront = DistSensorStatus::error;
+					fusedData.distances.leftFront = 0;
 				}
 			}
 			else {
 				if (DistanceSensors::leftFront.getStatus() == decltype(DistanceSensors::leftFront)::Status::timeOut) {
-					tempFusedData.distSensorState.leftFront = DistSensorStatus::error;
-					tempFusedData.distances.leftFront = 0;
+					fusedData.distSensorState.leftFront = DistSensorStatus::error;
+					fusedData.distances.leftFront = 0;
 				}
 			}
 
@@ -1056,37 +1068,37 @@ namespace SIAL
 
 				if (DistanceSensors::rightBack.getStatus() == decltype(DistanceSensors::rightBack)::Status::noError)
 				{
-					if (tempFusedData.distSensorState.rightBack == DistSensorStatus::ok)
+					if (fusedData.distSensorState.rightBack == DistSensorStatus::ok)
 					{
-						tempFusedData.distances.rightBack = tempDist * SIALSettings::SensorFusion::shortDistSensIIRFactor + tempFusedData.distances.rightBack * (1.0f - SIALSettings::SensorFusion::shortDistSensIIRFactor);
+						fusedData.distances.rightBack = tempDist * SIALSettings::SensorFusion::shortDistSensIIRFactor + fusedData.distances.rightBack * (1.0f - SIALSettings::SensorFusion::shortDistSensIIRFactor);
 					}
 					else
 					{
-						tempFusedData.distances.rightBack = tempDist;
+						fusedData.distances.rightBack = tempDist;
 					}
 
-					tempFusedData.distSensorState.rightBack = DistSensorStatus::ok;
+					fusedData.distSensorState.rightBack = DistSensorStatus::ok;
 				}
 				else if (DistanceSensors::rightBack.getStatus() == decltype(DistanceSensors::rightBack)::Status::overflow || DistanceSensors::rightBack.getStatus() == decltype(DistanceSensors::rightBack)::Status::noConvergence)
 				{
-					tempFusedData.distSensorState.rightBack = DistSensorStatus::overflow;
-					tempFusedData.distances.rightBack = 0;
+					fusedData.distSensorState.rightBack = DistSensorStatus::overflow;
+					fusedData.distances.rightBack = 0;
 				}
 				else if (DistanceSensors::rightBack.getStatus() == decltype(DistanceSensors::rightBack)::Status::underflow)
 				{
-					tempFusedData.distSensorState.rightBack = DistSensorStatus::underflow;
-					tempFusedData.distances.rightBack = 0;
+					fusedData.distSensorState.rightBack = DistSensorStatus::underflow;
+					fusedData.distances.rightBack = 0;
 				}
 				else
 				{
-					tempFusedData.distSensorState.rightBack = DistSensorStatus::error;
-					tempFusedData.distances.rightBack = 0;
+					fusedData.distSensorState.rightBack = DistSensorStatus::error;
+					fusedData.distances.rightBack = 0;
 				}
 			}
 			else {
 				if (DistanceSensors::rightBack.getStatus() == decltype(DistanceSensors::rightBack)::Status::timeOut) {
-					tempFusedData.distSensorState.rightBack = DistSensorStatus::error;
-					tempFusedData.distances.rightBack = 0;
+					fusedData.distSensorState.rightBack = DistSensorStatus::error;
+					fusedData.distances.rightBack = 0;
 				}
 			}
 
@@ -1096,42 +1108,42 @@ namespace SIAL
 
 				if (DistanceSensors::rightFront.getStatus() == decltype(DistanceSensors::rightFront)::Status::noError)
 				{
-					if (tempFusedData.distSensorState.rightFront == DistSensorStatus::ok)
+					if (fusedData.distSensorState.rightFront == DistSensorStatus::ok)
 					{
-						tempFusedData.distances.rightFront = tempDist * SIALSettings::SensorFusion::shortDistSensIIRFactor + tempFusedData.distances.rightFront * (1.0f - SIALSettings::SensorFusion::shortDistSensIIRFactor);
+						fusedData.distances.rightFront = tempDist * SIALSettings::SensorFusion::shortDistSensIIRFactor + fusedData.distances.rightFront * (1.0f - SIALSettings::SensorFusion::shortDistSensIIRFactor);
 					}
 					else
 					{
-						tempFusedData.distances.rightFront = tempDist;
+						fusedData.distances.rightFront = tempDist;
 					}
 
-					tempFusedData.distSensorState.rightFront = DistSensorStatus::ok;
+					fusedData.distSensorState.rightFront = DistSensorStatus::ok;
 				}
 				else if (DistanceSensors::rightFront.getStatus() == decltype(DistanceSensors::rightFront)::Status::overflow || DistanceSensors::rightFront.getStatus() == decltype(DistanceSensors::rightFront)::Status::noConvergence)
 				{
-					tempFusedData.distSensorState.rightFront = DistSensorStatus::overflow;
-					tempFusedData.distances.rightFront = 0;
+					fusedData.distSensorState.rightFront = DistSensorStatus::overflow;
+					fusedData.distances.rightFront = 0;
 				}
 				else if (DistanceSensors::rightFront.getStatus() == decltype(DistanceSensors::rightFront)::Status::underflow)
 				{
-					tempFusedData.distSensorState.rightFront = DistSensorStatus::underflow;
-					tempFusedData.distances.rightFront = 0;
+					fusedData.distSensorState.rightFront = DistSensorStatus::underflow;
+					fusedData.distances.rightFront = 0;
 				}
 				else
 				{
-					tempFusedData.distSensorState.rightFront = DistSensorStatus::error;
-					tempFusedData.distances.rightFront = 0;
+					fusedData.distSensorState.rightFront = DistSensorStatus::error;
+					fusedData.distances.rightFront = 0;
 				}
 			}
 			else {
 				if (DistanceSensors::rightFront.getStatus() == decltype(DistanceSensors::rightFront)::Status::timeOut) {
-					tempFusedData.distSensorState.rightFront = DistSensorStatus::error;
-					tempFusedData.distances.rightFront = 0;
+					fusedData.distSensorState.rightFront = DistSensorStatus::error;
+					fusedData.distances.rightFront = 0;
 				}
 			}
 
-			// SensorFusion::setDistances(tempFusedData.distances);
-			// SensorFusion::setDistSensStates(tempFusedData.distSensorState);
+			SensorFusion::setDistances(fusedData.distances);
+			SensorFusion::setDistSensStates(fusedData.distSensorState);
 		}
 
 		void forceNewMeasurement()
@@ -1180,7 +1192,6 @@ namespace SIAL
 			while (millis() - startCalibTime < 2000)
 			{
 				SensorFusion::updateSensors();
-				SensorFusion::untimedFusion();
 				auto fusedData = SensorFusion::getFusedData();
 
 				DistSensorStatus state = DistSensorStatus::error;

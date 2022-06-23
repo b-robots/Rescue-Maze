@@ -25,15 +25,10 @@ namespace SIAL
 		*distToWall = (doubleDistToMiddle + (distA + distB) / 10.0f) / (2.0f * cosf(*angle));
 	}
 
-	inline int8_t sgn(const int val) {
+	template <typename T>
+	inline int8_t sgn(const T val) {
 		if (val < 0) return -1;
 		else if (val == 0) return 0;
-		else return 1;
-	}
-
-	inline int8_t sgn(const float val) {
-		if (val < 0.0f) return -1;
-		else if (val == 0.0f) return 0;
 		else return 1;
 	}
 

@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "Vector.h"
 #include "DuePinMapping.h"
+#include "Math.h"
 
 namespace SIAL
 {
@@ -16,19 +17,6 @@ namespace SIAL
 		yellow,
 		heat,
 		none
-	};
-
-	class VisVictimCount
-	{
-	public:
-		uint16_t harmed;
-		uint16_t stable;
-		uint16_t unharmed;
-		uint16_t red;
-		uint16_t green;
-		uint16_t yellow;
-
-		explicit VisVictimCount(uint16_t val = 0) : harmed(val), stable(val), unharmed(val), red(val), green(val), yellow(val) {}
 	};
 
 	enum class SerialType : uint8_t
@@ -162,24 +150,6 @@ namespace SIAL
 		int8_t y;
 
 		explicit constexpr MapCoordinate(int8_t x = 0, int8_t y = 0) : x(x), y(y) {}
-		MapCoordinate(const volatile MapCoordinate& coor) : x(coor.x), y(coor.y) {}
-		constexpr MapCoordinate(const MapCoordinate& coor) : x(coor.x), y(coor.y) {}
-
-		inline const volatile MapCoordinate& operator=(const volatile MapCoordinate coor) volatile
-		{
-			x = coor.x;
-			y = coor.y;
-
-			return *this;
-		}
-
-		inline const MapCoordinate& operator=(const MapCoordinate& coor)
-		{
-			x = coor.x;
-			y = coor.y;
-
-			return *this;
-		}
 
 		MapCoordinate getCoordinateInDir(AbsoluteDir dir) const {
 			MapCoordinate result = *this;
@@ -431,38 +401,6 @@ namespace SIAL
 		AbsoluteDir heading;			// Heading of the robot
 
 		constexpr RobotState() : wheelSpeeds(), forwardVel(0.0f), position(), angularVel(), forwardVec(), heading(AbsoluteDir::north), globalHeading(0.0f), pitch(0.0f), mapCoordinate() {}
-		RobotState(const volatile RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), forwardVec(state.forwardVec), heading(state.heading), globalHeading(state.globalHeading), pitch(state.pitch), mapCoordinate(state.mapCoordinate) {}
-		constexpr RobotState(const RobotState& state) : wheelSpeeds(state.wheelSpeeds), forwardVel(state.forwardVel), position(state.position), angularVel(state.angularVel), forwardVec(state.forwardVec), heading(state.heading), globalHeading(state.globalHeading), pitch(state.pitch), mapCoordinate(state.mapCoordinate) {}
-
-		inline const volatile RobotState& operator=(const volatile RobotState state) volatile
-		{
-			wheelSpeeds = state.wheelSpeeds;
-			forwardVel = state.forwardVel;
-			position = state.position;
-			angularVel = state.angularVel;
-			forwardVec = state.forwardVec;
-			heading = state.heading;
-			globalHeading = state.globalHeading;
-			pitch = state.pitch;
-			mapCoordinate = state.mapCoordinate;
-
-			return *this;
-		}
-
-		inline const RobotState& operator=(const RobotState& state)
-		{
-			wheelSpeeds = state.wheelSpeeds;
-			forwardVel = state.forwardVel;
-			position = state.position;
-			angularVel = state.angularVel;
-			forwardVec = state.forwardVec;
-			heading = state.heading;
-			globalHeading = state.globalHeading;
-			pitch = state.pitch;
-			mapCoordinate = state.mapCoordinate;
-
-			return *this;
-		}
 	};
 
 	// Possible states of a cell
@@ -532,24 +470,6 @@ namespace SIAL
 		uint8_t cellState;
 
 		explicit constexpr GridCell(uint8_t cellConnections = 0b1111, uint8_t cellState = 0) : cellConnections(cellConnections), cellState(cellState) {}
-		GridCell(const volatile GridCell& cell) : cellConnections(cell.cellConnections), cellState(cell.cellState) {}
-		constexpr GridCell(const GridCell& cell) : cellConnections(cell.cellConnections), cellState(cell.cellState) {}
-
-		inline const volatile GridCell& operator=(const volatile GridCell cell) volatile
-		{
-			cellConnections = cell.cellConnections;
-			cellState = cell.cellState;
-
-			return *this;
-		}
-
-		inline const GridCell& operator=(const GridCell& cell)
-		{
-			cellConnections = cell.cellConnections;
-			cellState = cell.cellState;
-
-			return *this;
-		}
 	};
 
 	// Status of distance sensor
@@ -573,34 +493,6 @@ namespace SIAL
 		DistSensorStatus rightBack;
 
 		constexpr DistSensorStates() : frontLeft(DistSensorStatus::error), frontRight(DistSensorStatus::error), frontLong(DistSensorStatus::error), leftFront(DistSensorStatus::error), leftBack(DistSensorStatus::error), rightFront(DistSensorStatus::error), rightBack(DistSensorStatus::error) {}
-		DistSensorStates(const volatile DistSensorStates& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
-		constexpr DistSensorStates(const DistSensorStates& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
-
-		inline const volatile DistSensorStates& operator=(const volatile DistSensorStates dist) volatile
-		{
-			frontLeft = dist.frontLeft;
-			frontRight = dist.frontRight;
-			frontLong = dist.frontLong;
-			leftFront = dist.leftFront;
-			leftBack = dist.leftBack;
-			rightFront = dist.rightFront;
-			rightBack = dist.rightBack;
-
-			return *this;
-		}
-
-		inline const DistSensorStates& operator=(const DistSensorStates& dist)
-		{
-			frontLeft = dist.frontLeft;
-			frontRight = dist.frontRight;
-			frontLong = dist.frontLong;
-			leftFront = dist.leftFront;
-			leftBack = dist.leftBack;
-			rightFront = dist.rightFront;
-			rightBack = dist.rightBack;
-
-			return *this;
-		}
 	};
 
 	// All distances in one structure
@@ -615,34 +507,6 @@ namespace SIAL
 		uint16_t rightBack;
 
 		constexpr Distances() : frontLeft(0), frontRight(0), frontLong(0), leftFront(0), leftBack(0), rightFront(0), rightBack(0) {}
-		Distances(const volatile Distances& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
-		constexpr Distances(const Distances& dist) : frontLeft(dist.frontLeft), frontRight(dist.frontRight), frontLong(dist.frontLong), leftFront(dist.leftFront), leftBack(dist.leftBack), rightFront(dist.rightFront), rightBack(dist.rightBack) {}
-
-		inline const volatile Distances& operator=(const volatile Distances dist) volatile
-		{
-			frontLeft = dist.frontLeft;
-			frontRight = dist.frontRight;
-			frontLong = dist.frontLong;
-			leftFront = dist.leftFront;
-			leftBack = dist.leftBack;
-			rightFront = dist.rightFront;
-			rightBack = dist.rightBack;
-
-			return *this;
-		}
-
-		inline const Distances& operator=(const Distances& dist)
-		{
-			frontLeft = dist.frontLeft;
-			frontRight = dist.frontRight;
-			frontLong = dist.frontLong;
-			leftFront = dist.leftFront;
-			leftBack = dist.leftBack;
-			rightFront = dist.rightFront;
-			rightBack = dist.rightBack;
-
-			return *this;
-		}
 	};
 
 	// Data from color sensor
@@ -652,30 +516,37 @@ namespace SIAL
 		uint16_t lux;
 
 		explicit constexpr ColorSensData(uint16_t colorTemp = 0, uint16_t lux = 0) : colorTemp(colorTemp), lux(lux) {}
-		ColorSensData(const volatile ColorSensData& data) : colorTemp(data.colorTemp), lux(data.lux) {}
-		constexpr ColorSensData(const ColorSensData& data) : colorTemp(data.colorTemp), lux(data.lux) {}
-
-		inline const volatile ColorSensData& operator=(const volatile ColorSensData data) volatile
-		{
-			colorTemp = data.colorTemp;
-			lux = data.lux;
-
-			return *this;
-		}
-
-		inline const ColorSensData& operator=(const ColorSensData& data)
-		{
-			colorTemp = data.colorTemp;
-			lux = data.lux;
-
-			return *this;
-		}
 	};
 
 	enum class FloorTileColour : uint8_t {
 		white,
 		silver,
 		black
+	};
+
+	struct FusedDistSensData {
+		float distSensAngle;		// Angle measured by distance sensors (rad)
+		float distSensAngleTrust;	// How much can I trust the measured angle? (0.0 - 1.0)
+
+		struct DistToWalls {
+			float l = -1.0f;
+			float r = -1.0f;
+			float f = -1.0f;
+
+			constexpr DistToWalls(const DistToWalls& data) : l(data.l), r(data.r), f(data.f){}
+			explicit constexpr DistToWalls() : l(-1.0f), r(-1.0f), f(-1.0f){}
+
+			inline const DistToWalls& operator=(const DistToWalls& data)
+			{
+				l = data.l;
+				r = data.r;
+				f = data.f;
+
+				return *this;
+			}
+		} distToWalls;
+
+		explicit constexpr FusedDistSensData() : distSensAngle(0.0f), distSensAngleTrust(0.0f), distToWalls() {}
 	};
 
 	// Data fused by SensorFusion
@@ -686,31 +557,24 @@ namespace SIAL
 		Distances distances; 		// Results of distance measurement in mm
 		DistSensorStates distSensorState;	// States of all distance sensors
 		ColorSensData colorSensData;	// Data from color sensor at the bottom (includes color temperature and brightness in lux)
+		FusedDistSensData fusedDistSens;	// Fused data of distance sensors (angle and distance to walls)
 
-		constexpr FusedData() : robotState(), gridCell(), distances(), distSensorState(), colorSensData() {}
-		FusedData(const volatile FusedData& data) : robotState(data.robotState), gridCell(data.gridCell), distances(data.distances), distSensorState(data.distSensorState), colorSensData(data.colorSensData) {}
-		constexpr FusedData(const FusedData& data) : robotState(data.robotState), gridCell(data.gridCell), distances(data.distances), distSensorState(data.distSensorState), colorSensData(data.colorSensData) {}
+		constexpr FusedData() : robotState(), gridCell(), distances(), distSensorState(), colorSensData(), fusedDistSens() {}
+	};
 
-		inline const volatile FusedData& operator=(const volatile FusedData data) volatile
-		{
-			robotState = data.robotState;
-			gridCell = data.gridCell;
-			distances = data.distances;
-			distSensorState = data.distSensorState;
-			colorSensData = data.colorSensData;
+	enum class DrivingTaskUID : uint8_t {
+		invalid,
+		stop,
+		forceSpeed,
+		rotate,
+		followWall
+	};
 
-			return *this;
-		}
+	struct DrivingTaskInformation {
+		bool finished = false;
+		bool drivingStraight = false;
+		DrivingTaskUID uid = DrivingTaskUID::invalid;
 
-		inline const FusedData& operator=(const FusedData& data)
-		{
-			robotState = data.robotState;
-			gridCell = data.gridCell;
-			distances = data.distances;
-			distSensorState = data.distSensorState;
-			colorSensData = data.colorSensData;
-
-			return *this;
-		}
+		explicit DrivingTaskInformation(DrivingTaskUID _uid = DrivingTaskUID::invalid, bool _drivingStraight = false) : uid(_uid), finished(false), drivingStraight(_drivingStraight) {}
 	};
 }

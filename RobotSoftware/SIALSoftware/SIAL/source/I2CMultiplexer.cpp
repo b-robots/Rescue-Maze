@@ -35,6 +35,30 @@ namespace SIAL
 			return true;
 		}
 
+		void recoverI2C() {
+			Serial.println("I2C Multiplexer Error");
+
+			Wire.end();
+
+			pinMode(SCL, OUTPUT);
+			for (int i = 0; i < 10; i++) {
+				digitalWrite(SCL, LOW);
+				delayMicroseconds(2);
+				digitalWrite(SDA, LOW);
+				delayMicroseconds(2);
+				digitalWrite(SCL, HIGH);
+				delayMicroseconds(4);
+			}
+			pinMode(SCL, INPUT);
+
+			Wire.begin();
+
+			Wire.beginTransmission(0x1);
+			Wire.endTransmission(true);
+
+			selectChannel(0);
+		}
+
 		uint8_t getChannel()
 		{
 			return _currentChannel;
@@ -50,7 +74,6 @@ namespace SIAL
 				_currentChannel = channel;
 
 				auto result = Wire.endTransmission(true);
-				delayMicroseconds(100);
 
 				return result;
 			}
