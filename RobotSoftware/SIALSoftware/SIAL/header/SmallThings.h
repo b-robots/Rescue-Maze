@@ -10,9 +10,17 @@ namespace SIAL
 {
 	namespace PowerLEDs
 	{
-		ReturnCode setup();
+		void setup();
 		void setBrightness(float perc);
 		void setBrightness(bool left, float perc);
+	}
+
+	namespace Bumper {
+		extern volatile bool left;
+		extern volatile bool right;
+
+		void setup();
+		void interrupt(InterruptSource source, uint32_t isr);
 	}
 
 	namespace MemWatcher

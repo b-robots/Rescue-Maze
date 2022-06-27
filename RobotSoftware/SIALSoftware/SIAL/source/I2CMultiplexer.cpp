@@ -14,6 +14,10 @@ namespace SIAL
 
 		ReturnCode setup()
 		{
+			if (!checkI2C()) {
+				recoverI2C();
+			}
+
 			uint8_t ch = random(0, maxCh + 1);
 			_currentChannel = ch;
 

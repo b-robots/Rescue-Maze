@@ -5,11 +5,9 @@
 
 namespace SIAL {
 	namespace SmoothDriving {
-		namespace {
-			ITask* _currentTask = nullptr;
-		}
+		ITask* _currentTask = nullptr;
 
-		void setNewTask(ITask* task, bool forceOverride) {
+		void startNewTask(ITask* task, bool forceOverride) {
 			if (_currentTask == nullptr || forceOverride || _currentTask->getInformation().finished) {
 				delete _currentTask;
 
@@ -41,6 +39,13 @@ namespace SIAL {
 
 		DrivingTaskInformation getInformation() {
 			return _currentTask->getInformation();
+		}
+
+		void stop() {
+			delete _currentTask;
+			_currentTask = new Stop();
+			_currentTask->startTask(RobotState());
+			updateSpeeds();
 		}
 
 		ITask::ITask(DrivingTaskInformation information) : _information(information) {}
@@ -90,6 +95,60 @@ namespace SIAL {
 			_totalTime = _angle / _maxAngularVel * 2.0f;
 		}
 
+		WheelSpeeds Rotate::updateSpeeds(float dt)
+		{
+			float rotatedAngle;			// Rotated angle since start
+			float desAngularVel;		// Desired angular velocity
+			WheelSpeeds output;			// Output
+
+			if (_information.finished) {
+				return WheelSpeeds{ 0, 0 };
+			}
+
+			const auto tempRobotState = SensorFusion::getFusedData().robotState;
+
+			// Calculate rotated angle
+			rotatedAngle = tempRobotState.globalHeading - _startAngle;
+
+			// Check if I am there
+			if (fabsf(rotatedAngle) >= fabsf(_angle))
+			{
+				_information.finished = true;
+
+				return WheelSpeeds{ 0, 0 };
+			}
+
+			// Accelerate / deccelerate
+			if (_accelerate)
+			{
+				// w(t) = w_max * t / (t_ges / 2) => a(t) = w_max * t^2 / t_ges => t(a) = sqrt(a * t_ges / w_max)
+				float t = sqrtf(fabsf(rotatedAngle * _totalTime / _maxAngularVel));
+				desAngularVel = _maxAngularVel * 2.0f * t / _totalTime;
+
+				if (fabsf(rotatedAngle) >= fabsf(_angle) / 2.0f)
+				{
+					_accelerate = false;
+				}
+			}
+			else
+			{
+				float t = _totalTime / 2.0f - sqrtf(fabsf((_angle - rotatedAngle) * _totalTime / _maxAngularVel));
+				desAngularVel = _maxAngularVel - _maxAngularVel * 2.0f * t / _totalTime;
+			}
+
+			// Compute wheel speeds -- w = (v_r - v_l) / wheelDistance; v_l = -v_r; => v_l = -w * wheelDistance / 2; v_r = w * wheelDistance / 2
+			output = WheelSpeeds{ -SIALSettings::Mechanics::wheelDistance * desAngularVel / 2.0f, SIALSettings::Mechanics::wheelDistance * desAngularVel / 2.0f };
+
+			// Correct speed if it is too low
+			if (output.right < SIALSettings::MotorControl::minSpeed && output.right > -SIALSettings::MotorControl::minSpeed)
+			{
+				output.right = SIALSettings::MotorControl::minSpeed * sgn(_angle);
+				output.left = -output.right;
+			}
+
+			return output;
+		}
+
 		FollowWall::FollowWall(int32_t dist, int16_t speed) : ITask(DrivingTaskInformation(DrivingTaskUID::followWall, true)), _dist(dist), _speed(speed), _pid(SIALSettings::Controller::GoToAngle::pidSettings) {}
 
 		void FollowWall::startTask(RobotState startState) {
@@ -111,18 +170,18 @@ namespace SIAL {
 				drivenDistance = fabsf(currentPosition.y - _startPos.y);
 			}
 
-			bool stopWithWall = false;
-			if (_speed > 0) {
-				if (fusedData.distSensorState.frontRight == DistSensorStatus::ok &&
-					(fusedData.distances.frontRight / 10.0f - 15.0f + SIALSettings::Mechanics::distSensFrontBackDist / 2.0f + drivenDistance) * 0.8f < _dist) {
-					if (fusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
-						(fusedData.distances.frontLeft / 10.0f - 15.0f + SIALSettings::Mechanics::distSensFrontBackDist / 2.0f + drivenDistance) * 0.8f < _dist) {
-						stopWithWall = true;
-					}
-				}
-			}
+			//bool stopWithWall = false;
+			//if (_speed > 0) {
+			//	if (fusedData.distSensorState.frontRight == DistSensorStatus::ok &&
+			//		(fusedData.distances.frontRight / 10.0f - 15.0f + SIALSettings::Mechanics::distSensFrontBackDist / 2.0f + drivenDistance) * 0.8f < _dist) {
+			//		if (fusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
+			//			(fusedData.distances.frontLeft / 10.0f - 15.0f + SIALSettings::Mechanics::distSensFrontBackDist / 2.0f + drivenDistance) * 0.8f < _dist) {
+			//			stopWithWall = true;
+			//		}
+			//	}
+			//}
 
-			if (drivenDistance >= fabsf(_dist) * 0.95 && !stopWithWall)
+			if (drivenDistance >= fabsf(_dist) * 0.97)
 			{
 				_information.finished = true;
 			}
@@ -190,57 +249,93 @@ namespace SIAL {
 			return output;
 		}
 
-		// Update speeds for both wheels
-		WheelSpeeds Rotate::updateSpeeds(float dt)
+		AlignWalls::AlignWalls() : ITask(DrivingTaskInformation(DrivingTaskUID::alignWalls)), _avgAngle(0.0f), _first(true), _cnt(0) {}
+
+		void AlignWalls::startTask(RobotState startState) {}
+
+		WheelSpeeds AlignWalls::updateSpeeds(float dt)
 		{
-			float rotatedAngle;			// Rotated angle since start
-			float desAngularVel;		// Desired angular velocity
-			WheelSpeeds output;			// Output
+			static WheelSpeeds output;
 
-			if (_information.finished) {
-				return WheelSpeeds{ 0, 0 };
+			if (_information.finished)
+			{
+				return WheelSpeeds{ 0,0 };
 			}
 
-			const auto tempRobotState = SensorFusion::getFusedData().robotState;
+			_cnt++;
 
-			// Calculate rotated angle
-			rotatedAngle = tempRobotState.globalHeading - _startAngle;
+			float angle = SensorFusion::getAngleRelToWall();
 
-			// Check if I am there
-			if (fabsf(rotatedAngle) >= fabsf(_angle))
-			{
+			if ((fabsf(_avgAngle) < 0.04 && !_first)) {
+				SensorFusion::forceAnglePosReset = true;
 				_information.finished = true;
-
-				return WheelSpeeds{ 0, 0 };
 			}
+			else {
+				if (std::isnan(angle)) {
+					return WheelSpeeds{ 0,0 };
+				}
 
-			// Accelerate / deccelerate
-			if (_accelerate)
-			{
-				// w(t) = w_max * 2 * t / t_ges => a(t) = w_max * t^2 / t_ges => t(a) = sqrt(a * t_ges / w_max); w(a) = w_max * 2 * sqrt(a * t_ges / w_max) / t_ges = sqrt(4 * a * w_max / t_ges)
-				desAngularVel = sqrtf(4.0f * fabsf(rotatedAngle * _maxAngularVel) / _totalTime) * sgn(_maxAngularVel);
-
-				if (fabsf(rotatedAngle) >= fabsf(_angle) / 2.0f)
-				{
-					_accelerate = false;
+				if (_first) {
+					_avgAngle = angle;
+					_first = false;
+				}
+				else {
+					_avgAngle = angle * 0.8 + _avgAngle * 0.2;
 				}
 			}
-			else
-			{
-				desAngularVel = _maxAngularVel - sqrtf(4.0f * fabsf((rotatedAngle - _angle / 2.0f) * _maxAngularVel) / _totalTime) * sgn(_maxAngularVel);
-			}
 
-			// Compute wheel speeds -- w = (v_r - v_l) / wheelDistance; v_l = -v_r; => v_l = -w * wheelDistance / 2; v_r = w * wheelDistance / 2
-			output = WheelSpeeds{ -SIALSettings::Mechanics::wheelDistance * desAngularVel / 2.0f, SIALSettings::Mechanics::wheelDistance * desAngularVel / 2.0f };
-			
-			// Correct speed if it is too low
-			if (output.right < SIALSettings::MotorControl::minSpeed && output.right > -SIALSettings::MotorControl::minSpeed)
-			{
-				output.right = SIALSettings::MotorControl::minSpeed * sgn(_angle);
-				output.left = -output.right;
+			if (_avgAngle > 0.0f) {
+				output.left = SIALSettings::MotorControl::minSpeed;
+				output.right = -SIALSettings::MotorControl::minSpeed;
+			}
+			else {
+				output.left = -SIALSettings::MotorControl::minSpeed;
+				output.right = SIALSettings::MotorControl::minSpeed;
 			}
 
 			return output;
+		}
+
+		TaskArray::TaskArray(std::initializer_list<SmoothDriving::ITask*> tasks) : ITask(DrivingTaskInformation(DrivingTaskUID::invalid)) {
+			_num = tasks.size();
+			_tasks = new ITask * [_num];
+
+			uint8_t i = 0;
+			for (ITask* task : tasks) {
+				_tasks[i++] = task;
+			}
+		}
+
+		TaskArray::~TaskArray() {
+			for (uint8_t i = 0; i < _num; i++) {
+				delete _tasks[i];
+			}
+			delete[] _tasks;
+		}
+
+		void TaskArray::startTask(RobotState startState) {
+			_i = 0;
+			_tasks[_i]->startTask(startState);
+			_information = _tasks[_i]->getInformation();
+			_information.finished = false;
+		}
+
+		WheelSpeeds TaskArray::updateSpeeds(float dt) {
+			_information = _tasks[_i]->getInformation();
+
+			if (_information.finished) {
+				if (_i + 1 >= _num) {
+					_information.finished = true;
+				}
+				else {
+					_i++;
+					_tasks[_i]->startTask(SensorFusion::getFusedData().robotState);
+					_information = _tasks[_i]->getInformation();
+					_information.finished = false;
+				}
+			}
+
+			return _tasks[_i]->updateSpeeds(dt);
 		}
 	}
 }

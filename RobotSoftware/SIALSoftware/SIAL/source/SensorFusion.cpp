@@ -6,7 +6,6 @@
 #include "../header/DistanceSensors.h"
 #include "../header/Gyro.h"
 #include "../header/ColorSensor.h"
-//#include "../header/RobotLogic.h"
 #include "../header/SmallThings.h"
 #include "../SIALSettings.h"
 
@@ -42,16 +41,11 @@ namespace SIAL
 			}
 
 			const float dt = (millis() - lastTime) / 1000.0f;
-
-			if (1.0f / dt > SIALSettings::SensorFusion::maxFreq) {
-				return;
-			}
-
 			lastTime = millis();
 
 			RobotState robotState = fusedData.robotState;
 
-			float correctedDistSensAngleTrust = /* TODO SmoothDriving::isDrivingStraight()*/ true ? fusedData.fusedDistSens.distSensAngleTrust : 0.0f;
+			float correctedDistSensAngleTrust = SmoothDriving::getInformation().drivingStraight ? fusedData.fusedDistSens.distSensAngleTrust : 0.0f;
 
 			robotState.wheelSpeeds = MotorControl::getFloatSpeeds();
 
@@ -65,8 +59,6 @@ namespace SIAL
 
 			const auto bnoForwardVec = Gyro::getForwardVec();
 			auto bnoHeading = getGlobalHeading(bnoForwardVec);
-
-			auto excpectedHeading = fitAngleToInterval(lastHeading + lastAngularVel.x * dt * 0.8);
 
 			float bnoPitch = getPitch(bnoForwardVec);
 			float lastPitch = robotState.pitch;
@@ -97,6 +89,10 @@ namespace SIAL
 			//	tempRobotState.angularVel.x = fitAngleToInterval(bnoHeading - lastBnoHeading) * freq * SIALSettings::SensorFusion::bno055DiffPortion + encoderYawVel * (1.0f - SIALSettings::SensorFusion::bno055DiffPortion);
 			//}
 
+			robotState.angularVel.x = fitAngleToInterval(bnoHeading - lastBnoHeading) / dt * SIALSettings::SensorFusion::bno055DiffPortion + encoderYawVel * (1.0f - SIALSettings::SensorFusion::bno055DiffPortion);
+			robotState.angularVel.y = 0.0f;
+			robotState.angularVel = robotState.angularVel * SIALSettings::SensorFusion::angularVelIIRFactor + lastAngularVel * (1.0f - SIALSettings::SensorFusion::angularVelIIRFactor);
+
 			currHeading = (MotorControl::getDistance(Motor::right) - MotorControl::getDistance(Motor::left)) / (SIALSettings::Mechanics::wheelDistToMiddle * 2.0f * SIALSettings::SensorFusion::chi);
 			currHeading -= totalHeadingOff;
 
@@ -106,10 +102,6 @@ namespace SIAL
 
 			// mix asolute and relative heading
 			currHeading = interpolateAngle(currHeading, fitAngleToInterval(lastHeading + robotState.angularVel.x * dt), SIALSettings::SensorFusion::angleDiffPortion);
-
-			robotState.angularVel.y = 0.0f;
-
-			robotState.angularVel = robotState.angularVel * SIALSettings::SensorFusion::angularVelIIRFactor + lastAngularVel * (1.0f - SIALSettings::SensorFusion::angularVelIIRFactor);
 
 			if (correctedState.newHeading) {
 				currHeading = correctedState.heading;
@@ -189,139 +181,118 @@ namespace SIAL
 			lastBnoHeading = bnoHeading;
 		}
 
-		//bool scanSurrounding(uint8_t& outCumSureWalls) {
-		//	uint8_t frontWallsDetected = 0;		// How many times did a wall in front of us get detected
-		//	uint8_t leftWallsDetected = 0;		// How many times did a wall left of us get detected
-		//	uint8_t rightWallsDetected = 0;		// How many times did a wall right of us get detected
+		bool scanSurrounding(uint8_t& outCumSureWalls) {
+			uint8_t frontWallsDetected = 0;		// How many times did a wall in front of us get detected
+			uint8_t leftWallsDetected = 0;		// How many times did a wall left of us get detected
+			uint8_t rightWallsDetected = 0;		// How many times did a wall right of us get detected
 
-		//	static MapCoordinate lastCoordinate;
+			// positive value -> too far in the given direction
+			float centerOffsetToFront = 0.0f;
 
-		//	auto tempFusedData = fusedData;
+			switch (fusedData.robotState.heading)
+			{
+			case AbsoluteDir::north:
+				centerOffsetToFront = fusedData.robotState.position.x - roundf(fusedData.robotState.position.x / 30.0f) * 30.0f;
+				break;
+			case AbsoluteDir::east:
+				centerOffsetToFront = roundf(fusedData.robotState.position.y / 30.0f) * 30.0f - fusedData.robotState.position.y;
+				break;
+			case AbsoluteDir::south:
+				centerOffsetToFront = roundf(fusedData.robotState.position.x / 30.0f) * 30.0f - fusedData.robotState.position.x;
+				break;
+			case AbsoluteDir::west:
+				centerOffsetToFront = fusedData.robotState.position.y - roundf(fusedData.robotState.position.y / 30.0f) * 30.0f;
+				break;
+			default:
+				break;
+			}
 
-		//	// positive value -> too far in the given direction
-		//	float centerOffsetToLeft = 0.0f;
-		//	float centerOffsetToFront = 0.0f;
+			if (fusedData.distSensorState.frontLeft == DistSensorStatus::ok)
+			{
+				if ((fusedData.distances.frontLeft / 10.0f + centerOffsetToFront) < 20.0f - SIALSettings::Mechanics::distSensFrontBackDist / 2.0f) {
+					frontWallsDetected++;
+				}
+			}
+			else if (fusedData.distSensorState.frontLeft == DistSensorStatus::underflow)
+			{
+				frontWallsDetected++;
+			}
 
-		//	switch (tempFusedData.robotState.heading)
-		//	{
-		//	case AbsoluteDir::north:
-		//		centerOffsetToFront = tempFusedData.robotState.position.x - roundf(tempFusedData.robotState.position.x / 30.0f) * 30.0f;
-		//		centerOffsetToLeft = tempFusedData.robotState.position.y - roundf(tempFusedData.robotState.position.y / 30.0f) * 30.0f;
-		//		break;
-		//	case AbsoluteDir::east:
-		//		centerOffsetToFront = roundf(tempFusedData.robotState.position.y / 30.0f) * 30.0f - tempFusedData.robotState.position.y;
-		//		centerOffsetToLeft = tempFusedData.robotState.position.x - roundf(tempFusedData.robotState.position.x / 30.0f) * 30.0f;
-		//		break;
-		//	case AbsoluteDir::south:
-		//		centerOffsetToFront = roundf(tempFusedData.robotState.position.x / 30.0f) * 30.0f - tempFusedData.robotState.position.x;
-		//		centerOffsetToLeft = roundf(tempFusedData.robotState.position.y / 30.0f) * 30.0f - tempFusedData.robotState.position.y;
-		//		break;
-		//	case AbsoluteDir::west:
-		//		centerOffsetToFront = tempFusedData.robotState.position.y - roundf(tempFusedData.robotState.position.y / 30.0f) * 30.0f;
-		//		centerOffsetToLeft = roundf(tempFusedData.robotState.position.x / 30.0f) * 30.0f - tempFusedData.robotState.position.x;
-		//		break;
-		//	default:
-		//		break;
-		//	}
+			if (fusedData.distSensorState.frontRight == DistSensorStatus::ok)
+			{
+				if ((fusedData.distances.frontRight / 10.0f + centerOffsetToFront) < 20.0f - SIALSettings::Mechanics::distSensFrontBackDist / 2.0f) {
+					frontWallsDetected++;
+				}
+			}
+			else if (fusedData.distSensorState.frontRight == DistSensorStatus::underflow)
+			{
+				frontWallsDetected++;
+			}
 
-		//	if (tempFusedData.distSensorState.frontLeft == DistSensorStatus::ok)
-		//	{
-		//		if ((tempFusedData.distances.frontLeft / 10.0f + centerOffsetToFront) < SIALSettings::MazeMapping::distLongerThanBorder + 30.0f / 2.0f - SIALSettings::Mechanics::distSensFrontBackDist / 2.0f) {
-		//			frontWallsDetected++;
-		//		}
-		//	}
-		//	else if (tempFusedData.distSensorState.frontLeft == DistSensorStatus::underflow)
-		//	{
-		//		frontWallsDetected++;
-		//	}
+			if (fusedData.distSensorState.leftFront == DistSensorStatus::ok)
+			{
+				leftWallsDetected++;
+			}
+			else if (fusedData.distSensorState.leftFront == DistSensorStatus::underflow)
+			{
+				leftWallsDetected++;
+			}
 
-		//	if (tempFusedData.distSensorState.frontRight == DistSensorStatus::ok)
-		//	{
-		//		if ((tempFusedData.distances.frontRight / 10.0f + centerOffsetToFront) < SIALSettings::MazeMapping::distLongerThanBorder + 30.0f / 2.0f - SIALSettings::Mechanics::distSensFrontBackDist / 2.0f) {
-		//			frontWallsDetected++;
-		//		}
-		//	}
-		//	else if (tempFusedData.distSensorState.frontRight == DistSensorStatus::underflow)
-		//	{
-		//		frontWallsDetected++;
-		//	}
+			if (fusedData.distSensorState.leftBack == DistSensorStatus::ok)
+			{
+				leftWallsDetected++;
+			}
+			else if (fusedData.distSensorState.leftBack == DistSensorStatus::underflow)
+			{
+				leftWallsDetected++;
+			}
 
-		//	if (tempFusedData.distSensorState.leftFront == DistSensorStatus::ok)
-		//	{
-		//		if ((tempFusedData.distances.leftFront / 10.0f + centerOffsetToLeft) < SIALSettings::MazeMapping::distLongerThanBorder + 30.0f / 2.0f - SIALSettings::Mechanics::distSensLeftRightDist / 2.0f) {
-		//			leftWallsDetected++;
-		//		}
-		//	}
-		//	else if (tempFusedData.distSensorState.leftFront == DistSensorStatus::underflow)
-		//	{
-		//		leftWallsDetected++;
-		//	}
+			if (fusedData.distSensorState.rightFront == DistSensorStatus::ok)
+			{
+				rightWallsDetected++;
+			}
+			else if (fusedData.distSensorState.rightFront == DistSensorStatus::underflow)
+			{
+				rightWallsDetected++;
+			}
 
-		//	if (tempFusedData.distSensorState.leftBack == DistSensorStatus::ok)
-		//	{
-		//		if ((tempFusedData.distances.leftBack / 10.0f + centerOffsetToLeft) < SIALSettings::MazeMapping::distLongerThanBorder + 30.0f / 2.0f - SIALSettings::Mechanics::distSensLeftRightDist / 2.0f) {
-		//			leftWallsDetected++;
-		//		}
-		//	}
-		//	else if (tempFusedData.distSensorState.leftBack == DistSensorStatus::underflow)
-		//	{
-		//		leftWallsDetected++;
-		//	}
+			if (fusedData.distSensorState.rightBack == DistSensorStatus::ok)
+			{
+				rightWallsDetected++;
+			}
+			else if (fusedData.distSensorState.rightBack == DistSensorStatus::underflow)
+			{
+				rightWallsDetected++;
+			}
 
-		//	if (tempFusedData.distSensorState.rightFront == DistSensorStatus::ok)
-		//	{
-		//		if ((tempFusedData.distances.rightFront / 10.0f - centerOffsetToLeft) < SIALSettings::MazeMapping::distLongerThanBorder + 30.0f / 2.0f - SIALSettings::Mechanics::distSensLeftRightDist / 2.0f) {
-		//			rightWallsDetected++;
-		//		}
-		//	}
-		//	else if (tempFusedData.distSensorState.rightFront == DistSensorStatus::underflow)
-		//	{
-		//		rightWallsDetected++;
-		//	}
+			GridCell newCell;
+			uint8_t sureWalls;
+			static int consecutiveOk = 0;
 
-		//	if (tempFusedData.distSensorState.rightBack == DistSensorStatus::ok)
-		//	{
-		//		if ((tempFusedData.distances.rightBack / 10.0f - centerOffsetToLeft) < SIALSettings::MazeMapping::distLongerThanBorder + 30.0f / 2.0f - SIALSettings::Mechanics::distSensLeftRightDist / 2.0f) {
-		//			rightWallsDetected++;
-		//		}
-		//	}
-		//	else if (tempFusedData.distSensorState.rightBack == DistSensorStatus::underflow)
-		//	{
-		//		rightWallsDetected++;
-		//	}
+			bool isOk = MazeMapping::manageDetectedWalls(frontWallsDetected, leftWallsDetected, rightWallsDetected, fusedData, newCell, sureWalls);
+			fusedData.gridCell.cellConnections = newCell.cellConnections;
 
-		//	GridCell newCell;
-		//	uint8_t sureWalls;
-		//	static int consecutiveOk = 0;
+			if (isOk) {
+				consecutiveOk++;
+			}
+			else {
+				consecutiveOk = 0;
+			}
 
-		//	bool isOk = MazeMapping::manageDetectedWalls(frontWallsDetected, leftWallsDetected, rightWallsDetected, tempFusedData, newCell, sureWalls);
-		//	tempFusedData.gridCell.cellConnections = newCell.cellConnections;
+			if (consecutiveOk >= 3) {
+				Serial.print("successful scan: ");
+				Serial.print(sureWalls, BIN);
+				Serial.print(", at: ");
+				Serial.print(fusedData.robotState.mapCoordinate.x);
+				Serial.print(", ");
+				Serial.println(fusedData.robotState.mapCoordinate.y);
 
-		//	if (isOk) {
-		//		consecutiveOk++;
-		//	}
-		//	else {
-		//		consecutiveOk = 0;
-		//	}
+				outCumSureWalls |= sureWalls;
+				fusedData.gridCell.cellConnections = ~((~fusedData.gridCell.cellConnections) | outCumSureWalls);
+			}
 
-		//	if (consecutiveOk >= 3) {
-		//		Serial.print("successful scan: ");
-		//		Serial.print(sureWalls, BIN);
-		//		Serial.print(", at: ");
-		//		Serial.print(tempFusedData.robotState.mapCoordinate.x);
-		//		Serial.print(", ");
-		//		Serial.println(tempFusedData.robotState.mapCoordinate.y);
-
-		//		outCumSureWalls |= sureWalls;
-		//		tempFusedData.gridCell.cellConnections = ~((~tempFusedData.gridCell.cellConnections) | outCumSureWalls);
-		//	}
-
-		//	fusedData = tempFusedData;
-
-		//	lastCoordinate = tempFusedData.robotState.mapCoordinate;
-
-		//	return consecutiveOk >= 3;
-		//}
+			return consecutiveOk >= 3;
+		}
 
 		void calcOffsetAngleFromDistSens() {
 			struct {
@@ -451,10 +422,10 @@ namespace SIAL
 			* TODO Edge-Detection
 			* nur dort wo sicher ist, dass es eine Wand ist
 			* Übergang overflow -> underflow/ok
-			* 
+			*
 			static bool firstEdgeDetection = true;
 
-			if (!( TODO SmoothDriving::isDrivingStraight() &&
+			if (!( SmoothDriving::getInformation().drivingStraight &&
 				MotorControl::getSpeeds().left > 1 &&
 				MotorControl::getSpeeds().right > 1 &&
 				fusedData.robotState.pitch < SIALSettings::SensorFusion::maxPitchForDistSensor) ||
@@ -557,11 +528,11 @@ namespace SIAL
 
 			if (forceAnglePosReset) {
 				forceAnglePosReset = false;
-				updatePosAndRotFromDist();
+				updatePosAndRotFromDist(500);
 			}
 		}
 
-		void updatePosAndRotFromDist() {
+		void updatePosAndRotFromDist(uint32_t time) {
 			float totAngleWeight = 0.0f;
 			float avgCos = 0.0f;
 			float avgSin = 0.0f;
@@ -572,7 +543,8 @@ namespace SIAL
 
 			const RobotState robotState = fusedData.robotState;
 
-			for (int i = 0; i < 10; i++) {
+			const auto start = millis();
+			while (millis() - start < time) {
 				DistanceSensors::updateDistSensors();
 				calcOffsetAngleFromDistSens();
 
@@ -713,6 +685,30 @@ namespace SIAL
 		void setDistSensStates(DistSensorStates distSensorStates)
 		{
 			fusedData.distSensorState = distSensorStates;
+		}
+
+		float getAngleRelToWall() {
+			float wallAngle = 0.0f;
+			switch (fusedData.robotState.heading)
+			{
+			case AbsoluteDir::north:
+				wallAngle = 0.0f;
+				break;
+			case AbsoluteDir::east:
+				wallAngle = -M_PI_2;
+				break;
+			case AbsoluteDir::south:
+				wallAngle = M_PI;
+				break;
+			case AbsoluteDir::west:
+				wallAngle = M_PI_2;
+				break;
+			default:
+				break;
+			}
+
+			float angle = fusedData.fusedDistSens.distSensAngleTrust > 0.01f ? fusedData.fusedDistSens.distSensAngle : NAN;
+			return fitAngleToInterval(angle - wallAngle);
 		}
 	}
 }

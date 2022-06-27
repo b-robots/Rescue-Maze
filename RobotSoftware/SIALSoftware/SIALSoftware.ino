@@ -1,5 +1,8 @@
 #include <Arduino.h>
 
+#undef __cplusplus
+#define __cplusplus 201103L
+
 // External Libs
 #include <SPI.h>
 #include <VL53L0X.h>

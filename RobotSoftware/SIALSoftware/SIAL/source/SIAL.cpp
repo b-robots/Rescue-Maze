@@ -17,6 +17,7 @@
 #include "../header/MazeMapping.h"
 #include "../header/SensorFusion.h"
 #include "../header/SmoothDriving.h"
+#include "../header/RobotLogic.h"
 
 #include <SPI.h>
 #include <Wire.h>
@@ -44,35 +45,49 @@ namespace SIAL {
 		PMC->PMC_PCER0 = PMC_PCER0_PID27 | PMC_PCER0_PID28 | PMC_PCER0_PID29 | PMC_PCER0_PID30 | PMC_PCER0_PID31;
 		PMC->PMC_PCER1 = PMC_PCER1_PID32 | PMC_PCER1_PID33 | PMC_PCER1_PID34 | PMC_PCER1_PID35;
 
+		// Setup interrupts for all ports 
+		NVIC_EnableIRQ(PIOA_IRQn);
+		NVIC_EnableIRQ(PIOB_IRQn);
+		NVIC_EnableIRQ(PIOC_IRQn);
+		NVIC_EnableIRQ(PIOD_IRQn);
+
+		{
+			volatile auto temp = PIOA->PIO_ISR;
+			temp = PIOB->PIO_ISR;
+			temp = PIOC->PIO_ISR;
+			temp = PIOD->PIO_ISR;
+		}
+
 		// Initialise random number generator
 		randomSeed(69420);
 
+		SmoothDriving::startNewTask(new SmoothDriving::Stop(), true);
+
+		bool error = false;
+
 		Switch::setup();
-
-		SmoothDriving::setNewTask(new SmoothDriving::Stop(), true);
-
-		// Setup of power LEDs
-		if (PowerLEDs::setup() != ReturnCode::ok)
-		{
-			Serial.println("Error power LEDs");
-		}
+		PowerLEDs::setup();
+		Bumper::setup();
 
 		// Setup of SPI NVSRAM
 		if (SpiNVSRAM::setup() != ReturnCode::ok)
 		{
 			Serial.println("Error SPI NVSRAM");
+			error = true;
 		}
 
 		// Setup of I2C Multiplexer
 		if (I2CMultiplexer::setup() != ReturnCode::ok)
 		{
 			Serial.println("Error I2CMultiplexer");
+			error = true;
 		}
 
 		// Setup of Distance Sensors
 		if (DistanceSensors::setup() != ReturnCode::ok)
 		{
 			Serial.println("Error DistanceSensors");
+			error = true;
 		}
 
 		// TESTING
@@ -82,38 +97,49 @@ namespace SIAL {
 		if (Gyro::setup() != ReturnCode::ok)
 		{
 			Serial.println("Error BNO055");
+			error = true;
 		}
 
 		// Setup of MotorControl
 		if (MotorControl::setup() != ReturnCode::ok)
 		{
 			Serial.println("Error MotorControl!");
+			error = true;
 		}
 
 		// Setup of HeatSensor
 		if (HeatSensor::setup() != ReturnCode::ok)
 		{
 			Serial.println("Error HeatSensor!");
+			error = true;
 		}
 
 		// Setup of ColorSensor
 		if (ColorSensor::setup() != ReturnCode::ok)
 		{
 			Serial.println("Error ColorSensor!");
+			error = true;
 		}
 
 		// Setup of MazeMapping
 		if (MazeMapping::setup() != ReturnCode::ok)
 		{
 			Serial.println("Error MazeMapping!");
+			error = true;
 		}
 
-		Serial.println("Finished, setup!");
+		if (!error) {
+			Serial.println("Finished setup!");
+		}
+		else {
+			// TODO blink LEDs
+			Serial.println("Error during setup!");
+		}
 
 		// TESTING
 		// Gyro::calibrate();
 
-		//Serial.println("Wait for initial BNO055 calibration...");
+		Serial.println("Wait for initial BNO055 calibration...");
 
 		uint8_t bno_sys = 0;
 		do {
@@ -122,48 +148,56 @@ namespace SIAL {
 			delay(100);
 		} while (bno_sys < 3);
 
-		//Serial.println("BNO055 ready!");
+		Serial.println("BNO055 ready!");
 
 		//PowerLEDs::setBrightness(SIALSettings::PowerLEDs::defaultPower);
 
 		//while (!Switch::getState());
 
 		Serial.println("Start!");
-
-		//Set start for 9DOF
-		Gyro::tare();
-
-		// TESTING
-		SensorFusion::updatePosAndRotFromDist();
-
-		SmoothDriving::setNewTask(new SmoothDriving::FollowWall(90, 30), true);
 	}
 
 	void robotLoop() {
+		static float fps = 100.0f;
+		static uint32_t t = 0;
+		if (t > 0) {
+			fps = 1000.0f / (millis() - t) * 0.8f + fps * 0.2f;
+		}
+		t = millis();
+
+		Serial.print("fps: ");
+		Serial.println(fps);
+
 		SensorFusion::updateSensors();
+		Serial.println(millis() - t);
 		SensorFusion::distSensFusion();
+		Serial.println(millis() - t);
 		SensorFusion::sensorFusion();
+		Serial.println(millis() - t);
 
 		SmoothDriving::updateSpeeds();
 
-		//static int state = 0;
-		//if (SmoothDriving::getInformation().finished) {
-		//	if (state == 0) {
-		//		SmoothDriving::setNewTask(new SmoothDriving::FollowWall(30, 30));
-		//		state = 1;
-		//	}
-		//	else {
-		//		SmoothDriving::setNewTask(new SmoothDriving::Rotate(M_PI_2, 2.0f));
-		//		state = 0;
-		//	}
-		//}
+		Serial.println(millis() - t);
+		RobotLogic::loop();
+
+		Serial.println(millis() - t);
+		if (Bumper::left) {
+			Bumper::left = false;
+		}
+
+		if (Bumper::right) {
+			Bumper::right = false;
+		}
 
 		// TESTING
 		//HeatSensor::detectVictim(HeatSensorSide::left);
 		//HeatSensor::detectVictim(HeatSensorSide::right);
 
 		auto data = SensorFusion::getFusedData();
-		Serial.println(data.robotState.globalHeading);
+
+		//Serial.print(data.robotState.position.x);
+		//Serial.print("; ");
+		//Serial.println(data.robotState.position.y);
 
 		//const char* stateLookup[] = { "ok", "over", "under", "err" };
 		//Serial.print(stateLookup[(int)data.distSensorState.leftFront]);

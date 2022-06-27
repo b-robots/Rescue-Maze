@@ -7,9 +7,9 @@ namespace SIALSettings {
 	namespace Mechanics
 	{
 		constexpr float wheelDiameter = 8.0f;
-		constexpr float wheelDistance = 15.0f;
+		constexpr float wheelDistance = 14.63f;
 		constexpr float axialSpacing = 9.7f;
-		constexpr float wheelDistToMiddle = 8.93f;			// !!! ALWAYS = sqrt(axialSpacing^2 + wheelDistance^2) / 2
+		constexpr float wheelDistToMiddle = 8.78f;			// !!! ALWAYS = sqrt(axialSpacing^2 + wheelDistance^2) / 2
 		constexpr float distSensLeftRightDist = 12.2f;
 		constexpr float distSensFrontBackDist = 14.0f;
 		constexpr float distSensFrontSpacing = 9.2f;
@@ -77,8 +77,8 @@ namespace SIALSettings {
 
 		namespace GoToAngle
 		{
-			constexpr SIAL::PIDSettings pidSettings(0.1f, 0.015f, 0.01f, 3.0f, 3.0f, -3.0f, 3.0f);
-			constexpr float aheadDistL = 20.0f;
+			constexpr SIAL::PIDSettings pidSettings(0.08f, 0.01f, 0.01f, 3.0f, 3.0f, -3.0f, 3.0f);
+			constexpr float aheadDistL = 25.0f;
 		}
 	}
 
@@ -90,8 +90,6 @@ namespace SIALSettings {
 
 	namespace SensorFusion
 	{
-		constexpr uint8_t maxFreq = 50;
-
 		// Maze
 		constexpr float maxPitchForDistSensor = DEG_TO_RAD * 8.0f;		// Maximum pitch of robot for correct front distance measurements
 		constexpr uint16_t minDeltaDistForEdge = 30;					// Minimum change in distance that corresponds to an edge (in mm)
@@ -102,13 +100,18 @@ namespace SIALSettings {
 		constexpr float speedIIRFac = 0.9f;
 
 		// Rotation
-		constexpr float chi = 1.2f;
-		constexpr float bno055DiffPortion = 0.5f;						// How much is the differentiation of the BNO055 angle worth?
-		constexpr float bno055RotPortion = 0.3f;						// How much is a Bno055 rotation measurement worth?
+		constexpr float chi = 1.1f;
+		constexpr float bno055DiffPortion = 1.0f;						// How much is the differentiation of the BNO055 angle worth?
+		constexpr float bno055RotPortion = 1.0f;						// How much is a Bno055 rotation measurement worth?
 		constexpr float angularVelIIRFactor = 0.95f;					// Factor used for IIR-Filter for angular velocity
 		constexpr float pitchIIRFactor = 0.8f;							// Factor used for IIR-Filter for pitch angle
-		constexpr float distAngularPortion = 0.2f;						// How much is a perfect distance sensor measured angle worth?
-		constexpr float angleDiffPortion = 0.4f;						// How much is the heading influenced by the angular velocity instead of the absolute orientation values?
+		constexpr float distAngularPortion = 0.3f;						// How much is a perfect distance sensor measured angle worth?
+		constexpr float angleDiffPortion = 0.0f;						// How much is the heading influenced by the angular velocity instead of the absolute orientation values?
+	}
+
+	namespace Bumper {
+		constexpr uint8_t leftPin = 15;
+		constexpr uint8_t rightPin = 14;
 	}
 
 	namespace MazeMapping

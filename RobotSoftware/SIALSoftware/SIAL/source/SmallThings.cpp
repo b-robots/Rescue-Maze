@@ -3,6 +3,7 @@
 #include "../SIALSettings.h"
 #include "../header/SmallThings.h"
 #include "../header/DuePinMapping.h"
+#include "../header/SmoothDriving.h"
 
 #include <Wire.h>
 
@@ -19,7 +20,7 @@ namespace SIAL
 			constexpr uint8_t rPWMCh = PinMapping::getPWMChannel(rPWM);		// Left LED PWM channel
 		}
 
-		ReturnCode setup()
+		void setup()
 		{
 			// Setup PWM - Controller (~200Hz)
 			PWM->PWM_ENA = 1 << lPWMCh | 1 << rPWMCh;
@@ -71,8 +72,6 @@ namespace SIAL
 			rPWM.port->PIO_MDER = rPWM.pin;
 
 			setBrightness(0.0f);
-
-			return ReturnCode::ok;
 		}
 
 		void setBrightness(float perc)
@@ -92,6 +91,52 @@ namespace SIAL
 			}
 
 			PWM->PWM_SCUC = PWM_SCUC_UPDULOCK;
+		}
+	}
+
+	namespace Bumper {
+		constexpr auto leftPin = PinMapping::MappedPins[SIALSettings::Bumper::leftPin];
+		constexpr auto rightPin = PinMapping::MappedPins[SIALSettings::Bumper::rightPin];
+
+		volatile bool left;
+		volatile bool right;
+
+		void setup() {
+			leftPin.port->PIO_PER = leftPin.pin;
+			leftPin.port->PIO_ODR = leftPin.pin;
+			leftPin.port->PIO_PUER = leftPin.pin;
+			leftPin.port->PIO_IER = leftPin.pin;
+			leftPin.port->PIO_AIMER = leftPin.pin;
+			leftPin.port->PIO_ESR = leftPin.pin;
+			leftPin.port->PIO_FELLSR = leftPin.pin;
+			leftPin.port->PIO_DIFSR = leftPin.pin;
+			leftPin.port->PIO_SCDR = 0x1ff; // 1000ms / (32000hZ / (DIV + 1)) = 16ms
+			leftPin.port->PIO_IFER = leftPin.pin;
+
+			rightPin.port->PIO_PER = rightPin.pin;
+			rightPin.port->PIO_ODR = rightPin.pin;
+			rightPin.port->PIO_PUER = rightPin.pin;
+			rightPin.port->PIO_IER = rightPin.pin;
+			rightPin.port->PIO_AIMER = rightPin.pin;
+			rightPin.port->PIO_ESR = rightPin.pin;
+			rightPin.port->PIO_FELLSR = rightPin.pin;
+			rightPin.port->PIO_DIFSR = rightPin.pin;
+			rightPin.port->PIO_SCDR = 0x1ff; // 1000ms / (32000hZ / (DIV + 1)) = 16ms
+			rightPin.port->PIO_IFER = rightPin.pin;
+		}
+
+		void interrupt(InterruptSource source, uint32_t isr) {
+			if (leftPin.portID == static_cast<uint8_t>(source) && (isr & leftPin.pin)) {
+				left = true;
+			}
+
+			if (rightPin.portID == static_cast<uint8_t>(source) && (isr & rightPin.pin)) {
+				right = true;
+			}
+
+			if (left || right) {
+				SmoothDriving::stop();
+			}
 		}
 	}
 
@@ -139,7 +184,7 @@ namespace SIAL
 			pin.port->PIO_DIFSR = pin.pin;
 			pin.port->PIO_IFER = pin.pin;
 
-			pin.port->PIO_SCDR = 0x8ff; // (DIV + 1) * 31us = ~70ms
+			pin.port->PIO_SCDR = 0xfff; // 1000ms / (32000hZ / (DIV + 1)) = 128ms
 		}
 
 		bool getState()

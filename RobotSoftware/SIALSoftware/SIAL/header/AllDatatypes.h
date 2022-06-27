@@ -7,6 +7,14 @@
 
 namespace SIAL
 {
+	enum class InterruptSource : uint8_t
+	{
+		pioA = ID_PIOA,
+		pioB = ID_PIOB,
+		pioC = ID_PIOC,
+		pioD = ID_PIOD
+	};
+
 	enum class Victim : uint8_t
 	{
 		harmed,
@@ -567,7 +575,8 @@ namespace SIAL
 		stop,
 		forceSpeed,
 		rotate,
-		followWall
+		followWall,
+		alignWalls
 	};
 
 	struct DrivingTaskInformation {

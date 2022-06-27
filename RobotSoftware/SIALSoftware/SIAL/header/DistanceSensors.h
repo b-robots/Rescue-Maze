@@ -96,7 +96,6 @@ namespace SIAL
 			ReturnCode setup();
 			uint16_t getDistance();	// Get distance in mm
 			Status getStatus() const;
-			bool dataReady();
 			void calcCalibData(uint16_t firstTrue, uint16_t firstMeasure, uint16_t secondTrue, uint16_t secondMeasure, uint16_t thirdTrue, uint16_t thirdMeasure);
 			void storeCalibData();
 			void restoreCalibData();

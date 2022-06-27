@@ -309,8 +309,10 @@ namespace SIAL
 				}
 			}
 
-			if (fusedData.robotState.mapCoordinate == homePosition && lastPosition == homePosition && fusedData.robotState.heading != lastDir) {
+			static bool start = true;
+			if (fusedData.robotState.mapCoordinate == homePosition && lastPosition == homePosition && fusedData.robotState.heading != lastDir && start) {
 				walls = walls | (~fusedData.gridCell.cellConnections & CellConnections::directionMask);
+				start = false;
 			}
 
 			tempCell.cellConnections = (~walls) & CellConnections::directionMask;

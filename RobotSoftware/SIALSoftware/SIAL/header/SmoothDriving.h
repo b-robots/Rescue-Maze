@@ -3,6 +3,8 @@
 #include "AllDatatypes.h"
 #include "PIDController.h"
 
+#include <initializer_list>
+
 namespace SIAL {
 	namespace SmoothDriving {
 		class ITask {
@@ -61,8 +63,34 @@ namespace SIAL {
 			FollowWall(int32_t dist, int16_t speed);
 		};
 
-		void setNewTask(ITask* task, bool forceOverride = false);
+		class AlignWalls : public ITask
+		{
+		private:
+			float _avgAngle;
+			bool _first;
+			uint32_t _cnt;
+		public:
+			WheelSpeeds updateSpeeds(float dt);
+			void startTask(RobotState startState);
+			AlignWalls();
+		};
+
+		class TaskArray : public ITask
+		{
+		private:
+			uint8_t _num;
+			uint8_t _i;
+			ITask** _tasks;
+		public:
+			WheelSpeeds updateSpeeds(float dt);
+			void startTask(RobotState startState);
+			TaskArray(std::initializer_list<SmoothDriving::ITask*> tasks);
+			~TaskArray();
+		};
+
+		void startNewTask(ITask* task, bool forceOverride = false);
 		void updateSpeeds();
 		DrivingTaskInformation getInformation();
+		void stop();
 	}
 }

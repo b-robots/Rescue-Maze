@@ -6,6 +6,7 @@
 #include "../header/SpiNVSRAM.h"
 #include "../header/SensorFusion.h"
 #include "../header/SmallThings.h"
+#include "../header/SmoothDriving.h"
 
 namespace SIAL
 {
@@ -230,10 +231,6 @@ namespace SIAL
 
 			if (!success) {
 				if (millis() - _lastRead > SIALSettings::DistanceSensors::timeout) {
-					clearInterrupt();
-
-					delay(50);
-
 					if (read8(_regModelID) != 0xB4)
 					{
 						Serial.println("I2C problem");
@@ -243,11 +240,15 @@ namespace SIAL
 						}
 					}
 
-					delay(50);
+					delay(5);
+
+					clearInterrupt();
+
+					delay(5);
 
 					setup();
 
-					delay(50);
+					delay(5);
 
 					Serial.print("time out: ");
 					Serial.println(_id);
@@ -594,11 +595,6 @@ namespace SIAL
 
 			if (!success) {
 				if (millis() - _lastRead > SIALSettings::DistanceSensors::timeout) {
-					_sensor.stopContinuous();
-					clearInterrupt();
-
-					delay(50);
-
 					if (_sensor.readReg(_sensor.IDENTIFICATION_MODEL_ID) != 0xEE)
 					{
 						Serial.println("I2C problem");
@@ -608,11 +604,14 @@ namespace SIAL
 						}
 					}
 
-					delay(50);
+					delay(5);
+
+					_sensor.stopContinuous();
+					clearInterrupt();
 
 					setup();
 
-					delay(50);
+					delay(5);
 
 					Serial.print("time out: ");
 					Serial.println(_id);
@@ -646,11 +645,6 @@ namespace SIAL
 
 			if (_sensor.timeoutOccurred())
 			{
-				_sensor.stopContinuous();
-				clearInterrupt();
-
-				delay(50);
-
 				if (_sensor.readReg(_sensor.IDENTIFICATION_MODEL_ID) != 0xEE)
 				{
 					Serial.println("I2C problem");
@@ -660,15 +654,19 @@ namespace SIAL
 					}
 				}
 
-				delay(50);
+				delay(5);
+
+				_sensor.stopContinuous();
+				clearInterrupt();
 
 				setup();
 
-				delay(50);
+				delay(5);
 
 				Serial.print("time out: ");
 				Serial.println(_id);
 
+				// Timeout
 				_status = Status::timeOut;
 			}
 			else

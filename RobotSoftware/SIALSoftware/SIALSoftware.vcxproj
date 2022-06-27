@@ -122,6 +122,7 @@
     <ClInclude Include="SIAL\header\MazeMapping.h" />
     <ClInclude Include="SIAL\header\MotorControl.h" />
     <ClInclude Include="SIAL\header\PIDController.h" />
+    <ClInclude Include="SIAL\header\RobotLogic.h" />
     <ClInclude Include="SIAL\header\SensorFusion.h" />
     <ClInclude Include="SIAL\header\SmallThings.h" />
     <ClInclude Include="SIAL\header\SmoothDriving.h" />
@@ -139,9 +140,11 @@
     <ClCompile Include="SIAL\source\Gyro.cpp" />
     <ClCompile Include="SIAL\source\HeatSensor.cpp" />
     <ClCompile Include="SIAL\source\I2CMultiplexer.cpp" />
+    <ClCompile Include="SIAL\source\Interrupts.cpp" />
     <ClCompile Include="SIAL\source\MazeMapping.cpp" />
     <ClCompile Include="SIAL\source\MotorControl.cpp" />
     <ClCompile Include="SIAL\source\PIDController.cpp" />
+    <ClCompile Include="SIAL\source\RobotLogic.cpp" />
     <ClCompile Include="SIAL\source\SensorFusion.cpp" />
     <ClCompile Include="SIAL\source\SIAL.cpp" />
     <ClCompile Include="SIAL\source\SmallThings.cpp" />
