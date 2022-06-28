@@ -1,5 +1,4 @@
 from ast import Pass
-
 from matplotlib.pyplot import gray
 from FisheyeCorrection.undistort import undistort, get_undistort_map
 import cv2 as cv
@@ -8,8 +7,9 @@ import subprocess
 import numpy as np
 #import serial
 import math 
+from sklearn import svm
 
-def get_trainData(path, letter):
+def get_trainImages(path, letter):
     img = cv.imread(letter + ".jpg")
     img = cv.resize(img, (320,240))
     img = 255 - img
@@ -121,7 +121,13 @@ def get_HU(img):
     
     print(hu_moments)
 
-# def main():
+def main():
+    img = get_trainImages("","U")
+    U_train = get_features(img)
+
+    svm_U = svm.OneClassSVM(kernel='rbf', gamma='auto')
+    svm_U.fit(U_train)
+    print(svm_U.predict(U_train))
 #     port = serial.Serial('/dev/serial0', baudrate=9600, timeout=0)
 #     letterLookup = [b'N',  b'H', b'S', b'U']
 #     colorLookup = [b'N',  b'R', b'Y', b'G']
@@ -185,5 +191,4 @@ def get_HU(img):
 #     #cv.imwrite("testR.jpg", imgr)
 
 if __name__ == "__main__":
-    img = get_trainData("","U")
-    get_features(img)
+    main()
