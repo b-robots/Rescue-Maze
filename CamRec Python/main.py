@@ -9,26 +9,32 @@ import numpy as np
 import math 
 from sklearn import svm
 
-def get_trainImages(path, letter):
-    img = cv.imread(letter + ".jpg")
+def get_trainImages(path, letter,):
+    img = cv.imread(path + letter + ".jpg")
     img = cv.resize(img, (320,240))
     img = 255 - img
     #get roi
     map1, map2 = get_undistort_map(0.8, 1.0)
     img = undistort(img, map1, map2)
-    gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    cv.imshow("test1", gray_img)
+    gray_img = 255 - cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    #cv.imshow("test1", gray_img)
     #[y:y+h, x:x+w] the ":" means from to 
     #img = img[100:300, 50:190]
     
     return gray_img
 
+def augment():
+    pass
+
 def get_features(img):
+    img = 255 - img
     blur = cv.GaussianBlur(img,(5,5),0)
     #ret3,oth_image = cv.threshold(blur,0,255,cv.THRESH_BINARY + cv.THRESH_OTSU)
     thresh_img = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, 4)
     contours, hierarchy = cv.findContours(thresh_img, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     contours = [contours[i] for i in range(len(contours)) if hierarchy[0][i][2] < 0]
+
+    cv.imshow("thresh", thresh_img)
 
     brightest_cnt = None
     brightest = 0
@@ -36,23 +42,35 @@ def get_features(img):
         mask = np.zeros_like(img)
         cv.fillPoly(mask, [contour], 255)
         b = np.sum(np.where(mask > 127,img,0)) / (np.sum(mask) + 1)
-        if b > brightest:
+        if b > brightest and cv.contourArea(contour) > 100:
             brightest = b
             brightest_cnt = contour
-
-    test = np.zeros_like(img)
-    cv.fillPoly(test, [brightest_cnt], 255)
+    cnt = np.squeeze(np.asarray(brightest_cnt))
+    left_top = np.amin(cnt, 0)
+    right_bottom = np.amax(cnt, 0)
+    scale = 100.0 / (right_bottom - left_top)
+    cnt = (cnt * scale - left_top * scale).astype(np.int32)
+    
+    test = np.zeros((100, 100), np.uint8)
+    cv.fillPoly(test, [cnt], 255)
     cv.imshow("test", test)
+    
     cv.waitKey(0)
 
-    # Calculate Moments
-    moments = cv.moments(brightest_cnt)
-	# Calculate Hu Moments
-    huMoments = cv.HuMoments(moments)
-    for i in range(0,7):
-        huMoments[i] = -1* math.copysign(1.0, huMoments[i]) * math.log10(abs(huMoments[i]) + 1e-100)
     
-    return np.squeeze(np.asarray(huMoments))
+
+    # # Calculate Moments
+    # moments = cv.moments(brightest_cnt)
+	# # Calculate Hu Moments
+    # huMoments = cv.HuMoments(moments)
+    # for i in range(0,7):
+    #     huMoments[i] = -1* math.copysign(1.0, huMoments[i]) * math.log10(abs(huMoments[i]) + 1e-100)
+    
+    # huMoments = np.squeeze(np.asarray(huMoments))
+    # huMoments[-1] = np.abs(huMoments[-1])
+
+    return 
+
 
 def detect_letter(features):
     pass
@@ -109,25 +127,45 @@ def read_all_serial(port):
     if port.in_waiting <= 0:
         return [None]
     return port.read(port.in_waiting)
-        
-def get_HU(img):
-    # Calculate Moments
-    moments = cv.moments(img)
-    # Calculate Hu Moments
-    hu_moments = cv.HuMoments(moments)
-    # Log scale hu moments
-    for i in range(0,7):
-	    hu_moments[i] = (-1* math.copysign(1.0, hu_moments[i]) * math.log10(abs(hu_moments[i]) + 1e-100))
-    
-    print(hu_moments)
 
 def main():
-    img = get_trainImages("","U")
-    U_train = get_features(img)
+    U_train = []
+    for i in range(0,7):
+        img = get_trainImages("train\\","U"+ str(i))
+        U_train.append(get_features(img))
+    
+    U_test = []
+    for i in range(3):
+        i = i + 7
+        img = get_trainImages("train\\","U"+ str(i))
+        U_test.append(get_features(img))
 
-    svm_U = svm.OneClassSVM(kernel='rbf', gamma='auto')
+    S_train = []
+    for i in range(0,1):
+        img = get_trainImages("train\\","S"+ str(i))
+        U_test.append(get_features(img))
+
+    # H_train = []
+    # for i in range(0,10):
+    #     img = get_trainImages("train\\","S"+ str(i))
+    #     H_train.append(get_features(img))
+    
+    svm_U = svm.OneClassSVM(kernel='rbf', gamma='auto', nu=0.7)
     svm_U.fit(U_train)
+    print(U_train)
+    print(svm_U.predict(U_test))
+    print(svm_U.decision_function(U_test))
+    print(".......")
     print(svm_U.predict(U_train))
+    print(svm_U.decision_function(U_train))
+
+    # svm_S = svm.OneClassSVM(kernel='rbf', gamma='auto', nu=1)
+    # svm_S.fit(S_train)
+    #print(svm_S.predict(U_train))
+
+    # svm_H = svm.OneClassSVM(kernel='rbf', gamma='auto', nu=1)
+    # svm_H.fit(S_train)
+    # print(svm_S.predict(H_train))
 #     port = serial.Serial('/dev/serial0', baudrate=9600, timeout=0)
 #     letterLookup = [b'N',  b'H', b'S', b'U']
 #     colorLookup = [b'N',  b'R', b'Y', b'G']
@@ -191,4 +229,15 @@ def main():
 #     #cv.imwrite("testR.jpg", imgr)
 
 if __name__ == "__main__":
-    main()
+    #main()
+    img = cv.imread("train\\U0.jpg")
+    img2= cv.imread("train\\testU0.jpg")
+    img2 = cv.rotate(img2, cv.ROTATE_90_COUNTERCLOCKWISE)
+
+    img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    img2 = cv.cvtColor(img2, cv.COLOR_BGR2GRAY)
+    cv.imshow("1", img)
+    cv.imshow("2", img2)
+
+    print(get_features(img))
+    print(get_features(img2))
