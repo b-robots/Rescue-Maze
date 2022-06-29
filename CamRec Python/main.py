@@ -1,5 +1,3 @@
-from ast import Pass
-from matplotlib.pyplot import gray
 from FisheyeCorrection.undistort import undistort, get_undistort_map
 import cv2 as cv
 import re
@@ -22,20 +20,22 @@ def get_trainImages(path, letter,):
     #img = img[100:300, 50:190]
     
     return gray_img
+    
 
-def augment():
-    pass
-
-def get_features(img):
+def get_patch(img):
+    #adaptiv thresholding 
     img = 255 - img
-    blur = cv.GaussianBlur(img,(5,5),0)
-    #ret3,oth_image = cv.threshold(blur,0,255,cv.THRESH_BINARY + cv.THRESH_OTSU)
-    thresh_img = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, 4)
+    blur = cv.blur(img,(7,7))
+    thresh_img = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 71, 10)
+    #dilataing small dots/dashes away
+    kernel = np.ones((5,5),np.uint8)
+    thresh_img = cv.dilate(thresh_img,kernel,iterations = 1)
+    #get only contours which have no holes
     contours, hierarchy = cv.findContours(thresh_img, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     contours = [contours[i] for i in range(len(contours)) if hierarchy[0][i][2] < 0]
 
     cv.imshow("thresh", thresh_img)
-
+    #find the brightest contour which is bigger than 100px
     brightest_cnt = None
     brightest = 0
     for contour in contours:
@@ -45,35 +45,49 @@ def get_features(img):
         if b > brightest and cv.contourArea(contour) > 100:
             brightest = b
             brightest_cnt = contour
+    
     cnt = np.squeeze(np.asarray(brightest_cnt))
+    #transform the image into a 100x100px image
     left_top = np.amin(cnt, 0)
     right_bottom = np.amax(cnt, 0)
     scale = 100.0 / (right_bottom - left_top)
     cnt = (cnt * scale - left_top * scale).astype(np.int32)
     
-    test = np.zeros((100, 100), np.uint8)
-    cv.fillPoly(test, [cnt], 255)
-    cv.imshow("test", test)
-    
+    #put contour on 100x100px img
+    patch = np.zeros((100, 100), np.uint8)
+    cv.fillPoly(patch, [cnt], 255)
+
+    return patch  
+
+
+def detect_letter(patch):
+    """
+    Detects letters returns numbers from 0 to 3 
+    where 0 = None, 1 = H, 2 = S, 3 = U
+    """
+    comp_H = cv.imread("HComp.jpg", cv.IMREAD_GRAYSCALE)
+    comp_S = cv.imread("SComp.jpg", cv.IMREAD_GRAYSCALE)
+    comp_U = cv.imread("UComp.jpg", cv.IMREAD_GRAYSCALE)
+
+    comp_H = cv.blur(comp_H,(51,51))
+    comp_S = cv.blur(comp_S,(51,51))
+    comp_U = cv.blur(comp_U,(51,51))
+
+    patch = cv.blur(patch,(51,51))
+
+    cv.imshow("234", patch)
     cv.waitKey(0)
 
+    prediction_H =  np.mean(((comp_H - patch)/255.0)**2)
+    prediction_S =  np.mean(((comp_S - patch)/255.0)**2)
+    prediction_U =  np.mean(((comp_U - patch)/255.0)**2)
+
+    predictions = [prediction_H, prediction_S, prediction_U]
+    print(predictions)
+    if(prediction_H > 0.5 or prediction_S > 0.5 or prediction_U > 0.5):
+        return np.argmax(predictions) + 1
     
-
-    # # Calculate Moments
-    # moments = cv.moments(brightest_cnt)
-	# # Calculate Hu Moments
-    # huMoments = cv.HuMoments(moments)
-    # for i in range(0,7):
-    #     huMoments[i] = -1* math.copysign(1.0, huMoments[i]) * math.log10(abs(huMoments[i]) + 1e-100)
-    
-    # huMoments = np.squeeze(np.asarray(huMoments))
-    # huMoments[-1] = np.abs(huMoments[-1])
-
-    return 
-
-
-def detect_letter(features):
-    pass
+    return 0
 
 def get_undist_roi(img, map1, map2, is_right=False):
     img = undistort(img, map1, map2)
@@ -109,17 +123,61 @@ def detect_Color(img):
     """
     Returrns the detected color in the format: r = 1, y = 2, g = 3, None = 0
     """
-    pixels = cv.cvtColor(img, cv.COLOR_BGR2HSV)
-    sat = pixels[:, :, 1]
-    mask = np.where(np.logical_and(sat > 100, pixels[:, :, 2] > 30), 255, 0)
-    if(np.count_nonzero(mask > 80) / 200.0 / 140.0 > 0.06):
-        hues = np.float32(pixels[np.where(mask > 127)][:, 0])
-        hues *= 2.0
-        hue_mean = np.arctan2(np.mean(np.sin(hues / 180 * np.pi)), np.mean(np.cos(hues / 180 * np.pi)))
-        r_sim = abs(np.arctan2(np.sin(hue_mean - np.pi * 2.0), np.cos(hue_mean - np.pi * 2.0)))
-        y_sim = abs(np.arctan2(np.sin(hue_mean - 0.873), np.cos(hue_mean - 0.873)))
-        g_sim = abs(np.arctan2(np.sin(hue_mean - 1.3), np.cos(hue_mean - 1.3))) 
+    inv_img =  cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    #adaptiv thresholding 
+    inv_img = 255 - inv_img
+    blur = cv.blur(inv_img,(7,7))
+    thresh_img = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 71, 10)
+    #dilataing small dots/dashes away
+    kernel = np.ones((5,5),np.uint8)
+    thresh_img = cv.dilate(thresh_img,kernel,iterations = 1)
+    #get only contours which have no holes
+    contours, hierarchy = cv.findContours(thresh_img, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    contours = [contours[i] for i in range(len(contours)) if hierarchy[0][i][2] < 0]
+
+    cv.imshow("thresh", thresh_img)
+    #find the brightest contour which is bigger than 100px
+    brightest_cnt = None
+    brightest = 0
+    for contour in contours:
+        mask = np.zeros_like(img)
+        cv.fillPoly(mask, [contour], 255)
+        b = np.sum(np.where(mask > 127,img,0)) / (np.sum(mask) + 1)
+        if b > brightest and cv.contourArea(contour) > 100:
+            brightest = b
+            brightest_cnt = contour
+    
+    cnt = np.squeeze(np.asarray(brightest_cnt))
+
+    mask = np.zeros_like(img)
+    cv.fillPoly(mask, [cnt], (255, 255, 255))
+    bgr_avg = np.sum(np.where(mask > 127, img, 0), (0, 1)) / (np.sum(mask[..., 0]))
+    print(bgr_avg)
+    hsv_avg = np.squeeze(cv.cvtColor(np.asarray([[bgr_avg]], np.float32), cv.COLOR_BGR2HSV))
+    print(hsv_avg)
+    if(hsv_avg[1] > 0.5 and hsv_avg[2] > 0.5):
+        hsv_avg[0] = hsv_avg[0] * np.pi / 180
+        r_sim = abs(np.arctan2(np.sin(hsv_avg[0] - np.pi * 2.0), np.cos(hsv_avg[0] - np.pi * 2.0)))
+        y_sim = abs(np.arctan2(np.sin(hsv_avg[0] - 0.873), np.cos(hsv_avg[0] - 0.873)))
+        g_sim = abs(np.arctan2(np.sin(hsv_avg[0] - 1.3), np.cos(hsv_avg[0] - 1.3)))
+        print(r_sim * 180/np.pi)
+        print(y_sim * 180/np.pi)
+        print(g_sim * 180/np.pi)
         return np.argmin([r_sim, y_sim, g_sim]) + 1
+    
+    return 0
+        
+    # pixels = cv.cvtColor(img, cv.COLOR_BGR2HSV)
+    # sat = pixels[:, :, 1]
+    # mask = np.where(np.logical_and(sat > 100, pixels[:, :, 2] > 30), 255, 0)
+    # if(np.count_nonzero(mask > 80) / 200.0 / 140.0 > 0.06):
+    #     hues = np.float32(pixels[np.where(mask > 127)][:, 0])
+    #     hues *= 2.0
+    #     hue_mean = np.arctan2(np.mean(np.sin(hues / 180 * np.pi)), np.mean(np.cos(hues / 180 * np.pi)))
+    #     r_sim = abs(np.arctan2(np.sin(hue_mean - np.pi * 2.0), np.cos(hue_mean - np.pi * 2.0)))
+    #     y_sim = abs(np.arctan2(np.sin(hue_mean - 0.873), np.cos(hue_mean - 0.873)))
+    #     g_sim = abs(np.arctan2(np.sin(hue_mean - 1.3), np.cos(hue_mean - 1.3))) 
+    #     return np.argmin([r_sim, y_sim, g_sim]) + 1
     
     return 0
 
@@ -129,43 +187,7 @@ def read_all_serial(port):
     return port.read(port.in_waiting)
 
 def main():
-    U_train = []
-    for i in range(0,7):
-        img = get_trainImages("train\\","U"+ str(i))
-        U_train.append(get_features(img))
     
-    U_test = []
-    for i in range(3):
-        i = i + 7
-        img = get_trainImages("train\\","U"+ str(i))
-        U_test.append(get_features(img))
-
-    S_train = []
-    for i in range(0,1):
-        img = get_trainImages("train\\","S"+ str(i))
-        U_test.append(get_features(img))
-
-    # H_train = []
-    # for i in range(0,10):
-    #     img = get_trainImages("train\\","S"+ str(i))
-    #     H_train.append(get_features(img))
-    
-    svm_U = svm.OneClassSVM(kernel='rbf', gamma='auto', nu=0.7)
-    svm_U.fit(U_train)
-    print(U_train)
-    print(svm_U.predict(U_test))
-    print(svm_U.decision_function(U_test))
-    print(".......")
-    print(svm_U.predict(U_train))
-    print(svm_U.decision_function(U_train))
-
-    # svm_S = svm.OneClassSVM(kernel='rbf', gamma='auto', nu=1)
-    # svm_S.fit(S_train)
-    #print(svm_S.predict(U_train))
-
-    # svm_H = svm.OneClassSVM(kernel='rbf', gamma='auto', nu=1)
-    # svm_H.fit(S_train)
-    # print(svm_S.predict(H_train))
 #     port = serial.Serial('/dev/serial0', baudrate=9600, timeout=0)
 #     letterLookup = [b'N',  b'H', b'S', b'U']
 #     colorLookup = [b'N',  b'R', b'Y', b'G']
@@ -230,14 +252,15 @@ def main():
 
 if __name__ == "__main__":
     #main()
-    img = cv.imread("train\\U0.jpg")
-    img2= cv.imread("train\\testU0.jpg")
-    img2 = cv.rotate(img2, cv.ROTATE_90_COUNTERCLOCKWISE)
+    img = cv.imread("TestR.jpg")
+    gray =  cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
-    img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    img2 = cv.cvtColor(img2, cv.COLOR_BGR2GRAY)
-    cv.imshow("1", img)
-    cv.imshow("2", img2)
-
-    print(get_features(img))
-    print(get_features(img2))
+    # patch = get_patch(gray)
+    
+    detect_letter(get_patch(gray))
+    print(detect_Color(img))
+    # cv.imshow("sdf", patch)
+    # cv.waitKey(0)
+    # detect_letter(patch)
+    
+    
