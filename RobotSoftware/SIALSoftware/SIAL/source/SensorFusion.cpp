@@ -437,8 +437,7 @@ namespace SIAL
 		{
 			//
 			// TODO Edge-Detection
-			// nur dort wo sicher ist, dass es eine Wand ist
-			// Übergang overflow -> underflow/ok
+			// wait for double edge -> fuse
 			// 
 
 			static bool firstEdgeDetection = true;
@@ -449,8 +448,8 @@ namespace SIAL
 			auto distances = fusedData.distances;
 
 			if (!(SmoothDriving::getInformation().drivingStraight &&
-				MotorControl::getSpeeds().left >= SIALSettings::MotorControl::minSpeed &&
-				MotorControl::getSpeeds().right >= SIALSettings::MotorControl::minSpeed) ||
+				fabsf(MotorControl::getSpeeds().left) >= SIALSettings::MotorControl::minSpeed &&
+				fabsf(MotorControl::getSpeeds().right) >= SIALSettings::MotorControl::minSpeed) ||
 				fusedData.gridCell.cellState & (CellState::ramp | CellState::stair)) {
 				firstEdgeDetection = true;
 			}
@@ -462,10 +461,10 @@ namespace SIAL
 					float x = NAN;
 					float y = NAN;
 
-					float frontEdgeX;
-					float backEdgeX;
-					float frontEdgeY;
-					float backEdgeY;
+					float frontEdgeX = 0.0f;
+					float backEdgeX = 0.0f;
+					float frontEdgeY = 0.0f;
+					float backEdgeY = 0.0f;
 
 					switch (fusedData.robotState.heading)
 					{
@@ -478,13 +477,13 @@ namespace SIAL
 					case AbsoluteDir::east:
 					{
 						frontEdgeY = roundf((fusedData.robotState.position.y - SIALSettings::Mechanics::distSensLRSpacing / 2.0f - 15.0f) / 30.0f) * 30.0f + 15.0f;
-						backEdgeX = roundf((fusedData.robotState.position.y + SIALSettings::Mechanics::distSensLRSpacing / 2.0f - 15.0f) / 30.0f) * 30.0f + 15.0f;
+						backEdgeY = roundf((fusedData.robotState.position.y + SIALSettings::Mechanics::distSensLRSpacing / 2.0f - 15.0f) / 30.0f) * 30.0f + 15.0f;
 						break;
 					}
 					case AbsoluteDir::south:
 					{
 						frontEdgeX = roundf((fusedData.robotState.position.x - SIALSettings::Mechanics::distSensLRSpacing / 2.0f - 15.0f) / 30.0f) * 30.0f + 15.0f;
-						frontEdgeX = roundf((fusedData.robotState.position.x + SIALSettings::Mechanics::distSensLRSpacing / 2.0f - 15.0f) / 30.0f) * 30.0f + 15.0f;
+						backEdgeX = roundf((fusedData.robotState.position.x + SIALSettings::Mechanics::distSensLRSpacing / 2.0f - 15.0f) / 30.0f) * 30.0f + 15.0f;
 						break;
 					}
 					case AbsoluteDir::west:
@@ -500,6 +499,8 @@ namespace SIAL
 					if ((lastStates.leftFront == DistSensorStatus::overflow && (states.leftFront == DistSensorStatus::ok || states.leftFront == DistSensorStatus::underflow)) ||
 						(lastStates.rightFront == DistSensorStatus::overflow && (states.rightFront == DistSensorStatus::ok || states.rightFront == DistSensorStatus::underflow))) {
 						// front rising edge
+						Serial.println("front rising edge");
+
 						switch (fusedData.robotState.heading)
 						{
 						case AbsoluteDir::north:
@@ -529,6 +530,8 @@ namespace SIAL
 					else if ((states.leftFront == DistSensorStatus::overflow && (lastStates.leftFront == DistSensorStatus::ok || lastStates.leftFront == DistSensorStatus::underflow)) ||
 						(states.rightFront == DistSensorStatus::overflow && (lastStates.rightFront == DistSensorStatus::ok || lastStates.rightFront == DistSensorStatus::underflow))) {
 						// front falling edge
+						Serial.println("front falling edge");
+
 						switch (fusedData.robotState.heading)
 						{
 						case AbsoluteDir::north:
@@ -559,26 +562,28 @@ namespace SIAL
 					if ((lastStates.leftBack == DistSensorStatus::overflow && (states.leftBack == DistSensorStatus::ok || states.leftBack == DistSensorStatus::underflow)) ||
 						(lastStates.rightBack == DistSensorStatus::overflow && (states.rightBack == DistSensorStatus::ok || states.rightBack == DistSensorStatus::underflow))) {
 						// back rising edge
+						Serial.println("back rising edge");
+
 						switch (fusedData.robotState.heading)
 						{
 						case AbsoluteDir::north:
 						{
-							x = backEdgeX - 30.0f - (SIALSettings::Mechanics::distSensLRSpacing / 2.0f + (fusedData.robotState.forwardVel > 0.0f ? 1.0f : -1.0f));
+							x = backEdgeX + (SIALSettings::Mechanics::distSensLRSpacing / 2.0f - (fusedData.robotState.forwardVel > 0.0f ? 1.0f : -1.0f));
 							break;
 						}
 						case AbsoluteDir::east:
 						{
-							y = backEdgeY - 30.0f + (SIALSettings::Mechanics::distSensLRSpacing / 2.0f + (fusedData.robotState.forwardVel > 0.0f ? 1.0f : -1.0f));
+							y = backEdgeY - (SIALSettings::Mechanics::distSensLRSpacing / 2.0f - (fusedData.robotState.forwardVel > 0.0f ? 1.0f : -1.0f));
 							break;
 						}
 						case AbsoluteDir::south:
 						{
-							x = backEdgeX - 30.0f + (SIALSettings::Mechanics::distSensLRSpacing / 2.0f + (fusedData.robotState.forwardVel > 0.0f ? 1.0f : -1.0f));
+							x = backEdgeX - (SIALSettings::Mechanics::distSensLRSpacing / 2.0f - (fusedData.robotState.forwardVel > 0.0f ? 1.0f : -1.0f));
 							break;
 						}
 						case AbsoluteDir::west:
 						{
-							y = backEdgeY - 30.0f - (SIALSettings::Mechanics::distSensLRSpacing / 2.0f + (fusedData.robotState.forwardVel > 0.0f ? 1.0f : -1.0f));
+							y = backEdgeY + (SIALSettings::Mechanics::distSensLRSpacing / 2.0f - (fusedData.robotState.forwardVel > 0.0f ? 1.0f : -1.0f));
 							break;
 						}
 						default:
@@ -586,28 +591,30 @@ namespace SIAL
 						}
 					}
 					else if ((states.leftBack == DistSensorStatus::overflow && (lastStates.leftBack == DistSensorStatus::ok || lastStates.leftBack == DistSensorStatus::underflow)) ||
-						(states.rightBack == DistSensorStatus::overflow && (lastStates.rightBack == DistSensorStatus::ok || lastStates.rightBack == DistSensorStatus::underflow))){
+						(states.rightBack == DistSensorStatus::overflow && (lastStates.rightBack == DistSensorStatus::ok || lastStates.rightBack == DistSensorStatus::underflow))) {
 						// back falling edge
+						Serial.println("back falling edge");
+
 						switch (fusedData.robotState.heading)
 						{
 						case AbsoluteDir::north:
 						{
-							x = backEdgeX - 30.0f - (SIALSettings::Mechanics::distSensLRSpacing / 2.0f - (fusedData.robotState.forwardVel > 0.0f ? 1.0f : -1.0f));
+							x = backEdgeX + (SIALSettings::Mechanics::distSensLRSpacing / 2.0f + (fusedData.robotState.forwardVel > 0.0f ? 1.0f : -1.0f));
 							break;
 						}
 						case AbsoluteDir::east:
 						{
-							y = backEdgeY - 30.0f + (SIALSettings::Mechanics::distSensLRSpacing / 2.0f - (fusedData.robotState.forwardVel > 0.0f ? 1.0f : -1.0f));
+							y = backEdgeY - (SIALSettings::Mechanics::distSensLRSpacing / 2.0f + (fusedData.robotState.forwardVel > 0.0f ? 1.0f : -1.0f));
 							break;
 						}
 						case AbsoluteDir::south:
 						{
-							x = backEdgeX - 30.0f + (SIALSettings::Mechanics::distSensLRSpacing / 2.0f - (fusedData.robotState.forwardVel > 0.0f ? 1.0f : -1.0f));
+							x = backEdgeX - (SIALSettings::Mechanics::distSensLRSpacing / 2.0f + (fusedData.robotState.forwardVel > 0.0f ? 1.0f : -1.0f));
 							break;
 						}
 						case AbsoluteDir::west:
 						{
-							y = backEdgeY - 30.0f - (SIALSettings::Mechanics::distSensLRSpacing / 2.0f - (fusedData.robotState.forwardVel > 0.0f ? 1.0f : -1.0f));
+							y = backEdgeY + (SIALSettings::Mechanics::distSensLRSpacing / 2.0f + (fusedData.robotState.forwardVel > 0.0f ? 1.0f : -1.0f));
 							break;
 						}
 						default:
@@ -615,23 +622,24 @@ namespace SIAL
 						}
 					}
 
-					// TESTING
-					//if (!std::isnan(x)) {
-					//	Serial.print("new edge x: ");
-					//	Serial.print(x);
-					//	Serial.print(", pos.x: ");
-					//	Serial.println(fusedData.robotState.position.x);
-					//	correctedState.x = x * 0.8f + fusedData.robotState.position.x * 0.2f;
-					//	correctedState.newX = true;
-					//}
-					//else if (!std::isnan(y)) {
-					//	Serial.print("new edge y: ");
-					//	Serial.print(y);
-					//	Serial.print(", pos.y: ");
-					//	Serial.println(fusedData.robotState.position.y);
-					//	correctedState.y = y * 0.8f + fusedData.robotState.position.y * 0.2f;
-					//	correctedState.newY = true;
-					//}
+					if (!std::isnan(x)) {
+						Serial.print("new edge x: ");
+						Serial.print(x);
+						Serial.print(", pos.x: ");
+						Serial.println(fusedData.robotState.position.x);
+
+						//correctedState.x = x * 0.8f + fusedData.robotState.position.x * 0.2f;
+						//correctedState.newX = true;
+					}
+					else if (!std::isnan(y)) {
+						Serial.print("new edge y: ");
+						Serial.print(y);
+						Serial.print(", pos.y: ");
+						Serial.println(fusedData.robotState.position.y);
+
+						//correctedState.y = y * 0.8f + fusedData.robotState.position.y * 0.2f;
+						//correctedState.newY = true;
+					}
 				}
 			}
 

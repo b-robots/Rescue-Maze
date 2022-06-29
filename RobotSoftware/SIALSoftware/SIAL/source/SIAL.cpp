@@ -161,6 +161,8 @@ namespace SIAL {
 			// TODO blink LEDs
 			Serial.println("Error during setup!");
 		}
+
+		SmoothDriving::startNewTask(new SmoothDriving::TaskArray{ new SmoothDriving::Rotate(M_PI, 2.0f), new SmoothDriving::FollowCell(30), new SmoothDriving::FollowCell(30) }, true);
 	}
 
 	void robotLoop() {
@@ -180,7 +182,7 @@ namespace SIAL {
 
 		SmoothDriving::updateSpeeds();
 
-		RobotLogic::loop();
+		// RobotLogic::loop();
 
 		if (Bumper::left) {
 			Bumper::left = false;
