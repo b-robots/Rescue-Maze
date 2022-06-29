@@ -198,8 +198,8 @@ def main():
             #get picture
             _, imgl = caml.read()
             _, imgr = camr.read()
-            #undistort and crop
 
+            #undistort and crop
             imgr = get_undist_roi(imgr, map1, map2, True)
             imgl = get_undist_roi(imgl, map1, map2, False)
 
@@ -216,10 +216,10 @@ def main():
             leftOut = colorLookup[detect_Color(imgl)]
         
             if rightOut == colorLookup[0]:
-                rightOut = letterLookup[detect_letter(imgr)]
+                rightOut = letterLookup[detect_letter(patch_imgr)]
 
             if leftOut == colorLookup[0]:
-                leftOut = letterLookup[detect_letter(imgl)]
+                leftOut = letterLookup[detect_letter(patch_imgl)]
 
             port.write(b'l' + leftOut + b'r' + rightOut + b'\n')
             print("l: " + str(leftOut), "r: " + str(rightOut))
