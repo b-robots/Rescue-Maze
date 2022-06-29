@@ -4,6 +4,7 @@
 #include "../header/SmallThings.h"
 #include "../header/DuePinMapping.h"
 #include "../header/SmoothDriving.h"
+#include "../header/I2CMultiplexer.h"
 
 #include <Wire.h>
 
@@ -190,6 +191,50 @@ namespace SIAL
 		bool getState()
 		{
 			return (pin.port->PIO_PDSR & pin.pin) != 0;
+		}
+	}
+
+	namespace I2C {
+		void recoverI2C() {
+			Wire.end();
+
+			pinMode(SCL, OUTPUT);
+			for (int i = 0; i < 10; i++) {
+				digitalWrite(SCL, LOW);
+				delayMicroseconds(2);
+				digitalWrite(SDA, LOW);
+				delayMicroseconds(2);
+				digitalWrite(SCL, HIGH);
+				delayMicroseconds(4);
+			}
+			pinMode(SCL, INPUT);
+
+			Wire.begin();
+
+			Wire.beginTransmission(0x1);
+			Wire.endTransmission(true);
+
+			I2CMultiplexer::selectChannel(0);
+		}
+
+		void recoverI2C1() {
+			Wire1.end();
+
+			pinMode(SCL1, OUTPUT);
+			for (int i = 0; i < 10; i++) {
+				digitalWrite(SCL1, LOW);
+				delayMicroseconds(2);
+				digitalWrite(SDA1, LOW);
+				delayMicroseconds(2);
+				digitalWrite(SCL1, HIGH);
+				delayMicroseconds(4);
+			}
+			pinMode(SCL1, INPUT);
+
+			Wire1.begin();
+
+			Wire1.beginTransmission(0x1);
+			Wire1.endTransmission(true);
 		}
 	}
 }

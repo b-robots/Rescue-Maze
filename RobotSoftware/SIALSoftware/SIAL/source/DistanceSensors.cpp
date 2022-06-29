@@ -236,7 +236,7 @@ namespace SIAL
 						Serial.println("I2C problem");
 
 						if (!I2CMultiplexer::checkI2C()) {
-							I2CMultiplexer::recoverI2C();
+							I2C::recoverI2C();
 						}
 					}
 
@@ -573,7 +573,7 @@ namespace SIAL
 				I2CMultiplexer::selectChannel(_multiplexCh);
 			}
 
-			_sensor.setTimeout(SIALSettings::DistanceSensors::timeout);
+			_sensor.setTimeout(0);
 
 			if (!_sensor.init()) return ReturnCode::error;
 
@@ -600,7 +600,7 @@ namespace SIAL
 						Serial.println("I2C problem");
 
 						if (!I2CMultiplexer::checkI2C()) {
-							I2CMultiplexer::recoverI2C();
+							I2C::recoverI2C();
 						}
 					}
 
@@ -636,6 +636,11 @@ namespace SIAL
 
 			uint16_t distance = _sensor.readRangeContinuousMillimeters();
 
+			if (_sensor.timeoutOccurred()) {
+				_status = Status::undefinedError;
+				return 0;
+			}
+
 			float tempDist = distance * _k + _d;
 
 			if (tempDist < 0.0f) distance = 0;
@@ -643,84 +648,8 @@ namespace SIAL
 
 			_status = Status::noError;
 
-			if (_sensor.timeoutOccurred())
-			{
-				if (_sensor.readReg(_sensor.IDENTIFICATION_MODEL_ID) != 0xEE)
-				{
-					Serial.println("I2C problem");
-
-					if (!I2CMultiplexer::checkI2C()) {
-						I2CMultiplexer::recoverI2C();
-					}
-				}
-
-				delay(5);
-
-				_sensor.stopContinuous();
-				clearInterrupt();
-
-				setup();
-
-				delay(5);
-
-				Serial.print("time out: ");
-				Serial.println(_id);
-
-				// Timeout
-				_status = Status::timeOut;
-			}
-			else
-			{
-				if (distance > maxDist) _status = Status::overflow;
-				else if (distance < minDist) _status = Status::underflow;
-
-				// Maybe not needed
-				// DEBUG
-				if (((fabsf(_lastDist - 512 * _k + _d) > 20 && _lastStatus == Status::noError) || _lastStatus != Status::noError) && fabsf(distance - 512 * _k + _d) < 20) {
-					uint16_t retVal = _lastDist;
-					_lastDist = distance;
-					_status = _lastStatus;
-					return retVal;
-				}
-
-				if (_status == Status::overflow) {
-					_consectuiveOver++;
-					_consecutiveUnder = 0;
-					_consecutiveNormal = 0;
-				}
-				else if (_status == Status::underflow) {
-					_consecutiveUnder++;
-					_consectuiveOver = 0;
-					_consecutiveNormal = 0;
-				}
-				else if (_status == Status::noError) {
-					_consecutiveNormal++;
-					_consecutiveUnder = 0;
-					_consectuiveOver = 0;
-				}
-				else {
-					_consectuiveOver = 0;
-					_consecutiveUnder = 0;
-					_consecutiveNormal = 0;
-				}
-
-				if (_consectuiveOver >= 2) {
-					_status = Status::overflow;
-				}
-				else if (_consecutiveUnder >= 2) {
-					_status = Status::underflow;
-				}
-				else if (_consecutiveNormal >= 2) {
-					_status = Status::noError;
-				}
-				else {
-					_status = _lastStatus;
-					distance = _lastDist;
-				}
-
-				_lastStatus = _status;
-				_lastDist = distance;
-			}
+			if (distance > maxDist) _status = Status::overflow;
+			else if (distance < minDist) _status = Status::underflow;
 
 			return distance;
 		}
@@ -865,7 +794,7 @@ namespace SIAL
 
 		void updateDistSensors()
 		{
-			auto fusedData =  SensorFusion::getFusedData();
+			auto fusedData = SensorFusion::getFusedData();
 			uint16_t tempDist;
 
 			// Front long
@@ -1262,23 +1191,23 @@ namespace SIAL
 			/*
 			* calibration data:
 				rb
-					k: 1.10
-					d: -1
+					k: 1.00
+					d: 4
 				rf
-					k: 1.03
-					d: 5
+					k: 1.01
+					d: 3
 				lb
-					k: 0.95
-					d: 0
+					k: 1.03
+					d: -8
 				lf
-					k: 1.05
-					d: -5
+					k: 1.01
+					d: -1
 				fl
-					k: 0.86
-					d: -17
+					k: 0.92
+					d: -18
 				fr
-					k: 0.87
-					d: 6
+					k: 0.97
+					d: 2
 			*/
 
 			for (int i = 0; i <= 5; i++)
@@ -1384,22 +1313,22 @@ namespace SIAL
 		}
 
 		void resetHardCodedCalib() {
-			rightBack.setKD(1.10f, -1);
+			rightBack.setKD(1.0f, 4);
 			rightBack.storeCalibData();
 
-			rightFront.setKD(1.03f, 5);
+			rightFront.setKD(1.01f, 3);
 			rightFront.storeCalibData();
 
-			leftBack.setKD(0.95f, 0);
+			leftBack.setKD(1.03f, -8);
 			leftBack.storeCalibData();
 
-			leftFront.setKD(1.05f, -5);
+			leftFront.setKD(1.01f, -1);
 			leftFront.storeCalibData();
 
-			frontLeft.setKD(0.86f, -17);
+			frontLeft.setKD(0.92f, -18);
 			frontLeft.storeCalibData();
 
-			frontRight.setKD(0.87f, 6);
+			frontRight.setKD(0.97f, 2);
 			frontRight.storeCalibData();
 		}
 	}

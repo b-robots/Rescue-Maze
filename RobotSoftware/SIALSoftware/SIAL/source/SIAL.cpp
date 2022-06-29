@@ -24,6 +24,8 @@
 
 namespace SIAL {
 	void robotSetup() {
+		delay(500);
+
 		// Setup the SPI-Bus
 		SPI.begin();
 		SPI.beginTransaction(SPISettings(10e+6, MSBFIRST, SPI_MODE0));
@@ -31,8 +33,10 @@ namespace SIAL {
 		// Setup I2C-Bus
 		Wire.begin();
 		Wire.setClock(400000);
+		Wire.setTimeout(10);
 		Wire1.begin();
 		Wire1.setClock(400000);
+		Wire1.setTimeout(10);
 
 		// Start clock for PIO (debouncing)
 		PMC->PMC_PCER0 = 1 << ID_PIOA | 1 << ID_PIOB | 1 << ID_PIOC | 1 << ID_PIOD;
@@ -128,14 +132,6 @@ namespace SIAL {
 			error = true;
 		}
 
-		if (!error) {
-			Serial.println("Finished setup!");
-		}
-		else {
-			// TODO blink LEDs
-			Serial.println("Error during setup!");
-		}
-
 		// TESTING
 		// Gyro::calibrate();
 
@@ -148,39 +144,44 @@ namespace SIAL {
 			delay(100);
 		} while (bno_sys < 3);
 
+		Gyro::tare();
+
 		Serial.println("BNO055 ready!");
 
 		//PowerLEDs::setBrightness(SIALSettings::PowerLEDs::defaultPower);
 
 		//while (!Switch::getState());
 
-		Serial.println("Start!");
+		delay(500);
+
+		if (!error) {
+			Serial.println("Finished setup!");
+		}
+		else {
+			// TODO blink LEDs
+			Serial.println("Error during setup!");
+		}
 	}
 
 	void robotLoop() {
 		static float fps = 100.0f;
 		static uint32_t t = 0;
 		if (t > 0) {
-			fps = 1000.0f / (millis() - t) * 0.8f + fps * 0.2f;
+			fps = 1000.0f / (millis() - t) * 0.9f + fps * 0.1f;
 		}
 		t = millis();
 
-		Serial.print("fps: ");
-		Serial.println(fps);
+		//Serial.print("fps: ");
+		//Serial.println(fps);
 
 		SensorFusion::updateSensors();
-		Serial.println(millis() - t);
 		SensorFusion::distSensFusion();
-		Serial.println(millis() - t);
 		SensorFusion::sensorFusion();
-		Serial.println(millis() - t);
 
 		SmoothDriving::updateSpeeds();
 
-		Serial.println(millis() - t);
 		RobotLogic::loop();
 
-		Serial.println(millis() - t);
 		if (Bumper::left) {
 			Bumper::left = false;
 		}
@@ -195,19 +196,21 @@ namespace SIAL {
 
 		auto data = SensorFusion::getFusedData();
 
+		//Serial.println("--");
+		//Serial.println(data.robotState.globalHeading);
+
 		//Serial.print(data.robotState.position.x);
 		//Serial.print("; ");
 		//Serial.println(data.robotState.position.y);
 
 		//const char* stateLookup[] = { "ok", "over", "under", "err" };
+		//Serial.print("lb: ");
+		//Serial.print(stateLookup[(int)data.distSensorState.leftBack]);
+		//Serial.print("; ");
+		//Serial.println(data.distances.leftBack);
+		//Serial.print("lf: ");
 		//Serial.print(stateLookup[(int)data.distSensorState.leftFront]);
 		//Serial.print("; ");
 		//Serial.println(data.distances.leftFront);
-
-		//auto forward = Gyro::getForwardVec();
-
-		//Serial.print(getGlobalHeading(forward));
-		//Serial.print("; ");
-		//Serial.println(getPitch(forward));
 	}
 }

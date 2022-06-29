@@ -20,28 +20,28 @@ namespace SIAL
 			{
 			case RelativeDir::forward:
 				startNewTask(new TaskArray({
-					new FollowWall(30, 30),
+					new FollowCell(30),
 					new AlignWalls() }));
 				break;
 			case RelativeDir::right:
 				startNewTask(new TaskArray({
 					new Rotate(-M_PI_2, -2.0f),
 					new AlignWalls(),
-					new FollowWall(30, 30),
+					new FollowCell(30),
 					new AlignWalls() }));
 				break;
 			case RelativeDir::backward:
 				startNewTask(new TaskArray({
 					new Rotate(M_PI, 2.0f),
 					new AlignWalls(),
-					new FollowWall(30, 30),
+					new FollowCell(30),
 					new AlignWalls() }));
 				break;
 			case RelativeDir::left:
 				startNewTask(new TaskArray({
 					new Rotate(M_PI_2, 2.0f),
 					new AlignWalls(),
-					new FollowWall(30, 30),
+					new FollowCell(30),
 					new AlignWalls() }));
 				break;
 			default:
@@ -250,6 +250,7 @@ namespace SIAL
 				Serial.println("No univisted direction to drive!");
 			}
 		}
+		
 		// handleVictimDetection
 		/*
 				void handleVictimDetection(FusedData tempFusedData) {
@@ -445,7 +446,7 @@ namespace SIAL
 					return;
 				}
 
-				SensorFusion::updatePosAndRotFromDist(2000);
+				SensorFusion::updatePosAndRotFromDist(1000);
 
 				fusedData = SensorFusion::getFusedData();
 
@@ -467,7 +468,6 @@ namespace SIAL
 				}
 
 				if (!SensorFusion::scanSurrounding(cumSureWalls)) {
-					Serial.println("...");
 					return;
 				}
 
@@ -492,16 +492,16 @@ namespace SIAL
 						return;
 					}
 				}
-
-				if (SmoothDriving::isTaskFinished()) {
-					if (returnFromBlack) {
-						GridCell cell;
-						MazeMapping::getGridCell(&cell, fusedData.robotState.mapCoordinate.getCoordinateInDir(fusedData.robotState.heading));
-						cell.cellState = cell.cellState | CellState::blackTile;
-						MazeMapping::setGridCell(cell, fusedData.robotState.mapCoordinate.getCoordinateInDir(fusedData.robotState.heading));
-						Serial.println("store black tile");
-						returnFromBlack = false;
-					}
+				*/
+				if (SmoothDriving::getInformation().finished) {
+					//if (returnFromBlack) {
+					//	GridCell cell;
+					//	MazeMapping::getGridCell(&cell, fusedData.robotState.mapCoordinate.getCoordinateInDir(fusedData.robotState.heading));
+					//	cell.cellState = cell.cellState | CellState::blackTile;
+					//	MazeMapping::setGridCell(cell, fusedData.robotState.mapCoordinate.getCoordinateInDir(fusedData.robotState.heading));
+					//	Serial.println("store black tile");
+					//	returnFromBlack = false;
+					//}
 
 					if (SensorFusion::scanSurrounding(cumSureWalls)) {
 						Serial.println("scanned surr. -> update pos");
@@ -516,7 +516,7 @@ namespace SIAL
 							startRelativeTurnDirDrive(driveDir, fusedData);
 						}
 					}
-				}*/
+				}
 			}
 
 			if (fusedData.robotState.mapCoordinate != lastCoordinate && !rejectCellChange) {

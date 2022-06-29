@@ -35,4 +35,9 @@ namespace SIAL
 		void setup();
 		bool getState();
 	}
+
+	namespace I2C {
+		void recoverI2C();
+		void recoverI2C1();
+	}
 }

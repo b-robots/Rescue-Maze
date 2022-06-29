@@ -6,7 +6,7 @@
 namespace SIALSettings {
 	namespace Mechanics
 	{
-		constexpr float wheelDiameter = 8.0f;
+		constexpr float wheelDiameter = 8.1f;
 		constexpr float wheelDistance = 14.63f;
 		constexpr float axialSpacing = 9.7f;
 		constexpr float wheelDistToMiddle = 8.78f;			// !!! ALWAYS = sqrt(axialSpacing^2 + wheelDistance^2) / 2
@@ -78,7 +78,7 @@ namespace SIALSettings {
 		namespace GoToAngle
 		{
 			constexpr SIAL::PIDSettings pidSettings(0.08f, 0.01f, 0.01f, 3.0f, 3.0f, -3.0f, 3.0f);
-			constexpr float aheadDistL = 25.0f;
+			constexpr float aheadDistL = 10.0f;
 		}
 	}
 
@@ -90,23 +90,19 @@ namespace SIALSettings {
 
 	namespace SensorFusion
 	{
-		// Maze
-		constexpr float maxPitchForDistSensor = DEG_TO_RAD * 8.0f;		// Maximum pitch of robot for correct front distance measurements
-		constexpr uint16_t minDeltaDistForEdge = 30;					// Minimum change in distance that corresponds to an edge (in mm)
-
 		// Distance & Speed
 		constexpr float longDistSensIIRFactor = 0.7f;					// Factor used for IIR-Filter for high range distance measurements
 		constexpr float shortDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for short range distance measurements
 		constexpr float speedIIRFac = 0.9f;
 
 		// Rotation
-		constexpr float chi = 1.1f;
+		constexpr float chi = 1.06f;
 		constexpr float bno055DiffPortion = 1.0f;						// How much is the differentiation of the BNO055 angle worth?
 		constexpr float bno055RotPortion = 1.0f;						// How much is a Bno055 rotation measurement worth?
-		constexpr float angularVelIIRFactor = 0.95f;					// Factor used for IIR-Filter for angular velocity
+		constexpr float angularVelIIRFactor = 0.9f;						// Factor used for IIR-Filter for angular velocity
 		constexpr float pitchIIRFactor = 0.8f;							// Factor used for IIR-Filter for pitch angle
 		constexpr float distAngularPortion = 0.3f;						// How much is a perfect distance sensor measured angle worth?
-		constexpr float angleDiffPortion = 0.0f;						// How much is the heading influenced by the angular velocity instead of the absolute orientation values?
+		constexpr float angleDiffPortion = 0.3f;						// How much is the heading influenced by the angular velocity instead of the absolute orientation values?
 	}
 
 	namespace Bumper {

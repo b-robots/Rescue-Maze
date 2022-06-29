@@ -3,6 +3,7 @@
 #include "../header/Gyro.h"
 #include "../header/AllDatatypes.h"
 #include "../header/Math.h"
+#include "../header/SmallThings.h"
 
 #include <Adafruit_BNO055.h>
 #include <Adafruit_Sensor.h>
@@ -137,6 +138,15 @@ namespace SIAL
 
 		void updateValues()					//gets values from the sensors
 		{
+			Adafruit_BNO055::adafruit_bno055_rev_info_t rev;
+			bno055.getRevInfo(&rev);
+			// Version 3.11
+			if (rev.sw_rev != 0x311) {
+				Serial.println("Wire1 error!");
+				I2C::recoverI2C1();
+				return;
+			}
+
 			bno055.getEvent(&linearAccelEvent, Adafruit_BNO055::VECTOR_LINEARACCEL);
 
 			auto lastGravity = gravityEvent;

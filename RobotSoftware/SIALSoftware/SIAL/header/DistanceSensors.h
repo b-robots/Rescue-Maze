@@ -153,12 +153,6 @@ namespace SIAL
 			const uint8_t _multiplexCh;
 			const uint8_t _id;
 
-			bool _strangeError = false;
-			uint8_t _consectuiveOver = 0;
-			uint8_t _consecutiveUnder = 0;
-			uint8_t _consecutiveNormal = 0;
-			uint16_t _lastDist = 0;
-			Status _lastStatus = Status::undefinedError;
 			uint32_t _lastRead = 0;
 
 			// Calibration data

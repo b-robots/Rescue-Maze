@@ -64,7 +64,7 @@ namespace SIAL {
 
 			volatile FloatWheelSpeeds speeds = FloatWheelSpeeds{ 0.0f, 0.0f };		// Current motor speeds (cm/s)
 
-			volatile WheelSpeeds desSpeeds = WheelSpeeds{ 0.0f, 0.0f };				// Desired motor speed (cm/s)
+			volatile WheelSpeeds desSpeeds = WheelSpeeds{ 0, 0 };				// Desired motor speed (cm/s)
 
 			// Get output voltage of motor
 			float getVoltage(const Motor motor)

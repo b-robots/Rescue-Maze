@@ -2,6 +2,7 @@
 
 #include "../header/I2CMultiplexer.h"
 #include "../SIALSettings.h"
+#include "../header/SmallThings.h"
 
 namespace SIAL
 {
@@ -15,7 +16,7 @@ namespace SIAL
 		ReturnCode setup()
 		{
 			if (!checkI2C()) {
-				recoverI2C();
+				I2C::recoverI2C();
 			}
 
 			uint8_t ch = random(0, maxCh + 1);
@@ -33,34 +34,11 @@ namespace SIAL
 			uint8_t b = Wire.read();
 
 			if (b != 1 << ch) {
+				Serial.println("I2C Multiplexer Error");
 				return false;
 			}
 
 			return true;
-		}
-
-		void recoverI2C() {
-			Serial.println("I2C Multiplexer Error");
-
-			Wire.end();
-
-			pinMode(SCL, OUTPUT);
-			for (int i = 0; i < 10; i++) {
-				digitalWrite(SCL, LOW);
-				delayMicroseconds(2);
-				digitalWrite(SDA, LOW);
-				delayMicroseconds(2);
-				digitalWrite(SCL, HIGH);
-				delayMicroseconds(4);
-			}
-			pinMode(SCL, INPUT);
-
-			Wire.begin();
-
-			Wire.beginTransmission(0x1);
-			Wire.endTransmission(true);
-
-			selectChannel(0);
 		}
 
 		uint8_t getChannel()

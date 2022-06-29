@@ -11,6 +11,5 @@ namespace SIAL
 		uint8_t getChannel();
 		uint8_t selectChannel(uint8_t channel);
 		bool checkI2C();
-		void recoverI2C();
 	}
 }

@@ -44,11 +44,12 @@ namespace SIAL {
 			float _startAngle;
 			float _totalTime;
 			bool _accelerate;
+			bool _snapOrientation;
 		public:
 			WheelSpeeds updateSpeeds(float dt);
 			void startTask(RobotState startState);
 			// angle in rad
-			Rotate(float angle, float maxAngularVel);
+			Rotate(float angle, float maxAngularVel, bool snapOrientation = true);
 		};
 
 		class FollowWall : public ITask {
@@ -63,12 +64,23 @@ namespace SIAL {
 			FollowWall(int32_t dist, int16_t speed);
 		};
 
+		class FollowCell : public ITask {
+		private:
+			FollowWall _wallTask;
+			int16_t _speed;
+		public:
+			WheelSpeeds updateSpeeds(float dt);
+			void startTask(RobotState startState);
+			FollowCell(int16_t speed);
+		};
+
 		class AlignWalls : public ITask
 		{
 		private:
-			float _avgAngle;
+			float _absAvgAngle;
 			bool _first;
-			uint32_t _cnt;
+			float _time;
+			uint8_t _consOk;
 		public:
 			WheelSpeeds updateSpeeds(float dt);
 			void startTask(RobotState startState);

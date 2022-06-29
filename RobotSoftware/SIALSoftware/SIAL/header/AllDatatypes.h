@@ -576,7 +576,8 @@ namespace SIAL
 		forceSpeed,
 		rotate,
 		followWall,
-		alignWalls
+		alignWalls,
+		followCell
 	};
 
 	struct DrivingTaskInformation {

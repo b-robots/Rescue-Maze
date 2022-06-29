@@ -85,11 +85,18 @@ namespace SIAL {
 			return WheelSpeeds{ _speed, _speed };
 		}
 
-		Rotate::Rotate(float angle, float maxAngularVel) : ITask(DrivingTaskInformation(DrivingTaskUID::rotate)), _maxAngularVel(maxAngularVel), _angle(angle) {}
+		Rotate::Rotate(float angle, float maxAngularVel, bool snapOrientation) : ITask(DrivingTaskInformation(DrivingTaskUID::rotate)), _maxAngularVel(maxAngularVel), _angle(angle), _snapOrientation(snapOrientation) {}
 
 		void Rotate::startTask(RobotState startState)
 		{
 			_startAngle = startState.globalHeading;
+
+			if (_snapOrientation) {
+				float end = _startAngle + _angle;
+				end = roundf(end / M_PI_2) * M_PI_2;
+				_angle = end - _startAngle;
+			}
+
 			_accelerate = true;
 
 			_totalTime = _angle / _maxAngularVel * 2.0f;
@@ -181,7 +188,7 @@ namespace SIAL {
 			//	}
 			//}
 
-			if (drivenDistance >= fabsf(_dist) * 0.97)
+			if (drivenDistance >= fabsf(_dist))
 			{
 				_information.finished = true;
 			}
@@ -249,7 +256,55 @@ namespace SIAL {
 			return output;
 		}
 
-		AlignWalls::AlignWalls() : ITask(DrivingTaskInformation(DrivingTaskUID::alignWalls)), _avgAngle(0.0f), _first(true), _cnt(0) {}
+		FollowCell::FollowCell(int16_t speed) : ITask(DrivingTaskInformation(DrivingTaskUID::followCell, true)), _wallTask(0, speed), _speed(speed) {}
+
+		void FollowCell::startTask(RobotState startState) {
+			int32_t dist = 0;
+
+			switch (startState.heading)
+			{
+			case AbsoluteDir::north:
+			{
+				dist = (int32_t)((startState.mapCoordinate.x + sgn(_speed)) * 30.0f - startState.position.x);
+				break;
+			}
+			case AbsoluteDir::east:
+			{
+				dist = (int32_t)(startState.position.y - (startState.mapCoordinate.y - sgn(_speed)) * 30.0f);
+				break;
+			}
+			case AbsoluteDir::south:
+			{
+				dist = (int32_t)(startState.position.x - (startState.mapCoordinate.x - sgn(_speed)) * 30.0f);
+				break;
+			}
+			case AbsoluteDir::west:
+			{
+				dist = (int32_t)((startState.mapCoordinate.y + sgn(_speed)) * 30.0f - startState.position.y);
+				break;
+			}
+			default:
+				break;
+			}
+
+			if (sgn(dist) != sgn(_speed)) {
+				dist = 0;
+			}
+
+			_wallTask = FollowWall(dist, _speed);
+			_wallTask.startTask(startState);
+			_information = _wallTask.getInformation();
+			_information.uid = DrivingTaskUID::followCell;
+		}
+
+		WheelSpeeds FollowCell::updateSpeeds(float dt) {
+			auto wheelSpeeds = _wallTask.updateSpeeds(dt);
+			_information = _wallTask.getInformation();
+			_information.uid = DrivingTaskUID::followCell;
+			return wheelSpeeds;
+		}
+
+		AlignWalls::AlignWalls() : ITask(DrivingTaskInformation(DrivingTaskUID::alignWalls)), _absAvgAngle(0.0f), _first(true), _time(0.0f), _consOk(0) {}
 
 		void AlignWalls::startTask(RobotState startState) {}
 
@@ -257,34 +312,47 @@ namespace SIAL {
 		{
 			static WheelSpeeds output;
 
+			_time += dt;
+
+			if (_consOk > 10 && !_information.finished) {
+				SensorFusion::forceAnglePosReset = true;
+				_information.finished = true;
+			}
+			else if (_time >= 2.0f) {
+				_information.finished = true;
+			}
+
 			if (_information.finished)
 			{
 				return WheelSpeeds{ 0,0 };
 			}
 
-			_cnt++;
-
 			float angle = SensorFusion::getAngleRelToWall();
 
-			if ((fabsf(_avgAngle) < 0.04 && !_first)) {
-				SensorFusion::forceAnglePosReset = true;
-				_information.finished = true;
+			if (_first) {
+				_absAvgAngle = fabsf(angle);
+				_first = false;
 			}
 			else {
-				if (std::isnan(angle)) {
-					return WheelSpeeds{ 0,0 };
-				}
+				_absAvgAngle = fabsf(angle) * 0.7f + _absAvgAngle * 0.3f;
+			}
+			Serial.println(_absAvgAngle);
 
-				if (_first) {
-					_avgAngle = angle;
-					_first = false;
-				}
-				else {
-					_avgAngle = angle * 0.8 + _avgAngle * 0.2;
+			if ((_absAvgAngle < 0.025)) {
+				_consOk++;
+				return WheelSpeeds{ 0,0 };
+			}
+			else {
+				_consOk = 0;
+				if (std::isnan(angle)) {
+					// If there is no wall -> stop faster
+					_time += dt * 3.0f;
+					Serial.println("no align");
+					return WheelSpeeds{ 0,0 };
 				}
 			}
 
-			if (_avgAngle > 0.0f) {
+			if (angle > 0.0f) {
 				output.left = SIALSettings::MotorControl::minSpeed;
 				output.right = -SIALSettings::MotorControl::minSpeed;
 			}
