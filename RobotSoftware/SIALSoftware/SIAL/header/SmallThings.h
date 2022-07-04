@@ -16,11 +16,12 @@ namespace SIAL
 	}
 
 	namespace Bumper {
-		extern volatile bool left;
-		extern volatile bool right;
+		extern volatile bool leftInterrupt;
+		extern volatile bool rightInterrupt;
 
 		void setup();
 		void interrupt(InterruptSource source, uint32_t isr);
+		bool isPressed(bool left);
 	}
 
 	namespace MemWatcher

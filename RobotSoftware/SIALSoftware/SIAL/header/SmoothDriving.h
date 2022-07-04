@@ -45,6 +45,7 @@ namespace SIAL {
 			float _totalTime;
 			bool _accelerate;
 			bool _snapOrientation;
+			uint8_t _consFinished;
 		public:
 			WheelSpeeds updateSpeeds(float dt);
 			void startTask(RobotState startState);
@@ -72,6 +73,36 @@ namespace SIAL {
 			WheelSpeeds updateSpeeds(float dt);
 			void startTask(RobotState startState);
 			FollowCell(int16_t speed);
+		};
+
+		class Ramp : public ITask {
+		private:
+			uint8_t _speed;
+			float _emaPitch;
+			bool _up;
+			bool _rampEnd;
+			uint8_t _consecutiveEnd;
+			Vec2f _rampEndPos;
+			PIDController _pid;
+		public:
+			WheelSpeeds updateSpeeds(float dt);
+			void startTask(RobotState startState);
+			Ramp(uint8_t speed, bool up);
+		};
+
+		class Stairs : public ITask {
+		private:
+			uint8_t _speed;
+			bool _up;
+			float _emaPitch;
+			uint8_t _consEnd;
+			Vec2f _stairEndPos;
+			bool _stairEnd;
+			PIDController _pid;
+		public:
+			WheelSpeeds updateSpeeds(float dt);
+			void startTask(RobotState startState);
+			Stairs(uint8_t speed);
 		};
 
 		class AlignWalls : public ITask
@@ -104,5 +135,6 @@ namespace SIAL {
 		void updateSpeeds();
 		DrivingTaskInformation getInformation();
 		void stop();
+		void bumper(bool left, bool right);
 	}
 }

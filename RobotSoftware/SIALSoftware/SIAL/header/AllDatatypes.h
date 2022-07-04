@@ -503,6 +503,41 @@ namespace SIAL
 		constexpr DistSensorStates() : frontLeft(DistSensorStatus::error), frontRight(DistSensorStatus::error), frontLong(DistSensorStatus::error), leftFront(DistSensorStatus::error), leftBack(DistSensorStatus::error), rightFront(DistSensorStatus::error), rightBack(DistSensorStatus::error) {}
 	};
 
+	struct DistSensBool
+	{
+		bool frontLeft;
+		bool frontRight;
+		bool frontLong;
+		bool leftFront;
+		bool leftBack;
+		bool rightFront;
+		bool rightBack;
+
+		explicit constexpr DistSensBool(bool val = false) : frontLeft(val), frontRight(val), frontLong(val), leftFront(val), leftBack(val), rightFront(val), rightBack(val) {}
+	};
+
+	inline DistSensBool operator|(const DistSensBool& lhs, const DistSensBool& rhs) {
+		DistSensBool result;
+		result.frontLeft = lhs.frontLeft | rhs.frontLeft;
+		result.frontRight = lhs.frontRight | rhs.frontRight;
+		result.frontLong = lhs.frontLong | rhs.frontLong;
+		result.leftFront = lhs.leftFront | rhs.leftFront;
+		result.leftBack = lhs.leftBack | rhs.leftBack;
+		result.rightFront = lhs.rightFront | rhs.rightFront;
+		result.rightBack = lhs.rightBack | rhs.rightBack;
+		return result;
+	}
+
+	inline bool operator==(const DistSensBool& lhs, const DistSensBool& rhs) {
+		return (lhs.frontLeft == rhs.frontLeft &&
+			lhs.frontRight == rhs.frontRight &&
+			lhs.frontLong == rhs.frontLong &&
+			lhs.leftFront == rhs.leftFront &&
+			lhs.leftBack == rhs.leftBack &&
+			lhs.rightFront == rhs.rightFront &&
+			lhs.rightBack == rhs.rightBack);
+	}
+
 	// All distances in one structure
 	struct Distances
 	{
@@ -535,6 +570,8 @@ namespace SIAL
 	struct FusedDistSensData {
 		float distSensAngle;		// Angle measured by distance sensors (rad)
 		float distSensAngleTrust;	// How much can I trust the measured angle? (0.0 - 1.0)
+		DistSensBool fallingEdge;
+		DistSensBool risingEdge;
 
 		struct DistToWalls {
 			float l = -1.0f;
@@ -554,7 +591,7 @@ namespace SIAL
 			}
 		} distToWalls;
 
-		explicit constexpr FusedDistSensData() : distSensAngle(0.0f), distSensAngleTrust(0.0f), distToWalls() {}
+		explicit constexpr FusedDistSensData() : distSensAngle(0.0f), distSensAngleTrust(0.0f), distToWalls(), fallingEdge(false), risingEdge(false) {}
 	};
 
 	// Data fused by SensorFusion
@@ -565,9 +602,10 @@ namespace SIAL
 		Distances distances; 		// Results of distance measurement in mm
 		DistSensorStates distSensorState;	// States of all distance sensors
 		ColorSensData colorSensData;	// Data from color sensor at the bottom (includes color temperature and brightness in lux)
+		DistSensBool distSensUpdates;
 		FusedDistSensData fusedDistSens;	// Fused data of distance sensors (angle and distance to walls)
 
-		constexpr FusedData() : robotState(), gridCell(), distances(), distSensorState(), colorSensData(), fusedDistSens() {}
+		constexpr FusedData() : robotState(), gridCell(), distances(), distSensorState(), colorSensData(), fusedDistSens(), distSensUpdates() {}
 	};
 
 	enum class DrivingTaskUID : uint8_t {
@@ -577,7 +615,9 @@ namespace SIAL
 		rotate,
 		followWall,
 		alignWalls,
-		followCell
+		followCell,
+		ramp,
+		stairs
 	};
 
 	struct DrivingTaskInformation {

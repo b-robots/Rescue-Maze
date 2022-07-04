@@ -48,6 +48,15 @@ namespace SIAL {
 			updateSpeeds();
 		}
 
+		void bumper(bool left, bool right) {
+			const auto uid = getInformation().uid;
+			if ((uid != DrivingTaskUID::ramp) &&
+				(uid != DrivingTaskUID::stairs) &&
+				(uid != DrivingTaskUID::rotate)) {
+				stop();
+			}
+		}
+
 		ITask::ITask(DrivingTaskInformation information) : _information(information) {}
 
 		DrivingTaskInformation ITask::getInformation()
@@ -85,7 +94,7 @@ namespace SIAL {
 			return WheelSpeeds{ _speed, _speed };
 		}
 
-		Rotate::Rotate(float angle, float maxAngularVel, bool snapOrientation) : ITask(DrivingTaskInformation(DrivingTaskUID::rotate)), _maxAngularVel(maxAngularVel), _angle(angle), _snapOrientation(snapOrientation) {}
+		Rotate::Rotate(float angle, float maxAngularVel, bool snapOrientation) : ITask(DrivingTaskInformation(DrivingTaskUID::rotate)), _maxAngularVel(maxAngularVel), _angle(angle), _snapOrientation(snapOrientation), _consFinished(0) {}
 
 		void Rotate::startTask(RobotState startState)
 		{
@@ -120,6 +129,13 @@ namespace SIAL {
 			// Check if I am there
 			if (fabsf(rotatedAngle) >= fabsf(_angle))
 			{
+				_consFinished++;
+			}
+			else {
+				_consFinished = 0;
+			}
+
+			if (_consFinished > 2) {
 				_information.finished = true;
 
 				return WheelSpeeds{ 0, 0 };
@@ -177,18 +193,7 @@ namespace SIAL {
 				drivenDistance = fabsf(currentPosition.y - _startPos.y);
 			}
 
-			//bool stopWithWall = false;
-			//if (_speed > 0) {
-			//	if (fusedData.distSensorState.frontRight == DistSensorStatus::ok &&
-			//		(fusedData.distances.frontRight / 10.0f - 15.0f + SIALSettings::Mechanics::distSensFrontBackDist / 2.0f + drivenDistance) * 0.8f < _dist) {
-			//		if (fusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
-			//			(fusedData.distances.frontLeft / 10.0f - 15.0f + SIALSettings::Mechanics::distSensFrontBackDist / 2.0f + drivenDistance) * 0.8f < _dist) {
-			//			stopWithWall = true;
-			//		}
-			//	}
-			//}
-
-			if (drivenDistance >= fabsf(_dist))
+			if (drivenDistance >= fabsf(_dist) - fabsf(_speed) * 0.06f)
 			{
 				_information.finished = true;
 			}
@@ -223,11 +228,14 @@ namespace SIAL {
 				else if (fusedData.fusedDistSens.distToWalls.r > 0.0f) {
 					combinedDistToLeftWall = 30.0f - fusedData.fusedDistSens.distToWalls.r;
 				}
-				else {
-					Serial.println("Should never happen... (invalid distance sensor fusion)");
-				}
 
-				float goalAngle = -atanf((15.0f - combinedDistToLeftWall) / SIALSettings::Controller::GoToAngle::aheadDistL * sgn(_speed));
+				float goalAngle;
+				if (combinedDistToLeftWall > 0.0f) {
+					goalAngle = -atanf((15.0f - combinedDistToLeftWall) / SIALSettings::Controller::GoToAngle::aheadDistL * sgn(_speed));
+				}
+				else {
+					goalAngle = 0;
+				}
 				errorAngle = fitAngleToInterval(goalAngle - fitAngleToInterval(fusedData.fusedDistSens.distSensAngle * 4.0f) / 4.0f);
 			}
 			else {
@@ -304,6 +312,244 @@ namespace SIAL {
 			return wheelSpeeds;
 		}
 
+		Ramp::Ramp(uint8_t speed, bool up) : ITask(DrivingTaskInformation(DrivingTaskUID::ramp, true)), _speed(speed), _emaPitch(NAN), _up(up), _consecutiveEnd(0), _rampEnd(false), _pid(SIALSettings::Controller::GoToAngle::pidSettings) {}
+
+		void Ramp::startTask(RobotState startState) {
+
+		}
+
+		WheelSpeeds Ramp::updateSpeeds(float dt) {
+			const auto fusedData = SensorFusion::getFusedData();
+			const auto robotState = fusedData.robotState;
+
+			if (!_rampEnd) {
+				if (std::isnan(_emaPitch)) {
+					_emaPitch = robotState.pitch;
+				}
+				else {
+					_emaPitch = robotState.pitch * 0.6f + _emaPitch * 0.4f;
+				}
+
+				if (_emaPitch * (_up ? 1.0f : -1.0f) < 0.1f) {
+					_consecutiveEnd++;
+				}
+				else {
+					_consecutiveEnd = 0;
+				}
+
+				if (_consecutiveEnd >= 15) {
+					_rampEnd = true;
+					_rampEndPos = Vec2f(robotState.position);
+				}
+			}
+			else {
+				const Vec2f currentPosition = (Vec2f)(robotState.position);
+
+				float drivenDistance;
+
+				if (robotState.heading == AbsoluteDir::north || robotState.heading == AbsoluteDir::south) {
+					drivenDistance = fabsf(currentPosition.x - _rampEndPos.x);
+				}
+				else {
+					drivenDistance = fabsf(currentPosition.y - _rampEndPos.y);
+				}
+
+				if (drivenDistance >= fabsf(5) - fabsf(_speed) * 0.06f)
+				{
+					_information.finished = true;
+				}
+
+				if (fusedData.distSensorState.frontRight == DistSensorStatus::underflow ||
+					(fusedData.distSensorState.frontRight == DistSensorStatus::ok &&
+						fusedData.distances.frontRight < (30.0f - SIALSettings::Mechanics::distSensFrontBackDist) / 2 * 10 * 0.9f)) {
+					_information.finished = true;
+				}
+
+				if (fusedData.distSensorState.frontLeft == DistSensorStatus::underflow ||
+					(fusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
+						fusedData.distances.frontLeft < (30.0f - SIALSettings::Mechanics::distSensFrontBackDist) / 2 * 10 * 0.9f)) {
+					_information.finished = true;
+				}
+			}
+
+			if (_information.finished) {
+				return WheelSpeeds(0, 0);
+			}
+
+			float errorAngle = 0.0f;
+
+			if (fusedData.fusedDistSens.distSensAngleTrust > 0.01f) {
+				float combinedDistToLeftWall = -1.0f;
+
+				if (fusedData.fusedDistSens.distToWalls.l > 0.0f && fusedData.fusedDistSens.distToWalls.r > 0.0f) {
+					combinedDistToLeftWall = (fusedData.fusedDistSens.distToWalls.l + 30.0f - fusedData.fusedDistSens.distToWalls.r) / 2.0;
+				}
+				else if (fusedData.fusedDistSens.distToWalls.l > 0.0f) {
+					combinedDistToLeftWall = fusedData.fusedDistSens.distToWalls.l;
+				}
+				else if (fusedData.fusedDistSens.distToWalls.r > 0.0f) {
+					combinedDistToLeftWall = 30.0f - fusedData.fusedDistSens.distToWalls.r;
+				}
+
+				float goalAngle;
+				if (combinedDistToLeftWall > 0.0f) {
+					goalAngle = -atanf((15.0f - combinedDistToLeftWall) / SIALSettings::Controller::GoToAngle::aheadDistL);
+				}
+				else {
+					goalAngle = 0;
+				}
+				errorAngle = fitAngleToInterval(goalAngle - fitAngleToInterval(fusedData.fusedDistSens.distSensAngle * 4.0f) / 4.0f);
+			}
+			else {
+				errorAngle = -fitAngleToInterval(fusedData.robotState.globalHeading * 4.0f) / 4.0f;
+			}
+
+			// point forward steering http://faculty.salina.k-state.edu/tim/robot_prog/MobileBot/Steering/pointFwd.html
+			errorAngle = _pid.process(0.0f, -errorAngle, dt);
+			float correctedAngularVel = _speed * errorAngle;
+			float correctedForwardVel = fmaxf(fabsf(_speed * cosf(fmaxf(fminf(errorAngle, M_PI_2), -M_PI_2))), SIALSettings::MotorControl::minSpeed);
+
+			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
+			WheelSpeeds output = WheelSpeeds{ correctedForwardVel - SIALSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + SIALSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
+
+			// Correct speed if it is too low
+			if (output.left < SIALSettings::MotorControl::minSpeed && output.left > -SIALSettings::MotorControl::minSpeed)
+			{
+				output.left = SIALSettings::MotorControl::minSpeed;
+			}
+
+			if (output.right < SIALSettings::MotorControl::minSpeed && output.right > -SIALSettings::MotorControl::minSpeed)
+			{
+				output.right = SIALSettings::MotorControl::minSpeed;
+			}
+
+			return output;
+		}
+
+		Stairs::Stairs(uint8_t speed) : ITask(DrivingTaskInformation(DrivingTaskUID::stairs, true)), _speed(speed), _emaPitch(NAN), _pid(SIALSettings::Controller::GoToAngle::pidSettings), _up(true), _consEnd(0), _stairEnd(false) {}
+
+		void Stairs::startTask(RobotState startState) {
+
+		}
+
+		WheelSpeeds Stairs::updateSpeeds(float dt) {
+			const auto fusedData = SensorFusion::getFusedData();
+			const auto robotState = fusedData.robotState;
+
+			if (std::isnan(_emaPitch)) {
+				_emaPitch = robotState.pitch;
+			}
+			else {
+				_emaPitch = robotState.pitch * 0.7f + _emaPitch * 0.3f;
+			}
+
+			Serial.println(_emaPitch);
+
+			if (_stairEnd && !_up && _emaPitch < -0.05f) {
+				_stairEnd = false;
+				_consEnd = 0;
+			}
+
+			if (!_stairEnd) {
+				if (_up && _emaPitch < -0.08f) {
+					_up = false;
+				}
+				else if (!_up && _emaPitch > -0.08f) {
+					_consEnd++;
+				}
+				else {
+					_consEnd = 0;
+				}
+
+				if (_consEnd >= 15) {
+					_stairEnd = true;
+					_stairEndPos = Vec2f(robotState.position);
+				}
+			}
+			else {
+				const Vec2f currentPosition = (Vec2f)(robotState.position);
+
+				float drivenDistance;
+
+				if (robotState.heading == AbsoluteDir::north || robotState.heading == AbsoluteDir::south) {
+					drivenDistance = fabsf(currentPosition.x - _stairEndPos.x);
+				}
+				else {
+					drivenDistance = fabsf(currentPosition.y - _stairEndPos.y);
+				}
+
+				if (drivenDistance >= fabsf(5) - fabsf(_speed) * 0.06f)
+				{
+					_information.finished = true;
+				}
+
+				if (fusedData.distSensorState.frontRight == DistSensorStatus::underflow ||
+					(fusedData.distSensorState.frontRight == DistSensorStatus::ok &&
+						fusedData.distances.frontRight < (30.0f - SIALSettings::Mechanics::distSensFrontBackDist) / 2 * 10 * 0.9f)) {
+					_information.finished = true;
+				}
+
+				if (fusedData.distSensorState.frontLeft == DistSensorStatus::underflow ||
+					(fusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
+						fusedData.distances.frontLeft < (30.0f - SIALSettings::Mechanics::distSensFrontBackDist) / 2 * 10 * 0.9f)) {
+					_information.finished = true;
+				}
+			}
+
+			if (_information.finished) {
+				return WheelSpeeds(0, 0);
+			}
+
+			float errorAngle = 0.0f;
+
+			if (fusedData.fusedDistSens.distSensAngleTrust > 0.01f) {
+				float combinedDistToLeftWall = -1.0f;
+
+				if (fusedData.fusedDistSens.distToWalls.l > 0.0f && fusedData.fusedDistSens.distToWalls.r > 0.0f) {
+					combinedDistToLeftWall = (fusedData.fusedDistSens.distToWalls.l + 30.0f - fusedData.fusedDistSens.distToWalls.r) / 2.0;
+				}
+				else if (fusedData.fusedDistSens.distToWalls.l > 0.0f) {
+					combinedDistToLeftWall = fusedData.fusedDistSens.distToWalls.l;
+				}
+				else if (fusedData.fusedDistSens.distToWalls.r > 0.0f) {
+					combinedDistToLeftWall = 30.0f - fusedData.fusedDistSens.distToWalls.r;
+				}
+
+				float goalAngle;
+				if (combinedDistToLeftWall > 0.0f) {
+					goalAngle = -atanf((15.0f - combinedDistToLeftWall) / SIALSettings::Controller::GoToAngle::aheadDistL);
+				}
+				else {
+					goalAngle = 0;
+				}
+				errorAngle = fitAngleToInterval(goalAngle - fitAngleToInterval(fusedData.fusedDistSens.distSensAngle * 4.0f) / 4.0f);
+			}
+			else {
+				errorAngle = -fitAngleToInterval(fusedData.robotState.globalHeading * 4.0f) / 4.0f;
+			}
+
+			// point forward steering http://faculty.salina.k-state.edu/tim/robot_prog/MobileBot/Steering/pointFwd.html
+			errorAngle = _pid.process(0.0f, -errorAngle, dt);
+			float correctedAngularVel = _speed * errorAngle;
+			float correctedForwardVel = fmaxf(fabsf(_speed * cosf(fmaxf(fminf(errorAngle, M_PI_2), -M_PI_2))), SIALSettings::MotorControl::minSpeed);
+
+			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
+			WheelSpeeds output = WheelSpeeds{ correctedForwardVel - SIALSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + SIALSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
+
+			// Correct speed if it is too low
+			if (output.left < SIALSettings::MotorControl::minSpeed && output.left > -SIALSettings::MotorControl::minSpeed)
+			{
+				output.left = SIALSettings::MotorControl::minSpeed;
+			}
+
+			if (output.right < SIALSettings::MotorControl::minSpeed && output.right > -SIALSettings::MotorControl::minSpeed)
+			{
+				output.right = SIALSettings::MotorControl::minSpeed;
+			}
+
+			return output;
+		}
+
 		AlignWalls::AlignWalls() : ITask(DrivingTaskInformation(DrivingTaskUID::alignWalls)), _absAvgAngle(0.0f), _first(true), _time(0.0f), _consOk(0) {}
 
 		void AlignWalls::startTask(RobotState startState) {}
@@ -314,11 +560,11 @@ namespace SIAL {
 
 			_time += dt;
 
-			if (_consOk > 10 && !_information.finished) {
+			if (_consOk >= 5 && !_information.finished) {
 				SensorFusion::forceAnglePosReset = true;
 				_information.finished = true;
 			}
-			else if (_time >= 2.0f) {
+			else if (_time >= 1.0f) {
 				_information.finished = true;
 			}
 
@@ -334,11 +580,10 @@ namespace SIAL {
 				_first = false;
 			}
 			else {
-				_absAvgAngle = fabsf(angle) * 0.7f + _absAvgAngle * 0.3f;
+				_absAvgAngle = fabsf(angle) * 0.8f + _absAvgAngle * 0.2f;
 			}
-			Serial.println(_absAvgAngle);
 
-			if ((_absAvgAngle < 0.025)) {
+			if ((_absAvgAngle < 0.02)) {
 				_consOk++;
 				return WheelSpeeds{ 0,0 };
 			}
@@ -347,7 +592,6 @@ namespace SIAL {
 				if (std::isnan(angle)) {
 					// If there is no wall -> stop faster
 					_time += dt * 3.0f;
-					Serial.println("no align");
 					return WheelSpeeds{ 0,0 };
 				}
 			}

@@ -12,11 +12,13 @@ namespace SIAL
 		FusedData getFusedData();									// Get current robot state
 		void setDistances(Distances distances);
 		void setDistSensStates(DistSensorStates distSensorStates);
+		void setUpdatedDistSens(DistSensBool distSensUpdates);
 		bool scanSurrounding(uint8_t& outCumSureWalls);
 		void updatePosAndRotFromDist(uint32_t time = 1000);
 		float getAngleRelToWall();
 		void setCorrectedState(NewForcedFusionValues newValues);
 		float getAngleRelToWall();
+		bool waitForAllDistSens();
 
 		extern bool forceAnglePosReset;
 	}

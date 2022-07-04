@@ -99,8 +99,8 @@ namespace SIAL
 		constexpr auto leftPin = PinMapping::MappedPins[SIALSettings::Bumper::leftPin];
 		constexpr auto rightPin = PinMapping::MappedPins[SIALSettings::Bumper::rightPin];
 
-		volatile bool left;
-		volatile bool right;
+		volatile bool leftInterrupt;
+		volatile bool rightInterrupt;
 
 		void setup() {
 			leftPin.port->PIO_PER = leftPin.pin;
@@ -128,15 +128,24 @@ namespace SIAL
 
 		void interrupt(InterruptSource source, uint32_t isr) {
 			if (leftPin.portID == static_cast<uint8_t>(source) && (isr & leftPin.pin)) {
-				left = true;
+				leftInterrupt = true;
 			}
 
 			if (rightPin.portID == static_cast<uint8_t>(source) && (isr & rightPin.pin)) {
-				right = true;
+				rightInterrupt = true;
 			}
 
-			if (left || right) {
-				SmoothDriving::stop();
+			if (leftInterrupt || rightInterrupt) {
+				SmoothDriving::bumper(leftInterrupt, rightInterrupt);
+			}
+		}
+
+		bool isPressed(bool left) {
+			if (left) {
+				return (leftPin.port->PIO_PDSR & leftPin.pin) == 0;
+			}
+			else {
+				return (rightPin.port->PIO_PDSR & rightPin.pin) == 0;
 			}
 		}
 	}

@@ -33,10 +33,10 @@ namespace SIAL {
 		// Setup I2C-Bus
 		Wire.begin();
 		Wire.setClock(400000);
-		Wire.setTimeout(10);
+		Wire.setTimeout(100);
 		Wire1.begin();
 		Wire1.setClock(400000);
-		Wire1.setTimeout(10);
+		Wire1.setTimeout(100);
 
 		// Start clock for PIO (debouncing)
 		PMC->PMC_PCER0 = 1 << ID_PIOA | 1 << ID_PIOB | 1 << ID_PIOC | 1 << ID_PIOD;
@@ -65,7 +65,7 @@ namespace SIAL {
 		// Initialise random number generator
 		randomSeed(69420);
 
-		SmoothDriving::startNewTask(new SmoothDriving::Stop(), true);
+		SmoothDriving::stop();
 
 		bool error = false;
 
@@ -148,7 +148,7 @@ namespace SIAL {
 
 		Serial.println("BNO055 ready!");
 
-		//PowerLEDs::setBrightness(SIALSettings::PowerLEDs::defaultPower);
+		PowerLEDs::setBrightness(SIALSettings::PowerLEDs::defaultPower);
 
 		//while (!Switch::getState());
 
@@ -162,7 +162,43 @@ namespace SIAL {
 			Serial.println("Error during setup!");
 		}
 
-		SmoothDriving::startNewTask(new SmoothDriving::TaskArray{ new SmoothDriving::Rotate(M_PI, 2.0f), new SmoothDriving::FollowCell(30), new SmoothDriving::FollowCell(30) }, true);
+		// Wait for all distance sensors to at least measure something once -> safety precaution
+		uint8_t correctDistSens = 0b0;
+		while (correctDistSens != 0b1111111) {
+			SensorFusion::updateSensors();
+			auto states = SensorFusion::getFusedData().distSensorState;
+			auto updates = SensorFusion::getFusedData().distSensUpdates;
+
+			if (states.frontLeft == DistSensorStatus::ok && updates.frontLeft) {
+				correctDistSens |= 1 << 0;
+			}
+
+			if (states.frontLong == DistSensorStatus::ok && updates.frontLong) {
+				correctDistSens |= 1 << 1;
+			}
+
+			if (states.frontRight == DistSensorStatus::ok && updates.frontRight) {
+				correctDistSens |= 1 << 2;
+			}
+
+			if (states.leftBack == DistSensorStatus::ok && updates.leftBack) {
+				correctDistSens |= 1 << 3;
+			}
+
+			if (states.leftFront == DistSensorStatus::ok && updates.leftFront) {
+				correctDistSens |= 1 << 4;
+			}
+
+			if (states.rightBack == DistSensorStatus::ok && updates.rightBack) {
+				correctDistSens |= 1 << 5;
+			}
+
+			if (states.rightFront == DistSensorStatus::ok && updates.rightFront) {
+				correctDistSens |= 1 << 6;
+			}
+		}
+
+		Serial.println("Checked all distance sensors!");
 	}
 
 	void robotLoop() {
@@ -181,15 +217,15 @@ namespace SIAL {
 		SensorFusion::sensorFusion();
 
 		SmoothDriving::updateSpeeds();
+		
+		RobotLogic::loop();
 
-		// RobotLogic::loop();
-
-		if (Bumper::left) {
-			Bumper::left = false;
+		if (Bumper::leftInterrupt) {
+			Bumper::leftInterrupt = false;
 		}
 
-		if (Bumper::right) {
-			Bumper::right = false;
+		if (Bumper::rightInterrupt) {
+			Bumper::rightInterrupt = false;
 		}
 
 		// TESTING
@@ -197,6 +233,10 @@ namespace SIAL {
 		//HeatSensor::detectVictim(HeatSensorSide::right);
 
 		auto data = SensorFusion::getFusedData();
+
+		//Serial.print("(");
+		//Serial.print(data.robotState.globalHeading);
+		//Serial.println(")");
 
 		//Serial.println("--");
 		//Serial.println(data.robotState.globalHeading);
@@ -206,13 +246,33 @@ namespace SIAL {
 		//Serial.println(data.robotState.position.y);
 
 		//const char* stateLookup[] = { "ok", "over", "under", "err" };
-		//Serial.print("lb: ");
-		//Serial.print(stateLookup[(int)data.distSensorState.leftBack]);
+		//Serial.print("fl: ");
+		//Serial.print(stateLookup[(int)data.distSensorState.frontLeft]);
 		//Serial.print("; ");
-		//Serial.println(data.distances.leftBack);
+		//Serial.println(data.distances.frontLeft);
+		//Serial.print("fr: ");
+		//Serial.print(stateLookup[(int)data.distSensorState.frontRight]);
+		//Serial.print("; ");
+		//Serial.println(data.distances.frontRight);
+		//Serial.print("f: ");
+		//Serial.print(stateLookup[(int)data.distSensorState.frontLong]);
+		//Serial.print("; ");
+		//Serial.println(data.distances.frontLong);
 		//Serial.print("lf: ");
 		//Serial.print(stateLookup[(int)data.distSensorState.leftFront]);
 		//Serial.print("; ");
 		//Serial.println(data.distances.leftFront);
+		//Serial.print("lb: ");
+		//Serial.print(stateLookup[(int)data.distSensorState.leftBack]);
+		//Serial.print("; ");
+		//Serial.println(data.distances.leftBack);
+		//Serial.print("rf: ");
+		//Serial.print(stateLookup[(int)data.distSensorState.rightFront]);
+		//Serial.print("; ");
+		//Serial.println(data.distances.rightFront);
+		//Serial.print("rb: ");
+		//Serial.print(stateLookup[(int)data.distSensorState.rightBack]);
+		//Serial.print("; ");
+		//Serial.println(data.distances.rightBack);
 	}
 }

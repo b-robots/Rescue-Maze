@@ -25,21 +25,21 @@ namespace SIAL
 				break;
 			case RelativeDir::right:
 				startNewTask(new TaskArray({
-					new Rotate(-M_PI_2, -2.0f),
+					new Rotate(-M_PI_2, -3.0f),
 					new AlignWalls(),
 					new FollowCell(30),
 					new AlignWalls() }));
 				break;
 			case RelativeDir::backward:
 				startNewTask(new TaskArray({
-					new Rotate(M_PI, 2.0f),
+					new Rotate(M_PI, 3.0f),
 					new AlignWalls(),
 					new FollowCell(30),
 					new AlignWalls() }));
 				break;
 			case RelativeDir::left:
 				startNewTask(new TaskArray({
-					new Rotate(M_PI_2, 2.0f),
+					new Rotate(M_PI_2, 3.0f),
 					new AlignWalls(),
 					new FollowCell(30),
 					new AlignWalls() }));
@@ -49,7 +49,7 @@ namespace SIAL
 			}
 		}
 
-		void startFirstTask(FusedData fusedData) {
+		bool startFirstTask(FusedData fusedData) {
 			AbsoluteDir absLeft = makeAbsolute(RelativeDir::left, fusedData.robotState.heading);
 			AbsoluteDir absForward = makeAbsolute(RelativeDir::forward, fusedData.robotState.heading);
 			AbsoluteDir absRight = makeAbsolute(RelativeDir::right, fusedData.robotState.heading);
@@ -85,9 +85,11 @@ namespace SIAL
 				}
 				else {
 					Serial.println("No direction to drive!");
-					return;
+					return false;
 				}
 			}
+
+			return true;
 		}
 
 		bool getNextDrivingDir(FusedData fusedData, RelativeDir& nextDir) {
@@ -181,9 +183,13 @@ namespace SIAL
 					nextDir = RelativeDir::right;
 					return true;
 				}
-				else {
+				else if (possibleOnlyWallsRelDir.B) {
 					nextDir = RelativeDir::backward;
 					return true;
+				}
+				else {
+					Serial.println("No direction to drive!");
+					return false;
 				}
 			}
 
@@ -250,7 +256,7 @@ namespace SIAL
 				Serial.println("No univisted direction to drive!");
 			}
 		}
-		
+
 		// handleVictimDetection
 		/*
 				void handleVictimDetection(FusedData tempFusedData) {
@@ -430,10 +436,16 @@ namespace SIAL
 
 			static MapCoordinate lastCoordinate = homePosition;
 
+			static MapCoordinate lastStoredCell = MapCoordinate(INT8_MAX, INT8_MAX);
+
 			static bool start = true;
 			static bool startAfterRotation = false;
 			static uint8_t cumSureWalls = 0b0000;
-			static bool rejectCellChange = false;	// if true -> reject a cell position change -> hysteresis like effect
+			static bool rejectCellChange = false;	// if true -> reject a cell position change
+			static DrivingTaskUID lastTask = DrivingTaskUID::invalid;
+
+			static DistSensorStates frontSnapshotStates;
+			static Distances frontSnapshotDistances;
 
 			FusedData fusedData = SensorFusion::getFusedData();
 
@@ -442,6 +454,10 @@ namespace SIAL
 			}
 
 			if (start) {
+				if (!SensorFusion::waitForAllDistSens()) {
+					return;
+				}
+
 				if (!SensorFusion::scanSurrounding(cumSureWalls)) {
 					return;
 				}
@@ -452,11 +468,11 @@ namespace SIAL
 
 				if (fusedData.gridCell.cellConnections & EntranceDirections::east) {
 					Serial.println("start rot. east");
-					startNewTask(new TaskArray({ new Rotate(-M_PI_2, -2.0f), new AlignWalls() }));
+					startNewTask(new TaskArray({ new Rotate(-M_PI_2, -3.0f), new AlignWalls() }));
 				}
 				else {
 					Serial.println("start rot. west");
-					startNewTask(new TaskArray({ new Rotate(M_PI_2, 2.0f), new AlignWalls() }));
+					startNewTask(new TaskArray({ new Rotate(M_PI_2, 3.0f), new AlignWalls() }));
 				}
 
 				start = false;
@@ -464,6 +480,10 @@ namespace SIAL
 			}
 			else if (startAfterRotation) {
 				if (!getInformation().finished) {
+					return;
+				}
+
+				if (!SensorFusion::waitForAllDistSens()) {
 					return;
 				}
 
@@ -475,39 +495,297 @@ namespace SIAL
 
 				fusedData = SensorFusion::getFusedData();
 				Serial.println(fusedData.gridCell.cellConnections, BIN);
-				startFirstTask(fusedData);
+				if (!startFirstTask(fusedData)) {
+					cumSureWalls = 0b0000;
+
+					NewForcedFusionValues correctedState;
+					correctedState.clearCell = true;
+					SensorFusion::setCorrectedState(correctedState);
+
+					return;
+				}
 
 				startAfterRotation = false;
 			}
-			else {/*
+			else {
+				// Ramp and stair handling
+				static uint8_t consPosIncline = 0;
+				static uint8_t consNegIncline = 0;
+				static bool rampUp = false;
+				static MapCoordinate rampPos;
+
+				auto robotState = fusedData.robotState;
+
+				if (SmoothDriving::getInformation().drivingStraight) {
+					if (robotState.forwardVel > SIALSettings::MotorControl::minSpeed && robotState.pitch > SIALSettings::MazeMapping::minRampAngle * (consPosIncline > 0 ? 0.8f : 1.0f)) {
+						consPosIncline++;
+					}
+					else {
+						consPosIncline = 0;
+					}
+
+					if (robotState.forwardVel > SIALSettings::MotorControl::minSpeed && robotState.pitch < -SIALSettings::MazeMapping::minRampAngle * (consNegIncline > 0 ? 0.8f : 1.0f)) {
+						consNegIncline++;
+					}
+					else {
+						consNegIncline = 0;
+					}
+
+					if (consPosIncline >= 10) {
+						if (frontSnapshotStates.frontLong == DistSensorStatus::underflow ||
+							frontSnapshotStates.frontLong == DistSensorStatus::ok && frontSnapshotDistances.frontLong < (30.0f + 15.0f - SIALSettings::Mechanics::distSensFrontBackDist / 2.0f) * 10) {
+							fusedData.gridCell.cellState |= CellState::ramp;
+							rampUp = true;
+						}
+						else {
+							fusedData.gridCell.cellState |= CellState::stair;
+						}
+					}
+					else if (consNegIncline >= 10) {
+						if (rampUp) {
+							fusedData.gridCell.cellState |= CellState::ramp;
+							rampUp = false;
+						}
+					}
+				}
+				else {
+					consPosIncline = 0;
+					consNegIncline = 0;
+				}
+
+				bool updateLastCellOnRamp = false;
+				if ((fusedData.gridCell.cellState & CellState::ramp) && SmoothDriving::getInformation().uid != DrivingTaskUID::ramp && SmoothDriving::getInformation().uid != DrivingTaskUID::stairs) {
+					Serial.println(rampUp ? "ramp up" : "ramp down");
+					startNewTask(new Ramp(rampUp ? 30 : 20, rampUp), true);
+					updateLastCellOnRamp = true;
+				}
+				else if ((fusedData.gridCell.cellState & CellState::stair) && SmoothDriving::getInformation().uid != DrivingTaskUID::ramp && SmoothDriving::getInformation().uid != DrivingTaskUID::stairs) {
+					Serial.println("stair");
+					startNewTask(new Stairs(20), true);
+					updateLastCellOnRamp = true;
+				}
+
+				if (updateLastCellOnRamp) {
+					// Set cell information of last cell
+					int8_t mapX = robotState.mapCoordinate.x;
+					int8_t mapY = robotState.mapCoordinate.y;
+
+					rampPos = robotState.mapCoordinate;
+
+					switch (robotState.heading) {
+					case AbsoluteDir::north:
+						mapX = roundf((robotState.position.x - 15.0f) / 30.0f);
+						rampPos.x = mapX + 1;
+						break;
+					case AbsoluteDir::east:
+						mapY = roundf((robotState.position.y + 15.0f) / 30.0f);
+						rampPos.y = mapY - 1;
+						break;
+					case AbsoluteDir::south:
+						mapX = roundf((robotState.position.x + 15.0f) / 30.0f);
+						rampPos.x = mapX - 1;
+						break;
+					case AbsoluteDir::west:
+						mapY = roundf((robotState.position.y - 15.0f) / 30.0f);
+						rampPos.y = mapY + 1;
+						break;
+					default:
+						break;
+					}
+
+					if (MapCoordinate(mapX, mapY) != lastStoredCell) {
+						Serial.print("left cell on ramp/stairs - x: ");
+						Serial.print(mapX);
+						Serial.print(", y: ");
+						Serial.print(mapY);
+						Serial.print(", walls: ");
+						Serial.println(cumSureWalls, BIN);
+
+						GridCell currCell;
+						MazeMapping::getGridCell(&currCell, MapCoordinate(mapX, mapY));
+						currCell.cellConnections = ~cumSureWalls;
+						currCell.cellState |= CellState::visited;
+						MazeMapping::setGridCell(currCell, MapCoordinate(mapX, mapY));
+						cumSureWalls = 0b0000;
+
+						lastStoredCell = MapCoordinate(mapX, mapY);
+					}
+
+					rejectCellChange = true;
+				}
+
+				// Black tile handling
 				static bool returnFromBlack = false;
 
-				if (isDrivingStraight()) {
+				if (SmoothDriving::getInformation().drivingStraight && SmoothDriving::getInformation().uid != DrivingTaskUID::ramp && SmoothDriving::getInformation().uid != DrivingTaskUID::stairs) {
 					FloorTileColour tileColour = ColorSensor::detectTileColour(fusedData.colorSensData.lux);
 
 					if (tileColour == FloorTileColour::black && !returnFromBlack) {
 						Serial.println("start return from black");
-						startNewTask<NewStateType::lastEndState>(TaskArray(FollowWall(-25, -30.0f), AlignWalls(), Stop()), true);
+
+						int32_t dist;
+						switch (robotState.heading)
+						{
+						case AbsoluteDir::north:
+							dist = floorf(robotState.position.x / 30.0f) * 30.0f - robotState.position.x;
+							break;
+						case AbsoluteDir::east:
+							dist = robotState.position.y - ceilf(robotState.position.y / 30.0f) * 30.0f;
+							break;
+						case AbsoluteDir::south:
+							dist = robotState.position.x - ceilf(robotState.position.x / 30.0f) * 30.0f;
+							break;
+						case AbsoluteDir::west:
+							dist = floorf(robotState.position.y / 30.0f) * 30.0f - robotState.position.y;
+							break;
+						default:
+							break;
+						}
+
+						startNewTask(new TaskArray{ new FollowWall(dist, -40.0f), new AlignWalls() }, true);
 						returnFromBlack = true;
+						rejectCellChange = true;
+
 						return;
 					}
 				}
-				*/
+
 				if (SmoothDriving::getInformation().finished) {
-					//if (returnFromBlack) {
-					//	GridCell cell;
-					//	MazeMapping::getGridCell(&cell, fusedData.robotState.mapCoordinate.getCoordinateInDir(fusedData.robotState.heading));
-					//	cell.cellState = cell.cellState | CellState::blackTile;
-					//	MazeMapping::setGridCell(cell, fusedData.robotState.mapCoordinate.getCoordinateInDir(fusedData.robotState.heading));
-					//	Serial.println("store black tile");
-					//	returnFromBlack = false;
-					//}
+					if (SmoothDriving::getInformation().uid == DrivingTaskUID::ramp) {
+						NewForcedFusionValues correctedState;
+
+						correctedState.zeroPitch = true;
+						correctedState.newX = true;
+						correctedState.newY = true;
+						correctedState.clearCell = true;
+
+						uint8_t entranceDirs = EntranceDirections::nowhere;
+
+						switch (robotState.heading) {
+						case AbsoluteDir::north:
+						case AbsoluteDir::south:
+							entranceDirs = EntranceDirections::north | EntranceDirections::south;
+							break;
+						case AbsoluteDir::east:
+						case AbsoluteDir::west:
+							entranceDirs = EntranceDirections::east | EntranceDirections::west;
+							break;
+						default:
+							break;
+						}
+
+						correctedState.x = rampPos.getCoordinateInDir(robotState.heading).x * 30.0f;
+						correctedState.y = rampPos.getCoordinateInDir(robotState.heading).y * 30.0f;
+
+						GridCell cell;
+						cell.cellConnections = entranceDirs;
+						cell.cellState = CellState::visited | CellState::ramp;
+						MazeMapping::setGridCell(cell, rampPos);
+
+						Serial.print("stored ramp cell - x: ");
+						Serial.print(rampPos.x);
+						Serial.print(", y: ");
+						Serial.print(rampPos.y);
+						Serial.print(", connections: ");
+						Serial.println(entranceDirs, BIN);
+
+						SensorFusion::setCorrectedState(correctedState);
+						SmoothDriving::startNewTask(new AlignWalls());
+
+						cumSureWalls = 0b0000;
+						rejectCellChange = true;
+					}
+					else if (SmoothDriving::getInformation().uid == DrivingTaskUID::stairs) {
+						float stairLen = 0.0f;
+						uint8_t lenEstimates = 0;
+
+						if (fusedData.distSensorState.frontLong == DistSensorStatus::ok) {
+							stairLen += fmaxf((frontSnapshotDistances.frontLong - fusedData.distances.frontLong) / 10.0f, 0.0f);
+							lenEstimates++;
+						}
+						if (fusedData.distSensorState.frontLeft == DistSensorStatus::ok) {
+							stairLen += fmaxf((frontSnapshotDistances.frontLong - fusedData.distances.frontLeft) / 10.0f, 0.0f);
+							lenEstimates++;
+						}
+						if (fusedData.distSensorState.frontRight == DistSensorStatus::ok) {
+							stairLen += fmaxf((frontSnapshotDistances.frontLong - fusedData.distances.frontRight) / 10.0f, 0.0f);
+							lenEstimates++;
+						}
+
+						stairLen /= lenEstimates;
+						uint8_t numStairs = roundf(stairLen / 30.0f) - 1;
+
+						Serial.print("finished: ");
+						Serial.print(numStairs);
+						Serial.println(" stairs");
+
+						NewForcedFusionValues correctedState;
+
+						correctedState.zeroPitch = true;
+						correctedState.newX = true;
+						correctedState.newY = true;
+						correctedState.clearCell = true;
+
+						uint8_t entranceDirs = EntranceDirections::nowhere;
+
+						switch (robotState.heading) {
+						case AbsoluteDir::north:
+						case AbsoluteDir::south:
+							entranceDirs = EntranceDirections::north | EntranceDirections::south;
+							break;
+						case AbsoluteDir::east:
+						case AbsoluteDir::west:
+							entranceDirs = EntranceDirections::east | EntranceDirections::west;
+							break;
+						default:
+							break;
+						}
+
+						for (int i = 0; i < numStairs; i++) {
+							GridCell cell;
+							cell.cellConnections = entranceDirs;
+							cell.cellState = CellState::visited | CellState::stair;
+							MazeMapping::setGridCell(cell, rampPos);
+
+							Serial.print("stored stair cell - x: ");
+							Serial.print(rampPos.x);
+							Serial.print(", y: ");
+							Serial.print(rampPos.y);
+							Serial.print(", connections: ");
+							Serial.println(entranceDirs, BIN);
+
+							rampPos = rampPos.getCoordinateInDir(robotState.heading);
+						}
+
+						correctedState.x = rampPos.x * 30.0f;
+						correctedState.y = rampPos.y * 30.0f;
+
+						SensorFusion::setCorrectedState(correctedState);
+						SmoothDriving::startNewTask(new AlignWalls());
+
+						cumSureWalls = 0b0000;
+						rejectCellChange = true;
+					}
+
+					if (!SensorFusion::waitForAllDistSens()) {
+						return;
+					}
+
+					if (returnFromBlack) {
+						GridCell cell;
+						MazeMapping::getGridCell(&cell, fusedData.robotState.mapCoordinate.getCoordinateInDir(fusedData.robotState.heading));
+						cell.cellState = CellState::blackTile;
+						MazeMapping::setGridCell(cell, fusedData.robotState.mapCoordinate.getCoordinateInDir(fusedData.robotState.heading));
+						Serial.println("store black tile");
+						returnFromBlack = false;
+					}
 
 					if (SensorFusion::scanSurrounding(cumSureWalls)) {
 						Serial.println("scanned surr. -> update pos");
 						SensorFusion::updatePosAndRotFromDist();
 
 						fusedData = SensorFusion::getFusedData();
+						robotState = fusedData.robotState;
 
 						RelativeDir driveDir;
 						if (getNextDrivingDir(fusedData, driveDir)) {
@@ -515,11 +793,33 @@ namespace SIAL
 							Serial.println((int)driveDir);
 							startRelativeTurnDirDrive(driveDir, fusedData);
 						}
+						else {
+							cumSureWalls = 0b0000;
+
+							NewForcedFusionValues correctedState;
+							correctedState.clearCell = true;
+							SensorFusion::setCorrectedState(correctedState);
+
+							return;
+						}
 					}
 				}
 			}
 
-			if (fusedData.robotState.mapCoordinate != lastCoordinate && !rejectCellChange) {
+			if (getInformation().uid == DrivingTaskUID::followCell && lastTask != DrivingTaskUID::followCell) {
+				frontSnapshotStates = DistSensorStates();
+				frontSnapshotStates.frontLeft = fusedData.distSensorState.frontLeft;
+				frontSnapshotStates.frontLong = fusedData.distSensorState.frontLong;
+				frontSnapshotStates.frontRight = fusedData.distSensorState.frontRight;
+
+				frontSnapshotDistances = Distances();
+				frontSnapshotDistances.frontLeft = fusedData.distances.frontLeft;
+				frontSnapshotDistances.frontLong = fusedData.distances.frontLong;
+				frontSnapshotDistances.frontRight = fusedData.distances.frontRight;
+				Serial.println("forward driving start");
+			}
+
+			if (fusedData.robotState.mapCoordinate != lastCoordinate && !rejectCellChange && lastStoredCell != lastCoordinate) {
 				Serial.print("left cell - x: ");
 				Serial.print(lastCoordinate.x);
 				Serial.print(", y: ");
@@ -529,15 +829,18 @@ namespace SIAL
 
 				GridCell currCell;
 				MazeMapping::getGridCell(&currCell, lastCoordinate);
-				currCell.cellConnections = (currCell.cellConnections & ~CellConnections::directionMask) | ~cumSureWalls;
+				currCell.cellConnections = ~cumSureWalls;
 				currCell.cellState |= CellState::visited;
 				MazeMapping::setGridCell(currCell, lastCoordinate);
 				cumSureWalls = 0b0000;
+
+				lastStoredCell = lastCoordinate;
 
 				rejectCellChange = true;
 			}
 
 			lastCoordinate = fusedData.robotState.mapCoordinate;
+			lastTask = getInformation().uid;
 		}
 	}
 }

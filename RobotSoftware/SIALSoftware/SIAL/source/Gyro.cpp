@@ -98,6 +98,17 @@ namespace SIAL
 
 		void tare()
 		{
+			uint8_t i = 0;
+			while (fabsf(atan2f(gravityEvent.acceleration.x, gravityEvent.acceleration.z)) > 0.1) {
+				bno055.getEvent(&gravityEvent, Adafruit_BNO055::VECTOR_GRAVITY);
+				i++;
+
+				if (i > 3) {
+					Serial.println("Can't tare gyro on slope");
+					return;
+				}
+			}
+
 			auto isQuat = bno055.getQuat();
 			while (fabsf(isQuat.magnitude() - 1) > 0.1) {
 				isQuat = bno055.getQuat();
@@ -105,18 +116,23 @@ namespace SIAL
 
 			tareQuat = isQuat.conjugate();
 
-			uint8_t i = 0;
-			while (fabsf(atan2f(gravityEvent.acceleration.x, gravityEvent.acceleration.z)) > 0.1 && i < 5) {
-				bno055.getEvent(&gravityEvent, Adafruit_BNO055::VECTOR_GRAVITY);
-				i++;
-			}
-
 			tarePitch = atan2f(gravityEvent.acceleration.x, gravityEvent.acceleration.z);
 		}
 
 		// Global heading in rad
 		void tare(float globalHeading)
 		{
+			uint8_t i = 0;
+			while (fabsf(atan2f(gravityEvent.acceleration.x, gravityEvent.acceleration.z)) > 0.1) {
+				bno055.getEvent(&gravityEvent, Adafruit_BNO055::VECTOR_GRAVITY);
+				i++;
+
+				if (i > 3) {
+					Serial.println("Can't tare gyro on slope");
+					return;
+				}
+			}
+
 			auto isQuat = bno055.getQuat();
 			while (fabsf(isQuat.magnitude() - 1) > 0.1) {
 				isQuat = bno055.getQuat();
@@ -126,12 +142,6 @@ namespace SIAL
 			a.fromAxisAngle(imu::Vector<3>(0.0f, 0.0f, 1.0f), globalHeading);
 
 			tareQuat = isQuat.conjugate() * a;
-
-			uint8_t i = 0;
-			while (fabsf(atan2f(gravityEvent.acceleration.x, gravityEvent.acceleration.z)) > 0.1 && i < 5) {
-				bno055.getEvent(&gravityEvent, Adafruit_BNO055::VECTOR_GRAVITY);
-				i++;
-			}
 
 			tarePitch = atan2f(gravityEvent.acceleration.x, gravityEvent.acceleration.z);
 		}

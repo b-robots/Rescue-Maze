@@ -148,6 +148,9 @@ namespace SIAL
 
 			delay(10);
 
+			// Disable ECE, SNR and range ignore
+			write8(0x2D, 0x00);
+
 			// 25 Hz continuos mode
 			write8(0x001c, 30);		// max convergence time = 30ms
 			write8(0x001b, 3);		// inter measurement period = 40ms (= 3 * 10ms + 10ms)
@@ -274,7 +277,9 @@ namespace SIAL
 			}
 
 			// Read range in mm
-			float tempDist = read8(_regRangeResult) * _k + _d;
+			uint8_t rawDist = read8(_regRangeResult);
+			
+			float tempDist = rawDist * _k + _d;
 
 			if (tempDist < 0.0f) distance = 0;
 			else distance = (uint16_t)roundf(tempDist);
@@ -285,7 +290,7 @@ namespace SIAL
 			// Read status
 			_status = static_cast<Status>(read8(_regRangeStatus) >> 4);
 
-			if (_status == Status::noError || _status == Status::eceFailure || _status == Status::noiseError)
+			if (_status == Status::noError)
 			{
 				if (distance > maxDist) _status = Status::overflow;
 				else if (distance < minDist) _status = Status::underflow;
@@ -297,6 +302,9 @@ namespace SIAL
 			else if (_status == Status::rawUnderflow || _status == Status::underflow)
 			{
 				_status = Status::underflow;
+			}
+			else if (_status == Status::eceFailure) {
+				_status = Status::noConvergence;
 			}
 
 			return distance;
@@ -795,10 +803,12 @@ namespace SIAL
 		void updateDistSensors()
 		{
 			auto fusedData = SensorFusion::getFusedData();
+			fusedData.distSensUpdates = DistSensBool(false);
 			uint16_t tempDist;
 
 			// Front long
 			tempDist = DistanceSensors::frontLong.getDistance();
+			fusedData.distSensUpdates.frontLong = true;
 
 			if (DistanceSensors::frontLong.getStatus() == decltype(DistanceSensors::frontLong)::Status::noError)
 			{
@@ -832,6 +842,7 @@ namespace SIAL
 			// Front Left
 			if (DistanceSensors::frontLeft.dataReady()) {
 				tempDist = DistanceSensors::frontLeft.getDistance();
+				fusedData.distSensUpdates.frontLeft = true;
 
 				if (DistanceSensors::frontLeft.getStatus() == decltype(DistanceSensors::frontLeft)::Status::noError)
 				{
@@ -872,6 +883,7 @@ namespace SIAL
 			// Front Right
 			if (DistanceSensors::frontRight.dataReady()) {
 				tempDist = DistanceSensors::frontRight.getDistance();
+				fusedData.distSensUpdates.frontRight = true;
 
 				if (DistanceSensors::frontRight.getStatus() == decltype(DistanceSensors::frontRight)::Status::noError)
 				{
@@ -912,6 +924,7 @@ namespace SIAL
 			// Left Back
 			if (DistanceSensors::leftBack.dataReady()) {
 				tempDist = DistanceSensors::leftBack.getDistance();
+				fusedData.distSensUpdates.leftBack = true;
 
 				if (DistanceSensors::leftBack.getStatus() == decltype(DistanceSensors::leftBack)::Status::noError)
 				{
@@ -952,6 +965,7 @@ namespace SIAL
 			// Left Front
 			if (DistanceSensors::leftFront.dataReady()) {
 				tempDist = DistanceSensors::leftFront.getDistance();
+				fusedData.distSensUpdates.leftFront = true;
 
 				if (DistanceSensors::leftFront.getStatus() == decltype(DistanceSensors::leftFront)::Status::noError)
 				{
@@ -992,6 +1006,7 @@ namespace SIAL
 			// Right Back
 			if (DistanceSensors::rightBack.dataReady()) {
 				tempDist = DistanceSensors::rightBack.getDistance();
+				fusedData.distSensUpdates.rightBack = true;
 
 				if (DistanceSensors::rightBack.getStatus() == decltype(DistanceSensors::rightBack)::Status::noError)
 				{
@@ -1032,6 +1047,7 @@ namespace SIAL
 			// Right Front
 			if (DistanceSensors::rightFront.dataReady()) {
 				tempDist = DistanceSensors::rightFront.getDistance();
+				fusedData.distSensUpdates.rightFront = true;
 
 				if (DistanceSensors::rightFront.getStatus() == decltype(DistanceSensors::rightFront)::Status::noError)
 				{
@@ -1071,6 +1087,7 @@ namespace SIAL
 
 			SensorFusion::setDistances(fusedData.distances);
 			SensorFusion::setDistSensStates(fusedData.distSensorState);
+			SensorFusion::setUpdatedDistSens(fusedData.distSensUpdates);
 		}
 
 		void forceNewMeasurement()

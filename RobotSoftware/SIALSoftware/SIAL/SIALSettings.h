@@ -11,10 +11,10 @@ namespace SIALSettings {
 		constexpr float axialSpacing = 9.7f;
 		constexpr float wheelDistToMiddle = 8.78f;			// !!! ALWAYS = sqrt(axialSpacing^2 + wheelDistance^2) / 2
 		constexpr float distSensLeftRightDist = 12.2f;
-		constexpr float distSensFrontBackDist = 14.0f;
+		constexpr float distSensFrontBackDist = 15.0f;
 		constexpr float distSensFrontSpacing = 9.2f;
-		constexpr float distSensFrontDistToMiddle = 8.4f;		// !!! ALWAYS = sqrt(distSensFrontBackDist^2 + distSensFrontSpacing^2) / 2
-		constexpr float distSensFrontAngleToMiddle = 0.581f;	// !!! ALWAYS = arctan(distSensFrontSpacing / distSensFrontBackDist)
+		constexpr float distSensFrontDistToMiddle = 8.8f;		// !!! ALWAYS = sqrt(distSensFrontBackDist^2 + distSensFrontSpacing^2) / 2
+		constexpr float distSensFrontAngleToMiddle = 0.55f;	// !!! ALWAYS = arctan(distSensFrontSpacing / distSensFrontBackDist)
 		constexpr float distSensLRSpacing = 10.0f;
 		constexpr float distSensLRDistToMiddle = 7.9f;		// !!! ALWAYS = sqrt(distSensLeftRightDist^2 + distSensLRSpacing^2) / 2
 		constexpr float distSensLRAngleToMiddle = 0.687f;	// !!! ALWAYS = arctan(distSensLRSpacing / distSensLeftRightDist)
@@ -77,8 +77,8 @@ namespace SIALSettings {
 
 		namespace GoToAngle
 		{
-			constexpr SIAL::PIDSettings pidSettings(0.08f, 0.01f, 0.01f, 3.0f, 3.0f, -3.0f, 3.0f);
-			constexpr float aheadDistL = 10.0f;
+			constexpr SIAL::PIDSettings pidSettings(0.08f, 0.005f, 0.015f, 3.0f, 3.0f, -3.0f, 3.0f);
+			constexpr float aheadDistL = 15.0f;
 		}
 	}
 
@@ -91,8 +91,8 @@ namespace SIALSettings {
 	namespace SensorFusion
 	{
 		// Distance & Speed
-		constexpr float longDistSensIIRFactor = 0.7f;					// Factor used for IIR-Filter for high range distance measurements
-		constexpr float shortDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for short range distance measurements
+		constexpr float longDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for high range distance measurements
+		constexpr float shortDistSensIIRFactor = 0.9f;					// Factor used for IIR-Filter for short range distance measurements
 		constexpr float speedIIRFac = 0.9f;
 
 		// Rotation
@@ -112,7 +112,8 @@ namespace SIALSettings {
 
 	namespace MazeMapping
 	{
-		constexpr float minRampAngle = 0.2f;
+		constexpr float minRampAngle = 0.15f;
+		constexpr uint8_t maxDistLongerThanBorder = 3;
 	}
 
 	namespace HeatSensors
