@@ -5,6 +5,27 @@ import subprocess
 import numpy as np
 #import serial
 import math 
+from pynput import keyboard
+import scipy.signal
+import time
+
+def normalize_linethickness(img, target=15):
+    try:
+        img[0, :] = 0
+        img[99, :] = 0
+        img[:, 0] = 0
+        img[:, 99] = 0
+        dist = cv.distanceTransform(img, cv.DIST_L2, 3)
+        maxima = scipy.signal.argrelextrema(dist, np.greater, order=2)
+        med_thick = np.median(dist[maxima]) * 2.0
+        print(dist[maxima])
+        kernel_size = round(med_thick - target) // 2 * 2 + 1
+        kernel = np.ones((kernel_size, kernel_size),np.uint8)
+        img = cv.erode(img, kernel, iterations = 1)
+        return img
+    
+    except:
+         return None
 
 def get_trainImages(path, letter,):
     img = cv.imread(path + letter + ".jpg")
@@ -18,18 +39,18 @@ def get_trainImages(path, letter,):
     #[y:y+h, x:x+w] the ":" means from to 
     #img = img[100:300, 50:190]
     
-    return gray_img
-    
+    return gray_img        
+
 def get_patch(img):
     #adaptiv thresholding 
     img = 255 - img
-    blur = cv.blur(img,(7,7))
+    blur = cv.blur(img,(11,11))
     thresh_img = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 31, 2)
     #dilataing small dots/dashes away
-    #kernel = np.ones((5,5),np.uint8)
-    #thresh_img = cv.dilate(thresh_img,kernel,iterations = 1)
+    kernel = np.ones((5,5),np.uint8)
+    thresh_img = cv.dilate(thresh_img,kernel,iterations = 1)
     #get only contours which have no holes
-    cv.imshow("thresh", thresh_img)
+    #cv.imshow("thresh", thresh_img)
     contours, hierarchy = cv.findContours(thresh_img, cv.RETR_TREE, cv.CHAIN_APPROX_TC89_L1)
     contours = [contours[i] for i in range(len(contours)) if hierarchy[0][i][2] < 0]
 
@@ -205,6 +226,62 @@ def read_all_serial(port):
         return [None]
     return port.read(port.in_waiting)
 
+def get_compImages(map1, map2):
+    global is_y
+    global is_s
+    is_y = False
+    is_s = False
+    def on_press(key):
+        global is_y
+        global is_s
+        try:
+            print(key.char[0])
+            if key.char[0] == 'y':
+                is_y = True
+            elif key.char[0] == 's':
+                print("weeeeeee")
+                is_s = True
+        except AttributeError:
+            print('special key {0} pressed'.format(key))
+        
+    lcamId, rcamId=get_cam_serial()
+    caml = cv.VideoCapture(int(lcamId)) # left
+    if not caml.isOpened():   
+        raise IOError("Cannot open webcam")
+    caml.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M','J','P','G'))
+    caml.set(cv.CAP_PROP_FRAME_WIDTH, 320)
+    caml.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+    
+    listener = keyboard.Listener(on_press=on_press)
+    listener.start()
+    
+    print("to keep picture press y to skip s")
+    orders = ""
+    ltr_cnt = 1
+    letterLookup = ['H', 'S', 'U']
+    for l in letterLookup:
+        print("is this an " + l)
+        is_s = False
+        while not is_s:
+            _, img = caml.read()
+            img = get_undist_roi(img, map1, map2, False)
+            valid = True
+            gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+            patch = get_patch(gray_img)
+            if patch is None:
+               valid = False
+            
+            if valid:
+                #cv.imshow("lul",patch)
+                #cv.waitKey(1)
+
+                if is_y:
+                    cv.imwrite(l + "Comp.jpg", patch)
+                    is_y = False
+                    break  
+        else:
+            continue           
+
 def main():
     
     #port = serial.Serial('/dev/serial0', baudrate=9600, timeout=0)
@@ -233,8 +310,9 @@ def main():
     comp_U = cv.imread("UComp.jpg", cv.IMREAD_GRAYSCALE)
 
     comps = [comp_H, comp_S, comp_U]
-
+    t = 0
     while True:
+            t = time.time()
         #try:
             # if b'B' in read_all_serial(port):
             #     port.write(b'OK\n')
@@ -251,21 +329,19 @@ def main():
 
             gray_imgl = cv.cvtColor(imgl, cv.COLOR_BGR2GRAY)
             patch_imgl = get_patch(gray_imgl)
+            patch_imgl = normalize_linethickness(patch_imgl)
             if patch_imgl is None:
                l_valid = False
 
-            gray_imgr = cv.cvtColor(imgr, cv.COLOR_BGR2GRAY)
-            patch_imgr = get_patch(gray_imgr)
-            if patch_imgr is None:
-               r_valid = False
+            #gray_imgr = cv.cvtColor(imgr, cv.COLOR_BGR2GRAY)
+            #patch_imgr = get_patch(gray_imgr)
+            #if patch_imgr is None:
+               #r_valid = False
 
             if l_valid:
-                cv.imshow("patch", patch_imgl)
-                cv.imshow("H",comps[0])
-                cv.imshow("S",comps[1])
-                cv.imshow("U",comps[2])
-                cv.waitKey(1)
-                print(f"Res: {letterLookup[detect_letter_HUregions(patch_imgl, comps)]}")
+                #cv.imshow("patch", patch_imgl)
+                #cv.waitKey(1)
+                print(f"Res: {letterLookup[detect_letter_HUregions(patch_imgl, comps)]}", "fps: " + str(1 / (t - time.time)))
 
             #cv.imwrite("testL.jpg", bin_imgl)
             #cv.imwrite("testR.jpg", bin_imgr)
@@ -287,6 +363,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+    #map1, map2 = get_undistort_map(0.8, 1.0)
+    #get_compImages(map1, map2)
+
     
     
     
