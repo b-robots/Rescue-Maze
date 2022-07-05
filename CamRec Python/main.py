@@ -5,7 +5,6 @@ import subprocess
 import numpy as np
 #import serial
 import math 
-from sklearn import svm
 
 def get_trainImages(path, letter,):
     img = cv.imread(path + letter + ".jpg")
@@ -25,15 +24,16 @@ def get_patch(img):
     #adaptiv thresholding 
     img = 255 - img
     blur = cv.blur(img,(7,7))
-    thresh_img = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 71, 10)
+    thresh_img = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 31, 2)
     #dilataing small dots/dashes away
-    kernel = np.ones((5,5),np.uint8)
-    thresh_img = cv.dilate(thresh_img,kernel,iterations = 1)
+    #kernel = np.ones((5,5),np.uint8)
+    #thresh_img = cv.dilate(thresh_img,kernel,iterations = 1)
     #get only contours which have no holes
-    contours, hierarchy = cv.findContours(thresh_img, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    cv.imshow("thresh", thresh_img)
+    contours, hierarchy = cv.findContours(thresh_img, cv.RETR_TREE, cv.CHAIN_APPROX_TC89_L1)
     contours = [contours[i] for i in range(len(contours)) if hierarchy[0][i][2] < 0]
 
-    cv.imshow("thresh", thresh_img)
+    #cv.imshow("thresh", thresh_img)
     #find the brightest contour which is bigger than 100px
     brightest_cnt = None
     brightest = 0
@@ -45,6 +45,9 @@ def get_patch(img):
             brightest = b
             brightest_cnt = contour
     
+    if brightest_cnt is None:
+        return None
+
     cnt = np.squeeze(np.asarray(brightest_cnt))
     #transform the image into a 100x100px image
     left_top = np.amin(cnt, 0)
@@ -58,7 +61,7 @@ def get_patch(img):
 
     return patch  
 
-def detect_letter(patch):
+def detect_letter_overlay(patch):
     """
     Detects letters returns numbers from 0 to 3 
     where 0 = None, 1 = H, 2 = S, 3 = U
@@ -73,8 +76,8 @@ def detect_letter(patch):
 
     patch = cv.blur(patch,(51,51))
 
-    cv.imshow("234", patch)
-    cv.waitKey(0)
+    # cv.imshow("234", patch)
+    # cv.waitKey(0)
 
     prediction_H =  np.mean(((comp_H - patch)/255.0)**2)
     prediction_S =  np.mean(((comp_S - patch)/255.0)**2)
@@ -87,6 +90,40 @@ def detect_letter(patch):
     
     return 0
 
+def get_HUdist(patch, comp):
+
+    patch1 = patch[:, 0:50]
+    patch2 = patch[:, 50:100]
+    patch3 = patch
+    comp1 = comp[:, 0:50]
+    comp2 = comp[:, 0:50]
+    comp3 = comp
+
+    res1 = cv.matchShapes(patch1,comp1,cv.CONTOURS_MATCH_I1,0)
+    res2 = cv.matchShapes(patch2,comp2,cv.CONTOURS_MATCH_I1,0) 
+    res3 = cv.matchShapes(patch3,comp3,cv.CONTOURS_MATCH_I2,0)
+
+    a1 = 1 / (40*res1+1)
+    a2 = 1 / (40*res2+1)
+    a3 = 1 / (40*res3+1)
+
+    a = (a1 * a2 * a3)**(1.0/3) 
+
+    return (1 - a) / (40*a)
+
+def detect_letter_HUregions(patch, comps):
+    res = []
+    for comp in comps:
+        res.append(get_HUdist(patch, comp))
+
+    res = np.asarray(res)
+    lowest = np.argmin(res)
+    print(res, end='')
+    if res[lowest] < 0.009:
+        return lowest + 1
+
+    return 0
+
 def get_undist_roi(img, map1, map2, is_right=False):
     img = undistort(img, map1, map2)
     if is_right:
@@ -95,7 +132,7 @@ def get_undist_roi(img, map1, map2, is_right=False):
         img = cv.rotate(img, cv.ROTATE_90_CLOCKWISE)
 
     #[y:y+h, x:x+w] the ":" means from to 
-    img = img[100:300, 50:190]
+    img = img[:, 50:190]
 
     return img
 
@@ -123,15 +160,15 @@ def detect_Color(img):
     #adaptiv thresholding 
     inv_img = 255 - inv_img
     blur = cv.blur(inv_img,(7,7))
-    thresh_img = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 71, 10)
+    thresh_img = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 31, 2)
     #dilataing small dots/dashes away
-    kernel = np.ones((5,5),np.uint8)
-    thresh_img = cv.dilate(thresh_img,kernel,iterations = 1)
+    #kernel = np.ones((5,5),np.uint8)
+    #thresh_img = cv.dilate(thresh_img,kernel,iterations = 1)
     #get only contours which have no holes
-    contours, hierarchy = cv.findContours(thresh_img, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv.findContours(thresh_img, cv.RETR_TREE, cv.CHAIN_APPROX_TC89_L1)
     contours = [contours[i] for i in range(len(contours)) if hierarchy[0][i][2] < 0]
 
-    cv.imshow("thresh", thresh_img)
+    #cv.imshow("thresh", thresh_img)
     #find the brightest contour which is bigger than 100px
     brightest_cnt = None
     brightest = 0
@@ -170,7 +207,7 @@ def read_all_serial(port):
 
 def main():
     
-    port = serial.Serial('/dev/serial0', baudrate=9600, timeout=0)
+    #port = serial.Serial('/dev/serial0', baudrate=9600, timeout=0)
     letterLookup = [b'N',  b'H', b'S', b'U']
     colorLookup = [b'N',  b'R', b'Y', b'G']
 
@@ -191,41 +228,62 @@ def main():
     camr.set(cv.CAP_PROP_FRAME_WIDTH, 320)
     camr.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
 
+    comp_H = cv.imread("HComp.jpg", cv.IMREAD_GRAYSCALE)
+    comp_S = cv.imread("SComp.jpg", cv.IMREAD_GRAYSCALE)
+    comp_U = cv.imread("UComp.jpg", cv.IMREAD_GRAYSCALE)
+
+    comps = [comp_H, comp_S, comp_U]
+
     while True:
-        try:
-            if b'B' in read_all_serial(port):
-                port.write(b'OK\n')
+        #try:
+            # if b'B' in read_all_serial(port):
+            #     port.write(b'OK\n')
             #get picture
             _, imgl = caml.read()
             _, imgr = camr.read()
+
+            l_valid = True
+            r_valid = True
 
             #undistort and crop
             imgr = get_undist_roi(imgr, map1, map2, True)
             imgl = get_undist_roi(imgl, map1, map2, False)
 
-            gray_imgl = 255 - cv.cvtColor(imgl, cv.COLOR_BGR2GRAY)
+            gray_imgl = cv.cvtColor(imgl, cv.COLOR_BGR2GRAY)
             patch_imgl = get_patch(gray_imgl)
+            if patch_imgl is None:
+               l_valid = False
 
-            gray_imgr = 255 - cv.cvtColor(imgr, cv.COLOR_BGR2GRAY)
+            gray_imgr = cv.cvtColor(imgr, cv.COLOR_BGR2GRAY)
             patch_imgr = get_patch(gray_imgr)
+            if patch_imgr is None:
+               r_valid = False
+
+            if l_valid:
+                cv.imshow("patch", patch_imgl)
+                cv.imshow("H",comps[0])
+                cv.imshow("S",comps[1])
+                cv.imshow("U",comps[2])
+                cv.waitKey(1)
+                print(f"Res: {letterLookup[detect_letter_HUregions(patch_imgl, comps)]}")
 
             #cv.imwrite("testL.jpg", bin_imgl)
             #cv.imwrite("testR.jpg", bin_imgr)
 
-            rightOut = colorLookup[detect_Color(imgr)]
-            leftOut = colorLookup[detect_Color(imgl)]
+            # rightOut = colorLookup[detect_Color(imgr)]
+            # leftOut = colorLookup[detect_Color(imgl)]
         
-            if rightOut == colorLookup[0]:
-                rightOut = letterLookup[detect_letter(patch_imgr)]
+            #  if rightOut == colorLookup[0] and r_valid:
+            #      rightOut = letterLookup[detect_letter(patch_imgr)]
 
-            if leftOut == colorLookup[0]:
-                leftOut = letterLookup[detect_letter(patch_imgl)]
+            #  if leftOut == colorLookup[0] and l_valid:
+            #      leftOut = letterLookup[detect_letter(patch_imgl)]
 
-            port.write(b'l' + leftOut + b'r' + rightOut + b'\n')
-            print("l: " + str(leftOut), "r: " + str(rightOut))
-        except Exception as e:
-            print(e)
-            continue
+            #port.write(b'l' + leftOut + b'r' + rightOut + b'\n')
+            #print("l: " + str(leftOut), "r: " + str(rightOut))
+        #except Exception as e:
+            #print(e)
+            #continue
 
 if __name__ == "__main__":
     main()
