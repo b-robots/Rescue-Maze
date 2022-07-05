@@ -496,11 +496,12 @@ def make_trainImages(map1, map2):
                 cv.waitKey(1)
 
                 if is_y:
-                    cv.imwrite("/trainNew/" + l + str(cnt) + ".jpg", patch)
+                    cv.imwrite("trainNew/" + l + str(cnt) + ".jpg", patch)
                     print(l + str(cnt))
                     cnt += 1
                     is_y = False
-                    break  
+            if is_n:
+                break
         else:
             cnt = 0
             continue
