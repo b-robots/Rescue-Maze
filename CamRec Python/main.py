@@ -18,7 +18,8 @@ def normalize_linethickness(img, target=15):
         dist = cv.distanceTransform(img, cv.DIST_L2, 3)
         maxima = scipy.signal.argrelextrema(dist, np.greater, order=2)
         med_thick = np.median(dist[maxima]) * 2.0
-        print(dist[maxima])
+        if  med_thick is None:
+            return None
         kernel_size = round(med_thick - target) // 2 * 2 + 1
         kernel = np.ones((kernel_size, kernel_size),np.uint8)
         img = cv.erode(img, kernel, iterations = 1)
@@ -105,7 +106,7 @@ def detect_letter_overlay(patch):
     prediction_U =  np.mean(((comp_U - patch)/255.0)**2)
 
     predictions = [prediction_H, prediction_S, prediction_U]
-    print(predictions)
+    print(predictions, end='')
     if(prediction_H > 0.5 or prediction_S > 0.5 or prediction_U > 0.5):
         return np.argmax(predictions) + 1
     
@@ -113,23 +114,26 @@ def detect_letter_overlay(patch):
 
 def get_HUdist(patch, comp):
 
-    patch1 = patch[:, 0:50]
-    patch2 = patch[:, 50:100]
+    patch1 = patch[:, :50]
+    patch2 = patch[:, 50:]
     patch3 = patch
-    comp1 = comp[:, 0:50]
-    comp2 = comp[:, 0:50]
+    comp1 = comp[:, :50]
+    comp2 = comp[:, 50:]
     comp3 = comp
 
-    res1 = cv.matchShapes(patch1,comp1,cv.CONTOURS_MATCH_I1,0)
-    res2 = cv.matchShapes(patch2,comp2,cv.CONTOURS_MATCH_I1,0) 
-    res3 = cv.matchShapes(patch3,comp3,cv.CONTOURS_MATCH_I2,0)
+    res1 = abs(cv.matchShapes(patch1,comp1,cv.CONTOURS_MATCH_I1,0))
+    res2 = abs(cv.matchShapes(patch2,comp2,cv.CONTOURS_MATCH_I1,0))
+    res3 = abs(cv.matchShapes(patch3,comp3,cv.CONTOURS_MATCH_I1,0))
 
     a1 = 1 / (40*res1+1)
     a2 = 1 / (40*res2+1)
     a3 = 1 / (40*res3+1)
 
     a = (a1 * a2 * a3)**(1.0/3) 
-
+    try:
+        b = 1 / a
+    except:
+        return 1
     return (1 - a) / (40*a)
 
 def detect_letter_HUregions(patch, comps):
@@ -139,8 +143,8 @@ def detect_letter_HUregions(patch, comps):
 
     res = np.asarray(res)
     lowest = np.argmin(res)
-    print(res, end='')
-    if res[lowest] < 0.009:
+    if res[lowest] < 0.002:
+        print(res, end='')
         return lowest + 1
 
     return 0
@@ -214,9 +218,6 @@ def detect_Color(img):
         r_sim = abs(np.arctan2(np.sin(hsv_avg[0] - np.pi * 2.0), np.cos(hsv_avg[0] - np.pi * 2.0)))
         y_sim = abs(np.arctan2(np.sin(hsv_avg[0] - 0.873), np.cos(hsv_avg[0] - 0.873)))
         g_sim = abs(np.arctan2(np.sin(hsv_avg[0] - 1.3), np.cos(hsv_avg[0] - 1.3)))
-        print(r_sim * 180/np.pi)
-        print(y_sim * 180/np.pi)
-        print(g_sim * 180/np.pi)
         return np.argmin([r_sim, y_sim, g_sim]) + 1
     
     return 0
@@ -268,12 +269,13 @@ def get_compImages(map1, map2):
             valid = True
             gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
             patch = get_patch(gray_img)
+            patch = normalize_linethickness(patch)
             if patch is None:
                valid = False
             
             if valid:
-                #cv.imshow("lul",patch)
-                #cv.waitKey(1)
+                cv.imshow("lul",patch)
+                cv.waitKey(1)
 
                 if is_y:
                     cv.imwrite(l + "Comp.jpg", patch)
@@ -339,10 +341,12 @@ def main():
                #r_valid = False
 
             if l_valid:
-                #cv.imshow("patch", patch_imgl)
-                #cv.waitKey(1)
-                print(f"Res: {letterLookup[detect_letter_HUregions(patch_imgl, comps)]}", "fps: " + str(1 / (t - time.time)))
-
+                cv.imshow("patch", patch_imgl)
+                cv.waitKey(1)
+                #print(f"Res: {letterLookup[detect_letter_HUregions(patch_imgl, comps)]}", "fps: " + str(1 / (t - time.time())))
+                res = letterLookup[detect_letter_HUregions(patch_imgl, comps)]
+                if res != b'N':
+                    print("Res" + str(res))
             #cv.imwrite("testL.jpg", bin_imgl)
             #cv.imwrite("testR.jpg", bin_imgr)
 
