@@ -29,7 +29,7 @@ namespace SIAL {
 		private:
 			int32_t _dist;
 			int16_t _speed;
-			Vec3f _startPos;
+			Vec2f _startPos;
 		public:
 			WheelSpeeds updateSpeeds(float dt);
 			void startTask(RobotState startState);
@@ -53,11 +53,24 @@ namespace SIAL {
 			Rotate(float angle, float maxAngularVel, bool snapOrientation = true);
 		};
 
+		class RotationUnstuck : public ITask {
+		private:
+			float _angle;
+			float _startAngle;
+			bool _retreatStage;
+			uint8_t _consFinished;
+			uint32_t _retreatStart;
+		public:
+			WheelSpeeds updateSpeeds(float dt);
+			void startTask(RobotState startState);
+			RotationUnstuck();
+		};
+
 		class FollowWall : public ITask {
 		private:
 			int32_t _dist;
 			int16_t _speed;
-			Vec3f _startPos;
+			Vec2f _startPos;
 			PIDController _pid;
 		public:
 			WheelSpeeds updateSpeeds(float dt);

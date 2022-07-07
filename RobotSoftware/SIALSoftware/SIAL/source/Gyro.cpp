@@ -154,6 +154,15 @@ namespace SIAL
 			if (rev.sw_rev != 0x311) {
 				Serial.println("Wire1 error!");
 				I2C::recoverI2C1();
+				//bno055.enterSuspendMode();
+				//bno055.enterNormalMode();
+				
+				bno055.getRevInfo(&rev);
+
+				if (rev.sw_rev != 0x311) {
+					Serial.println("Hopeless BNO recovery!");
+				}
+
 				return;
 			}
 

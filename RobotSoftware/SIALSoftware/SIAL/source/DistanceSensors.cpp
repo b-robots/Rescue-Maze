@@ -156,13 +156,13 @@ namespace SIAL
 			write8(0x001b, 3);		// inter measurement period = 40ms (= 3 * 10ms + 10ms)
 
 			// Select single mode (to stop eventual continuous)
-			write8(_regRangeStart, 0x00);
-			write8(_regRangeStart, 0x01);
+			write8(_regRangeStart, 0b00);
+			write8(_regRangeStart, 0b01);
 
 			delay(100);
 
 			// Start continuous mode
-			write8(_regRangeStart, 0x03);
+			write8(_regRangeStart, 0b11);
 		}
 
 		void VL6180::setKD(float k, int d)
@@ -243,15 +243,9 @@ namespace SIAL
 						}
 					}
 
-					delay(5);
-
 					clearInterrupt();
-
-					delay(5);
-
 					setup();
-
-					delay(5);
+					_lastRead = millis();
 
 					Serial.print("time out: ");
 					Serial.println(_id);
@@ -612,14 +606,9 @@ namespace SIAL
 						}
 					}
 
-					delay(5);
-
 					_sensor.stopContinuous();
 					clearInterrupt();
-
 					setup();
-
-					delay(5);
 
 					Serial.print("time out: ");
 					Serial.println(_id);

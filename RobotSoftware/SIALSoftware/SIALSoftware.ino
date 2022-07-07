@@ -5,8 +5,8 @@
 
 // External Libs
 #include <SPI.h>
+#include <Wire.h>	// Changed static const timeout values
 #include <VL53L0X.h>
-#include <Wire.h>
 #include <Adafruit_BNO055.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_TCS34725.h>

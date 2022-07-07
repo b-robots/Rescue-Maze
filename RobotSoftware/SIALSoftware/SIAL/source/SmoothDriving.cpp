@@ -67,7 +67,7 @@ namespace SIAL {
 		Stop::Stop() : ITask(DrivingTaskInformation(DrivingTaskUID::stop)) {}
 
 		void Stop::startTask(RobotState startState) {
-
+			_information.startState = startState;
 		}
 
 		WheelSpeeds Stop::updateSpeeds(float dt) {
@@ -79,6 +79,7 @@ namespace SIAL {
 
 		void ForceSpeed::startTask(RobotState startState) {
 			_startPos = startState.position;
+			_information.startState = startState;
 		}
 
 		WheelSpeeds ForceSpeed::updateSpeeds(float dt) {
@@ -109,6 +110,8 @@ namespace SIAL {
 			_accelerate = true;
 
 			_totalTime = _angle / _maxAngularVel * 2.0f;
+
+			_information.startState = startState;
 		}
 
 		WheelSpeeds Rotate::updateSpeeds(float dt)
@@ -127,7 +130,7 @@ namespace SIAL {
 			rotatedAngle = tempRobotState.globalHeading - _startAngle;
 
 			// Check if I am there
-			if (fabsf(rotatedAngle) >= fabsf(_angle))
+			if (fabsf(rotatedAngle) >= fabsf(_angle) - 3.0f * DEG_TO_RAD)
 			{
 				_consFinished++;
 			}
@@ -135,7 +138,7 @@ namespace SIAL {
 				_consFinished = 0;
 			}
 
-			if (_consFinished > 2) {
+			if (_consFinished >= 2) {
 				_information.finished = true;
 
 				return WheelSpeeds{ 0, 0 };
@@ -172,17 +175,96 @@ namespace SIAL {
 			return output;
 		}
 
+		RotationUnstuck::RotationUnstuck() : ITask(DrivingTaskInformation(DrivingTaskUID::rotationUnstuck)), _retreatStage(true), _retreatStart(UINT32_MAX) {}
+
+		void RotationUnstuck::startTask(RobotState startState)
+		{
+			_information.startState = startState;
+			if (startState.wheelSpeeds.left > startState.wheelSpeeds.right) {
+				_angle = floorf(startState.globalHeading / M_PI_2) * M_PI_2 - startState.globalHeading;
+			}
+			else {
+				_angle = ceilf(startState.globalHeading / M_PI_2) * M_PI_2 - startState.globalHeading;
+			}
+			_startAngle = startState.globalHeading;
+		}
+
+		WheelSpeeds RotationUnstuck::updateSpeeds(float dt)
+		{
+			float rotatedAngle;			// Rotated angle since start
+			float desAngularVel;		// Desired angular velocity
+			WheelSpeeds output;			// Output
+
+			if (_information.finished) {
+				return WheelSpeeds{ 0, 0 };
+			}
+
+			const auto tempRobotState = SensorFusion::getFusedData().robotState;
+
+			// Calculate rotated angle
+			rotatedAngle = tempRobotState.globalHeading - _startAngle;
+
+			// Check if I am there
+			if (fabsf(rotatedAngle) >= fabsf(_angle) - 5.0f * DEG_TO_RAD && !_retreatStage)
+			{
+				_consFinished++;
+			}
+			else {
+				_consFinished = 0;
+			}
+
+			if (_consFinished >= 2) {
+				_information.finished = true;
+
+				return WheelSpeeds{ 0, 0 };
+			}
+
+			if (_retreatStage) {
+				if (_retreatStart == UINT32_MAX) {
+					_retreatStart = millis();
+				}
+				else if (millis() - _retreatStart > 400) {
+					_retreatStage = false;
+				}
+				
+				desAngularVel = -2.0f * sgn(_angle);
+			}
+			else {
+				desAngularVel = 4.0f * sgn(_angle);
+			}
+
+			// Compute wheel speeds -- w = (v_r - v_l) / wheelDistance; v_l = -v_r; => v_l = -w * wheelDistance / 2; v_r = w * wheelDistance / 2
+			output = WheelSpeeds{ -SIALSettings::Mechanics::wheelDistance * desAngularVel / 2.0f, SIALSettings::Mechanics::wheelDistance * desAngularVel / 2.0f };
+
+			// Correct speed if it is too low
+			if (output.right < SIALSettings::MotorControl::minSpeed && output.right > -SIALSettings::MotorControl::minSpeed)
+			{
+				output.right = SIALSettings::MotorControl::minSpeed * sgn(_angle);
+				output.left = -output.right;
+			}
+
+			return output;
+		}
+
 		FollowWall::FollowWall(int32_t dist, int16_t speed) : ITask(DrivingTaskInformation(DrivingTaskUID::followWall, true)), _dist(dist), _speed(speed), _pid(SIALSettings::Controller::GoToAngle::pidSettings) {}
 
 		void FollowWall::startTask(RobotState startState) {
 			_startPos = startState.position;
+			_information.startState = startState;
+
+			Serial.print("Start FollowWall at: ");
+			Serial.print(_information.startState.position.x);
+			Serial.print(", ");
+			Serial.print(_information.startState.position.y);
+			Serial.print(" with dist: ");
+			Serial.println(_dist);
 		}
 
 		WheelSpeeds FollowWall::updateSpeeds(float dt) {
 			const auto fusedData = SensorFusion::getFusedData();
 			const auto robotState = fusedData.robotState;
 
-			const Vec2f currentPosition = (Vec2f)(robotState.position);
+			const Vec2f currentPosition = robotState.position;
 
 			float drivenDistance;
 
@@ -193,20 +275,14 @@ namespace SIAL {
 				drivenDistance = fabsf(currentPosition.y - _startPos.y);
 			}
 
-			if (drivenDistance >= fabsf(_dist) - fabsf(_speed) * 0.06f)
+			if (drivenDistance >= fabsf(_dist))
 			{
+				Serial.println("Stopped FollowWall -> drivenDistance");
 				_information.finished = true;
 			}
 
-			if (fusedData.distSensorState.frontRight == DistSensorStatus::underflow ||
-				(fusedData.distSensorState.frontRight == DistSensorStatus::ok &&
-					fusedData.distances.frontRight < (30.0f - SIALSettings::Mechanics::distSensFrontBackDist) / 2 * 10 * 0.9f)) {
-				_information.finished = true;
-			}
-
-			if (fusedData.distSensorState.frontLeft == DistSensorStatus::underflow ||
-				(fusedData.distSensorState.frontLeft == DistSensorStatus::ok &&
-					fusedData.distances.frontLeft < (30.0f - SIALSettings::Mechanics::distSensFrontBackDist) / 2 * 10 * 0.9f)) {
+			if (fusedData.distSensorState.frontRight == DistSensorStatus::underflow && fusedData.distSensorState.frontLeft == DistSensorStatus::underflow) {
+				Serial.println("Stopped FollowWall -> underflow");
 				_information.finished = true;
 			}
 
@@ -315,7 +391,7 @@ namespace SIAL {
 		Ramp::Ramp(uint8_t speed, bool up) : ITask(DrivingTaskInformation(DrivingTaskUID::ramp, true)), _speed(speed), _emaPitch(NAN), _up(up), _consecutiveEnd(0), _rampEnd(false), _pid(SIALSettings::Controller::GoToAngle::pidSettings) {}
 
 		void Ramp::startTask(RobotState startState) {
-
+			_information.startState = startState;
 		}
 
 		WheelSpeeds Ramp::updateSpeeds(float dt) {
@@ -339,11 +415,11 @@ namespace SIAL {
 
 				if (_consecutiveEnd >= 15) {
 					_rampEnd = true;
-					_rampEndPos = Vec2f(robotState.position);
+					_rampEndPos = robotState.position;
 				}
 			}
 			else {
-				const Vec2f currentPosition = (Vec2f)(robotState.position);
+				const Vec2f currentPosition = robotState.position;
 
 				float drivenDistance;
 
@@ -354,7 +430,7 @@ namespace SIAL {
 					drivenDistance = fabsf(currentPosition.y - _rampEndPos.y);
 				}
 
-				if (drivenDistance >= fabsf(5) - fabsf(_speed) * 0.06f)
+				if (drivenDistance >= fabsf(10) - fabsf(_speed) * 0.06f)
 				{
 					_information.finished = true;
 				}
@@ -429,7 +505,7 @@ namespace SIAL {
 		Stairs::Stairs(uint8_t speed) : ITask(DrivingTaskInformation(DrivingTaskUID::stairs, true)), _speed(speed), _emaPitch(NAN), _pid(SIALSettings::Controller::GoToAngle::pidSettings), _up(true), _consEnd(0), _stairEnd(false) {}
 
 		void Stairs::startTask(RobotState startState) {
-
+			_information.startState = startState;
 		}
 
 		WheelSpeeds Stairs::updateSpeeds(float dt) {
@@ -440,10 +516,8 @@ namespace SIAL {
 				_emaPitch = robotState.pitch;
 			}
 			else {
-				_emaPitch = robotState.pitch * 0.7f + _emaPitch * 0.3f;
+				_emaPitch = robotState.pitch * 0.65f + _emaPitch * 0.35f;
 			}
-
-			Serial.println(_emaPitch);
 
 			if (_stairEnd && !_up && _emaPitch < -0.05f) {
 				_stairEnd = false;
@@ -463,11 +537,11 @@ namespace SIAL {
 
 				if (_consEnd >= 15) {
 					_stairEnd = true;
-					_stairEndPos = Vec2f(robotState.position);
+					_stairEndPos = robotState.position;
 				}
 			}
 			else {
-				const Vec2f currentPosition = (Vec2f)(robotState.position);
+				const Vec2f currentPosition = robotState.position;
 
 				float drivenDistance;
 
@@ -552,7 +626,9 @@ namespace SIAL {
 
 		AlignWalls::AlignWalls() : ITask(DrivingTaskInformation(DrivingTaskUID::alignWalls)), _absAvgAngle(0.0f), _first(true), _time(0.0f), _consOk(0) {}
 
-		void AlignWalls::startTask(RobotState startState) {}
+		void AlignWalls::startTask(RobotState startState) {
+			_information.startState = startState;
+		}
 
 		WheelSpeeds AlignWalls::updateSpeeds(float dt)
 		{

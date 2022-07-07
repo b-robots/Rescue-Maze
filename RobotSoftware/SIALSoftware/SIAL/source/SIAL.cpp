@@ -18,9 +18,11 @@
 #include "../header/SensorFusion.h"
 #include "../header/SmoothDriving.h"
 #include "../header/RobotLogic.h"
+#include "../header/CamRec.h"
+#include "../header/Dispenser.h"
 
 #include <SPI.h>
-#include <Wire.h>
+#include <Wire.h>	// Changed static const timeout values
 
 namespace SIAL {
 	void robotSetup() {
@@ -33,10 +35,11 @@ namespace SIAL {
 		// Setup I2C-Bus
 		Wire.begin();
 		Wire.setClock(400000);
-		Wire.setTimeout(100);
+		Wire.setTimeout(1);
+
 		Wire1.begin();
 		Wire1.setClock(400000);
-		Wire1.setTimeout(100);
+		Wire1.setTimeout(1);
 
 		// Start clock for PIO (debouncing)
 		PMC->PMC_PCER0 = 1 << ID_PIOA | 1 << ID_PIOB | 1 << ID_PIOC | 1 << ID_PIOD;
@@ -132,6 +135,20 @@ namespace SIAL {
 			error = true;
 		}
 
+		// Setup of CamRec
+		if (CamRec::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error CamRec!");
+			error = true;
+		}
+
+		// Setup of Dispenser
+		if (Dispenser::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error Dispenser!");
+			error = true;
+		}
+
 		// TESTING
 		// Gyro::calibrate();
 
@@ -205,7 +222,7 @@ namespace SIAL {
 		static float fps = 100.0f;
 		static uint32_t t = 0;
 		if (t > 0) {
-			fps = 1000.0f / (millis() - t) * 0.9f + fps * 0.1f;
+			fps = 1000.0f / (millis() - t) * 1.0f + fps * 0.0f;
 		}
 		t = millis();
 
@@ -235,15 +252,17 @@ namespace SIAL {
 		auto data = SensorFusion::getFusedData();
 
 		//Serial.print("(");
-		//Serial.print(data.robotState.globalHeading);
+		//Serial.print(data.robotState.pitch);
 		//Serial.println(")");
 
 		//Serial.println("--");
 		//Serial.println(data.robotState.globalHeading);
 
+		//Serial.print("(");
 		//Serial.print(data.robotState.position.x);
 		//Serial.print("; ");
-		//Serial.println(data.robotState.position.y);
+		//Serial.print(data.robotState.position.y);
+		//Serial.println(")");
 
 		//const char* stateLookup[] = { "ok", "over", "under", "err" };
 		//Serial.print("fl: ");

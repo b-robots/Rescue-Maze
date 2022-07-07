@@ -21,5 +21,9 @@ namespace SIAL
 		bool waitForAllDistSens();
 
 		extern bool forceAnglePosReset;
+		extern uint16_t consecutiveRotStuck;
+
+		extern float distToLWall;
+		extern float distToRWall;
 	}
 }

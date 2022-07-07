@@ -26,16 +26,6 @@ namespace SIAL
 		constexpr int8_t maxY = 31;
 		constexpr int8_t minY = -32;
 
-		// Namespace for the Breadth-First-Search-Algorithm to find the shortest Path
-		namespace BFAlgorithm
-		{
-			// Reset all BFS Values in this floor
-			void resetBFSValues();
-
-			// Find the shortest known path from a to b
-			ReturnCode findShortestPath(const MapCoordinate start, uint8_t* directions, const uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell), bool(*ispassable)(GridCell cell));
-		}
-
 		// Setup the MazeMapper
 		ReturnCode setup();
 
@@ -54,5 +44,62 @@ namespace SIAL
 
 		// Detect walls and entrances
 		bool manageDetectedWalls(uint8_t frontWallsDetected, uint8_t leftWallsDetected, uint8_t rightWallsDetected, FusedData outputFusedData, GridCell& newcell, uint8_t& sureWalls);
+	
+		// Namespace for the Breadth-First-Search-Algorithm to find the shortest Path
+		namespace BFAlgorithm
+		{
+			namespace GoalFunctions {
+				inline bool unvisited(MapCoordinate coor, GridCell cell) {
+					return !(cell.cellState & CellState::visited);
+				}
+
+				inline bool unvisitedNeighbour(MapCoordinate coor, GridCell cell) {
+					if (cell.cellConnections & EntranceDirections::north) {
+						GridCell neighbour;
+						getGridCell(&neighbour, coor.getCoordinateInDir(AbsoluteDir::north));
+						if (!(neighbour.cellState & (CellState::visited | CellState::blackTile))) {
+							return true;
+						}
+					}
+
+					if (cell.cellConnections & EntranceDirections::east) {
+						GridCell neighbour;
+						getGridCell(&neighbour, coor.getCoordinateInDir(AbsoluteDir::east));
+						if (!(neighbour.cellState & (CellState::visited | CellState::blackTile))) {
+							return true;
+						}
+					}
+
+					if (cell.cellConnections & EntranceDirections::south) {
+						GridCell neighbour;
+						getGridCell(&neighbour, coor.getCoordinateInDir(AbsoluteDir::south));
+						if (!(neighbour.cellState & (CellState::visited | CellState::blackTile))) {
+							return true;
+						}
+					}
+
+					if (cell.cellConnections & EntranceDirections::west) {
+						GridCell neighbour;
+						getGridCell(&neighbour, coor.getCoordinateInDir(AbsoluteDir::west));
+						if (!(neighbour.cellState & (CellState::visited | CellState::blackTile))) {
+							return true;
+						}
+					}
+
+					return false;
+				}
+
+				inline bool home(MapCoordinate coor, GridCell cell) {
+					return coor == homePosition;
+				}
+			}
+
+			// Reset all BFS Values in this floor
+			void resetBFSValues();
+
+			// Find the shortest known path from a to b
+			ReturnCode findShortestPath(MapCoordinate start, AbsoluteDir directions[], uint8_t maxPathLength, uint8_t& pathLenOut, bool(*goalCondition)(MapCoordinate coor, GridCell cell));
+		}
+
 	}
 }

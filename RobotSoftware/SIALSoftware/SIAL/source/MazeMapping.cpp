@@ -363,9 +363,9 @@ namespace SIAL
 			}
 
 			// Find the shortest known path from a to b
-			ReturnCode findShortestPath(const MapCoordinate start, uint8_t* directions, const uint8_t maxPathLength, bool(*goalCondition)(MapCoordinate coor, GridCell cell), bool(*isPassable)(GridCell cell))
+			ReturnCode findShortestPath(MapCoordinate start, AbsoluteDir directions[], uint8_t maxPathLength, uint8_t& pathLenOut, bool(*goalCondition)(MapCoordinate coor, GridCell cell))
 			{
-				StaticQueue<MapCoordinate, 64> queue; // MaxSize = 64, because this is enough for a normal labyrinth (4*63 would be maximum)
+				StaticQueue<MapCoordinate, 128> queue;
 
 				GridCell gridCellV;
 				uint8_t bfsValueV;
@@ -405,23 +405,23 @@ namespace SIAL
 							switch (bfsValueV & ~SolverState::discovered)
 							{
 							case SolverState::north:
-								directions[distance] = EntranceDirections::south; // Set the opposite direction
-								coorV = MapCoordinate{ coorV.x, coorV.y + 1 };
+								directions[distance] = AbsoluteDir::south; // Set the opposite direction
+								coorV = coorV.getCoordinateInDir(AbsoluteDir::north);
 								break;
 
 							case SolverState::east:
-								directions[distance] = EntranceDirections::west; // Set the opposite direction
-								coorV = MapCoordinate{ coorV.x + 1, coorV.y };
+								directions[distance] = AbsoluteDir::west; // Set the opposite direction
+								coorV = coorV.getCoordinateInDir(AbsoluteDir::east);
 								break;
 
 							case SolverState::south:
-								directions[distance] = EntranceDirections::north; // Set the opposite direction
-								coorV = MapCoordinate{ coorV.x, coorV.y - 1 };
+								directions[distance] = AbsoluteDir::north; // Set the opposite direction
+								coorV = coorV.getCoordinateInDir(AbsoluteDir::south);
 								break;
 
 							case SolverState::west:
-								directions[distance] = EntranceDirections::east; // Set the opposite direction
-								coorV = MapCoordinate{ coorV.x - 1, coorV.y };
+								directions[distance] = AbsoluteDir::east; // Set the opposite direction
+								coorV = coorV.getCoordinateInDir(AbsoluteDir::west);
 								break;
 
 							default:
@@ -431,7 +431,7 @@ namespace SIAL
 
 							distance++;
 
-							if (distance > maxPathLength)
+							if (distance >= maxPathLength)
 							{
 								resetBFSValues();
 								return ReturnCode::aborted;
@@ -440,20 +440,24 @@ namespace SIAL
 
 						if (distance > 0)
 						{
-							std::reverse(directions, directions + distance - 1);
+							std::reverse(directions, directions + distance);
 						}
 
+						pathLenOut = distance;
+
+						resetBFSValues();
 						return ReturnCode::ok;
 					}
 					else
 					{
 						// Check the north
-						if (coorV.y < maxY && ((gridCellV.cellConnections & EntranceDirections::north) || (gridCellV.cellConnections & RampDirections::north)))
+						if (coorV.y < maxY && (gridCellV.cellConnections & EntranceDirections::north))
 						{
-							coorW = MapCoordinate{ coorV.x, coorV.y + 1 };
+							coorW = coorV.getCoordinateInDir(AbsoluteDir::north);
 							getGridCell(&gridCellW, &bfsValueW, coorW);
 
-							if (!(bfsValueW & SolverState::discovered) && !(gridCellW.cellState & CellState::blackTile) && isPassable(gridCellW))
+							if (!(bfsValueW & SolverState::discovered) && !(gridCellW.cellState & CellState::blackTile) &&
+								(((gridCellW.cellState & CellState::visited) && gridCellW.cellConnections & EntranceDirections::south) || !(gridCellW.cellState & CellState::visited)))
 							{
 								bfsValueW = SolverState::discovered | SolverState::south; // Set discovered-bit, store the shortest path back
 
@@ -468,13 +472,13 @@ namespace SIAL
 						}
 
 						// Check the east
-						if (coorV.x < maxX && ((gridCellV.cellConnections & EntranceDirections::east) || (gridCellV.cellConnections & RampDirections::east)))
+						if (coorV.x < maxX && (gridCellV.cellConnections & EntranceDirections::east))
 						{
-							coorW = MapCoordinate{ coorV.x + 1, coorV.y };
+							coorW = coorV.getCoordinateInDir(AbsoluteDir::east);
 							getGridCell(&gridCellW, &bfsValueW, coorW);
 
-							if (!(bfsValueW & SolverState::discovered) && !(gridCellW.cellState & CellState::blackTile) && isPassable(gridCellW))
-							{
+							if (!(bfsValueW & SolverState::discovered) && !(gridCellW.cellState & CellState::blackTile) &&
+								(((gridCellW.cellState & CellState::visited) && gridCellW.cellConnections & EntranceDirections::west) || !(gridCellW.cellState & CellState::visited))) {
 								bfsValueW = SolverState::discovered | SolverState::west; // Set discovered-bit, store the shortest path back
 
 								if (queue.enqueue(coorW) != ReturnCode::ok)
@@ -488,13 +492,13 @@ namespace SIAL
 						}
 
 						// Check the south
-						if (coorV.y > minY && ((gridCellV.cellConnections & EntranceDirections::south) || (gridCellV.cellConnections & RampDirections::south)))
+						if (coorV.y > minY && (gridCellV.cellConnections & EntranceDirections::south))
 						{
-							coorW = MapCoordinate{ coorV.x, coorV.y - 1 };
+							coorW = coorV.getCoordinateInDir(AbsoluteDir::south);
 							getGridCell(&gridCellW, &bfsValueW, coorW);
 
-							if (!(bfsValueW & SolverState::discovered) && !(gridCellW.cellState & CellState::blackTile) && isPassable(gridCellW))
-							{
+							if (!(bfsValueW & SolverState::discovered) && !(gridCellW.cellState & CellState::blackTile) &&
+								(((gridCellW.cellState & CellState::visited) && gridCellW.cellConnections & EntranceDirections::north) || !(gridCellW.cellState & CellState::visited))) {
 								bfsValueW = SolverState::discovered | SolverState::north; // Set discovered-bit, store the shortest path back
 
 								if (queue.enqueue(coorW) != ReturnCode::ok)
@@ -508,13 +512,13 @@ namespace SIAL
 						}
 
 						// Check the west
-						if (coorV.x > minX && ((gridCellV.cellConnections & EntranceDirections::west) || (gridCellV.cellConnections & RampDirections::west)))
+						if (coorV.x > minX && (gridCellV.cellConnections & EntranceDirections::west))
 						{
-							coorW = MapCoordinate{ coorV.x - 1, coorV.y };
+							coorW = coorV.getCoordinateInDir(AbsoluteDir::west);
 							getGridCell(&gridCellW, &bfsValueW, coorW);
 
-							if (!(bfsValueW & SolverState::discovered) && !(gridCellW.cellState & CellState::blackTile) && isPassable(gridCellW))
-							{
+							if (!(bfsValueW & SolverState::discovered) && !(gridCellW.cellState & CellState::blackTile) &&
+								(((gridCellW.cellState & CellState::visited) && gridCellW.cellConnections & EntranceDirections::east) || !(gridCellW.cellState & CellState::visited))) {
 								bfsValueW = SolverState::discovered | SolverState::east; // Set discovered-bit, store the shortest path back
 
 								if (queue.enqueue(coorW) != ReturnCode::ok)

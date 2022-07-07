@@ -46,7 +46,12 @@ namespace SIAL
 				ambientTemp /= (2.0f * 8.0f);
 				ambientTemp = (ambientTemp + fmaxf(leftAmbient, rightAmbient)) / 2.0f;
 
-				ambientTemp = 23.0f;
+				if (ambientTemp > 50.0f) {
+					return ReturnCode::error;
+				}
+
+				// TESTING
+				ambientTemp = 26.0f;
 				return ReturnCode::ok;
 			}
 		}
@@ -83,7 +88,7 @@ namespace SIAL
 			float avgHigh = (pixels[0] * 0.6f + pixels[1] * 0.4f);
 
 			if (sensor == HeatSensorSide::right) {
-				avgHigh -= 3.0f;
+				avgHigh -= 3.5f;
 			}
 
 			if (avgHigh > 50.0f) return false;

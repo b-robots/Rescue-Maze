@@ -62,6 +62,12 @@
     <ClInclude Include="SIAL\header\RobotLogic.h">
       <Filter>SIAL\Header</Filter>
     </ClInclude>
+    <ClInclude Include="SIAL\header\Dispenser.h">
+      <Filter>SIAL\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SIAL\header\CamRec.h">
+      <Filter>SIAL\Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="SIAL">
@@ -121,6 +127,12 @@
       <Filter>SIAL\Source</Filter>
     </ClCompile>
     <ClCompile Include="SIAL\source\Interrupts.cpp">
+      <Filter>SIAL\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SIAL\source\Dispenser.cpp">
+      <Filter>SIAL\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SIAL\source\CamRec.cpp">
       <Filter>SIAL\Source</Filter>
     </ClCompile>
   </ItemGroup>

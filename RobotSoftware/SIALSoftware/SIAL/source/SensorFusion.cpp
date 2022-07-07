@@ -21,13 +21,14 @@ namespace SIAL
 			FusedData fusedData;				// Fused data
 			float totalHeadingOff = 0.0f;		// Total heading offsets
 
-			float distToLWall = 0.0f;
-			float distToRWall = 0.0f;
-
 			NewForcedFusionValues correctedState;
 		}
 
+		float distToLWall = 0.0f;
+		float distToRWall = 0.0f;
+
 		bool forceAnglePosReset = false;
+		uint16_t consecutiveRotStuck = 0;
 
 		void setCorrectedState(NewForcedFusionValues newValues) {
 			correctedState = newValues;
@@ -74,6 +75,10 @@ namespace SIAL
 			const auto bnoForwardVec = Gyro::getForwardVec();
 			auto bnoHeading = getGlobalHeading(bnoForwardVec);
 
+			if (fabsf(fitAngleToInterval(bnoHeading - lastBnoHeading)) / dt > 10.0f) {
+				bnoHeading = fitAngleToInterval(lastBnoHeading + robotState.angularVel.x * dt * 0.8f);
+			}
+
 			float bnoPitch = getPitch(bnoForwardVec);
 			float lastPitch = robotState.pitch;
 
@@ -88,20 +93,13 @@ namespace SIAL
 
 			float encoderYawVel = (robotState.wheelSpeeds.right - robotState.wheelSpeeds.left) / (SIALSettings::Mechanics::wheelDistToMiddle * 2.0f * SIALSettings::SensorFusion::chi);
 
-			//if (fabsf(encoderYawVel) - fabsf(fitAngleToInterval(bnoHeading - lastBnoHeading) * freq) > 0.2f) {
-			//	consecutiveRotStuck++;
-			//}
-			//else {
-			//	consecutiveRotStuck = 0;
-			//}
-
-			//if (consecutiveRotStuck > 10) {
-			//	trustYawVel = 0.3f;
-			//	tempRobotState.angularVel.x = fitAngleToInterval(bnoHeading - lastBnoHeading) * freq;
-			//}
-			//else {
-			//	tempRobotState.angularVel.x = fitAngleToInterval(bnoHeading - lastBnoHeading) * freq * SIALSettings::SensorFusion::bno055DiffPortion + encoderYawVel * (1.0f - SIALSettings::SensorFusion::bno055DiffPortion);
-			//}
+			if (SmoothDriving::getInformation().uid == DrivingTaskUID::rotate &&
+				fabsf(encoderYawVel - fitAngleToInterval(bnoHeading - lastBnoHeading) / dt) > 0.5f) {
+				consecutiveRotStuck++;
+			}
+			else {
+				consecutiveRotStuck = 0;
+			}
 
 			robotState.angularVel.x = fitAngleToInterval(bnoHeading - lastBnoHeading) / dt * SIALSettings::SensorFusion::bno055DiffPortion + encoderYawVel * (1.0f - SIALSettings::SensorFusion::bno055DiffPortion);
 			robotState.angularVel.y = 0.0f;
@@ -136,7 +134,7 @@ namespace SIAL
 			robotState.forwardVel = (robotState.wheelSpeeds.left + robotState.wheelSpeeds.right) / 2.0f * SIALSettings::SensorFusion::speedIIRFac + robotState.forwardVel * (1.0f - SIALSettings::SensorFusion::speedIIRFac);
 
 			// Position
-			robotState.position += robotState.forwardVec * (robotState.forwardVel * dt);
+			robotState.position += Vec2f(robotState.forwardVec) * (robotState.forwardVel * dt * 1.01f);
 
 			if (correctedState.newX) {
 				robotState.position.x = correctedState.x;
@@ -189,18 +187,14 @@ namespace SIAL
 				distToLWall = distToRWall = 15.0f - SIALSettings::Mechanics::distSensLeftRightDist / 2.0f;
 				break;
 			}
-			
-			Serial.println("------");
-			Serial.println(distToLWall);
-			Serial.println(distToRWall);
 
 			if (correctedState.clearCell) {
 				correctedState.clearCell = false;
-				fusedData.gridCell = GridCell();
+				fusedData.gridCell = GridCell(0b1111);
 			}
 
 			if (robotState.mapCoordinate != prevCoord) {
-				fusedData.gridCell = GridCell();
+				fusedData.gridCell = GridCell(0b1111);
 			}
 
 			fusedData.robotState = robotState;
@@ -573,7 +567,7 @@ namespace SIAL
 						}
 
 						// front rising edge
-						Serial.println("front rising edge");
+						//Serial.println("front rising edge");
 
 						switch (fusedData.robotState.heading)
 						{
@@ -607,7 +601,7 @@ namespace SIAL
 						}
 
 						// front falling edge
-						Serial.println("front falling edge");
+						//Serial.println("front falling edge");
 
 						switch (fusedData.robotState.heading)
 						{
@@ -642,7 +636,7 @@ namespace SIAL
 						}
 
 						// back rising edge
-						Serial.println("back rising edge");
+						//Serial.println("back rising edge");
 
 						switch (fusedData.robotState.heading)
 						{
@@ -676,7 +670,7 @@ namespace SIAL
 						}
 
 						// back falling edge
-						Serial.println("back falling edge");
+						//Serial.println("back falling edge");
 
 						switch (fusedData.robotState.heading)
 						{
@@ -709,28 +703,30 @@ namespace SIAL
 					fusedData.fusedDistSens.risingEdge = risingEdge;
 
 					if (!std::isnan(x)) {
-						Serial.print("new edge x: ");
-						Serial.print(x);
-						Serial.print(", pos.x: ");
-						Serial.println(fusedData.robotState.position.x);
+						//Serial.print("new edge x: ");
+						//Serial.print(x);
+						//Serial.print(", pos.x: ");
+						//Serial.println(fusedData.robotState.position.x);
 
 						// Adjust position for delay 50ms in driving direction
 						x += 0.05f * fusedData.robotState.forwardVel * sgn(cosf(fusedData.robotState.globalHeading));
 
-						correctedState.x = x * weight + fusedData.robotState.position.x * (1.0f - weight);
-						correctedState.newX = true;
+						// TESTING
+						//correctedState.x = x * weight + fusedData.robotState.position.x * (1.0f - weight);
+						//correctedState.newX = true;
 					}
 					else if (!std::isnan(y)) {
-						Serial.print("new edge y: ");
-						Serial.print(y);
-						Serial.print(", pos.y: ");
-						Serial.println(fusedData.robotState.position.y);
+						//Serial.print("new edge y: ");
+						//Serial.print(y);
+						//Serial.print(", pos.y: ");
+						//Serial.println(fusedData.robotState.position.y);
 
 						// Adjust position for delay 50ms in driving direction
 						x += 0.05f * fusedData.robotState.forwardVel * sgn(sinf(fusedData.robotState.globalHeading));
 
-						correctedState.y = y * weight + fusedData.robotState.position.y * (1.0f - weight);
-						correctedState.newY = true;
+						// TESTING
+						//correctedState.y = y * weight + fusedData.robotState.position.y * (1.0f - weight);
+						//correctedState.newY = true;
 					}
 				}
 			}
@@ -759,7 +755,9 @@ namespace SIAL
 
 			const auto start = millis();
 			while (millis() - start < time) {
-				DistanceSensors::updateDistSensors();
+				SensorFusion::updateSensors();
+				SensorFusion::distSensFusion();
+				SensorFusion::sensorFusion();
 				calcOffsetAngleFromDistSens();
 
 				if (fusedData.fusedDistSens.distSensAngleTrust > 0.01f) {

@@ -210,9 +210,7 @@ namespace SIAL
 			pinMode(SCL, OUTPUT);
 			for (int i = 0; i < 10; i++) {
 				digitalWrite(SCL, LOW);
-				delayMicroseconds(2);
-				digitalWrite(SDA, LOW);
-				delayMicroseconds(2);
+				delayMicroseconds(4);
 				digitalWrite(SCL, HIGH);
 				delayMicroseconds(4);
 			}
@@ -232,9 +230,7 @@ namespace SIAL
 			pinMode(SCL1, OUTPUT);
 			for (int i = 0; i < 10; i++) {
 				digitalWrite(SCL1, LOW);
-				delayMicroseconds(2);
-				digitalWrite(SDA1, LOW);
-				delayMicroseconds(2);
+				delayMicroseconds(4);
 				digitalWrite(SCL1, HIGH);
 				delayMicroseconds(4);
 			}

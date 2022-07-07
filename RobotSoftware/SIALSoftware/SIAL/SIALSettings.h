@@ -6,7 +6,7 @@
 namespace SIALSettings {
 	namespace Mechanics
 	{
-		constexpr float wheelDiameter = 8.1f;
+		constexpr float wheelDiameter = 8.2f;
 		constexpr float wheelDistance = 14.63f;
 		constexpr float axialSpacing = 9.7f;
 		constexpr float wheelDistToMiddle = 8.78f;			// !!! ALWAYS = sqrt(axialSpacing^2 + wheelDistance^2) / 2
@@ -77,8 +77,8 @@ namespace SIALSettings {
 
 		namespace GoToAngle
 		{
-			constexpr SIAL::PIDSettings pidSettings(0.08f, 0.005f, 0.015f, 3.0f, 3.0f, -3.0f, 3.0f);
-			constexpr float aheadDistL = 15.0f;
+			constexpr SIAL::PIDSettings pidSettings(0.085f, 0.005f, 0.01f, 3.0f, 3.0f, -3.0f, 3.0f);
+			constexpr float aheadDistL = 20.0f;
 		}
 	}
 
@@ -93,16 +93,16 @@ namespace SIALSettings {
 		// Distance & Speed
 		constexpr float longDistSensIIRFactor = 0.8f;					// Factor used for IIR-Filter for high range distance measurements
 		constexpr float shortDistSensIIRFactor = 0.9f;					// Factor used for IIR-Filter for short range distance measurements
-		constexpr float speedIIRFac = 0.9f;
+		constexpr float speedIIRFac = 1.0f;
 
 		// Rotation
-		constexpr float chi = 1.06f;
+		constexpr float chi = 1.2f;
 		constexpr float bno055DiffPortion = 1.0f;						// How much is the differentiation of the BNO055 angle worth?
 		constexpr float bno055RotPortion = 1.0f;						// How much is a Bno055 rotation measurement worth?
 		constexpr float angularVelIIRFactor = 0.9f;						// Factor used for IIR-Filter for angular velocity
 		constexpr float pitchIIRFactor = 0.8f;							// Factor used for IIR-Filter for pitch angle
 		constexpr float distAngularPortion = 0.3f;						// How much is a perfect distance sensor measured angle worth?
-		constexpr float angleDiffPortion = 0.3f;						// How much is the heading influenced by the angular velocity instead of the absolute orientation values?
+		constexpr float angleDiffPortion = 0.0f;						// How much is the heading influenced by the angular velocity instead of the absolute orientation values?
 	}
 
 	namespace Bumper {
@@ -114,6 +114,27 @@ namespace SIALSettings {
 	{
 		constexpr float minRampAngle = 0.15f;
 		constexpr uint8_t maxDistLongerThanBorder = 3;
+	}
+
+	namespace Dispenser
+	{
+		constexpr uint32_t pause = 700;		// How long is the piston extended in ms?
+
+		namespace Left
+		{
+			constexpr float startDty = 0.11f;		// duty cylce for start
+			constexpr float endDty = 0.076f;		// duty cylce for end
+			constexpr uint8_t servoPin = 35;
+			constexpr uint8_t startCubeCount = 6;
+		}
+
+		namespace Right
+		{
+			constexpr float startDty = 0.035f;		// duty cylce for start
+			constexpr float endDty = 0.07f;		// duty cylce for end
+			constexpr uint8_t servoPin = 37;
+			constexpr uint8_t startCubeCount = 6;
+		}
 	}
 
 	namespace HeatSensors
@@ -187,6 +208,8 @@ namespace SIALSettings {
 
 	namespace PowerLEDs
 	{
+		constexpr float blinkPeriod = 500.0f;
+
 		constexpr float defaultPower = 0.5f;
 
 		namespace Left

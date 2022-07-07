@@ -398,7 +398,7 @@ namespace SIAL
 	{
 		FloatWheelSpeeds wheelSpeeds;	// Speed of the wheels
 		float forwardVel;				// Forward velocity (cm/s)
-		Vec3f position;					// Current position (cm)
+		Vec2f position;					// Current position (cm)
 
 		Vec3f angularVel;				// Angular velocity as (heading, pitch, bank) in Tait-Bryan angles with order (z, y', x') (rad/s)
 		Vec3f forwardVec;				// Current Rotation as a forward vector
@@ -460,10 +460,6 @@ namespace SIAL
 		// 2.Bit: Entrance East
 		// 3.Bit: Entrance South
 		// 4.Bit: Entrance West
-		// 5.Bit: Ramp North
-		// 6.Bit: Ramp East
-		// 7.Bit: Ramp South
-		// 8.Bit: Ramp West
 		uint8_t cellConnections;
 
 		// Information about Speed Bumps, Victims, Checkpoints...
@@ -477,7 +473,7 @@ namespace SIAL
 		// 7.Bit: Speed Bump?
 		uint8_t cellState;
 
-		explicit constexpr GridCell(uint8_t cellConnections = 0b1111, uint8_t cellState = 0) : cellConnections(cellConnections), cellState(cellState) {}
+		explicit constexpr GridCell(uint8_t cellConnections = 0b0000, uint8_t cellState = 0) : cellConnections(cellConnections), cellState(cellState) {}
 	};
 
 	// Status of distance sensor
@@ -617,14 +613,16 @@ namespace SIAL
 		alignWalls,
 		followCell,
 		ramp,
-		stairs
+		stairs,
+		rotationUnstuck
 	};
 
 	struct DrivingTaskInformation {
 		bool finished = false;
 		bool drivingStraight = false;
 		DrivingTaskUID uid = DrivingTaskUID::invalid;
+		RobotState startState;
 
-		explicit DrivingTaskInformation(DrivingTaskUID _uid = DrivingTaskUID::invalid, bool _drivingStraight = false) : uid(_uid), finished(false), drivingStraight(_drivingStraight) {}
+		explicit DrivingTaskInformation(DrivingTaskUID _uid = DrivingTaskUID::invalid, bool _drivingStraight = false) : uid(_uid), finished(false), drivingStraight(_drivingStraight), startState() {}
 	};
 }
