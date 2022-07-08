@@ -1,6 +1,7 @@
 #include "../header/SmoothDriving.h"
 #include "../header/SensorFusion.h"
 #include "../header/MotorControl.h"
+#include "../header/SmallThings.h"
 #include "../SIALSettings.h"
 
 namespace SIAL {
@@ -52,7 +53,7 @@ namespace SIAL {
 			const auto uid = getInformation().uid;
 			if ((uid != DrivingTaskUID::ramp) &&
 				(uid != DrivingTaskUID::stairs) &&
-				(uid != DrivingTaskUID::rotate)) {
+				getInformation().drivingStraight) {
 				stop();
 			}
 		}
@@ -105,6 +106,10 @@ namespace SIAL {
 				float end = _startAngle + _angle;
 				end = roundf(end / M_PI_2) * M_PI_2;
 				_angle = end - _startAngle;
+				_maxAngularVel = fabsf(_maxAngularVel) * sgn(_angle);
+
+				Serial.print("snapped orientation -> new angle: ");
+				Serial.println(_angle);
 			}
 
 			_accelerate = true;
@@ -226,7 +231,7 @@ namespace SIAL {
 				else if (millis() - _retreatStart > 400) {
 					_retreatStage = false;
 				}
-				
+
 				desAngularVel = -2.0f * sgn(_angle);
 			}
 			else {
@@ -244,6 +249,81 @@ namespace SIAL {
 			}
 
 			return output;
+		}
+
+		SideStep::SideStep(bool left) : ITask(DrivingTaskInformation(DrivingTaskUID::sideStep)), _left(left), _stage(0), _startWheelDist(NAN), _perWheelDist(SIALSettings::Mechanics::wheelDistance * acosf(1.0f - _sideStep / (2.0f * SIALSettings::Mechanics::wheelDistance))) {}
+
+		void SideStep::startTask(RobotState startState) {
+			_information.startState = startState;
+		}
+
+		WheelSpeeds SideStep::updateSpeeds(float dt) {
+			if (_information.finished) {
+				return WheelSpeeds{ 0, 0 };
+			}
+			else if (_stage == 0) {
+				if (std::isnan(_startWheelDist)) {
+					_startWheelDist = MotorControl::getDistance(_left ? Motor::right : Motor::left);
+				}
+				else if (MotorControl::getDistance(_left ? Motor::right : Motor::left) - _startWheelDist < -_perWheelDist) {
+					_stage = 1;
+					_startWheelDist = NAN;
+				}
+
+				if (_left) {
+					return WheelSpeeds{ 0, -_speed };
+				}
+				else {
+					return WheelSpeeds{ -_speed, 0 };
+				}
+			}
+			else if (_stage == 1) {
+				if (std::isnan(_startWheelDist)) {
+					_startWheelDist = MotorControl::getDistance(_left ? Motor::left : Motor::right);
+				}
+				else if (MotorControl::getDistance(_left ? Motor::left : Motor::right) - _startWheelDist < -_perWheelDist) {
+					_stage = 2;
+					_startWheelDist = NAN;
+				}
+
+				if (_left) {
+					return WheelSpeeds{ -_speed, 0 };
+				}
+				else {
+					return WheelSpeeds{ 0, -_speed };
+				}
+			}
+			else if (_stage == 2) {
+				if (std::isnan(_startWheelDist)) {
+					_startWheelDist = MotorControl::getDistance(_left ? Motor::right : Motor::left);
+				}
+				else if (MotorControl::getDistance(_left ? Motor::right : Motor::left) - _startWheelDist > _perWheelDist) {
+					_stage = 3;
+					_startWheelDist = NAN;
+				}
+
+				if (_left) {
+					return WheelSpeeds{ 0, _speed };
+				}
+				else {
+					return WheelSpeeds{ _speed, 0 };
+				}
+			}
+			else if (_stage == 3) {
+				if (std::isnan(_startWheelDist)) {
+					_startWheelDist = MotorControl::getDistance(_left ? Motor::left : Motor::right);
+				}
+				else if (MotorControl::getDistance(_left ? Motor::left : Motor::right) - _startWheelDist > _perWheelDist) {
+					_information.finished = true;
+				}
+
+				if (_left) {
+					return WheelSpeeds{ _speed, 0 };
+				}
+				else {
+					return WheelSpeeds{ 0, _speed };
+				}
+			}
 		}
 
 		FollowWall::FollowWall(int32_t dist, int16_t speed) : ITask(DrivingTaskInformation(DrivingTaskUID::followWall, true)), _dist(dist), _speed(speed), _pid(SIALSettings::Controller::GoToAngle::pidSettings) {}
@@ -283,6 +363,11 @@ namespace SIAL {
 
 			if (fusedData.distSensorState.frontRight == DistSensorStatus::underflow && fusedData.distSensorState.frontLeft == DistSensorStatus::underflow) {
 				Serial.println("Stopped FollowWall -> underflow");
+				_information.finished = true;
+			}
+
+			if (Bumper::isPressed(true) || Bumper::isPressed(false)) {
+				Serial.println("Stopped FollowWall -> bumper");
 				_information.finished = true;
 			}
 
@@ -667,7 +752,7 @@ namespace SIAL {
 				_consOk = 0;
 				if (std::isnan(angle)) {
 					// If there is no wall -> stop faster
-					_time += dt * 3.0f;
+					_time += dt * 4.0f;
 					return WheelSpeeds{ 0,0 };
 				}
 			}

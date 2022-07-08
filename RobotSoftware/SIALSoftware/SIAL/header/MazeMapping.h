@@ -45,6 +45,8 @@ namespace SIAL
 		// Detect walls and entrances
 		bool manageDetectedWalls(uint8_t frontWallsDetected, uint8_t leftWallsDetected, uint8_t rightWallsDetected, FusedData outputFusedData, GridCell& newcell, uint8_t& sureWalls);
 	
+		bool returnToHome();
+
 		// Namespace for the Breadth-First-Search-Algorithm to find the shortest Path
 		namespace BFAlgorithm
 		{

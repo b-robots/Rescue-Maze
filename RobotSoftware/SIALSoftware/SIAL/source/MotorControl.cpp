@@ -414,9 +414,6 @@ namespace SIAL {
 
 		void setSpeeds(const WheelSpeeds wheelSpeeds)
 		{
-			// TESTING
-			// Serial.println(batVoltage);
-
 			desSpeeds.left = wheelSpeeds.left;
 			desSpeeds.right = wheelSpeeds.right;
 

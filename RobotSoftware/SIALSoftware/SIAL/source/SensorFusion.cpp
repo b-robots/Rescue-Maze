@@ -134,16 +134,57 @@ namespace SIAL
 			robotState.forwardVel = (robotState.wheelSpeeds.left + robotState.wheelSpeeds.right) / 2.0f * SIALSettings::SensorFusion::speedIIRFac + robotState.forwardVel * (1.0f - SIALSettings::SensorFusion::speedIIRFac);
 
 			// Position
-			robotState.position += Vec2f(robotState.forwardVec) * (robotState.forwardVel * dt * 1.01f);
+			robotState.position += Vec2f(robotState.forwardVec) * (robotState.forwardVel * dt * 1.02f);
 
 			if (correctedState.newX) {
 				robotState.position.x = correctedState.x;
+				Serial.print("correct x: ");
+				Serial.println(robotState.position.x);
 				correctedState.newX = false;
 			}
 
 			if (correctedState.newY) {
 				robotState.position.y = correctedState.y;
+				Serial.print("correct y: ");
+				Serial.println(robotState.position.y);
 				correctedState.newY = false;
+			}
+
+			// NAN detection
+			static Vec3f nonNanAngularVel;
+			if (!(std::isfinite(robotState.angularVel.x) &&
+				std::isfinite(robotState.angularVel.y) &&
+				std::isfinite(robotState.angularVel.z))) {
+				robotState.angularVel = nonNanAngularVel;
+			}
+			else {
+				nonNanAngularVel = robotState.angularVel;
+			}
+
+			static Vec2f nonNanPostion;
+			if (!(std::isfinite(robotState.position.x) &&
+				std::isfinite(robotState.position.y))) {
+				robotState.position = nonNanPostion;
+			}
+			else {
+				nonNanPostion = robotState.position;
+			}
+
+			static float nonNanHeading = 0.0f;
+			if (!std::isfinite(robotState.globalHeading)) {
+				robotState.globalHeading = nonNanHeading;
+				bnoHeading = nonNanHeading;
+			}
+			else {
+				nonNanHeading = robotState.globalHeading;
+			}
+
+			static float nonNanPitch = 0.0f;
+			if (!std::isfinite(robotState.pitch)) {
+				robotState.pitch = nonNanPitch;
+			}
+			else {
+				nonNanPitch = robotState.pitch;
 			}
 
 			// Map absolute heading & position
@@ -206,7 +247,6 @@ namespace SIAL
 			uint8_t frontWallsDetected = 0;		// How many times did a wall in front of us get detected
 			uint8_t leftWallsDetected = 0;		// How many times did a wall left of us get detected
 			uint8_t rightWallsDetected = 0;		// How many times did a wall right of us get detected
-
 
 			if (fusedData.distSensorState.frontLeft == DistSensorStatus::ok)
 			{
@@ -293,12 +333,18 @@ namespace SIAL
 
 				Serial.print("successful scan: ");
 				Serial.print(sureWalls, BIN);
+				Serial.print(" (");
+				Serial.print(outCumSureWalls, BIN);
+				Serial.print(") ");
+				Serial.print(" (");
+				Serial.print(frontWallsDetected);
+				Serial.print(") ");
 				Serial.print(", at: ");
 				Serial.print(fusedData.robotState.mapCoordinate.x);
 				Serial.print(", ");
 				Serial.println(fusedData.robotState.mapCoordinate.y);
 
-				fusedData.gridCell.cellConnections = ~((~fusedData.gridCell.cellConnections) | outCumSureWalls);
+				fusedData.gridCell.cellConnections = (~outCumSureWalls) & CellConnections::directionMask;
 			}
 
 			return consecutiveOk >= 2;
@@ -399,22 +445,43 @@ namespace SIAL
 
 			int numData = 0;
 
-			if (usableData.lf && usableData.lb) {
-				calcAngleWallOffsetFromTwoDistances(&angleL, &distToWallL, distances.lf, distances.lb, SIALSettings::Mechanics::distSensLRSpacing, SIALSettings::Mechanics::distSensLeftRightDist);
-				angleL *= -1.0f;
+			if (SmoothDriving::getInformation().drivingStraight || SmoothDriving::getInformation().finished) {
+				if (usableData.lf && usableData.lb) {
+					calcAngleWallOffsetFromTwoDistances(&angleL, &distToWallL, distances.lf, distances.lb, SIALSettings::Mechanics::distSensLRSpacing, SIALSettings::Mechanics::distSensLeftRightDist);
+					angleL *= -1.0f;
 
-				numData++;
-			}
+					if (fabsf(fitAngleToInterval((angleL - fusedData.robotState.globalHeading) * 4.0f) / 4.0f) > 10.0f * DEG_TO_RAD) {
+						angleL = 0;
+						distToWallL = -1;
+					}
+					else {
+						numData++;
+					}
+				}
 
-			if (usableData.rf && usableData.rb) {
-				calcAngleWallOffsetFromTwoDistances(&angleR, &distToWallR, distances.rf, distances.rb, SIALSettings::Mechanics::distSensLRSpacing, SIALSettings::Mechanics::distSensLeftRightDist);
+				if (usableData.rf && usableData.rb) {
+					calcAngleWallOffsetFromTwoDistances(&angleR, &distToWallR, distances.rf, distances.rb, SIALSettings::Mechanics::distSensLRSpacing, SIALSettings::Mechanics::distSensLeftRightDist);
 
-				numData++;
-			}
+					if (fabsf(fitAngleToInterval((angleR - fusedData.robotState.globalHeading) * 4.0f) / 4.0f) > 10.0f * DEG_TO_RAD) {
+						angleR = 0;
+						distToWallR = -1;
+					}
+					else {
+						numData++;
+					}
+				}
 
-			if (usableData.fl && usableData.fr) {
-				calcAngleWallOffsetFromTwoDistances(&angleF, &distToWallF, distances.fl, distances.fr, SIALSettings::Mechanics::distSensFrontSpacing, SIALSettings::Mechanics::distSensFrontBackDist);
-				numData++;
+				if (usableData.fl && usableData.fr) {
+					calcAngleWallOffsetFromTwoDistances(&angleF, &distToWallF, distances.fl, distances.fr, SIALSettings::Mechanics::distSensFrontSpacing, SIALSettings::Mechanics::distSensFrontBackDist);
+
+					if (fabsf(fitAngleToInterval((angleF - fusedData.robotState.globalHeading) * 4.0f) / 4.0f) > 10.0f * DEG_TO_RAD) {
+						angleF = 0;
+						distToWallF = -1;
+					}
+					else {
+						numData++;
+					}
+				}
 			}
 
 			fusedData.fusedDistSens.distToWalls.l = distToWallL;
@@ -709,7 +776,7 @@ namespace SIAL
 						//Serial.println(fusedData.robotState.position.x);
 
 						// Adjust position for delay 50ms in driving direction
-						x += 0.05f * fusedData.robotState.forwardVel * sgn(cosf(fusedData.robotState.globalHeading));
+						//x += 0.05f * fusedData.robotState.forwardVel * sgn(cosf(fusedData.robotState.globalHeading));
 
 						// TESTING
 						//correctedState.x = x * weight + fusedData.robotState.position.x * (1.0f - weight);
@@ -722,7 +789,7 @@ namespace SIAL
 						//Serial.println(fusedData.robotState.position.y);
 
 						// Adjust position for delay 50ms in driving direction
-						x += 0.05f * fusedData.robotState.forwardVel * sgn(sinf(fusedData.robotState.globalHeading));
+						//x += 0.05f * fusedData.robotState.forwardVel * sgn(sinf(fusedData.robotState.globalHeading));
 
 						// TESTING
 						//correctedState.y = y * weight + fusedData.robotState.position.y * (1.0f - weight);

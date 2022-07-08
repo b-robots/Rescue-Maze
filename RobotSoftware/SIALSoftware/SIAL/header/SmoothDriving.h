@@ -66,6 +66,21 @@ namespace SIAL {
 			RotationUnstuck();
 		};
 
+		class SideStep : public ITask {
+		private:
+			bool _left;
+			uint8_t _stage;
+			float _startWheelDist;
+			const float _perWheelDist;
+
+			static const int16_t _speed = 20;
+			static const int16_t _sideStep = 3.0f;
+		public:
+			WheelSpeeds updateSpeeds(float dt);
+			void startTask(RobotState startState);
+			SideStep(bool left);
+		};
+
 		class FollowWall : public ITask {
 		private:
 			int32_t _dist;

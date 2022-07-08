@@ -51,8 +51,12 @@ namespace SIAL
 	{
 		float corrFact = factor;
 
-		if (factor > 1.0f) corrFact = 1.0f;
-		else if (factor < 0.0f) corrFact = 0.0f;
+		if (factor > 0.999f) {
+			return b;
+		}
+		else if (factor < 0.001f) {
+			return a;
+		}
 
 		float avgSin = corrFact * sinf(b) + (1.0f - corrFact) * sinf(a);
 		float avgCos = corrFact * cosf(b) + (1.0f - corrFact) * cosf(a);

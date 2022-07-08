@@ -348,6 +348,76 @@ namespace SIAL
 			return isOk;
 		}
 
+		bool returnToHome() {
+			for (int8_t x = minX; x <= maxX; x++) {
+				for (int8_t y = minY; y <= maxY; y++) {
+					GridCell cell;
+					MapCoordinate pos = MapCoordinate{ x, y };
+					getGridCell(&cell, pos);
+
+					if (cell.cellState & CellState::visited) {
+						// Check the north
+						if (y < maxY && (cell.cellConnections & EntranceDirections::north))
+						{
+							MapCoordinate neighbour = pos.getCoordinateInDir(AbsoluteDir::north);
+							GridCell nCell;
+							getGridCell(&nCell, neighbour);
+
+							if (!(nCell.cellState & CellState::blackTile) &&
+								!(nCell.cellState & CellState::visited))
+							{
+								return false;
+							}
+						}
+
+						// Check the east
+						if (x < maxX && (cell.cellConnections & EntranceDirections::east))
+						{
+							MapCoordinate neighbour = pos.getCoordinateInDir(AbsoluteDir::east);
+							GridCell nCell;
+							getGridCell(&nCell, neighbour);
+
+							if (!(nCell.cellState & CellState::blackTile) &&
+								!(nCell.cellState & CellState::visited))
+							{
+								return false;
+							}
+						}
+
+						// Check the south
+						if (y > minY && (cell.cellConnections & EntranceDirections::south))
+						{
+							MapCoordinate neighbour = pos.getCoordinateInDir(AbsoluteDir::south);
+							GridCell nCell;
+							getGridCell(&nCell, neighbour);
+
+							if (!(nCell.cellState & CellState::blackTile) &&
+								!(nCell.cellState & CellState::visited))
+							{
+								return false;
+							}
+						}
+
+						// Check the west
+						if (x > minX && (cell.cellConnections & EntranceDirections::west))
+						{
+							MapCoordinate neighbour = pos.getCoordinateInDir(AbsoluteDir::west);
+							GridCell nCell;
+							getGridCell(&nCell, neighbour);
+
+							if (!(nCell.cellState & CellState::blackTile) &&
+								!(nCell.cellState & CellState::visited))
+							{
+								return false;
+							}
+						}
+					}
+				}
+			}
+		
+			return true;
+		}
+
 		namespace BFAlgorithm
 		{
 			// Reset all BFS Values in this floor

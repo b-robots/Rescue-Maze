@@ -614,7 +614,8 @@ namespace SIAL
 		followCell,
 		ramp,
 		stairs,
-		rotationUnstuck
+		rotationUnstuck,
+		sideStep
 	};
 
 	struct DrivingTaskInformation {

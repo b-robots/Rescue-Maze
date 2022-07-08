@@ -7,7 +7,7 @@ namespace SIALSettings {
 	namespace Mechanics
 	{
 		constexpr float wheelDiameter = 8.2f;
-		constexpr float wheelDistance = 14.63f;
+		constexpr float wheelDistance = 15.5f;
 		constexpr float axialSpacing = 9.7f;
 		constexpr float wheelDistToMiddle = 8.78f;			// !!! ALWAYS = sqrt(axialSpacing^2 + wheelDistance^2) / 2
 		constexpr float distSensLeftRightDist = 12.2f;
@@ -112,8 +112,8 @@ namespace SIALSettings {
 
 	namespace MazeMapping
 	{
-		constexpr float minRampAngle = 0.15f;
-		constexpr uint8_t maxDistLongerThanBorder = 3;
+		constexpr float minRampAngle = 0.18f;
+		constexpr uint8_t maxDistLongerThanBorder = 4;
 	}
 
 	namespace Dispenser
@@ -123,7 +123,7 @@ namespace SIALSettings {
 		namespace Left
 		{
 			constexpr float startDty = 0.11f;		// duty cylce for start
-			constexpr float endDty = 0.076f;		// duty cylce for end
+			constexpr float endDty = 0.077f;		// duty cylce for end
 			constexpr uint8_t servoPin = 35;
 			constexpr uint8_t startCubeCount = 6;
 		}
@@ -131,7 +131,7 @@ namespace SIALSettings {
 		namespace Right
 		{
 			constexpr float startDty = 0.035f;		// duty cylce for start
-			constexpr float endDty = 0.07f;		// duty cylce for end
+			constexpr float endDty = 0.067f;			// duty cylce for end
 			constexpr uint8_t servoPin = 37;
 			constexpr uint8_t startCubeCount = 6;
 		}

@@ -175,44 +175,47 @@ namespace SIAL {
 			Serial.println("Finished setup!");
 		}
 		else {
-			// TODO blink LEDs
 			Serial.println("Error during setup!");
 		}
 
 		// Wait for all distance sensors to at least measure something once -> safety precaution
 		uint8_t correctDistSens = 0b0;
-		while (correctDistSens != 0b1111111) {
+		uint8_t cnt = 0;
+		while (cnt < 3) {
+			auto t = millis();
 			SensorFusion::updateSensors();
 			auto states = SensorFusion::getFusedData().distSensorState;
 			auto updates = SensorFusion::getFusedData().distSensUpdates;
 
+			if (correctDistSens == 0b1111111) {
+				cnt++;
+				correctDistSens = 0b0;
+			}
+
 			if (states.frontLeft == DistSensorStatus::ok && updates.frontLeft) {
 				correctDistSens |= 1 << 0;
 			}
-
 			if (states.frontLong == DistSensorStatus::ok && updates.frontLong) {
 				correctDistSens |= 1 << 1;
 			}
-
 			if (states.frontRight == DistSensorStatus::ok && updates.frontRight) {
 				correctDistSens |= 1 << 2;
 			}
-
 			if (states.leftBack == DistSensorStatus::ok && updates.leftBack) {
 				correctDistSens |= 1 << 3;
 			}
-
 			if (states.leftFront == DistSensorStatus::ok && updates.leftFront) {
 				correctDistSens |= 1 << 4;
 			}
-
 			if (states.rightBack == DistSensorStatus::ok && updates.rightBack) {
 				correctDistSens |= 1 << 5;
 			}
-
 			if (states.rightFront == DistSensorStatus::ok && updates.rightFront) {
 				correctDistSens |= 1 << 6;
 			}
+
+			Serial.print(millis() - t);
+			Serial.println("ms");
 		}
 
 		Serial.println("Checked all distance sensors!");
@@ -234,20 +237,8 @@ namespace SIAL {
 		SensorFusion::sensorFusion();
 
 		SmoothDriving::updateSpeeds();
-		
+
 		RobotLogic::loop();
-
-		if (Bumper::leftInterrupt) {
-			Bumper::leftInterrupt = false;
-		}
-
-		if (Bumper::rightInterrupt) {
-			Bumper::rightInterrupt = false;
-		}
-
-		// TESTING
-		//HeatSensor::detectVictim(HeatSensorSide::left);
-		//HeatSensor::detectVictim(HeatSensorSide::right);
 
 		auto data = SensorFusion::getFusedData();
 
@@ -264,15 +255,15 @@ namespace SIAL {
 		//Serial.print(data.robotState.position.y);
 		//Serial.println(")");
 
-		//const char* stateLookup[] = { "ok", "over", "under", "err" };
-		//Serial.print("fl: ");
-		//Serial.print(stateLookup[(int)data.distSensorState.frontLeft]);
-		//Serial.print("; ");
-		//Serial.println(data.distances.frontLeft);
-		//Serial.print("fr: ");
-		//Serial.print(stateLookup[(int)data.distSensorState.frontRight]);
-		//Serial.print("; ");
-		//Serial.println(data.distances.frontRight);
+		const char* stateLookup[] = { "ok", "over", "under", "err" };
+		Serial.print("fl: ");
+		Serial.print(stateLookup[(int)data.distSensorState.frontLeft]);
+		Serial.print("; ");
+		Serial.println(data.distances.frontLeft);
+		Serial.print("fr: ");
+		Serial.print(stateLookup[(int)data.distSensorState.frontRight]);
+		Serial.print("; ");
+		Serial.println(data.distances.frontRight);
 		//Serial.print("f: ");
 		//Serial.print(stateLookup[(int)data.distSensorState.frontLong]);
 		//Serial.print("; ");
