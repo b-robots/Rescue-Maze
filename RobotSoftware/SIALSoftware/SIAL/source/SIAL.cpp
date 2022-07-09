@@ -161,15 +161,9 @@ namespace SIAL {
 			delay(100);
 		} while (bno_sys < 3);
 
-		Gyro::tare();
-
 		Serial.println("BNO055 ready!");
 
-		PowerLEDs::setBrightness(SIALSettings::PowerLEDs::defaultPower);
-
-		//while (!Switch::getState());
-
-		delay(500);
+		delay(100);
 
 		if (!error) {
 			Serial.println("Finished setup!");
@@ -218,7 +212,17 @@ namespace SIAL {
 			Serial.println("ms");
 		}
 
+		PowerLEDs::setBrightness(SIALSettings::PowerLEDs::defaultPower);
+
 		Serial.println("Checked all distance sensors!");
+
+		while (!Switch::getState()) {
+			SensorFusion::updateSensors();
+		}
+
+		Serial.println("Start maze!!!");
+
+		Gyro::tare();
 	}
 
 	void robotLoop() {
@@ -255,15 +259,15 @@ namespace SIAL {
 		//Serial.print(data.robotState.position.y);
 		//Serial.println(")");
 
-		const char* stateLookup[] = { "ok", "over", "under", "err" };
-		Serial.print("fl: ");
-		Serial.print(stateLookup[(int)data.distSensorState.frontLeft]);
-		Serial.print("; ");
-		Serial.println(data.distances.frontLeft);
-		Serial.print("fr: ");
-		Serial.print(stateLookup[(int)data.distSensorState.frontRight]);
-		Serial.print("; ");
-		Serial.println(data.distances.frontRight);
+		//const char* stateLookup[] = { "ok", "over", "under", "err" };
+		//Serial.print("fl: ");
+		//Serial.print(stateLookup[(int)data.distSensorState.frontLeft]);
+		//Serial.print("; ");
+		//Serial.println(data.distances.frontLeft);
+		//Serial.print("fr: ");
+		//Serial.print(stateLookup[(int)data.distSensorState.frontRight]);
+		//Serial.print("; ");
+		//Serial.println(data.distances.frontRight);
 		//Serial.print("f: ");
 		//Serial.print(stateLookup[(int)data.distSensorState.frontLong]);
 		//Serial.print("; ");

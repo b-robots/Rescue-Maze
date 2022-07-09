@@ -195,7 +195,7 @@ namespace SIAL
 				}
 			}
 
-			if (pathIndex+1 >= pathLength && pathLength > 0) {
+			if (pathIndex + 1 >= pathLength && pathLength > 0) {
 				lastPathPosition = MapCoordinate(INT8_MAX, INT8_MAX);
 				pathIndex = 0;
 				pathLength = 0;
@@ -451,7 +451,7 @@ namespace SIAL
 						consPathNotPossible++;
 						return false;
 					}
-					
+
 					lastPathPosition = fusedData.robotState.mapCoordinate;
 					consPathNotPossible = 0;
 
@@ -686,7 +686,9 @@ namespace SIAL
 
 					if (SmoothDriving::getInformation().uid == DrivingTaskUID::rotate) {
 						Serial.println("rotate to straight position");
-						SmoothDriving::startNewTask(new SmoothDriving::TaskArray{ new SmoothDriving::Rotate((lookAtAngle - fusedData.robotState.globalHeading) * 0.9f, sgn(lookAtAngle - fusedData.robotState.globalHeading) * 2.0f), new SmoothDriving::AlignWalls() }, true);
+						SmoothDriving::startNewTask(new SmoothDriving::TaskArray{
+							new SmoothDriving::Rotate((lookAtAngle - fusedData.robotState.globalHeading) * 0.9f, sgn(lookAtAngle - fusedData.robotState.globalHeading) * 2.0f),
+							new SmoothDriving::AlignWalls() }, true);
 						while (!SmoothDriving::getInformation().finished) {
 							SensorFusion::updateSensors();
 							SensorFusion::distSensFusion();
@@ -749,6 +751,7 @@ namespace SIAL
 			}
 		}
 
+		// TODO
 		void handleCamVictim(FusedData fusedData) {
 			static uint16_t consLeftOneCol = 0;
 			static uint16_t consLeftZeroCol = 0;
@@ -942,7 +945,7 @@ namespace SIAL
 
 					checkConsBumper();
 
-					while (millis() - startWait < 10) {
+					while (millis() - startWait < 20) {
 						if (Bumper::leftInterrupt && Bumper::rightInterrupt) {
 							Serial.println("Both bumper triggered");
 							retreat();
@@ -1057,6 +1060,85 @@ namespace SIAL
 
 			if (getInformation().finished) {
 				rejectCellChange = false;
+			}
+
+			// LOP
+			static MapCoordinate lastLop = MapCoordinate{ INT8_MAX, INT8_MAX };
+
+			if (!Switch::getState()) {
+				SmoothDriving::stop();
+
+				Serial.println("Lack of progress");
+
+				if (fusedData.robotState.mapCoordinate == lastLop) {
+					Serial.println("Consecutive LOP -> set as black");
+					GridCell currCell;
+					MazeMapping::getGridCell(&currCell, lastLop);
+					currCell.cellState |= CellState::blackTile;
+					MazeMapping::setGridCell(currCell, lastLop);
+				}
+
+				lastLop = fusedData.robotState.mapCoordinate;
+
+				while (!Switch::getState()) {
+					Gyro::updateValues();
+					delay(10);
+				}
+
+				Serial.print("Restart at ckpt - x: ");
+				Serial.print(lastCkpt.x);
+				Serial.print(" y: ");
+				Serial.println(lastCkpt.y);
+
+				lastCoordinate = lastCkpt;
+
+				NewForcedFusionValues newValues;
+				newValues.clearCell = true;
+				newValues.newHeading = true;
+				newValues.newX = true;
+				newValues.newY = true;
+				newValues.zeroPitch = true;
+
+				newValues.x = lastCkpt.x * 30.0f;
+				newValues.y = lastCkpt.y * 30.0f;
+
+				Gyro::updateValues();
+				delay(10);
+				newValues.heading = getGlobalHeading(Gyro::getForwardVec());
+				
+				SensorFusion::setCorrectedState(newValues);
+				// Call twice to restart internal timer
+				SensorFusion::sensorFusion(true);
+				delay(10);
+				SensorFusion::sensorFusion();
+
+				cumSureWalls = 0b0000;
+				do {
+					do {
+						SensorFusion::updateSensors();
+						SensorFusion::distSensFusion();
+						SensorFusion::sensorFusion();
+					} while (!SensorFusion::waitForAllDistSens());
+				} while (!SensorFusion::scanSurrounding(cumSureWalls));
+
+				SensorFusion::updatePosAndRotFromDist(500);
+
+				// TESTING
+				Serial.println("Ready to start again");
+				fusedData = SensorFusion::getFusedData();
+				Serial.println(fusedData.robotState.position.x);
+				Serial.println(fusedData.robotState.position.y);
+				Serial.println(fusedData.robotState.globalHeading);
+				Serial.println(fusedData.robotState.pitch);
+
+				SmoothDriving::startNewTask(new TaskArray{
+					new SmoothDriving::AlignWalls(),
+					new SmoothDriving::FollowCell(30),
+					new SmoothDriving::AlignWalls() }, true);
+
+				lastTask = getInformation().uid;
+
+				return;
 			}
 
 			if (start) {
@@ -1231,7 +1313,10 @@ namespace SIAL
 				// Tile handling
 				static bool returnFromBlack = false;
 
-				if (SmoothDriving::getInformation().drivingStraight && SmoothDriving::getInformation().uid != DrivingTaskUID::ramp && SmoothDriving::getInformation().uid != DrivingTaskUID::stairs && fabsf(fusedData.robotState.pitch) < 0.05f) {
+				if (SmoothDriving::getInformation().drivingStraight &&
+					SmoothDriving::getInformation().uid != DrivingTaskUID::ramp &&
+					SmoothDriving::getInformation().uid != DrivingTaskUID::stairs &&
+					fabsf(fusedData.robotState.pitch) < 0.04f) {
 					FloorTileColour tileColour = ColorSensor::detectTileColour(fusedData.colorSensData.lux);
 
 					if (tileColour == FloorTileColour::black && !returnFromBlack) {
@@ -1274,7 +1359,7 @@ namespace SIAL
 					consSilver = 0;
 				}
 
-				if (consSilver >= 5 && lastCkpt != fusedData.robotState.mapCoordinate) {
+				if (consSilver >= 10 && lastCkpt != fusedData.robotState.mapCoordinate) {
 					consSilver = 0;
 
 					int8_t mapX = robotState.mapCoordinate.x;

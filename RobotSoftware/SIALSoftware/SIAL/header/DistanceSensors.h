@@ -105,7 +105,6 @@ namespace SIAL
 			static const uint32_t _baudrate = 115200;
 			static const uint8_t _maxBytesBeforeHeader = 10;
 			static const uint8_t _frameSize = 7;
-			static const uint8_t _maxMeasurementTries = 2;
 
 			const uint8_t _id;
 

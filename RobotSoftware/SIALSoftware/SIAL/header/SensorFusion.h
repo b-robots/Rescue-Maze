@@ -6,7 +6,7 @@ namespace SIAL
 {
 	namespace SensorFusion
 	{
-		void sensorFusion();					// Apply filter and calculate robot state
+		void sensorFusion(bool firstAgain = false);					// Apply filter and calculate robot state
 		void distSensFusion();										// Update sensor values
 		void updateSensors();										// Update all sensors
 		FusedData getFusedData();									// Get current robot state

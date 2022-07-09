@@ -45,10 +45,15 @@ namespace SIAL
 			return false;
 		}
 
-		void sensorFusion()
+		void sensorFusion(bool firstAgain)
 		{
 			static bool first = true;
 			static uint32_t lastTime = millis();
+
+			if (firstAgain) {
+				first = true;
+			}
+
 			if (first) {
 				first = false;
 				lastTime = millis();
@@ -82,12 +87,8 @@ namespace SIAL
 			float bnoPitch = getPitch(bnoForwardVec);
 			float lastPitch = robotState.pitch;
 
-			static bool lastBnoPitchErr = false;
-			static uint8_t consecutivePitchError = 0;
-
 			robotState.pitch = bnoPitch * SIALSettings::SensorFusion::pitchIIRFactor + robotState.pitch * (1.0f - SIALSettings::SensorFusion::pitchIIRFactor);
 			lastBnoPitch = bnoPitch;
-			consecutivePitchError = 0;
 
 			robotState.angularVel.z = (robotState.pitch - lastPitch) / dt;
 
@@ -115,18 +116,27 @@ namespace SIAL
 			// mix asolute and relative heading
 			currHeading = interpolateAngle(currHeading, fitAngleToInterval(lastHeading + robotState.angularVel.x * dt), SIALSettings::SensorFusion::angleDiffPortion);
 
+			robotState.globalHeading = makeRotationCoherent(lastHeading, fitAngleToInterval(currHeading));
+
 			if (correctedState.newHeading) {
+				robotState.globalHeading = correctedState.heading;
 				currHeading = correctedState.heading;
+				bnoHeading = correctedState.heading;
+				lastBnoHeading = correctedState.heading;
+				robotState.angularVel.x = 0.0f;
+				Serial.println("Reset heading");
+				Serial.println(correctedState.heading);
 				correctedState.newHeading = false;
 			}
 
 			if (correctedState.zeroPitch) {
 				robotState.pitch = 0.0f;
 				robotState.angularVel.z = 0.0f;
+				bnoPitch = 0.0f;
+				lastBnoPitch = 0.0f;
+				lastPitch = 0.0f;
 				correctedState.zeroPitch = false;
 			}
-
-			robotState.globalHeading = makeRotationCoherent(lastHeading, fitAngleToInterval(currHeading));
 
 			robotState.forwardVec = toForwardVec(robotState.globalHeading, robotState.pitch);		// Calculate forward vector
 
@@ -134,7 +144,7 @@ namespace SIAL
 			robotState.forwardVel = (robotState.wheelSpeeds.left + robotState.wheelSpeeds.right) / 2.0f * SIALSettings::SensorFusion::speedIIRFac + robotState.forwardVel * (1.0f - SIALSettings::SensorFusion::speedIIRFac);
 
 			// Position
-			robotState.position += Vec2f(robotState.forwardVec) * (robotState.forwardVel * dt * 1.02f);
+			robotState.position += (Vec2f(robotState.forwardVec)).normalized() * (robotState.forwardVel * dt);
 
 			if (correctedState.newX) {
 				robotState.position.x = correctedState.x;

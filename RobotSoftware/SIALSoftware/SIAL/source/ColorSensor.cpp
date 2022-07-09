@@ -9,8 +9,8 @@ namespace SIAL
 	{
 		namespace {
 			Adafruit_TCS34725 sensor;
-			float _whiteThresh = 300.0f;
-			float _silverThresh = 150.0f;
+			float _whiteThresh = 350.0f;
+			float _silverThresh = 100.0f;
 			uint32_t _lastRead = 0;
 		}
 

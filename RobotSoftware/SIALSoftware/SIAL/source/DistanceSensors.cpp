@@ -402,7 +402,7 @@ namespace SIAL
 			auto startMillis = millis();
 			while (true)
 			{
-				if (millis() - startMillis > SIALSettings::DistanceSensors::timeout / _maxMeasurementTries)
+				if (millis() - startMillis > 40)
 				{
 					_distance = 0;
 					_status = Status::noSerialHeader;
@@ -442,7 +442,7 @@ namespace SIAL
 
 			for (int i = 0; i < _frameSize; i++)
 			{
-				// Whait for character
+				// Wait for character
 				while (!_streamPtr->available());
 
 				// Read character
@@ -481,9 +481,10 @@ namespace SIAL
 			{
 				numMeasurementAttempts++;
 
-				if (numMeasurementAttempts > _maxMeasurementTries)
+				if (numMeasurementAttempts > 1)
 				{
 					clearSerialBuffer();
+					_status = Status::noSerialHeader;
 					return 0;
 				}
 
@@ -824,6 +825,7 @@ namespace SIAL
 			}
 			else
 			{
+				Serial.println("front long timeout");
 				fusedData.distSensorState.frontLong = DistSensorStatus::error;
 				fusedData.distances.frontLong = 0;
 			}
