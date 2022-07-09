@@ -444,6 +444,68 @@ def get_compImages(map1, map2):
         else:
             continue           
 
+def make_trainImages(map1, map2):
+    global is_y
+    global is_n
+    is_y = False
+    is_n = False
+
+    def on_press(key):
+        global is_y
+        global is_n
+        try:
+            print(key.char[0])
+            if key.char[0] == 'y':
+                is_y = True
+            elif key.char[0] == 'n':
+                is_n = True
+        except AttributeError:
+            print('special key {0} pressed'.format(key))
+
+    lcamId, rcamId=get_cam_serial()
+    caml = cv.VideoCapture(int(lcamId)) # left
+    if not caml.isOpened():   
+        raise IOError("Cannot open webcam")
+    caml.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M','J','P','G'))
+    caml.set(cv.CAP_PROP_FRAME_WIDTH, 320)
+    caml.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+    
+    listener = keyboard.Listener(on_press=on_press)
+    listener.start()
+    
+    print("to continoue press y to go to the next press n")
+    orders = ""
+    ltr_cnt = 1
+    letterLookup = ['N' ,'H', 'S', 'U']
+    cnt = 0
+    for l in letterLookup:
+        print("we are at: " + l)
+        is_n = False
+        while not is_n:
+            _, img = caml.read()
+            img = get_undist_roi(img, map1, map2, False)
+            valid = True
+            gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+            patch = get_patch2(gray_img)
+            patch = normalize_linethickness(patch)
+            if patch is None:
+               valid = False
+            
+            if valid:
+                cv.imshow("lul",patch)
+                cv.waitKey(1)
+
+                if is_y:
+                    cv.imwrite("/trainNew/" + l + str(cnt) + ".jpg", patch)
+                    print(l + str(cnt))
+                    cnt += 1
+                    is_y = False
+                    break  
+        else:
+            cnt = 0
+            continue
+
+    
 def main():
     
     #port = serial.Serial('/dev/serial0', baudrate=9600, timeout=0)
@@ -525,12 +587,13 @@ def main():
 
 if __name__ == "__main__":
     #main()
-    #map1, map2 = get_undistort_map(0.8, 1.0)
+    map1, map2 = get_undistort_map(0.8, 1.0)
     #get_compImages(map1, map2)
-    img = get_trainImage("S", "Comp")
-    img = get_features(img)
-    cv.imshow("tets", img)
-    cv.waitKey(0)
+    # img = get_trainImage("S", "Comp")
+    # img = get_features(img)
+    # cv.imshow("tets", img)
+    # cv.waitKey(0)
+    make_trainImages(map1, map2)
 
     
     
