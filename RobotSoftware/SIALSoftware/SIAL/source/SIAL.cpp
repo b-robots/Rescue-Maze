@@ -173,6 +173,7 @@ namespace SIAL {
 		}
 
 		// Wait for all distance sensors to at least measure something once -> safety precaution
+		// TODO enable before competition
 		uint8_t correctDistSens = 0b0;
 		uint8_t cnt = 0;
 		while (cnt < 3) {
@@ -223,6 +224,20 @@ namespace SIAL {
 		Serial.println("Start maze!!!");
 
 		Gyro::tare();
+
+		//using namespace SmoothDriving;
+		//startNewTask(new TaskArray{
+		//	new FollowCell(30),
+		//	new FollowCell(30),
+		//	new FollowCell(30)}, true);
+
+		//while (true) {
+		//	SensorFusion::updateSensors();
+		//	SensorFusion::distSensFusion();
+		//	SensorFusion::sensorFusion();
+
+		//	SmoothDriving::updateSpeeds();
+		//}
 	}
 
 	void robotLoop() {
@@ -241,6 +256,8 @@ namespace SIAL {
 		SensorFusion::sensorFusion();
 
 		SmoothDriving::updateSpeeds();
+
+		CamRec::loop();
 
 		RobotLogic::loop();
 

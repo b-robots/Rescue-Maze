@@ -744,6 +744,10 @@ namespace SIAL {
 				_absAvgAngle = fabsf(angle) * 0.8f + _absAvgAngle * 0.2f;
 			}
 
+			if (!std::isnan(angle) && std::isnan(_absAvgAngle)) {
+				_absAvgAngle = angle;
+			}
+
 			if ((_absAvgAngle < 0.02)) {
 				_consOk++;
 				return WheelSpeeds{ 0,0 };

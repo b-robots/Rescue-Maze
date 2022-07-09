@@ -113,7 +113,7 @@ namespace SIALSettings {
 	namespace MazeMapping
 	{
 		constexpr float minRampAngle = 0.18f;
-		constexpr uint8_t maxDistLongerThanBorder = 5;
+		constexpr uint8_t maxDistLongerThanBorder = 4;
 	}
 
 	namespace Dispenser

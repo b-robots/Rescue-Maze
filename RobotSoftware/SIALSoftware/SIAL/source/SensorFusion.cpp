@@ -346,9 +346,6 @@ namespace SIAL
 				Serial.print(" (");
 				Serial.print(outCumSureWalls, BIN);
 				Serial.print(") ");
-				Serial.print(" (");
-				Serial.print(frontWallsDetected);
-				Serial.print(") ");
 				Serial.print(", at: ");
 				Serial.print(fusedData.robotState.mapCoordinate.x);
 				Serial.print(", ");
@@ -455,7 +452,9 @@ namespace SIAL
 
 			int numData = 0;
 
-			if (SmoothDriving::getInformation().drivingStraight || SmoothDriving::getInformation().finished) {
+			if (SmoothDriving::getInformation().drivingStraight ||
+				SmoothDriving::getInformation().finished ||
+				SmoothDriving::getInformation().uid == DrivingTaskUID::alignWalls) {
 				if (usableData.lf && usableData.lb) {
 					calcAngleWallOffsetFromTwoDistances(&angleL, &distToWallL, distances.lf, distances.lb, SIALSettings::Mechanics::distSensLRSpacing, SIALSettings::Mechanics::distSensLeftRightDist);
 					angleL *= -1.0f;

@@ -20,6 +20,11 @@ namespace SIAL
 			uint8_t imaginaryWalls = 0b0000;
 			bool resetPathPlanning = false;
 			bool dontAllowPath = false;
+			bool onlyReturnHome = false;
+
+			uint32_t startTime = 0;
+
+			bool heatVictim = false;
 		}
 
 		void startRelativeTurnDirDrive(RelativeDir dir, FusedData fusedData) {
@@ -218,9 +223,18 @@ namespace SIAL
 
 				if (fusedData.robotState.mapCoordinate == homePosition && driveHome) {
 					Serial.println("Found home!");
+					Serial.print("Time: ");
+					Serial.print((int)floorf((millis() - startTime) / 1000.0f / 60.0f));
+					Serial.print("min ");
+					Serial.print((millis() - startTime) / 1000.0f - (int)floorf((millis() - startTime) / 1000.0f / 60.0f) * 60);
+					Serial.println("sec");
 
 					while (true) {
-						// TODO -> maybe allow LOP if this is not the correct spot
+						if (!Switch::getState()) {
+							Serial.println("LOP at home -> try new path");
+							onlyReturnHome = true;
+							return false;
+						}
 					}
 				}
 			}
@@ -305,20 +319,24 @@ namespace SIAL
 
 				if (dontAllowPath ||
 					consPathNotPossible >= 2 ||
+					onlyReturnHome ||
 					MazeMapping::BFAlgorithm::findShortestPath(fusedData.robotState.mapCoordinate, pathToFollow, 128, pathLength,
 						MazeMapping::BFAlgorithm::GoalFunctions::unvisitedNeighbour) != ReturnCode::ok) {
 
-					if (!dontAllowPath && consPathNotPossible < 2) {
+					if (!dontAllowPath && consPathNotPossible < 2 && !onlyReturnHome) {
 						Serial.println("No path findable!");
 					}
 					else if (consPathNotPossible >= 2) {
 						Serial.println("Path was not possible multiple times");
 					}
-					else {
+					else if (dontAllowPath) {
 						Serial.println("Path finding was not allowed -> after LOP");
 					}
+					else if (onlyReturnHome) {
+						Serial.println("Directly go home");
+					}
 
-					if (!dontAllowPath && MazeMapping::returnToHome()) {
+					if (onlyReturnHome || !dontAllowPath && MazeMapping::returnToHome()) {
 						Serial.println("Everything discovered!");
 						Serial.println("Return home...");
 						if (MazeMapping::BFAlgorithm::findShortestPath(fusedData.robotState.mapCoordinate, pathToFollow, 128, pathLength,
@@ -537,6 +555,7 @@ namespace SIAL
 
 					if (!(fusedData.gridCell.cellConnections & (uint8_t)wallToCheck)) {
 						consecutiveLHeat++;
+						consecutiveLHeat++;
 					}
 					else {
 						if (fabsf(fitAngleToInterval(fusedData.robotState.globalHeading * 4.0f) / 4.0f) < 20.0f * DEG_TO_RAD) {
@@ -545,6 +564,7 @@ namespace SIAL
 								(fusedData.distSensorState.leftBack == DistSensorStatus::ok ||
 									fusedData.distSensorState.leftBack == DistSensorStatus::underflow))
 							{
+								consecutiveLHeat++;
 								consecutiveLHeat++;
 							}
 							else {
@@ -606,6 +626,7 @@ namespace SIAL
 
 					if (!(fusedData.gridCell.cellConnections & (uint8_t)wallToCheck)) {
 						consecutiveRHeat++;
+						consecutiveRHeat++;
 					}
 					else {
 						if (fabsf(fitAngleToInterval(fusedData.robotState.globalHeading * 4.0f) / 4.0f) < 20.0f * DEG_TO_RAD) {
@@ -614,6 +635,7 @@ namespace SIAL
 								(fusedData.distSensorState.rightBack == DistSensorStatus::ok ||
 									fusedData.distSensorState.rightBack == DistSensorStatus::underflow))
 							{
+								consecutiveRHeat++;
 								consecutiveRHeat++;
 							}
 							else {
@@ -706,6 +728,7 @@ namespace SIAL
 				}
 
 				if (!(currentCell.cellState & CellState::victim)) {
+					heatVictim = true;
 					float goalDist = NAN;
 
 					RobotState taskStartState = SmoothDriving::getInformation().startState;
@@ -790,19 +813,150 @@ namespace SIAL
 			static uint16_t consRightS = 0;
 			static uint16_t consRightU = 0;
 
+			static MapCoordinate lastVisVictim = homePosition;
+			static uint32_t lastVisDetection = 0;
+
+			if (heatVictim) {
+				heatVictim = false;
+				consLeftOneCol = 0;
+				consLeftZeroCol = 0;
+				consLeftH = 0;
+				consLeftS = 0;
+				consLeftU = 0;
+				consRightOneCol = 0;
+				consRightZeroCol = 0;
+				consRightH = 0;
+				consRightS = 0;
+				consRightU = 0;
+
+				return;
+			}
+
 			GridCell currentCell;
 			MazeMapping::getGridCell(&currentCell, fusedData.robotState.mapCoordinate);
 
-			if (currentCell.cellState & CellState::victim) {
+			if (currentCell.cellState & (CellState::blackTile || CellState::checkpoint || CellState::victim) ||
+				lastVisVictim == fusedData.robotState.mapCoordinate ||
+				millis() - lastVisDetection < 500) {
 				consLeftOneCol = 0;
 				consLeftZeroCol = 0;
+				consLeftH = 0;
+				consLeftS = 0;
+				consLeftU = 0;
 				consRightOneCol = 0;
 				consRightZeroCol = 0;
+				consRightH = 0;
+				consRightS = 0;
+				consRightU = 0;
+
+				return;
 			}
 
-			bool leftValidWall = false;
+			bool leftWallValid = false;
+			bool rightWallValid = false;
 
-			if (leftValidWall) {
+			float lookAtAngle;
+			if (fusedData.robotState.globalHeading - floorf(fusedData.robotState.globalHeading / M_PI_2) * M_PI_2 < M_PI_4) {
+				lookAtAngle = floorf(fusedData.robotState.globalHeading / M_PI_2) * M_PI_2;
+			}
+			else {
+				lookAtAngle = ceilf(fusedData.robotState.globalHeading / M_PI_2) * M_PI_2;
+			}
+
+			if (SmoothDriving::getInformation().uid == DrivingTaskUID::followCell ||
+				SmoothDriving::getInformation().uid == DrivingTaskUID::alignWalls) {
+				if (fusedData.distSensorState.leftBack == DistSensorStatus::underflow ||
+					fusedData.distSensorState.leftBack == DistSensorStatus::ok) {
+					if (fusedData.distSensorState.leftFront == DistSensorStatus::underflow ||
+						fusedData.distSensorState.leftFront == DistSensorStatus::ok) {
+						leftWallValid = true;
+					}
+				}
+
+				if (fusedData.distSensorState.rightBack == DistSensorStatus::underflow ||
+					fusedData.distSensorState.rightBack == DistSensorStatus::ok) {
+					if (fusedData.distSensorState.rightFront == DistSensorStatus::underflow ||
+						fusedData.distSensorState.rightFront == DistSensorStatus::ok) {
+						rightWallValid = true;
+					}
+				}
+			}
+			else if (SmoothDriving::getInformation().uid == DrivingTaskUID::rotate) {
+				float angleL = fitAngleToInterval(lookAtAngle + M_PI_2);
+				float angleR = fitAngleToInterval(lookAtAngle - M_PI_2);
+				AbsoluteDir wallToCheckL;
+				AbsoluteDir wallToCheckR;
+
+				if (angleL > M_PI_4 && angleL < M_3PI_4) {
+					wallToCheckL = AbsoluteDir::west;
+				}
+				else if (angleL < -M_PI_4 && angleL > -M_3PI_4) {
+					wallToCheckL = AbsoluteDir::east;
+				}
+				else if (angleL < M_PI_4 && angleL > -M_PI_4) {
+					wallToCheckL = AbsoluteDir::north;
+				}
+				else {
+					wallToCheckL = AbsoluteDir::south;
+				}
+
+				if (angleR > M_PI_4 && angleR < M_3PI_4) {
+					wallToCheckR = AbsoluteDir::west;
+				}
+				else if (angleR < -M_PI_4 && angleR > -M_3PI_4) {
+					wallToCheckR = AbsoluteDir::east;
+				}
+				else if (angleR < M_PI_4 && angleR > -M_PI_4) {
+					wallToCheckR = AbsoluteDir::north;
+				}
+				else {
+					wallToCheckR = AbsoluteDir::south;
+				}
+
+				if (!(fusedData.gridCell.cellConnections & (uint8_t)wallToCheckL)) {
+					leftWallValid = true;
+				}
+				else {
+					if (fabsf(fitAngleToInterval(fusedData.robotState.globalHeading * 4.0f) / 4.0f) < 20.0f * DEG_TO_RAD) {
+						if ((fusedData.distSensorState.leftFront == DistSensorStatus::ok ||
+							fusedData.distSensorState.leftFront == DistSensorStatus::underflow) &&
+							(fusedData.distSensorState.leftBack == DistSensorStatus::ok ||
+								fusedData.distSensorState.leftBack == DistSensorStatus::underflow))
+						{
+							leftWallValid = true;
+						}
+						else {
+							leftWallValid = false;
+						}
+					}
+					else {
+						leftWallValid = false;
+					}
+				}
+
+				if (!(fusedData.gridCell.cellConnections & (uint8_t)wallToCheckR)) {
+					rightWallValid = true;
+				}
+				else {
+					if (fabsf(fitAngleToInterval(fusedData.robotState.globalHeading * 4.0f) / 4.0f) < 20.0f * DEG_TO_RAD) {
+						if ((fusedData.distSensorState.rightFront == DistSensorStatus::ok ||
+							fusedData.distSensorState.rightFront == DistSensorStatus::underflow) &&
+							(fusedData.distSensorState.rightBack == DistSensorStatus::ok ||
+								fusedData.distSensorState.rightBack == DistSensorStatus::underflow))
+						{
+							rightWallValid = true;
+						}
+						else {
+							rightWallValid = false;
+						}
+					}
+					else {
+						rightWallValid = false;
+					}
+				}
+			}
+
+			if (leftWallValid) {
 				if (CamRec::getVictim(true) == Victim::red || CamRec::getVictim(true) == Victim::yellow) {
 					consLeftOneCol++;
 					consLeftZeroCol = 0;
@@ -854,76 +1008,203 @@ namespace SIAL
 				consLeftU = 0;
 			}
 
-			if (CamRec::getVictim(false) == Victim::red || CamRec::getVictim(false) == Victim::yellow) {
-				consRightOneCol++;
-				consRightZeroCol = 0;
-			}
-			else if (CamRec::getVictim(false) == Victim::green) {
-				consRightZeroCol++;
-				consRightOneCol = 0;
-			}
-			else {
-				consRightZeroCol = 0;
-				consRightOneCol = 0;
-			}
-
-			static MapCoordinate lastColorVictim = homePosition;
-			if ((consRightZeroCol >= 2 || consRightOneCol >= 2 || consLeftZeroCol >= 2 || consLeftOneCol >= 2) && lastColorVictim != fusedData.robotState.mapCoordinate) {
-				if (consLeftZeroCol >= 2 || consLeftOneCol >= 2) {
-					if (fusedData.distSensorState.leftBack == DistSensorStatus::ok && fusedData.distances.leftBack < 200) {
-					}
-					else {
-						consLeftZeroCol = 0;
-						consLeftOneCol = 0;
-						return;
-					}
+			if (rightWallValid) {
+				if (CamRec::getVictim(false) == Victim::red || CamRec::getVictim(false) == Victim::yellow) {
+					consRightOneCol++;
+					consRightZeroCol = 0;
+					consRightH = 0;
+					consRightS = 0;
+					consRightU = 0;
+				}
+				else if (CamRec::getVictim(false) == Victim::green) {
+					consRightOneCol = 0;
+					consRightZeroCol++;
+					consRightH = 0;
+					consRightS = 0;
+					consRightU = 0;
+				}
+				else if (CamRec::getVictim(false) == Victim::harmed) {
+					consRightOneCol = 0;
+					consRightZeroCol = 0;
+					consRightH++;
+					consRightS = 0;
+					consRightU = 0;
+				}
+				else if (CamRec::getVictim(false) == Victim::stable) {
+					consRightOneCol = 0;
+					consRightZeroCol = 0;
+					consRightH = 0;
+					consRightS++;
+					consRightU = 0;
+				}
+				else if (CamRec::getVictim(false) == Victim::unharmed) {
+					consRightOneCol = 0;
+					consRightZeroCol = 0;
+					consRightH = 0;
+					consRightS = 0;
+					consRightU++;
 				}
 				else {
-					if (fusedData.distSensorState.rightBack == DistSensorStatus::ok && fusedData.distances.rightBack < 200) {
-					}
-					else {
-						consRightZeroCol = 0;
-						consRightOneCol = 0;
-						return;
-					}
-				}
-
-				lastColorVictim = fusedData.robotState.mapCoordinate;
-
-				GridCell currentCell;
-				MazeMapping::getGridCell(&currentCell, fusedData.robotState.mapCoordinate);
-
-				if (!(currentCell.cellState & CellState::victim)) {
-					SmoothDriving::stop();
-
-					Serial.println("start disp");
-					auto startDisp = millis();
-
-					currentCell.cellState |= CellState::victim;
-					MazeMapping::setGridCell(currentCell, fusedData.robotState.mapCoordinate);
-
-					if (consLeftOneCol >= 2) {
-						Dispenser::dispenseLeft(1);
-					}
-					else if (consRightOneCol >= 2) {
-						Dispenser::dispenseRight(1);
-					}
-
-					consRightZeroCol = 0;
 					consRightOneCol = 0;
-					consLeftZeroCol = 0;
-					consLeftOneCol = 0;
+					consRightZeroCol = 0;
+					consRightH = 0;
+					consRightS = 0;
+					consRightU = 0;
+				}
+			}
+			else {
+				consRightOneCol = 0;
+				consRightZeroCol = 0;
+				consRightH = 0;
+				consRightS = 0;
+				consRightU = 0;
+			}
 
-					while (millis() - startDisp < 5500) {
-						SensorFusion::sensorFusion();
+			if (consLeftOneCol > 2 ||
+				consLeftZeroCol > 2 ||
+				consLeftH > 2 ||
+				consLeftS > 2 ||
+				consLeftU > 2 ||
+				consRightOneCol > 2 ||
+				consRightZeroCol > 2 ||
+				consRightH > 2 ||
+				consRightS > 2 ||
+				consRightU > 2) {
 
-						PowerLEDs::setBrightness(sinf(millis() / SIALSettings::PowerLEDs::blinkPeriod * M_TWOPI) / 2.0f + 0.5f);
-					}
+				lastVisVictim = homePosition;
+				lastVisDetection = 0;
 
-					PowerLEDs::setBrightness(SIALSettings::PowerLEDs::defaultPower);
+				MapCoordinate victimCoordinate = fusedData.robotState.mapCoordinate;
+
+				switch (fusedData.robotState.heading)
+				{
+				case AbsoluteDir::north:
+					victimCoordinate.x = roundf((fusedData.robotState.position.x - 4.0f) / 30.0f);
+					break;
+				case AbsoluteDir::east:
+					victimCoordinate.y = roundf((fusedData.robotState.position.y + 4.0f) / 30.0f);
+					break;
+				case AbsoluteDir::south:
+					victimCoordinate.x = roundf((fusedData.robotState.position.x + 4.0f) / 30.0f);
+					break;
+				case AbsoluteDir::west:
+					victimCoordinate.y = roundf((fusedData.robotState.position.y - 4.0f) / 30.0f);
+					break;
+				default:
+					break;
 				}
 
-				return;
+				Serial.println("Visual victim!");
+				bool leftVictim = false;
+				uint8_t cnt = 0;
+
+				if (consLeftOneCol > 2 ||
+					consLeftZeroCol > 2 ||
+					consLeftH > 2 ||
+					consLeftS > 2 ||
+					consLeftU > 2) {
+					leftVictim = true;
+				}
+				else {
+					leftVictim = false;
+				}
+
+				if (consLeftOneCol > 2 ||
+					consRightOneCol > 2) {
+					cnt = 1;
+				}
+				else if (consLeftZeroCol > 2 ||
+					consRightZeroCol > 2 ||
+					consLeftU > 2 ||
+					consRightU > 2) {
+					cnt = 0;
+				}
+				else if (consLeftH > 2 ||
+					consRightH > 2) {
+					cnt = 3;
+				}
+				else {
+					cnt = 2;
+				}
+
+				Serial.print(leftVictim ? "left: " : "right: ");
+				Serial.println((int)cnt);
+
+				float goalDist = NAN;
+
+				RobotState taskStartState = SmoothDriving::getInformation().startState;
+
+				if (SmoothDriving::getInformation().uid == DrivingTaskUID::rotate) {
+					Serial.println("rotate to straight position");
+					SmoothDriving::startNewTask(new SmoothDriving::TaskArray{
+						new SmoothDriving::Rotate((lookAtAngle - fusedData.robotState.globalHeading) * 0.9f, sgn(lookAtAngle - fusedData.robotState.globalHeading) * 2.0f),
+						new SmoothDriving::AlignWalls() }, true);
+					while (!SmoothDriving::getInformation().finished) {
+						SensorFusion::updateSensors();
+						SensorFusion::distSensFusion();
+						SensorFusion::sensorFusion();
+						SmoothDriving::updateSpeeds();
+					}
+				}
+				else if (SmoothDriving::getInformation().uid == DrivingTaskUID::followCell) {
+					switch (fusedData.robotState.heading)
+					{
+					case SIAL::AbsoluteDir::north:
+						goalDist = taskStartState.position.x + 30.0f - fusedData.robotState.position.x;
+						break;
+					case SIAL::AbsoluteDir::east:
+						goalDist = -(taskStartState.position.y - 30.0f - fusedData.robotState.position.y);
+						break;
+					case SIAL::AbsoluteDir::south:
+						goalDist = -(taskStartState.position.x - 30.0f - fusedData.robotState.position.x);
+						break;
+					case SIAL::AbsoluteDir::west:
+						goalDist = taskStartState.position.y + 30.0f - fusedData.robotState.position.y;
+						break;
+					default:
+						break;
+					}
+				}
+
+				SmoothDriving::stop();
+
+				Serial.println("start disp");
+				auto startDisp = millis();
+
+				currentCell.cellState |= CellState::victim;
+				MazeMapping::setGridCell(currentCell, victimCoordinate);
+
+				if (leftVictim) {
+					Dispenser::dispenseLeft(cnt);
+				}
+				else {
+					Dispenser::dispenseRight(cnt);
+				}
+
+				while (millis() - startDisp < 5500) {
+					SensorFusion::sensorFusion();
+
+					PowerLEDs::setBrightness(sinf(millis() / SIALSettings::PowerLEDs::blinkPeriod * M_TWOPI) / 2.0f + 0.5f);
+				}
+
+				PowerLEDs::setBrightness(SIALSettings::PowerLEDs::defaultPower);
+
+				if (!std::isnan(goalDist)) {
+					Serial.println("finish cell");
+
+					SmoothDriving::startNewTask(new SmoothDriving::TaskArray{ new SmoothDriving::FollowWall(goalDist * 0.9f, 30), new SmoothDriving::AlignWalls() }, true);
+				}
+
+				consLeftOneCol = 0;
+				consLeftZeroCol = 0;
+				consLeftH = 0;
+				consLeftS = 0;
+				consLeftU = 0;
+				consRightOneCol = 0;
+				consRightZeroCol = 0;
+				consRightH = 0;
+				consRightS = 0;
+				consRightU = 0;
 			}
 		}
 
@@ -1097,7 +1378,7 @@ namespace SIAL
 				Serial.print("Lack of progress - x: ");
 				Serial.print(fusedData.robotState.mapCoordinate.x);
 				Serial.print(" y: ");
-				Serial.println(fusedData.robotState.mapCoordinate..y);
+				Serial.println(fusedData.robotState.mapCoordinate.y);
 
 				if (fusedData.robotState.mapCoordinate == lastLop) {
 					Serial.println("Consecutive LOP -> set as black");
@@ -1134,7 +1415,7 @@ namespace SIAL
 				Gyro::updateValues();
 				delay(10);
 				newValues.heading = getGlobalHeading(Gyro::getForwardVec());
-				
+
 				SensorFusion::setCorrectedState(newValues);
 				// Call twice to restart internal timer
 				SensorFusion::sensorFusion(true);
@@ -1152,20 +1433,30 @@ namespace SIAL
 
 				SensorFusion::updatePosAndRotFromDist(500);
 
-				SmoothDriving::startNewTask(new TaskArray{
-					new SmoothDriving::AlignWalls(),
-					new SmoothDriving::FollowCell(30),
-					new SmoothDriving::AlignWalls() }, true);
+				if (!onlyReturnHome) {
+					SmoothDriving::startNewTask(new TaskArray{
+						new SmoothDriving::AlignWalls(),
+						new SmoothDriving::FollowCell(30),
+						new SmoothDriving::AlignWalls() }, true);
 
-				lastTask = getInformation().uid;
+					dontAllowPath = true;
+				}
+				else {
+					SmoothDriving::startNewTask(new AlignWalls(), true);
+				}
 
 				resetPathPlanning = true;
-				dontAllowPath = true;
+
+				lastTask = getInformation().uid;
 
 				return;
 			}
 
 			if (start) {
+				if (startTime == 0) {
+					startTime = millis();
+				}
+
 				if (!SensorFusion::waitForAllDistSens()) {
 					return;
 				}
@@ -1470,32 +1761,38 @@ namespace SIAL
 					else if (SmoothDriving::getInformation().uid == DrivingTaskUID::stairs) {
 						float stairLen = 0.0f;
 						uint8_t lenEstimates = 0;
+						uint8_t numStairs = 0;
 
-						if (fusedData.distSensorState.frontLong == DistSensorStatus::ok) {
-							stairLen += fmaxf((frontSnapshotDistances.frontLong - fusedData.distances.frontLong) / 10.0f, 0.0f);
-							lenEstimates++;
+						if (frontSnapshotStates.frontLong != DistSensorStatus::ok) {
+							numStairs = 2;
 						}
+						else {
+							if (fusedData.distSensorState.frontLong == DistSensorStatus::ok) {
+								stairLen += fmaxf((frontSnapshotDistances.frontLong - fusedData.distances.frontLong) / 10.0f, 0.0f);
+								lenEstimates++;
+							}
 
-						if (fusedData.distSensorState.frontLeft == DistSensorStatus::ok) {
-							stairLen += fmaxf((frontSnapshotDistances.frontLong - fusedData.distances.frontLeft) / 10.0f, 0.0f);
-							lenEstimates++;
-						}
-						else if (fusedData.distSensorState.frontLeft == DistSensorStatus::underflow) {
-							stairLen += fmaxf((frontSnapshotDistances.frontLong - DistanceSensors::VL53L0::minDist) / 10.0f, 0.0f);
-							lenEstimates++;
-						}
+							if (fusedData.distSensorState.frontLeft == DistSensorStatus::ok) {
+								stairLen += fmaxf((frontSnapshotDistances.frontLong - fusedData.distances.frontLeft) / 10.0f, 0.0f);
+								lenEstimates++;
+							}
+							else if (fusedData.distSensorState.frontLeft == DistSensorStatus::underflow) {
+								stairLen += fmaxf((frontSnapshotDistances.frontLong - DistanceSensors::VL53L0::minDist) / 10.0f, 0.0f);
+								lenEstimates++;
+							}
 
-						if (fusedData.distSensorState.frontRight == DistSensorStatus::ok) {
-							stairLen += fmaxf((frontSnapshotDistances.frontLong - fusedData.distances.frontRight) / 10.0f, 0.0f);
-							lenEstimates++;
-						}
-						else if (fusedData.distSensorState.frontRight == DistSensorStatus::underflow) {
-							stairLen += fmaxf((frontSnapshotDistances.frontLong - DistanceSensors::VL53L0::minDist) / 10.0f, 0.0f);
-							lenEstimates++;
-						}
+							if (fusedData.distSensorState.frontRight == DistSensorStatus::ok) {
+								stairLen += fmaxf((frontSnapshotDistances.frontLong - fusedData.distances.frontRight) / 10.0f, 0.0f);
+								lenEstimates++;
+							}
+							else if (fusedData.distSensorState.frontRight == DistSensorStatus::underflow) {
+								stairLen += fmaxf((frontSnapshotDistances.frontLong - DistanceSensors::VL53L0::minDist) / 10.0f, 0.0f);
+								lenEstimates++;
+							}
 
-						stairLen /= lenEstimates;
-						uint8_t numStairs = roundf(stairLen / 30.0f) - 1;
+							stairLen /= lenEstimates;
+							numStairs = roundf(stairLen / 30.0f) - 1;
+						}
 
 						Serial.print("finished: ");
 						Serial.print(numStairs);
