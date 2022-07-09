@@ -18,6 +18,8 @@ namespace SIAL
 	{
 		namespace {
 			uint8_t imaginaryWalls = 0b0000;
+			bool resetPathPlanning = false;
+			bool dontAllowPath = false;
 		}
 
 		void startRelativeTurnDirDrive(RelativeDir dir, FusedData fusedData) {
@@ -111,6 +113,17 @@ namespace SIAL
 			static MapCoordinate lastPathPosition = MapCoordinate(INT8_MAX, INT8_MAX);
 			static uint8_t consPathNotPossible = 0;
 			static bool driveHome = false;
+
+			if (resetPathPlanning && followPath) {
+				Serial.println("Reset path -> due to LOP");
+				resetPathPlanning = false;
+
+				lastPathPosition = MapCoordinate(INT8_MAX, INT8_MAX);
+				pathIndex = 0;
+				pathLength = 0;
+				followPath = false;
+				consPathNotPossible = 0;
+			}
 
 			Serial.print("Get new direction based on cell (WSEN): ");
 			Serial.println(fusedData.gridCell.cellConnections, BIN);
@@ -279,7 +292,9 @@ namespace SIAL
 				nextDir = RelativeDir::backward;
 			}
 			else {
-				Serial.println("No unvisited field found; Search for nearest unvisited field...");
+				if (!dontAllowPath) {
+					Serial.println("No unvisited field found; Search for nearest unvisited field...");
+				}
 
 				// Set cell (needed for path finding) 
 				GridCell startCell;
@@ -288,12 +303,23 @@ namespace SIAL
 				startCell.cellState |= CellState::visited;
 				MazeMapping::setGridCell(startCell, fusedData.robotState.mapCoordinate);
 
-				if (consPathNotPossible >= 2 ||
+				if (dontAllowPath ||
+					consPathNotPossible >= 2 ||
 					MazeMapping::BFAlgorithm::findShortestPath(fusedData.robotState.mapCoordinate, pathToFollow, 128, pathLength,
 						MazeMapping::BFAlgorithm::GoalFunctions::unvisitedNeighbour) != ReturnCode::ok) {
-					Serial.println("No path findable!");
-					if (MazeMapping::returnToHome()) {
-						Serial.println("Everything recovered!!");
+
+					if (!dontAllowPath && consPathNotPossible < 2) {
+						Serial.println("No path findable!");
+					}
+					else if (consPathNotPossible >= 2) {
+						Serial.println("Path was not possible multiple times");
+					}
+					else {
+						Serial.println("Path finding was not allowed -> after LOP");
+					}
+
+					if (!dontAllowPath && MazeMapping::returnToHome()) {
+						Serial.println("Everything discovered!");
 						Serial.println("Return home...");
 						if (MazeMapping::BFAlgorithm::findShortestPath(fusedData.robotState.mapCoordinate, pathToFollow, 128, pathLength,
 							MazeMapping::BFAlgorithm::GoalFunctions::home) == ReturnCode::ok) {
@@ -1068,7 +1094,10 @@ namespace SIAL
 			if (!Switch::getState()) {
 				SmoothDriving::stop();
 
-				Serial.println("Lack of progress");
+				Serial.print("Lack of progress - x: ");
+				Serial.print(fusedData.robotState.mapCoordinate.x);
+				Serial.print(" y: ");
+				Serial.println(fusedData.robotState.mapCoordinate..y);
 
 				if (fusedData.robotState.mapCoordinate == lastLop) {
 					Serial.println("Consecutive LOP -> set as black");
@@ -1123,20 +1152,15 @@ namespace SIAL
 
 				SensorFusion::updatePosAndRotFromDist(500);
 
-				// TESTING
-				Serial.println("Ready to start again");
-				fusedData = SensorFusion::getFusedData();
-				Serial.println(fusedData.robotState.position.x);
-				Serial.println(fusedData.robotState.position.y);
-				Serial.println(fusedData.robotState.globalHeading);
-				Serial.println(fusedData.robotState.pitch);
-
 				SmoothDriving::startNewTask(new TaskArray{
 					new SmoothDriving::AlignWalls(),
 					new SmoothDriving::FollowCell(30),
 					new SmoothDriving::AlignWalls() }, true);
 
 				lastTask = getInformation().uid;
+
+				resetPathPlanning = true;
+				dontAllowPath = true;
 
 				return;
 			}
@@ -1600,6 +1624,8 @@ namespace SIAL
 				consSilver = 0;
 
 				rejectCellChange = true;
+
+				dontAllowPath = false;
 			}
 
 			lastCoordinate = fusedData.robotState.mapCoordinate;
