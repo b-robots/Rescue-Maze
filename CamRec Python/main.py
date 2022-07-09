@@ -8,6 +8,37 @@ import math
 from pynput import keyboard
 import scipy.signal
 import time
+import random
+
+def initialize_SVM():
+    svm = cv.ml.SVM_create()
+    svm.setKernel(cv.ml.SVM_RBF)
+    svm.setType(cv.ml.SVM_C_SVC)
+    svm.setC(2.67)
+    svm.setGamma(5.383)
+    return svm
+
+def hog(img , bin_n = 8):
+    img = np.asarray(img)
+    gx = cv.Sobel(img, cv.CV_32F, 1, 0)
+    gy = cv.Sobel(img, cv.CV_32F, 0, 1)
+    mag, ang = cv.cartToPolar(gx, gy)
+    bins = np.int32(bin_n*ang/(2*np.pi))    # quantizing binvalues in (0...16)
+    M = img.shape[0] // 3
+    N = img.shape[1] // 3    
+    bin_cells = []
+    for x in range(3):
+        for y in range(3):
+           bin_cells.append(bins[x*M:x*M+M,y*N:y*N+N]) 
+    
+    mag_cells = []
+    for x in range(3):
+        for y in range(3):
+           mag_cells.append(mag[x*M:x*M+M,y*N:y*N+N]) 
+    hists = [np.bincount(b.ravel(), m.ravel(), bin_n) for b, m in zip(bin_cells, mag_cells)]
+    hist = np.hstack(hists)     # hist is a 64 bit vector
+
+    return hist
 
 def normalize_linethickness(img, target=15):
     try:
@@ -28,19 +59,62 @@ def normalize_linethickness(img, target=15):
     except:
          return None
 
-def get_trainImages(path, letter,):
-    img = cv.imread(path + letter + ".jpg")
-    img = cv.resize(img, (320,240))
-    img = 255 - img
-    #get roi
-    map1, map2 = get_undistort_map(0.8, 1.0)
-    img = undistort(img, map1, map2)
-    gray_img = 255 - cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    #cv.imshow("test1", gray_img)
-    #[y:y+h, x:x+w] the ":" means from to 
-    #img = img[100:300, 50:190]
-    
-    return gray_img        
+def get_trainImage(path, letter, num):
+    img = cv.imread(path + letter + str(num) + ".jpg", cv.IMREAD_GRAYSCALE)
+    return img        
+
+def get_features(img):
+    img = cv.blur(img,(30,30))
+    hogdata = np.squeeze(hog(img))
+    return hogdata
+
+def makePatch(img):
+    x,y,w,h = cv.boundingRect(img)
+    img = img[y:y+h, x:x+w]
+    return cv.resize(img, (100, 100), interpolation=cv.INTER_NEAREST)
+
+def augment(img):
+    if random.random() < 0.5:
+        size = random.randint(3, 9)
+        img = cv.erode(img, np.ones((size,size)))
+    else:
+        size = random.randint(3, 9)
+        bigger = np.zeros((120, 120), np.uint8)
+        bigger[10:110, 10:110] = img
+        img = cv.dilate(bigger, np.ones((size,size)))
+        img = makePatch(img)
+
+    if random.random() < 0.0:
+        # perspective
+        originPts = np.float32([[0, 0], [0, 100], [100, 0], [100, 100]])
+        destPts = (np.random.normal(0.0, 10.0, (4,2)) + originPts).astype(np.float32)
+        destPts = destPts - np.amin(destPts, 0)
+        destPts = destPts / np.amax(destPts, 0) * 100
+        m = cv.getPerspectiveTransform(originPts, destPts)
+        img = cv.warpPerspective(img, m, (100, 100), flags=cv.INTER_NEAREST)
+    else:
+        # affine
+        sx = random.random() * 0.4 - 0.2
+        sy = random.random() * 0.4 - 0.2
+        mu = 0
+        std = 5
+        a = -10
+        b = 10
+        angle = stats.truncnorm.rvs((a - mu) / std, (b - mu) / std, loc=mu, scale=std)
+        rot = cv.getRotationMatrix2D((50, 50), angle, 1)
+        shear = np.float32([
+            [1, sx, 0],
+            [sy, 1, 0],
+            [0, 0, 1]])
+        m = np.identity(3, np.float32)
+        m[:2, :] = rot
+        m = np.matmul(m, shear)
+        bigger = np.zeros((200, 200), np.uint8)
+        bigger[50:150, 50:150] = img
+        img = cv.warpAffine(bigger, m[:2, :], (200, 200), flags=cv.INTER_NEAREST)
+        img = makePatch(img)
+
+    return img
 
 def get_patch(img):
     #adaptiv thresholding 
@@ -82,6 +156,92 @@ def get_patch(img):
     cv.fillPoly(patch, [cnt], 255)
 
     return patch  
+
+def get_patch2(img):
+     #adaptiv thresholding 
+    img = 255 - img
+    blur = cv.blur(img,(11,11))
+    thresh_img = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 31, 2)
+    #dilataing small dots/dashes away
+    kernel = np.ones((5,5),np.uint8)
+    thresh_img = cv.dilate(thresh_img,kernel,iterations = 1)
+
+    num, labels, stats, centroids = cv.connectedComponentsWithStats(thresh_img)
+
+    best_mask = None
+    best_mask_val = 0
+    for i in range(1, num):
+        area = stats[i, cv.CC_STAT_AREA]
+        if area > 1000:
+            mask = (labels == i).astype(np.uint8) * 255
+            invert = 255 - mask
+            inv_num , inv_labels = cv.connectedComponents(invert)
+            if inv_num == 2:
+                b = np.sum(np.where(mask > 127, img, 0)) / (np.sum(mask) + 1)
+                if b > best_mask_val:
+                    best_mask_val = b
+                    best_mask = mask
+
+    if best_mask is None:
+        return None
+
+    return makePatch(best_mask)
+
+def train_SVM():
+
+    trainingData = []
+    labels = []
+
+    #get none data
+    for i in range(90):
+        img = []
+        img.append(get_trainImage("/train/","N", i))
+        labels.append(0)
+        for _ in range(20):
+            img.append(augment(img[0]))
+            labels.append(0)
+        features = [get_features(im) for im in img]
+        trainingData.extend(features)
+        
+    #get H Data
+    for i in range(30):
+       img = []
+       img.append(get_trainImage("/train/","H", i))
+       labels.append(1)
+       for _ in range(20):
+           img.append(augment(img[0]))
+           labels.append(1)
+       features = [get_features(im) for im in img]
+       trainingData.extend(features)
+
+    #get S Data
+    for i in range(30):
+       img = []
+       img.append(get_trainImage("/train/","S", i))
+       labels.append(2)
+       for _ in range(20):
+           img.append(augment(img[0]))
+           labels.append(2)
+       features = [get_features(im) for im in img]
+       trainingData.extend(features)
+
+    #get U Data
+    for i in range(30):
+       img = []
+       img.append(get_trainImage("/train/","U", i))
+       labels.append(3)
+       for _ in range(20):
+           img.append(augment(img[0]))
+           labels.append(3)
+       features = [get_features(im) for im in img]
+       trainingData.extend(features)
+
+    trainingData = np.asarray(trainingData)
+    labels = np.asarray(labels)
+
+    svm = initialize_SVM()
+    svm.train(trainingData, cv.ml.ROW_SAMPLE, labels)
+    return svm
 
 def detect_letter_overlay(patch):
     """
@@ -307,11 +467,8 @@ def main():
     camr.set(cv.CAP_PROP_FRAME_WIDTH, 320)
     camr.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
 
-    comp_H = cv.imread("HComp.jpg", cv.IMREAD_GRAYSCALE)
-    comp_S = cv.imread("SComp.jpg", cv.IMREAD_GRAYSCALE)
-    comp_U = cv.imread("UComp.jpg", cv.IMREAD_GRAYSCALE)
+    svm = train_SVM()
 
-    comps = [comp_H, comp_S, comp_U]
     t = 0
     while True:
             t = time.time()
@@ -332,6 +489,7 @@ def main():
             gray_imgl = cv.cvtColor(imgl, cv.COLOR_BGR2GRAY)
             patch_imgl = get_patch(gray_imgl)
             patch_imgl = normalize_linethickness(patch_imgl)
+
             if patch_imgl is None:
                l_valid = False
 
@@ -343,10 +501,10 @@ def main():
             if l_valid:
                 cv.imshow("patch", patch_imgl)
                 cv.waitKey(1)
+                svm.predict(patch_imgl)
                 #print(f"Res: {letterLookup[detect_letter_HUregions(patch_imgl, comps)]}", "fps: " + str(1 / (t - time.time())))
-                res = letterLookup[detect_letter_HUregions(patch_imgl, comps)]
-                if res != b'N':
-                    print("Res" + str(res))
+                
+            
             #cv.imwrite("testL.jpg", bin_imgl)
             #cv.imwrite("testR.jpg", bin_imgr)
 
@@ -366,9 +524,13 @@ def main():
             #continue
 
 if __name__ == "__main__":
-    main()
+    #main()
     #map1, map2 = get_undistort_map(0.8, 1.0)
     #get_compImages(map1, map2)
+    img = get_trainImage("S", "Comp")
+    img = get_features(img)
+    cv.imshow("tets", img)
+    cv.waitKey(0)
 
     
     
