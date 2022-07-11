@@ -9,6 +9,8 @@ from pynput import keyboard
 import scipy.signal
 import time
 import random
+import os
+import scipy.stats as stats
 
 def initialize_SVM():
     svm = cv.ml.SVM_create()
@@ -65,7 +67,8 @@ def get_trainImage(path, letter, num):
 
 def get_features(img):
     img = cv.blur(img,(30,30))
-    hogdata = np.squeeze(hog(img))
+    hogdata = np.float32(np.squeeze(hog(img)))
+    
     return hogdata
 
 def makePatch(img):
@@ -164,7 +167,7 @@ def get_patch2(img):
     thresh_img = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 31, 2)
     #dilataing small dots/dashes away
     kernel = np.ones((5,5),np.uint8)
-    thresh_img = cv.dilate(thresh_img,kernel,iterations = 1)
+    thresh_img = cv.erode(thresh_img,kernel,iterations = 1)
 
     num, labels, stats, centroids = cv.connectedComponentsWithStats(thresh_img)
 
@@ -188,55 +191,82 @@ def get_patch2(img):
     return makePatch(best_mask)
 
 def train_SVM():
-
     trainingData = []
     labels = []
 
-    #get none data
-    for i in range(90):
+    names = os.listdir("trainNew/")
+
+    Ns = [name for name in names if name[0] == "N" ]
+    Hs = [name for name in names if name[0] == "H" ]
+    Ss = [name for name in names if name[0] == "S" ]
+    Us = [name for name in names if name[0] == "U" ]
+
+    print(len(Ns))
+    print(len(Hs))
+    print(len(Ss))
+    print(len(Us))
+
+    #get None data
+    for n in Ns:
         img = []
-        img.append(get_trainImage("/train/","N", i))
+        img.append(cv.imread("trainNew/"+ n, cv.IMREAD_GRAYSCALE))
+        print(n)
         labels.append(0)
         for _ in range(20):
-            img.append(augment(img[0]))
-            labels.append(0)
+            try:
+                img.append(augment(img[0]))
+                labels.append(0)
+            except:
+                print("poppy picture")
         features = [get_features(im) for im in img]
         trainingData.extend(features)
-        
-    #get H Data
-    for i in range(30):
-       img = []
-       img.append(get_trainImage("/train/","H", i))
-       labels.append(1)
-       for _ in range(20):
-           img.append(augment(img[0]))
-           labels.append(1)
-       features = [get_features(im) for im in img]
-       trainingData.extend(features)
+ 
+    #get H data
+    for h in Hs:
+        img = []
+        img.append(cv.imread("trainNew/"+ h, cv.IMREAD_GRAYSCALE))
+        labels.append(1)
+        for _ in range(20):
+            try:
+                img.append(augment(img[0]))
+                labels.append(1)
+            except:
+                print("poppy picture")
+        features = [get_features(im) for im in img]
+        trainingData.extend(features)
 
-    #get S Data
-    for i in range(30):
-       img = []
-       img.append(get_trainImage("/train/","S", i))
-       labels.append(2)
-       for _ in range(20):
-           img.append(augment(img[0]))
-           labels.append(2)
-       features = [get_features(im) for im in img]
-       trainingData.extend(features)
+    #get S data
+    for s in Ss:
+        img = []
+        img.append(cv.imread("trainNew/"+ s, cv.IMREAD_GRAYSCALE))
+        labels.append(2)
+        for _ in range(20):
+            try:
+                img.append(augment(img[2]))
+                labels.append(2)
+            except:
+                print("poppy picture")
+        features = [get_features(im) for im in img]
+        trainingData.extend(features)
 
-    #get U Data
-    for i in range(30):
-       img = []
-       img.append(get_trainImage("/train/","U", i))
-       labels.append(3)
-       for _ in range(20):
-           img.append(augment(img[0]))
-           labels.append(3)
-       features = [get_features(im) for im in img]
-       trainingData.extend(features)
+    #get U data
+    for u in Us:
+        img = []
+        img.append(cv.imread("trainNew/"+ u, cv.IMREAD_GRAYSCALE))
+        labels.append(3)
+        for _ in range(20):
+            try:
+                img.append(augment(img[0]))
+                labels.append(3)
+            except:
+                print("poppy picture")
+        features = [get_features(im) for im in img]
+        trainingData.extend(features)
 
-    trainingData = np.asarray(trainingData)
+    print(len(trainingData))
+    print(len(labels))
+
+    trainingData = np.asarray(trainingData, dtype=np.float32)
     labels = np.asarray(labels)
 
     svm = initialize_SVM()
@@ -552,6 +582,7 @@ def main():
             gray_imgl = cv.cvtColor(imgl, cv.COLOR_BGR2GRAY)
             patch_imgl = get_patch(gray_imgl)
             patch_imgl = normalize_linethickness(patch_imgl)
+            features_imgl = np.asarray([get_features(patch_imgl)])
 
             if patch_imgl is None:
                l_valid = False
@@ -562,9 +593,10 @@ def main():
                #r_valid = False
 
             if l_valid:
+                print(svm.predict(features_imgl))
                 cv.imshow("patch", patch_imgl)
                 cv.waitKey(1)
-                svm.predict(patch_imgl)
+                
                 #print(f"Res: {letterLookup[detect_letter_HUregions(patch_imgl, comps)]}", "fps: " + str(1 / (t - time.time())))
                 
             
@@ -587,14 +619,16 @@ def main():
             #continue
 
 if __name__ == "__main__":
-    #main()
-    map1, map2 = get_undistort_map(0.8, 1.0)
+    print(os.listdir('trainNew/'))
+    main()
+    #map1, map2 = get_undistort_map(0.8, 1.0)
     #get_compImages(map1, map2)
     # img = get_trainImage("S", "Comp")
     # img = get_features(img)
     # cv.imshow("tets", img)
     # cv.waitKey(0)
-    make_trainImages(map1, map2)
+    #make_trainImages(map1, map2)
+    
 
     
     
