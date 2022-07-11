@@ -54,11 +54,13 @@ def normalize_linethickness(img, target=15):
         if  med_thick is None:
             return None
         kernel_size = round(med_thick - target) // 2 * 2 + 1
+        kernel_size = max(1, kernel_size)
         kernel = np.ones((kernel_size, kernel_size),np.uint8)
         img = cv.erode(img, kernel, iterations = 1)
         return img
     
-    except:
+    except Exception as e:
+         print(e)
          return None
 
 def get_trainImage(path, letter, num):
@@ -66,6 +68,8 @@ def get_trainImage(path, letter, num):
     return img        
 
 def get_features(img):
+    if img is None:
+        return None
     img = cv.blur(img,(30,30))
     hogdata = np.float32(np.squeeze(hog(img)))
     
@@ -580,11 +584,12 @@ def main():
             imgl = get_undist_roi(imgl, map1, map2, False)
 
             gray_imgl = cv.cvtColor(imgl, cv.COLOR_BGR2GRAY)
-            patch_imgl = get_patch(gray_imgl)
-            patch_imgl = normalize_linethickness(patch_imgl)
-            features_imgl = np.asarray([get_features(patch_imgl)])
+            patch_imgl = get_patch2(gray_imgl)
+            #patch_imgl = cv.imread("trainNew/H101.jpg", cv.IMREAD_GRAYSCALE)
+            #patch_imgl = normalize_linethickness(patch_imgl)
+            features_imgl = get_features(patch_imgl)
 
-            if patch_imgl is None:
+            if features_imgl is None or patch_imgl is None:
                l_valid = False
 
             #gray_imgr = cv.cvtColor(imgr, cv.COLOR_BGR2GRAY)
@@ -593,7 +598,8 @@ def main():
                #r_valid = False
 
             if l_valid:
-                print(svm.predict(features_imgl))
+                #print(np.squeeze(svm.predict(np.asarray([features_imgl]))[1]))
+                print(svm.predict(np.asarray([features_imgl])))
                 cv.imshow("patch", patch_imgl)
                 cv.waitKey(1)
                 
@@ -619,10 +625,10 @@ def main():
             #continue
 
 if __name__ == "__main__":
-    print(os.listdir('trainNew/'))
-    main()
-    #map1, map2 = get_undistort_map(0.8, 1.0)
-    #get_compImages(map1, map2)
+    #print(os.listdir('trainNew/'))
+    #main()
+    map1, map2 = get_undistort_map(0.8, 1.0)
+    get_compImages(map1, map2)
     # img = get_trainImage("S", "Comp")
     # img = get_features(img)
     # cv.imshow("tets", img)
