@@ -11,6 +11,7 @@ import time
 import random
 import os
 import scipy.stats as stats
+import tflite_runtime.interpreter as tflite
 
 def initialize_SVM():
     svm = cv.ml.SVM_create()
@@ -78,7 +79,7 @@ def get_features(img):
 def makePatch(img):
     x,y,w,h = cv.boundingRect(img)
     img = img[y:y+h, x:x+w]
-    return cv.resize(img, (100, 100), interpolation=cv.INTER_NEAREST)
+    return cv.resize(img, (50, 50), interpolation=cv.INTER_NEAREST)
 
 def augment(img):
     if random.random() < 0.5:
@@ -376,8 +377,7 @@ def detect_Color_pixel(img):
     img = cv.resize(img, (100,100))
     print("ye")
     cv.imshow("hgf",img)
-    cv.waitKey(1)
-    
+    cv.waitKey(1) 
 
 def detect_Color(img):
     """
@@ -552,7 +552,6 @@ def make_trainImages(map1, map2):
         else:
             cnt = 0
             continue
-
     
 def main():
     
@@ -577,9 +576,12 @@ def main():
     camr.set(cv.CAP_PROP_FRAME_WIDTH, 320)
     camr.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
 
-    #svm = train_SVM()
+    model = tflite.Interpreter(model_path='CamRec Python/converted_model.tflite')
+    input_index = model.get_input_details()[0]["index"]
+    output_index = model.get_output_details()[0]["index"]
+    model.resize_tensor_input(input_index, [2, 50, 50, 1])
+    model.allocate_tensors()
 
-    t = 0
     while True:
             t = time.time()
         #try:
@@ -603,19 +605,54 @@ def main():
             #patch_imgl = normalize_linethickness(patch_imgl)
             #features_imgl = get_features(patch_imgl)
             
-            features_imgl = detect_Color_pixel(imgl)
+            # features_imgl = detect_Color_pixel(imgl)
 
-            if features_imgl is None:
-               l_valid = False
+            imgl = cv.cvtColor(imgl, cv.COLOR_BGR2GRAY)
+            imgl = get_patch2(imgl)
+
+            imgr = cv.cvtColor(imgr, cv.COLOR_BGR2GRAY)
+            imgr = get_patch2(imgr)
+
+            if imgl is None:
+                l_valid = False
+            
+            if imgr is None:
+                r_valid = False
+            
+            both_images = np.zeros((2, 50, 50, 1), np.float32)
+            
+            if l_valid:
+                cv.imshow("l", imgl)
+                cv.waitKey(1)
+                imgl = imgl / max(np.amax(imgl), 1.0)
+                imgl = np.reshape(imgl, (50, 50, 1))
+                both_images[0] = imgl
+            
+            if r_valid:
+                cv.imshow("r", imgr)
+                cv.waitKey(1)
+                imgr = imgr / max(np.amax(imgr), 1.0)
+                imgr = np.reshape(imgr, (50, 50, 1))
+                both_images[1] = imgr
+            
+            if l_valid or r_valid:
+                model.set_tensor(input_index, both_images.astype(dtype='float32'))
+                model.invoke()
+                output = model.tensor(output_index)
+                
+                print(letterLookup[round(np.argmax(output()[0]))])
+                print(letterLookup[round(np.argmax(output()[1]))])
+            
+            print(f"fps: {1 / (time.time() - t)}")
 
             #gray_imgr = cv.cvtColor(imgr, cv.COLOR_BGR2GRAY)
             #patch_imgr = get_patch(gray_imgr)
             #if patch_imgr is None:
                #r_valid = False
 
-            if l_valid:
+            #if l_valid:
                 #print(np.squeeze(svm.predict(np.asarray([features_imgl]))[1]))
-                print(features_imgl)
+                #print(features_imgl)
                 #cv.imshow("patch", patch_imgl)
                 #cv.waitKey(1)
                 
@@ -641,8 +678,9 @@ def main():
             #continue
 
 if __name__ == "__main__":
-    #print(os.listdir('trainNew/'))
     main()
+    #print(os.listdir('trainNew/'))
+    #main()
     #map1, map2 = get_undistort_map(0.8, 1.0)
     #get_compImages(map1, map2)
     # img = get_trainImage("S", "Comp")
@@ -650,8 +688,3 @@ if __name__ == "__main__":
     # cv.imshow("tets", img)
     # cv.waitKey(0)
     #make_trainImages(map1, map2)
-    
-
-    
-    
-    
