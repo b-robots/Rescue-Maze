@@ -20,11 +20,21 @@ def makePatch(img):
 def get_patch2(img):
      #adaptiv thresholding 
     img = 255 - img
-    blur = cv.blur(img,(11,11))
-    thresh_img = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 31, 2)
-    #dilataing small dots/dashes away
+    blur = cv.blur(img,(13,13))
+    thresh_img = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 21, 2)
     kernel = np.ones((5,5),np.uint8)
-    thresh_img = cv.erode(thresh_img,kernel,iterations = 1)
+    thresh_img[0, :] = 0
+    thresh_img[-1, :] = 0
+    thresh_img[:, 0] = 0
+    thresh_img[:, -1] = 0
+    thresh_img = cv.erode(thresh_img,kernel,iterations=1)
+    thresh_img[0, :] = 0
+    thresh_img[-1, :] = 0
+    thresh_img[:, 0] = 0
+    thresh_img[:, -1] = 0
+
+    #cv.imshow("thresh", thresh_img)
+    #cv.waitKey(1)
 
     num, labels, stats, centroids = cv.connectedComponentsWithStats(thresh_img)
 
@@ -32,7 +42,7 @@ def get_patch2(img):
     best_mask_val = 0
     for i in range(1, num):
         area = stats[i, cv.CC_STAT_AREA]
-        if area > 1000:
+        if area > 300:
             mask = (labels == i).astype(np.uint8) * 255
             invert = 255 - mask
             inv_num , inv_labels = cv.connectedComponents(invert)
@@ -154,6 +164,7 @@ def read_all_serial(port):
     
 def main():
     port = serial.Serial('/dev/serial0', baudrate=9600, timeout=0)
+
     letterLookup = [b'N',  b'H', b'S', b'U']
     colorLookup = [b'N',  b'R', b'Y', b'G']
 
@@ -220,10 +231,10 @@ def main():
 
             imgl = cv.cvtColor(imgl, cv.COLOR_BGR2GRAY)
             imgl = get_patch2(imgl)
-
+            
             imgr = cv.cvtColor(imgr, cv.COLOR_BGR2GRAY)
             imgr = get_patch2(imgr)
-
+            
             if imgl is None:
                 l_valid = False
             
@@ -292,6 +303,68 @@ def main():
             #print("l: " + str(leftOut), "r: " + str(rightOut))
         except Exception as e:
             print(e)
+            continue
+
+from pynput import keyboard
+def make_trainImages(map1, map2):
+    global is_y
+    global is_n
+    is_y = False
+    is_n = False
+
+    def on_press(key):
+        global is_y
+        global is_n
+        try:
+            print(key.char[0])
+            if key.char[0] == 'y':
+                is_y = True
+            elif key.char[0] == 'n':
+                is_n = True
+        except AttributeError:
+            print('special key {0} pressed'.format(key))
+
+    lcamId, rcamId=get_cam_serial()
+    caml = cv.VideoCapture(int(lcamId)) # left
+    if not caml.isOpened():   
+        raise IOError("Cannot open webcam")
+    caml.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M','J','P','G'))
+    caml.set(cv.CAP_PROP_FRAME_WIDTH, 320)
+    caml.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+
+    listener = keyboard.Listener(on_press=on_press)
+    listener.start()
+
+    print("to continoue press y to go to the next press n")
+    orders = ""
+    ltr_cnt = 1
+    letterLookup = ['N' ,'H', 'S', 'U']
+    cnt = 200
+    for l in letterLookup:
+        print("we are at: " + l)
+        is_n = False
+        while not is_n:
+            _, img = caml.read()
+            img = get_undist_roi(img, map1, map2, False)
+            valid = True
+            gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+            patch = get_patch2(gray_img)
+            if patch is None:
+               valid = False
+
+            if valid:
+                cv.imshow("lul",patch)
+                cv.waitKey(1)
+
+                if is_y:
+                    cv.imwrite("trainNew/" + l + str(cnt) + ".jpg", patch)
+                    print(l + str(cnt))
+                    cnt += 1
+                    is_y = False
+            if is_n:
+                break
+        else:
+            cnt = 0
             continue
 
 if __name__ == "__main__":
