@@ -525,6 +525,12 @@ namespace SIAL
 				lookAtAngle = ceilf(fusedData.robotState.globalHeading / M_PI_2) * M_PI_2;
 			}
 
+			if (fabsf(fusedData.robotState.pitch) > 0.05) {
+				consecutiveLHeat = 0;
+				consecutiveRHeat = 0;
+				return;
+			}
+
 			static uint32_t lastLeftFrontRisingEdge = 0;
 			if (fusedData.fusedDistSens.risingEdge.leftFront) {
 				lastLeftFrontRisingEdge = millis();
@@ -800,7 +806,6 @@ namespace SIAL
 			}
 		}
 
-		// TODO
 		void handleCamVictim(FusedData fusedData) {
 			static uint16_t consLeftOneCol = 0;
 			static uint16_t consLeftZeroCol = 0;
@@ -837,6 +842,7 @@ namespace SIAL
 
 			if (currentCell.cellState & (CellState::blackTile || CellState::checkpoint || CellState::victim) ||
 				lastVisVictim == fusedData.robotState.mapCoordinate ||
+				fabsf(fusedData.robotState.pitch) > 0.05 ||
 				millis() - lastVisDetection < 500) {
 				consLeftOneCol = 0;
 				consLeftZeroCol = 0;
@@ -1526,6 +1532,8 @@ namespace SIAL
 				static uint8_t consNegIncline = 0;
 				static bool rampUp = false;
 				static MapCoordinate rampPos;
+				static float rampStartLEnc;
+				static float rampStartREnc;
 
 				if (SmoothDriving::getInformation().drivingStraight) {
 					if (robotState.forwardVel > SIALSettings::MotorControl::minSpeed && robotState.pitch > SIALSettings::MazeMapping::minRampAngle * (consPosIncline > 0 ? 0.8f : 1.0f)) {
@@ -1569,6 +1577,8 @@ namespace SIAL
 					Serial.println(rampUp ? "ramp up" : "ramp down");
 					startNewTask(new Ramp(rampUp ? 30 : 20, rampUp), true);
 					updateLastCellOnRamp = true;
+					rampStartLEnc = MotorControl::getDistance(Motor::left);
+					rampStartREnc = MotorControl::getDistance(Motor::right);
 				}
 				else if ((fusedData.gridCell.cellState & CellState::stair) && SmoothDriving::getInformation().uid != DrivingTaskUID::ramp && SmoothDriving::getInformation().uid != DrivingTaskUID::stairs) {
 					Serial.println("stair");
@@ -1715,6 +1725,12 @@ namespace SIAL
 
 				if (SmoothDriving::getInformation().finished) {
 					if (SmoothDriving::getInformation().uid == DrivingTaskUID::ramp) {
+						float leftDist = fabsf(MotorControl::getDistance(Motor::left) - rampStartLEnc);
+						float rightDist = fabsf(MotorControl::getDistance(Motor::left) - rampStartLEnc);
+						float len = (leftDist + rightDist) / 2.0f;
+						len = len * cosf(20.0f * DEG_TO_RAD) - 5;
+						uint8_t numRamp = roundf(len / 30.0f);
+
 						NewForcedFusionValues correctedState;
 
 						correctedState.zeroPitch = true;
@@ -1740,17 +1756,24 @@ namespace SIAL
 						correctedState.x = rampPos.getCoordinateInDir(robotState.heading).x * 30.0f;
 						correctedState.y = rampPos.getCoordinateInDir(robotState.heading).y * 30.0f;
 
-						GridCell cell;
-						cell.cellConnections = entranceDirs;
-						cell.cellState = CellState::visited | CellState::ramp;
-						MazeMapping::setGridCell(cell, rampPos);
+						for (int i = 0; i < numRamp; i++) {
+							GridCell cell;
+							cell.cellConnections = entranceDirs;
+							cell.cellState = CellState::visited | CellState::ramp;
+							MazeMapping::setGridCell(cell, rampPos);
 
-						Serial.print("stored ramp cell - x: ");
-						Serial.print(rampPos.x);
-						Serial.print(", y: ");
-						Serial.print(rampPos.y);
-						Serial.print(", connections: ");
-						Serial.println(entranceDirs, BIN);
+							Serial.print("stored ramp cell - x: ");
+							Serial.print(rampPos.x);
+							Serial.print(", y: ");
+							Serial.print(rampPos.y);
+							Serial.print(", connections: ");
+							Serial.println(entranceDirs, BIN);
+
+							rampPos = rampPos.getCoordinateInDir(robotState.heading);
+						}
+
+						correctedState.x = rampPos.x * 30.0f;
+						correctedState.y = rampPos.y * 30.0f;
 
 						SensorFusion::setCorrectedState(correctedState);
 						SmoothDriving::startNewTask(new AlignWalls());

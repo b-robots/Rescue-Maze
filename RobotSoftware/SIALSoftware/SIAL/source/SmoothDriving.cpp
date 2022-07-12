@@ -134,6 +134,8 @@ namespace SIAL {
 			// Calculate rotated angle
 			rotatedAngle = tempRobotState.globalHeading - _startAngle;
 
+			Serial.println(rotatedAngle);
+
 			// Check if I am there
 			if (fabsf(rotatedAngle) >= fabsf(_angle) - 3.0f * DEG_TO_RAD)
 			{
@@ -515,7 +517,7 @@ namespace SIAL {
 					drivenDistance = fabsf(currentPosition.y - _rampEndPos.y);
 				}
 
-				if (drivenDistance >= fabsf(10) - fabsf(_speed) * 0.06f)
+				if (drivenDistance >= fabsf(8) - fabsf(_speed) * 0.06f)
 				{
 					_information.finished = true;
 				}
@@ -637,7 +639,7 @@ namespace SIAL {
 					drivenDistance = fabsf(currentPosition.y - _stairEndPos.y);
 				}
 
-				if (drivenDistance >= fabsf(5) - fabsf(_speed) * 0.06f)
+				if (drivenDistance >= fabsf(3) - fabsf(_speed) * 0.06f)
 				{
 					_information.finished = true;
 				}
@@ -713,6 +715,8 @@ namespace SIAL {
 
 		void AlignWalls::startTask(RobotState startState) {
 			_information.startState = startState;
+
+			Serial.println("align walls");
 		}
 
 		WheelSpeeds AlignWalls::updateSpeeds(float dt)
@@ -747,6 +751,9 @@ namespace SIAL {
 			if (!std::isnan(angle) && std::isnan(_absAvgAngle)) {
 				_absAvgAngle = angle;
 			}
+
+			Serial.println(angle);
+			Serial.println(_absAvgAngle);
 
 			if ((_absAvgAngle < 0.02)) {
 				_consOk++;

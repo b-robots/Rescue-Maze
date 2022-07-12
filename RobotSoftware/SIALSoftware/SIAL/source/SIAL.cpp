@@ -172,8 +172,8 @@ namespace SIAL {
 			Serial.println("Error during setup!");
 		}
 
-		// Wait for all distance sensors to at least measure something once -> safety precaution
-		// TODO enable before competition
+		//Wait for all distance sensors to at least measure something once -> safety precaution
+		//TODO enable before competition
 		uint8_t correctDistSens = 0b0;
 		uint8_t cnt = 0;
 		while (cnt < 3) {

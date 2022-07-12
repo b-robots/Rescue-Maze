@@ -7,8 +7,8 @@ namespace SIAL
 	{
 		namespace
 		{
-			Victim leftV;
-			Victim rightV;
+			Victim leftV = Victim::none;
+			Victim rightV = Victim::none;
 		}
 
 		ReturnCode setup()

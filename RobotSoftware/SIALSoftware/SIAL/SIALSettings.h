@@ -131,7 +131,7 @@ namespace SIALSettings {
 		namespace Right
 		{
 			constexpr float startDty = 0.035f;		// duty cylce for start
-			constexpr float endDty = 0.067f;			// duty cylce for end
+			constexpr float endDty = 0.07f;			// duty cylce for end
 			constexpr uint8_t servoPin = 37;
 			constexpr uint8_t startCubeCount = 6;
 		}
@@ -139,7 +139,7 @@ namespace SIALSettings {
 
 	namespace HeatSensors
 	{
-		constexpr float threshold = 7.0f;
+		constexpr float threshold = 6.0f;
 
 		namespace Left
 		{

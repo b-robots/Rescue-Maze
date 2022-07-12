@@ -646,7 +646,11 @@ namespace SIAL
 
 			_status = Status::noError;
 
-			if (distance > maxDist) _status = Status::overflow;
+			if (distance > maxDist) {
+				_status = Status::overflow;
+				Serial.print("Status code: ");
+				Serial.println(_sensor.readReg16Bit(0x14) & 0b1111);
+			}
 			else if (distance < minDist) _status = Status::underflow;
 
 			return distance;

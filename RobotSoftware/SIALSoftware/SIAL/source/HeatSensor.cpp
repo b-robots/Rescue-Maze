@@ -19,7 +19,7 @@ namespace SIAL
 			TPA81 tpaLeft;
 			TPA81 tpaRight;
 
-			float ambientTemp = 23.0f;
+			float ambientTemp = 25.0f;
 
 			ReturnCode readAmbientTemp()
 			{
@@ -51,7 +51,7 @@ namespace SIAL
 				}
 
 				// TESTING
-				ambientTemp = 26.0f;
+				ambientTemp = 25.0f;
 				return ReturnCode::ok;
 			}
 		}
@@ -88,7 +88,7 @@ namespace SIAL
 			float avgHigh = (pixels[0] * 0.6f + pixels[1] * 0.4f);
 
 			if (sensor == HeatSensorSide::right) {
-				avgHigh -= 3.5f;
+				avgHigh -= 4.0f;
 			}
 
 			//Serial.print(sensor == HeatSensorSide::right ? "right: " : "left: ");
