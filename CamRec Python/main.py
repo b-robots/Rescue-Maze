@@ -11,7 +11,7 @@ import time
 import random
 import os
 import scipy.stats as stats
-import tflite_runtime.interpreter as tflite
+#import tflite_runtime.interpreter as tflite
 
 def initialize_SVM():
     svm = cv.ml.SVM_create()
@@ -372,12 +372,25 @@ def get_cam_serial():
     # LeftId is left rightId is right 
     return lcamId, rcamId
 
-def detect_Color_pixel(img):
-    img = img[90:230, 120:121]
-    img = cv.resize(img, (100,100))
-    print("ye")
-    cv.imshow("hgf",img)
-    cv.waitKey(1) 
+def detect_Color_Mask(img):
+    img = cv.cvtColor(np.float32(img / 255.0), cv.COLOR_BGR2HSV ) 
+    r_mask = np.float32(np.where(((img[:,:,0] > 350) | (img[:,:,0] < 20)) & (img[:,:,1] > 0.5) & (img[:,:,2] > 0.5), 1, 0))
+    y_mask = np.float32(np.where((img[:,:,0] > 100) & (img[:,:,0] < 150) & (img[:,:,1] > 0.5) & (img[:,:,2] > 0.5), 1, 0))
+    g_mask = np.float32(np.where((img[:,:,0] > 50) & (img[:,:,0] < 80) & (img[:,:,1] > 0.5) & (img[:,:,2] > 0.5), 1, 0)) 
+
+    area = np.shape(img)[0] * np.shape(img)[1]
+    r_val = np.sum(r_mask) / area
+    y_val = np.sum(y_mask) / area
+    g_val = np.sum(g_mask) / area
+
+    print(r_val)
+
+    vals = [r_val, y_val, g_val]
+    res = np.argmin(vals)
+    if vals[res] > 0.05:
+        return res +1
+    
+    return 0
 
 def detect_Color(img):
     """
@@ -678,13 +691,10 @@ def main():
             #continue
 
 if __name__ == "__main__":
-    main()
+    #main()
     #print(os.listdir('trainNew/'))
     #main()
     #map1, map2 = get_undistort_map(0.8, 1.0)
     #get_compImages(map1, map2)
-    # img = get_trainImage("S", "Comp")
-    # img = get_features(img)
-    # cv.imshow("tets", img)
-    # cv.waitKey(0)
-    #make_trainImages(map1, map2)
+    img = cv.imread("HSV.png")
+    detect_Color_Mask(img)
