@@ -1,2 +1,0 @@
-model_checkpoint_path: "cp_weights.ckpt"
-all_model_checkpoint_paths: "cp_weights.ckpt"

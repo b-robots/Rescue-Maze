@@ -371,6 +371,14 @@ def get_cam_serial():
     # LeftId is left rightId is right 
     return lcamId, rcamId
 
+def detect_Color_pixel(img):
+    img = img[90:230, 120:121]
+    img = cv.resize(img, (100,100))
+    print("ye")
+    cv.imshow("hgf",img)
+    cv.waitKey(1)
+    
+
 def detect_Color(img):
     """
     Returrns the detected color in the format: r = 1, y = 2, g = 3, None = 0
@@ -395,19 +403,24 @@ def detect_Color(img):
         mask = np.zeros_like(img)
         cv.fillPoly(mask, [contour], 255)
         b = np.sum(np.where(mask > 127,img,0)) / (np.sum(mask) + 1)
-        if b > brightest and cv.contourArea(contour) > 1000:
+        if b > brightest and cv.contourArea(contour) > 500:
             brightest = b
             brightest_cnt = contour
     
+    if brightest_cnt is None:
+        return None
     cnt = np.squeeze(np.asarray(brightest_cnt))
 
     mask = np.zeros_like(img)
     cv.fillPoly(mask, [cnt], (255, 255, 255))
+    cv.imshow("He", mask)
+    cv.waitKey(1)
     bgr_avg = np.sum(np.where(mask > 127, img, 0), (0, 1)) / (np.sum(mask[..., 0]))
     print(bgr_avg)
     hsv_avg = np.squeeze(cv.cvtColor(np.asarray([[bgr_avg]], np.float32), cv.COLOR_BGR2HSV))
     print(hsv_avg)
-    if(hsv_avg[1] > 0.5 and hsv_avg[2] > 0.5):
+    if(hsv_avg[1] > 0.4 ):
+        print("Test")
         hsv_avg[0] = hsv_avg[0] * np.pi / 180
         r_sim = abs(np.arctan2(np.sin(hsv_avg[0] - np.pi * 2.0), np.cos(hsv_avg[0] - np.pi * 2.0)))
         y_sim = abs(np.arctan2(np.sin(hsv_avg[0] - 0.873), np.cos(hsv_avg[0] - 0.873)))
@@ -564,7 +577,7 @@ def main():
     camr.set(cv.CAP_PROP_FRAME_WIDTH, 320)
     camr.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
 
-    svm = train_SVM()
+    #svm = train_SVM()
 
     t = 0
     while True:
@@ -583,13 +596,16 @@ def main():
             imgr = get_undist_roi(imgr, map1, map2, True)
             imgl = get_undist_roi(imgl, map1, map2, False)
 
-            gray_imgl = cv.cvtColor(imgl, cv.COLOR_BGR2GRAY)
-            patch_imgl = get_patch2(gray_imgl)
+            #gray_imgl = cv.cvtColor(imgl, cv.COLOR_BGR2GRAY)
+            
+            #patch_imgl = get_patch2(gray_imgl)
             #patch_imgl = cv.imread("trainNew/H101.jpg", cv.IMREAD_GRAYSCALE)
             #patch_imgl = normalize_linethickness(patch_imgl)
-            features_imgl = get_features(patch_imgl)
+            #features_imgl = get_features(patch_imgl)
+            
+            features_imgl = detect_Color_pixel(imgl)
 
-            if features_imgl is None or patch_imgl is None:
+            if features_imgl is None:
                l_valid = False
 
             #gray_imgr = cv.cvtColor(imgr, cv.COLOR_BGR2GRAY)
@@ -599,9 +615,9 @@ def main():
 
             if l_valid:
                 #print(np.squeeze(svm.predict(np.asarray([features_imgl]))[1]))
-                print(svm.predict(np.asarray([features_imgl])))
-                cv.imshow("patch", patch_imgl)
-                cv.waitKey(1)
+                print(features_imgl)
+                #cv.imshow("patch", patch_imgl)
+                #cv.waitKey(1)
                 
                 #print(f"Res: {letterLookup[detect_letter_HUregions(patch_imgl, comps)]}", "fps: " + str(1 / (t - time.time())))
                 
@@ -626,9 +642,9 @@ def main():
 
 if __name__ == "__main__":
     #print(os.listdir('trainNew/'))
-    #main()
-    map1, map2 = get_undistort_map(0.8, 1.0)
-    get_compImages(map1, map2)
+    main()
+    #map1, map2 = get_undistort_map(0.8, 1.0)
+    #get_compImages(map1, map2)
     # img = get_trainImage("S", "Comp")
     # img = get_features(img)
     # cv.imshow("tets", img)
