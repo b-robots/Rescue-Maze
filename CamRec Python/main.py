@@ -15,19 +15,14 @@ import tflite_runtime.interpreter as tflite
 def makePatch(img):
     x,y,w,h = cv.boundingRect(img)
     img = img[y:y+h, x:x+w]
-    return cv.resize(img, (50, 50), interpolation=cv.INTER_NEAREST)
+    return cv.resize(img, (50, 50), interpolation=cv.INTER_AREA)
 
 def get_patch2(img):
      #adaptiv thresholding 
     img = 255 - img
-    blur = cv.blur(img,(13,13))
-    thresh_img = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 21, 2)
-    kernel = np.ones((5,5),np.uint8)
-    thresh_img[0, :] = 0
-    thresh_img[-1, :] = 0
-    thresh_img[:, 0] = 0
-    thresh_img[:, -1] = 0
-    thresh_img = cv.erode(thresh_img,kernel,iterations=1)
+    blur = cv.blur(img,(5,5))
+    thresh_img = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY,13, 1)
+    kernel = np.ones((3,3),np.uint8)
     thresh_img[0, :] = 0
     thresh_img[-1, :] = 0
     thresh_img[:, 0] = 0
@@ -42,12 +37,13 @@ def get_patch2(img):
     best_mask_val = 0
     for i in range(1, num):
         area = stats[i, cv.CC_STAT_AREA]
-        if area > 300:
+        if area > 80:
             mask = (labels == i).astype(np.uint8) * 255
             invert = 255 - mask
             inv_num , inv_labels = cv.connectedComponents(invert)
             if inv_num == 2:
                 b = np.sum(np.where(mask > 127, img, 0)) / (np.sum(mask) + 1)
+                b *= area
                 if b > best_mask_val:
                     best_mask_val = b
                     best_mask = mask
@@ -119,7 +115,7 @@ def detect_Color(img):
     #adaptiv thresholding 
     inv_img = 255 - inv_img
     blur = cv.blur(inv_img,(7,7))
-    thresh_img = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 31, 2)
+    thresh_img = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 31, 1)
     #dilataing small dots/dashes away
     #kernel = np.ones((5,5),np.uint8)
     #thresh_img = cv.dilate(thresh_img,kernel,iterations = 1)
@@ -165,10 +161,76 @@ def read_all_serial(port):
     if port.in_waiting <= 0:
         return [None]
     return port.read(port.in_waiting)
-    
+
+class letterThread():
+    def __init__(self):
+        threading.Thread.__init__(self)
+    def run(self):
+        global new_images
+        global images
+        while True:
+            try:
+                if not new_images:
+                    continue
+
+                imgl = cv.resize(cv.cvtColor(images[0], cv.COLOR_BGR2GRAY), None, fx=0.5, fy=0.5)[:-30, :]
+                imgr = cv.resize(cv.cvtColor(images[1], cv.COLOR_BGR2GRAY), None, fx=0.5, fy=0.5)[30:, :]
+                imgl = get_patch2(imgl)
+                imgr = get_patch2(imgr)
+                
+                new_images = False
+                
+                l_valid = True
+                r_valid = True
+                
+                if imgl is None:
+                    l_valid = False
+            
+                if imgr is None:
+                    r_valid = False
+                
+                both_images = np.zeros((2, 20, 20, 1), np.float32)
+                
+                if l_valid:
+                    #cv.imshow("l", imgl)
+                    #cv.waitKey(1)
+                    imgl = imgl / max(np.amax(imgl), 1.0)
+                    imgl = np.reshape(imgl, (20, 20, 1))
+                    both_images[0] = imgl
+                
+                if r_valid:
+                    #cv.imshow("r", imgr)
+                    #cv.waitKey(1)
+                    imgr = imgr / max(np.amax(imgr), 1.0)
+                    imgr = np.reshape(imgr, (20, 20, 1))
+                    both_images[1] = imgr
+                
+                if l_valid or r_valid:
+                    self.model.set_tensor(self.input_index, both_images.astype(dtype='float32'))
+                    self.model.invoke()
+                    output = self.model.tensor(self.output_index)
+                    
+                    leftOut = self.letterLookup[np.argmax(output()[0])]
+                    rightOut = self.letterLookup[np.argmax(output()[1])]
+                    
+                    print('l letter: ' + str(leftOut))
+                    print('r letter: ' + str(rightOut))
+                    #print(1/(time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - t))
+            except Exception as e:
+                print(e)
+
 def main():
+    global new_images
+    global images
+    
     port = serial.Serial('/dev/serial0', baudrate=9600, timeout=0)
 
+    model = tflite.Interpreter(model_path='CamRec Python/converted_model.tflite')
+    input_index = model.get_input_details()[0]["index"]
+    output_index = model.get_output_details()[0]["index"]
+    model.resize_tensor_input(input_index, [2, 50, 50, 1])
+    model.allocate_tensors()
+    
     letterLookup = [b'N',  b'H', b'S', b'U']
     colorLookup = [b'N',  b'R', b'Y', b'G']
 
@@ -189,12 +251,6 @@ def main():
     camr.set(cv.CAP_PROP_FRAME_WIDTH, 320)
     camr.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
 
-    model = tflite.Interpreter(model_path='CamRec Python/converted_model.tflite')
-    input_index = model.get_input_details()[0]["index"]
-    output_index = model.get_output_details()[0]["index"]
-    model.resize_tensor_input(input_index, [2, 50, 50, 1])
-    model.allocate_tensors()
-
     while True:
         t = time.time()
         try:
@@ -206,9 +262,6 @@ def main():
             #cv.imwrite("testcol.jpg", imgl)
             _, imgr = camr.read()
 #            print(f"fps: {1 / (time.time() - t)}")
-
-            l_valid = True
-            r_valid = True
 
             #print(f"fps: {1 / (time.time() - t)}")
 
@@ -232,36 +285,47 @@ def main():
             if leftOut != b'N':
                 print('l: ' + str(leftOut))
                 port.write(b'l' + leftOut + b'r' + b'N' + b'\n')
-                print(f"fps: {1 / (time.time() - t)}")
+                #print(f"fps: {1 / (time.time() - t)}")
                 continue
 
             if rightOut != b'N':
                 print('r: ' + str(rightOut))
                 port.write(b'l' + b'N' + b'r' + rightOut + b'\n')
-                print(f"fps: {1 / (time.time() - t)}")
+                #print(f"fps: {1 / (time.time() - t)}")
                 continue
 
-            port.write(b'l' + b'N' + b'r' + b'N' + b'\n')
-            continue
-
-            imgl = cv.cvtColor(imgl, cv.COLOR_BGR2GRAY)
-            imgr = cv.cvtColor(imgr, cv.COLOR_BGR2GRAY)
-
-            #undistort and crop
-            imgr = get_undist_roi(imgr, map1, map2, True)
-            imgl = get_undist_roi(imgl, map1, map2, False)
-            cv.imshow("", imgl)
-            cv.waitKey(1)
-            imgl = get_patch2(imgl)
+           
+            # port.write(b'l' + b'N' + b'r' + b'N' + b'\n')
             
+            imgl = cv.resize(cv.cvtColor(imgl, cv.COLOR_BGR2GRAY), None, fx=0.5, fy=0.5)[:-30, :]
+            imgr = cv.resize(cv.cvtColor(imgr, cv.COLOR_BGR2GRAY), None, fx=0.5, fy=0.5)[30:, :]
+            imgl = get_patch2(imgl)
             imgr = get_patch2(imgr)
+            
+            imgl = cv.rotate(imgl, cv.ROTATE_90_CLOCKWISE)
+            imgr = cv.rotate(imgr, cv.ROTATE_90_COUNTERCLOCKWISE)
+            
+            l_valid = True
+            r_valid = True
             
             if imgl is None:
                 l_valid = False
-            
+        
             if imgr is None:
                 r_valid = False
-            
+
+            if l_valid:
+                if imgl[12, 25] == 0 and imgl[38, 25] == 0:
+                    l_valid = True
+                else:
+                    l_valid = False
+
+            if r_valid:
+                if imgr[25, 12] == 0 and imgr[25, 38] == 0:
+                    r_valid = True
+                else:
+                    r_valid = False
+
             both_images = np.zeros((2, 50, 50, 1), np.float32)
             
             if l_valid:
@@ -286,19 +350,24 @@ def main():
                 leftOut = letterLookup[np.argmax(output()[0])]
                 rightOut = letterLookup[np.argmax(output()[1])]
                 
-                print('l: ' + str(leftOut))
-                print('r: ' + str(rightOut))
+                print('l letter: ' + str(leftOut))
+                print('r letter: ' + str(rightOut))
                 port.write(b'l' + leftOut + b'r' + rightOut + b'\n')
-                print(f"fps: {1 / (time.time() - t)}")
                 continue
-               
+
             port.write(b'l' + b'N' + b'r' + b'N' + b'\n')
+
+            #undistort and crop
+            #imgr = get_undist_roi(imgr, map1, map2, True)
+            #imgl = get_undist_roi(imgl, map1, map2, False)
+            
+            print(f"fps: {1 / (time.time() - t)}")
 
                 
                 #print(letterLookup[round(np.argmax(output()[0]))])
                 #print(letterLookup[round(np.argmax(output()[1]))])
             
-            print(f"fps: {1 / (time.time() - t)}")
+            #print(f"fps: {1 / (time.time() - t)}")
 
             #gray_imgr = cv.cvtColor(imgr, cv.COLOR_BGR2GRAY)
             #patch_imgr = get_patch(gray_imgr)
@@ -330,7 +399,7 @@ def main():
             print(e)
             continue
 
-def make_trainImages(map1, map2):
+def make_trainImages():
     from pynput import keyboard
     global is_y
     global is_n
@@ -350,12 +419,12 @@ def make_trainImages(map1, map2):
             print('special key {0} pressed'.format(key))
 
     lcamId, rcamId=get_cam_serial()
-    caml = cv.VideoCapture(int(lcamId)) # left
-    if not caml.isOpened():   
+    cam = cv.VideoCapture(int(rcamId))
+    if not cam.isOpened():   
         raise IOError("Cannot open webcam")
-    caml.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M','J','P','G'))
-    caml.set(cv.CAP_PROP_FRAME_WIDTH, 320)
-    caml.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+    cam.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M','J','P','G'))
+    cam.set(cv.CAP_PROP_FRAME_WIDTH, 320)
+    cam.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
 
     listener = keyboard.Listener(on_press=on_press)
     listener.start()
@@ -364,16 +433,19 @@ def make_trainImages(map1, map2):
     orders = ""
     ltr_cnt = 1
     letterLookup = ['N' ,'H', 'S', 'U']
-    cnt = 200
+    cnt = 2000
     for l in letterLookup:
         print("we are at: " + l)
         is_n = False
         while not is_n:
-            _, img = caml.read()
-            img = get_undist_roi(img, map1, map2, False)
+            _, img = cam.read()
             valid = True
-            gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-            patch = get_patch2(gray_img)
+            img = cv.resize(cv.cvtColor(img, cv.COLOR_BGR2GRAY), None, fx=0.5, fy=0.5)[:-30, :]
+            img = get_patch2(img)
+            
+            img = cv.rotate(img, cv.ROTATE_90_COUNTERCLOCKWISE)
+            
+            patch = img
             if patch is None:
                valid = False
 
@@ -397,5 +469,5 @@ if __name__ == "__main__":
     #print(os.listdir('trainNew/'))
     #main()
     #map1, map2 = get_undistort_map(0.8, 1.0)
-    #get_compImages(map1, map2)
+    #make_trainImages()
    
