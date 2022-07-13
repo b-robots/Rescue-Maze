@@ -3,7 +3,7 @@ import numpy as np
 
 #Fisheye correction: https://medium.com/@kennethjiang/calibrate-fisheye-lens-using-opencv-333b05afa0b0
 
-DIM=(320, 240)
+DIM=(160, 120)
 K=np.array([[135.1327507971643, 0.0, 161.6007937651761], [0.0, 179.95275429557344, 111.86878581055734], [0.0, 0.0, 1.0]])
 D=np.array([[-0.016416623271148], [-0.02855488457571125], [0.034247182505227264], [-0.015755762345239916]])
 

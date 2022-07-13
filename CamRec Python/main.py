@@ -58,11 +58,14 @@ def get_patch2(img):
     return makePatch(best_mask)
 
 def get_undist_roi(img, map1, map2, is_right=False):
+    img = cv.resize(img, (160, 120))
     img = undistort(img, map1, map2)
     if is_right:
         img = cv.rotate(img, cv.ROTATE_90_COUNTERCLOCKWISE)
     else:
         img = cv.rotate(img, cv.ROTATE_90_CLOCKWISE)
+
+    img = cv.resize(img, (320, 240))
 
     #[y:y+h, x:x+w] the ":" means from to 
     img = img[40:, 40:200]
@@ -86,6 +89,7 @@ def get_cam_serial():
     return lcamId, rcamId
 
 def detect_Color_Mask(img):
+    img = cv.resize(img, None, fx=0.2, fy=0.2)
     img = cv.cvtColor(np.float32(img / 255.0), cv.COLOR_BGR2HSV ) 
     r_mask = np.float32(np.where(((img[:,:,0] > 340) | (img[:,:,0] < 15)) & (img[:,:,1] > 0.5) & (img[:,:,2] > 0.2), 1, 0))
     y_mask = np.float32(np.where((img[:,:,0] > 40) & (img[:,:,0] < 80) & (img[:,:,1] > 0.4) & (img[:,:,2] > 0.4), 1, 0))
@@ -96,13 +100,13 @@ def detect_Color_Mask(img):
     y_val = np.sum(y_mask) / area
     g_val = np.sum(g_mask) / area
 
-    #print(r_val)
+    # print(r_val)
     #print(y_val)
     #print(g_val)
 
     vals = [r_val, y_val, g_val]
     res = np.argmax(vals)
-    if vals[res] > 0.06:
+    if vals[res] > 0.04:
         return res + 1
     
     return 0
@@ -199,14 +203,14 @@ def main():
                 print("Arduino")
             #get picture
             _, imgl = caml.read()
+            #cv.imwrite("testcol.jpg", imgl)
             _, imgr = camr.read()
+#            print(f"fps: {1 / (time.time() - t)}")
 
             l_valid = True
             r_valid = True
 
-            #undistort and crop
-            imgr = get_undist_roi(imgr, map1, map2, True)
-            imgl = get_undist_roi(imgl, map1, map2, False)
+            #print(f"fps: {1 / (time.time() - t)}")
 
             #gray_imgl = cv.cvtColor(imgl, cv.COLOR_BGR2GRAY)
             
@@ -217,22 +221,39 @@ def main():
             #cv.imshow("",imgl)
             #cv.waitKey(0)
 
-            leftOut = colorLookup[detect_Color_Mask(imgl)]
-            rightOut = colorLookup[detect_Color_Mask(imgr)]
-
+            leftOut = colorLookup[detect_Color_Mask(imgl)] 
+#print(f"fps: {1 / (time.time() - t)}")
+#            continue
+            if leftOut == b'N':
+                rightOut = colorLookup[detect_Color_Mask(imgr)]
+            else:
+                rightOut = b'N'
+            
             if leftOut != b'N':
                 print('l: ' + str(leftOut))
                 port.write(b'l' + leftOut + b'r' + b'N' + b'\n')
+                print(f"fps: {1 / (time.time() - t)}")
                 continue
+
             if rightOut != b'N':
                 print('r: ' + str(rightOut))
                 port.write(b'l' + b'N' + b'r' + rightOut + b'\n')
+                print(f"fps: {1 / (time.time() - t)}")
                 continue
 
+            port.write(b'l' + b'N' + b'r' + b'N' + b'\n')
+            continue
+
             imgl = cv.cvtColor(imgl, cv.COLOR_BGR2GRAY)
+            imgr = cv.cvtColor(imgr, cv.COLOR_BGR2GRAY)
+
+            #undistort and crop
+            imgr = get_undist_roi(imgr, map1, map2, True)
+            imgl = get_undist_roi(imgl, map1, map2, False)
+            cv.imshow("", imgl)
+            cv.waitKey(1)
             imgl = get_patch2(imgl)
             
-            imgr = cv.cvtColor(imgr, cv.COLOR_BGR2GRAY)
             imgr = get_patch2(imgr)
             
             if imgl is None:
@@ -268,12 +289,16 @@ def main():
                 print('l: ' + str(leftOut))
                 print('r: ' + str(rightOut))
                 port.write(b'l' + leftOut + b'r' + rightOut + b'\n')
+                print(f"fps: {1 / (time.time() - t)}")
+                continue
+               
+            port.write(b'l' + b'N' + b'r' + b'N' + b'\n')
 
                 
                 #print(letterLookup[round(np.argmax(output()[0]))])
                 #print(letterLookup[round(np.argmax(output()[1]))])
             
-            #print(f"fps: {1 / (time.time() - t)}")
+            print(f"fps: {1 / (time.time() - t)}")
 
             #gray_imgr = cv.cvtColor(imgr, cv.COLOR_BGR2GRAY)
             #patch_imgr = get_patch(gray_imgr)
@@ -305,8 +330,8 @@ def main():
             print(e)
             continue
 
-from pynput import keyboard
 def make_trainImages(map1, map2):
+    from pynput import keyboard
     global is_y
     global is_n
     is_y = False
