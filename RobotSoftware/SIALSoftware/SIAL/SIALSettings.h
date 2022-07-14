@@ -123,7 +123,7 @@ namespace SIALSettings {
 		namespace Left
 		{
 			constexpr float startDty = 0.11f;		// duty cylce for start
-			constexpr float endDty = 0.077f;		// duty cylce for end
+			constexpr float endDty = 0.076f;		// duty cylce for end
 			constexpr uint8_t servoPin = 35;
 			constexpr uint8_t startCubeCount = 6;
 		}
@@ -131,7 +131,7 @@ namespace SIALSettings {
 		namespace Right
 		{
 			constexpr float startDty = 0.035f;		// duty cylce for start
-			constexpr float endDty = 0.07f;			// duty cylce for end
+			constexpr float endDty = 0.071f;			// duty cylce for end
 			constexpr uint8_t servoPin = 37;
 			constexpr uint8_t startCubeCount = 6;
 		}
@@ -210,7 +210,7 @@ namespace SIALSettings {
 	{
 		constexpr float blinkPeriod = 500.0f;
 
-		constexpr float defaultPower = 0.5f;
+		constexpr float defaultPower = 1.0f;
 
 		namespace Left
 		{

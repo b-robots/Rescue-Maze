@@ -35,10 +35,21 @@ namespace SIAL
 		}
 
 		bool waitForAllDistSens() {
+			static int64_t t = -1;
+			if (t == -1) {
+				t = millis();
+			}
+
+			if (t != -1 && (millis() - t > 200)) {
+				t = -1;
+				return true;
+			}
+
 			static DistSensBool cumUpdates = DistSensBool(false);
 			cumUpdates = cumUpdates | fusedData.distSensUpdates;
 			if (cumUpdates == DistSensBool(true)) {
 				cumUpdates = DistSensBool(false);
+				t = -1;
 				return true;
 			}
 

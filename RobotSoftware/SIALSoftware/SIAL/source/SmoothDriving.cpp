@@ -134,8 +134,6 @@ namespace SIAL {
 			// Calculate rotated angle
 			rotatedAngle = tempRobotState.globalHeading - _startAngle;
 
-			Serial.println(rotatedAngle);
-
 			// Check if I am there
 			if (fabsf(rotatedAngle) >= fabsf(_angle) - 3.0f * DEG_TO_RAD)
 			{
@@ -751,9 +749,6 @@ namespace SIAL {
 			if (!std::isnan(angle) && std::isnan(_absAvgAngle)) {
 				_absAvgAngle = angle;
 			}
-
-			Serial.println(angle);
-			Serial.println(_absAvgAngle);
 
 			if ((_absAvgAngle < 0.02)) {
 				_consOk++;

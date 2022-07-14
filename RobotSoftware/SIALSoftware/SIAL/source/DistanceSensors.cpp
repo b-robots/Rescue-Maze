@@ -243,8 +243,10 @@ namespace SIAL
 						}
 					}
 
+					delay(3);
 					clearInterrupt();
 					setup();
+					delay(3);
 					_lastRead = millis();
 
 					Serial.print("time out: ");
@@ -272,7 +274,7 @@ namespace SIAL
 
 			// Read range in mm
 			uint8_t rawDist = read8(_regRangeResult);
-			
+
 			float tempDist = rawDist * _k + _d;
 
 			if (tempDist < 0.0f) distance = 0;
@@ -607,9 +609,31 @@ namespace SIAL
 						}
 					}
 
-					_sensor.stopContinuous();
-					clearInterrupt();
+					delay(3);
+					_sensor.writeReg(0x00bf, 0x00);
+					auto t = millis();
+					uint8_t byte = 0b0;
+					do {
+						byte = _sensor.readReg(0x00c0);
+					} while (byte != 0x00 && (millis() - t < 20));
+
+					delay(5);
+
+					/* Release reset */
+					_sensor.writeReg(0x00bf, 0x01);
+
+					/* Wait until correct boot-up of the device */
+					t = millis();
+					do {
+						byte = _sensor.readReg(0x00c0);
+					} while (byte == 0x00 && (millis() - t < 20));
+
+					delay(5);
+
 					setup();
+					clearInterrupt();
+					
+					delay(3);
 
 					Serial.print("time out: ");
 					Serial.println(_id);
@@ -648,8 +672,6 @@ namespace SIAL
 
 			if (distance > maxDist) {
 				_status = Status::overflow;
-				Serial.print("Status code: ");
-				Serial.println(_sensor.readReg16Bit(0x14) & 0b1111);
 			}
 			else if (distance < minDist) _status = Status::underflow;
 

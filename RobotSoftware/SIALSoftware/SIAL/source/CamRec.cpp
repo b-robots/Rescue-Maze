@@ -11,6 +11,8 @@ namespace SIAL
 			Victim rightV = Victim::none;
 		}
 
+		bool dataReady = false;
+
 		ReturnCode setup()
 		{
 			Serial1.begin(9600);
@@ -31,7 +33,10 @@ namespace SIAL
 		{
 			auto start = millis();
 
+			dataReady = true;
+
 			if (!Serial1.available()) {
+				dataReady = false;
 				return;
 			}
 
@@ -40,6 +45,7 @@ namespace SIAL
 			{
 				if ((millis() - start) > 10)
 				{
+					dataReady = false;
 					return;
 				}
 
@@ -61,6 +67,8 @@ namespace SIAL
 				auto rightByte = Serial1.read();	// right victim code
 				Serial1.read();						// Discard '\n'
 
+				Serial.print("left: ");
+				Serial.println((char)leftByte);
 				switch (leftByte)
 				{
 				case 'H':
@@ -86,6 +94,8 @@ namespace SIAL
 					break;
 				}
 
+				Serial.print("right: ");
+				Serial.println((char)rightByte);
 				switch (rightByte)
 				{
 				case 'H':
@@ -130,6 +140,8 @@ namespace SIAL
 			{
 				return rightV;
 			}
+
+			dataReady = false;
 		}
 	}
 }

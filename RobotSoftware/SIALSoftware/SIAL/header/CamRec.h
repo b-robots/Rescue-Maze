@@ -11,5 +11,7 @@ namespace SIAL
 		void loop();
 
 		Victim getVictim(bool left);
+
+		extern bool dataReady;
 	}
 }

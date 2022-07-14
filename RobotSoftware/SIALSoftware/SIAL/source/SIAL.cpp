@@ -74,6 +74,8 @@ namespace SIAL {
 
 		Switch::setup();
 		PowerLEDs::setup();
+		PowerLEDs::setBrightness(1.0f);
+
 		Bumper::setup();
 
 		// Setup of SPI NVSRAM
@@ -135,13 +137,6 @@ namespace SIAL {
 			error = true;
 		}
 
-		// Setup of CamRec
-		if (CamRec::setup() != ReturnCode::ok)
-		{
-			Serial.println("Error CamRec!");
-			error = true;
-		}
-
 		// Setup of Dispenser
 		if (Dispenser::setup() != ReturnCode::ok)
 		{
@@ -149,8 +144,7 @@ namespace SIAL {
 			error = true;
 		}
 
-		// TESTING
-		// Gyro::calibrate();
+		Serial.println("Wait before CamRec init...");
 
 		Serial.println("Wait for initial BNO055 calibration...");
 
@@ -163,7 +157,30 @@ namespace SIAL {
 
 		Serial.println("BNO055 ready!");
 
+		Gyro::tare();
+
 		delay(100);
+
+		PowerLEDs::setBrightness(0.0f);
+
+		while (!Switch::getState()) {
+			SensorFusion::updateSensors();
+			SensorFusion::sensorFusion();
+			Serial.println(SensorFusion::getFusedData().robotState.globalHeading);
+		}
+
+		// Setup of CamRec
+		if (CamRec::setup() != ReturnCode::ok)
+		{
+			Serial.println("Error CamRec!");
+			error = true;
+		}
+		else {
+			PowerLEDs::setBrightness(1.0f);
+			Serial.println("CamRec ok");
+		}
+
+		while (Switch::getState());
 
 		if (!error) {
 			Serial.println("Finished setup!");
@@ -172,8 +189,9 @@ namespace SIAL {
 			Serial.println("Error during setup!");
 		}
 
-		//Wait for all distance sensors to at least measure something once -> safety precaution
-		//TODO enable before competition
+		PowerLEDs::setBrightness(0.0f);
+
+		// Wait for all distance sensors to at least measure something once -> safety precaution
 		uint8_t correctDistSens = 0b0;
 		uint8_t cnt = 0;
 		while (cnt < 3) {
@@ -216,6 +234,7 @@ namespace SIAL {
 		PowerLEDs::setBrightness(SIALSettings::PowerLEDs::defaultPower);
 
 		Serial.println("Checked all distance sensors!");
+		Serial.println("Ready for run!");
 
 		while (!Switch::getState()) {
 			SensorFusion::updateSensors();
@@ -224,20 +243,6 @@ namespace SIAL {
 		Serial.println("Start maze!!!");
 
 		Gyro::tare();
-
-		//using namespace SmoothDriving;
-		//startNewTask(new TaskArray{
-		//	new FollowCell(30),
-		//	new FollowCell(30),
-		//	new FollowCell(30)}, true);
-
-		//while (true) {
-		//	SensorFusion::updateSensors();
-		//	SensorFusion::distSensFusion();
-		//	SensorFusion::sensorFusion();
-
-		//	SmoothDriving::updateSpeeds();
-		//}
 	}
 
 	void robotLoop() {
@@ -247,9 +252,6 @@ namespace SIAL {
 			fps = 1000.0f / (millis() - t) * 1.0f + fps * 0.0f;
 		}
 		t = millis();
-
-		//Serial.print("fps: ");
-		//Serial.println(fps);
 
 		SensorFusion::updateSensors();
 		SensorFusion::distSensFusion();
@@ -263,6 +265,11 @@ namespace SIAL {
 
 		auto data = SensorFusion::getFusedData();
 
+		Serial.println(MemWatcher::getDynamicRam());
+
+		/*
+		* 		//Serial.print("fps: ");
+		//Serial.println(fps);
 		//Serial.print("(");
 		//Serial.print(data.robotState.pitch);
 		//Serial.println(")");
@@ -305,5 +312,6 @@ namespace SIAL {
 		//Serial.print(stateLookup[(int)data.distSensorState.rightBack]);
 		//Serial.print("; ");
 		//Serial.println(data.distances.rightBack);
+		*/
 	}
 }

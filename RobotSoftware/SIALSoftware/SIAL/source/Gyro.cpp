@@ -99,15 +99,7 @@ namespace SIAL
 		void tare()
 		{
 			uint8_t i = 0;
-			while (fabsf(atan2f(gravityEvent.acceleration.x, gravityEvent.acceleration.z)) > 0.1) {
-				bno055.getEvent(&gravityEvent, Adafruit_BNO055::VECTOR_GRAVITY);
-				i++;
-
-				if (i > 3) {
-					Serial.println("Can't tare gyro on slope");
-					return;
-				}
-			}
+			bno055.getEvent(&gravityEvent, Adafruit_BNO055::VECTOR_GRAVITY);
 
 			auto isQuat = bno055.getQuat();
 			while (fabsf(isQuat.magnitude() - 1) > 0.1) {
