@@ -13,7 +13,7 @@ namespace SIAL
 		void setDistances(Distances distances);
 		void setDistSensStates(DistSensorStates distSensorStates);
 		void setUpdatedDistSens(DistSensBool distSensUpdates);
-		bool scanSurrounding(uint8_t& outCumSureWalls);
+		bool scanSurrounding();
 		void updatePosAndRotFromDist(uint32_t time = 1000);
 		float getAngleRelToWall();
 		void setCorrectedState(NewForcedFusionValues newValues);

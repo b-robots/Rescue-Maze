@@ -95,8 +95,8 @@ namespace SIAL {
 
 		class FollowCell : public ITask {
 		private:
-			FollowWall _wallTask;
 			int16_t _speed;
+			PIDController _pid;
 		public:
 			WheelSpeeds updateSpeeds(float dt);
 			void startTask(RobotState startState);

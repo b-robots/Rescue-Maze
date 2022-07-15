@@ -210,7 +210,7 @@ namespace SIALSettings {
 	{
 		constexpr float blinkPeriod = 500.0f;
 
-		constexpr float defaultPower = 1.0f;
+		constexpr float defaultPower = 0.5f;
 
 		namespace Left
 		{

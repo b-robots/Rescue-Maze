@@ -425,52 +425,78 @@ namespace SIAL {
 			return output;
 		}
 
-		FollowCell::FollowCell(int16_t speed) : ITask(DrivingTaskInformation(DrivingTaskUID::followCell, true)), _wallTask(0, speed), _speed(speed) {}
+		FollowCell::FollowCell(int16_t speed) : ITask(DrivingTaskInformation(DrivingTaskUID::followCell, true)), _pid(SIALSettings::Controller::GoToAngle::pidSettings), _speed(speed) {}
 
 		void FollowCell::startTask(RobotState startState) {
-			int32_t dist = 0;
-
-			switch (startState.heading)
-			{
-			case AbsoluteDir::north:
-			{
-				dist = (int32_t)((startState.mapCoordinate.x + sgn(_speed)) * 30.0f - startState.position.x);
-				break;
-			}
-			case AbsoluteDir::east:
-			{
-				dist = (int32_t)(startState.position.y - (startState.mapCoordinate.y - sgn(_speed)) * 30.0f);
-				break;
-			}
-			case AbsoluteDir::south:
-			{
-				dist = (int32_t)(startState.position.x - (startState.mapCoordinate.x - sgn(_speed)) * 30.0f);
-				break;
-			}
-			case AbsoluteDir::west:
-			{
-				dist = (int32_t)((startState.mapCoordinate.y + sgn(_speed)) * 30.0f - startState.position.y);
-				break;
-			}
-			default:
-				break;
-			}
-
-			if (sgn(dist) != sgn(_speed)) {
-				dist = 0;
-			}
-
-			_wallTask = FollowWall(dist, _speed);
-			_wallTask.startTask(startState);
-			_information = _wallTask.getInformation();
-			_information.uid = DrivingTaskUID::followCell;
+			_information.startState = startState;
 		}
 
 		WheelSpeeds FollowCell::updateSpeeds(float dt) {
-			auto wheelSpeeds = _wallTask.updateSpeeds(dt);
-			_information = _wallTask.getInformation();
-			_information.uid = DrivingTaskUID::followCell;
-			return wheelSpeeds;
+			const auto fusedData = SensorFusion::getFusedData();
+			const auto robotState = fusedData.robotState;
+
+			if (fusedData.distSensorState.frontRight == DistSensorStatus::underflow && fusedData.distSensorState.frontLeft == DistSensorStatus::underflow) {
+				Serial.println("Stopped FollowWall -> underflow");
+				_information.finished = true;
+			}
+
+			if (Bumper::isPressed(true) || Bumper::isPressed(false)) {
+				Serial.println("Stopped FollowWall -> bumper");
+				_information.finished = true;
+			}
+
+			if (_information.finished) {
+				return WheelSpeeds(0, 0);
+			}
+
+			float errorAngle = 0.0f;
+
+			if (fusedData.fusedDistSens.distSensAngleTrust > 0.01f) {
+				float combinedDistToLeftWall = -1.0f;
+
+				if (fusedData.fusedDistSens.distToWalls.l > 0.0f && fusedData.fusedDistSens.distToWalls.r > 0.0f) {
+					combinedDistToLeftWall = (fusedData.fusedDistSens.distToWalls.l + 30.0f - fusedData.fusedDistSens.distToWalls.r) / 2.0;
+				}
+				else if (fusedData.fusedDistSens.distToWalls.l > 0.0f) {
+					combinedDistToLeftWall = fusedData.fusedDistSens.distToWalls.l;
+				}
+				else if (fusedData.fusedDistSens.distToWalls.r > 0.0f) {
+					combinedDistToLeftWall = 30.0f - fusedData.fusedDistSens.distToWalls.r;
+				}
+
+				float goalAngle;
+				if (combinedDistToLeftWall > 0.0f) {
+					goalAngle = -atanf((15.0f - combinedDistToLeftWall) / SIALSettings::Controller::GoToAngle::aheadDistL * sgn(_speed));
+				}
+				else {
+					goalAngle = 0;
+				}
+				errorAngle = fitAngleToInterval(goalAngle - fitAngleToInterval(fusedData.fusedDistSens.distSensAngle * 4.0f) / 4.0f);
+			}
+			else {
+				errorAngle = -fitAngleToInterval(fusedData.robotState.globalHeading * 4.0f) / 4.0f;
+			}
+
+			// point forward steering http://faculty.salina.k-state.edu/tim/robot_prog/MobileBot/Steering/pointFwd.html
+			errorAngle = _pid.process(0.0f, -errorAngle, dt);
+			float correctedAngularVel = fabsf(_speed) * errorAngle;
+			float correctedForwardVel = fmaxf(fabsf(_speed * cosf(fmaxf(fminf(errorAngle, M_PI_2), -M_PI_2))), SIALSettings::MotorControl::minSpeed) * sgn(_speed);
+
+			// Compute wheel speeds - v = (v_r + v_l) / 2; w = (v_r - v_l) / wheelDistance => v_l = v - w * wheelDistance / 2; v_r = v + w * wheelDistance / 2
+			WheelSpeeds output = WheelSpeeds{ correctedForwardVel - SIALSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f, correctedForwardVel + SIALSettings::Mechanics::wheelDistance * correctedAngularVel / 2.0f };
+
+			// Correct speed if it is too low
+			if (output.left < SIALSettings::MotorControl::minSpeed && output.left > -SIALSettings::MotorControl::minSpeed)
+			{
+				output.left = SIALSettings::MotorControl::minSpeed * sgn(_speed);
+			}
+
+			if (output.right < SIALSettings::MotorControl::minSpeed && output.right > -SIALSettings::MotorControl::minSpeed)
+			{
+				output.right = SIALSettings::MotorControl::minSpeed * sgn(_speed);
+			}
+
+			return output;
 		}
 
 		Ramp::Ramp(uint8_t speed, bool up) : ITask(DrivingTaskInformation(DrivingTaskUID::ramp, true)), _speed(speed), _emaPitch(NAN), _up(up), _consecutiveEnd(0), _rampEnd(false), _pid(SIALSettings::Controller::GoToAngle::pidSettings) {}

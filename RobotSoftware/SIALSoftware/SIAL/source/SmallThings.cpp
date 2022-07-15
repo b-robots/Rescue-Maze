@@ -72,7 +72,7 @@ namespace SIAL
 			lPWM.port->PIO_MDER = lPWM.pin;
 			rPWM.port->PIO_MDER = rPWM.pin;
 
-			setBrightness(0.0f);
+			setBrightness(SIALSettings::PowerLEDs::defaultPower);
 		}
 
 		void setBrightness(float perc)

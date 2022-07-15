@@ -74,7 +74,6 @@ namespace SIAL {
 
 		Switch::setup();
 		PowerLEDs::setup();
-		PowerLEDs::setBrightness(1.0f);
 
 		Bumper::setup();
 
@@ -161,8 +160,6 @@ namespace SIAL {
 
 		delay(100);
 
-		PowerLEDs::setBrightness(0.0f);
-
 		while (!Switch::getState()) {
 			SensorFusion::updateSensors();
 			SensorFusion::sensorFusion();
@@ -188,8 +185,6 @@ namespace SIAL {
 		else {
 			Serial.println("Error during setup!");
 		}
-
-		PowerLEDs::setBrightness(0.0f);
 
 		// Wait for all distance sensors to at least measure something once -> safety precaution
 		uint8_t correctDistSens = 0b0;
@@ -231,8 +226,6 @@ namespace SIAL {
 			Serial.println("ms");
 		}
 
-		PowerLEDs::setBrightness(SIALSettings::PowerLEDs::defaultPower);
-
 		Serial.println("Checked all distance sensors!");
 		Serial.println("Ready for run!");
 
@@ -267,8 +260,7 @@ namespace SIAL {
 
 		// Serial.println(MemWatcher::getDynamicRam());
 
-		/*
-		* 		//Serial.print("fps: ");
+		//Serial.print("fps: ");
 		//Serial.println(fps);
 		//Serial.print("(");
 		//Serial.print(data.robotState.pitch);
@@ -283,7 +275,7 @@ namespace SIAL {
 		//Serial.print(data.robotState.position.y);
 		//Serial.println(")");
 
-		//const char* stateLookup[] = { "ok", "over", "under", "err" };
+		const char* stateLookup[] = { "ok", "over", "under", "err" };
 		//Serial.print("fl: ");
 		//Serial.print(stateLookup[(int)data.distSensorState.frontLeft]);
 		//Serial.print("; ");
@@ -312,6 +304,5 @@ namespace SIAL {
 		//Serial.print(stateLookup[(int)data.distSensorState.rightBack]);
 		//Serial.print("; ");
 		//Serial.println(data.distances.rightBack);
-		*/
 	}
 }

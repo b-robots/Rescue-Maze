@@ -89,6 +89,9 @@ namespace SIAL
 				case 'Y':
 					leftV = Victim::yellow;
 					break;
+				case 'B':
+					leftV = Victim::blue;
+					break;
 				default:
 					leftV = Victim::none;
 					break;
@@ -115,6 +118,9 @@ namespace SIAL
 					break;
 				case 'Y':
 					rightV = Victim::yellow;
+					break;
+				case 'B':
+					leftV = Victim::blue;
 					break;
 				default:
 					rightV = Victim::none;

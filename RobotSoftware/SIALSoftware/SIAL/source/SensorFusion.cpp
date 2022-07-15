@@ -40,7 +40,7 @@ namespace SIAL
 				t = millis();
 			}
 
-			if (t != -1 && (millis() - t > 50)) {
+			if (t != -1 && (millis() - t > 100)) {
 				t = -1;
 				return true;
 			}
@@ -264,7 +264,7 @@ namespace SIAL
 			lastBnoHeading = bnoHeading;
 		}
 
-		bool scanSurrounding(uint8_t& outCumSureWalls) {
+		bool scanSurrounding() {
 			uint8_t frontWallsDetected = 0;		// How many times did a wall in front of us get detected
 			uint8_t leftWallsDetected = 0;		// How many times did a wall left of us get detected
 			uint8_t rightWallsDetected = 0;		// How many times did a wall right of us get detected
@@ -293,9 +293,7 @@ namespace SIAL
 
 			if (fusedData.distSensorState.leftFront == DistSensorStatus::ok)
 			{
-				if (fusedData.distances.leftFront / 10.0f < distToLWall + SIALSettings::MazeMapping::maxDistLongerThanBorder) {
-					leftWallsDetected++;
-				}
+				leftWallsDetected++;
 			}
 			else if (fusedData.distSensorState.leftFront == DistSensorStatus::underflow)
 			{
@@ -304,9 +302,7 @@ namespace SIAL
 
 			if (fusedData.distSensorState.leftBack == DistSensorStatus::ok)
 			{
-				if (fusedData.distances.leftBack / 10.0f < distToLWall + SIALSettings::MazeMapping::maxDistLongerThanBorder) {
-					leftWallsDetected++;
-				}
+				leftWallsDetected++;
 			}
 			else if (fusedData.distSensorState.leftBack == DistSensorStatus::underflow)
 			{
@@ -315,9 +311,7 @@ namespace SIAL
 
 			if (fusedData.distSensorState.rightFront == DistSensorStatus::ok)
 			{
-				if (fusedData.distances.rightFront / 10.0f < distToRWall + SIALSettings::MazeMapping::maxDistLongerThanBorder) {
-					rightWallsDetected++;
-				}
+				rightWallsDetected++;
 			}
 			else if (fusedData.distSensorState.rightFront == DistSensorStatus::underflow)
 			{
@@ -326,9 +320,7 @@ namespace SIAL
 
 			if (fusedData.distSensorState.rightBack == DistSensorStatus::ok)
 			{
-				if (fusedData.distances.rightBack / 10.0f < distToRWall + SIALSettings::MazeMapping::maxDistLongerThanBorder) {
-					rightWallsDetected++;
-				}
+				rightWallsDetected++;
 			}
 			else if (fusedData.distSensorState.rightBack == DistSensorStatus::underflow)
 			{
@@ -349,23 +341,20 @@ namespace SIAL
 				consecutiveOk = 0;
 			}
 
-			if (consecutiveOk >= 1) {
-				outCumSureWalls |= sureWalls;
+			if (consecutiveOk >= 2) {
+				Serial.println(leftWallsDetected);
 
 				Serial.print("successful scan: ");
 				Serial.print(sureWalls, BIN);
-				Serial.print(" (");
-				Serial.print(outCumSureWalls, BIN);
-				Serial.print(") ");
 				Serial.print(", at: ");
 				Serial.print(fusedData.robotState.mapCoordinate.x);
 				Serial.print(", ");
 				Serial.println(fusedData.robotState.mapCoordinate.y);
 
-				fusedData.gridCell.cellConnections = (~outCumSureWalls) & CellConnections::directionMask;
+				fusedData.gridCell.cellConnections = (~sureWalls) & CellConnections::directionMask;
 			}
 
-			return consecutiveOk >= 1;
+			return consecutiveOk >= 2;
 		}
 
 		void calcOffsetAngleFromDistSens() {

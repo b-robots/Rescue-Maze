@@ -95,8 +95,7 @@ namespace SIAL
 					auto start = millis();
 					while (millis() - start < SIALSettings::Dispenser::pause) {
 						SensorFusion::sensorFusion();
-
-						PowerLEDs::setBrightness(sinf(millis() / SIALSettings::PowerLEDs::blinkPeriod * M_TWOPI) / 2.0f + 0.5f);
+						//PowerLEDs::setBrightness(sinf(millis() / SIALSettings::PowerLEDs::blinkPeriod * M_TWOPI) / 2.0f + 0.5f);
 					}
 
 					PWM->PWM_CH_NUM[rightPWMCh].PWM_CDTYUPD = SIALSettings::Dispenser::Right::endDty * PWM->PWM_CH_NUM[rightPWMCh].PWM_CPRD;
@@ -106,7 +105,7 @@ namespace SIAL
 					while (millis() - start < SIALSettings::Dispenser::pause) {
 						SensorFusion::sensorFusion();
 
-						PowerLEDs::setBrightness(sinf(millis() / SIALSettings::PowerLEDs::blinkPeriod * M_TWOPI) / 2.0f + 0.5f);
+						//PowerLEDs::setBrightness(sinf(millis() / SIALSettings::PowerLEDs::blinkPeriod * M_TWOPI) / 2.0f + 0.5f);
 					}
 
 					rightCubeCount--;
@@ -185,9 +184,8 @@ namespace SIAL
 
 					auto start = millis();
 					while (millis() - start < SIALSettings::Dispenser::pause) {
+						//PowerLEDs::setBrightness(sinf(millis() / SIALSettings::PowerLEDs::blinkPeriod * M_TWOPI) / 2.0f + 0.5f);
 						SensorFusion::sensorFusion();
-
-						PowerLEDs::setBrightness(sinf(millis() / SIALSettings::PowerLEDs::blinkPeriod * M_TWOPI) / 2.0f + 0.5f);
 					}
 
 					PWM->PWM_CH_NUM[leftPWMCh].PWM_CDTYUPD = SIALSettings::Dispenser::Left::endDty * PWM->PWM_CH_NUM[leftPWMCh].PWM_CPRD;
@@ -197,7 +195,7 @@ namespace SIAL
 					while (millis() - start < SIALSettings::Dispenser::pause) {
 						SensorFusion::sensorFusion();
 
-						PowerLEDs::setBrightness(sinf(millis() / SIALSettings::PowerLEDs::blinkPeriod * M_TWOPI) / 2.0f + 0.5f);
+						//PowerLEDs::setBrightness(sinf(millis() / SIALSettings::PowerLEDs::blinkPeriod * M_TWOPI) / 2.0f + 0.5f);
 					}
 
 					leftCubeCount--;

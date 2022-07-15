@@ -24,6 +24,7 @@ namespace SIAL
 		green,
 		yellow,
 		heat,
+		blue,
 		none
 	};
 
