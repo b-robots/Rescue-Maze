@@ -72,13 +72,13 @@ namespace SIAL
 				switch (leftByte)
 				{
 				case 'H':
-					leftV = Victim::harmed;
+					//leftV = Victim::harmed;
 					break;
 				case 'S':
-					leftV = Victim::stable;
+					//leftV = Victim::stable;
 					break;
 				case 'U':
-					leftV = Victim::unharmed;
+					//leftV = Victim::unharmed;
 					break;
 				case 'R':
 					leftV = Victim::red;
@@ -99,13 +99,13 @@ namespace SIAL
 				switch (rightByte)
 				{
 				case 'H':
-					rightV = Victim::harmed;
+					//rightV = Victim::harmed;
 					break;
 				case 'S':
-					rightV = Victim::stable;
+					//rightV = Victim::stable;
 					break;
 				case 'U':
-					rightV = Victim::unharmed;
+					//rightV = Victim::unharmed;
 					break;
 				case 'R':
 					rightV = Victim::red;

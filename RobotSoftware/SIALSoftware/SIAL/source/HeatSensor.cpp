@@ -91,7 +91,10 @@ namespace SIAL
 				avgHigh -= 4.0f;
 			}
 
-			if (avgHigh > 50.0f) return false;
+			if (avgHigh > 60.0f) return false;
+
+			//Serial.print(sensor == HeatSensorSide::right ? "right: " : "left: ");
+			//Serial.println(avgHigh);
 
 			if (avgHigh >= SIALSettings::HeatSensors::threshold + ambientTemp) return true;
 			else return false;

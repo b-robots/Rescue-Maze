@@ -216,12 +216,18 @@ namespace SIAL
 			}
 			pinMode(SCL, INPUT);
 
+			delay(1);
+
 			Wire.begin();
 
 			Wire.beginTransmission(0x1);
 			Wire.endTransmission(true);
 
+			delay(1);
+
 			I2CMultiplexer::selectChannel(0);
+
+			delay(5);
 		}
 
 		void recoverI2C1() {

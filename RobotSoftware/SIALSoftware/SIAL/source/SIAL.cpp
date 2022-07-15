@@ -265,7 +265,7 @@ namespace SIAL {
 
 		auto data = SensorFusion::getFusedData();
 
-		Serial.println(MemWatcher::getDynamicRam());
+		// Serial.println(MemWatcher::getDynamicRam());
 
 		/*
 		* 		//Serial.print("fps: ");

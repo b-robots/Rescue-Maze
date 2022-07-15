@@ -40,7 +40,7 @@ namespace SIAL
 				t = millis();
 			}
 
-			if (t != -1 && (millis() - t > 200)) {
+			if (t != -1 && (millis() - t > 50)) {
 				t = -1;
 				return true;
 			}
@@ -349,7 +349,7 @@ namespace SIAL
 				consecutiveOk = 0;
 			}
 
-			if (consecutiveOk >= 2) {
+			if (consecutiveOk >= 1) {
 				outCumSureWalls |= sureWalls;
 
 				Serial.print("successful scan: ");
@@ -365,7 +365,7 @@ namespace SIAL
 				fusedData.gridCell.cellConnections = (~outCumSureWalls) & CellConnections::directionMask;
 			}
 
-			return consecutiveOk >= 2;
+			return consecutiveOk >= 1;
 		}
 
 		void calcOffsetAngleFromDistSens() {

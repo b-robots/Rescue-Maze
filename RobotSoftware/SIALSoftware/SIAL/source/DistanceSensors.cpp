@@ -610,30 +610,35 @@ namespace SIAL
 					}
 
 					delay(3);
-					_sensor.writeReg(0x00bf, 0x00);
-					auto t = millis();
-					uint8_t byte = 0b0;
-					do {
-						byte = _sensor.readReg(0x00c0);
-					} while (byte != 0x00 && (millis() - t < 20));
 
-					delay(5);
+					//_sensor.writeReg(0x00bf, 0x00);
+					//auto t = millis();
+					//uint8_t byte = 0b0;
+					//do {
+					//	byte = _sensor.readReg(0x00c0);
+					//} while (byte != 0x00 && (millis() - t < 150));
 
-					/* Release reset */
-					_sensor.writeReg(0x00bf, 0x01);
+					//delay(5);
 
-					/* Wait until correct boot-up of the device */
-					t = millis();
-					do {
-						byte = _sensor.readReg(0x00c0);
-					} while (byte == 0x00 && (millis() - t < 20));
+					///* Release reset */
+					//_sensor.writeReg(0x00bf, 0x01);
 
-					delay(5);
+					///* Wait until correct boot-up of the device */
+					//t = millis();
+					//do {
+					//	byte = _sensor.readReg(0x00c0);
+					//} while (byte == 0x00 && (millis() - t < 150));
 
-					setup();
+					//delay(3);
+
+					_sensor.stopContinuous();
+					//delay(3);
+					//setup();
+					//delay(3);
 					clearInterrupt();
-					
-					delay(3);
+					delay(10);
+					_sensor.startContinuous();
+					//delay(3);
 
 					Serial.print("time out: ");
 					Serial.println(_id);
@@ -672,6 +677,11 @@ namespace SIAL
 
 			if (distance > maxDist) {
 				_status = Status::overflow;
+				uint8_t sb = _sensor.readReg16Bit(0x14) & 0b1111;
+				if (sb != 6 && sb != 5) {
+					Serial.print("VL53L0x: ");
+					Serial.println(sb);
+				}
 			}
 			else if (distance < minDist) _status = Status::underflow;
 
