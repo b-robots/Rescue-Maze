@@ -120,7 +120,7 @@ namespace SIAL
 					rightV = Victim::yellow;
 					break;
 				case 'B':
-					leftV = Victim::blue;
+					rightV = Victim::blue;
 					break;
 				default:
 					rightV = Victim::none;

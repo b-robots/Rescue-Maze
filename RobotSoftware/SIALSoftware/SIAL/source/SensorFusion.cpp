@@ -40,7 +40,7 @@ namespace SIAL
 				t = millis();
 			}
 
-			if (t != -1 && (millis() - t > 100)) {
+			if (t != -1 && (millis() - t > 200)) {
 				t = -1;
 				return true;
 			}

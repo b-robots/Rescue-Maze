@@ -551,7 +551,7 @@ namespace SIAL
 				consRightOneCol = 0;
 				consRightZeroCol = 0;
 				consRightH = 0;
-				consRightS = 0;
+				consRightS = 0; 
 				consRightU = 0;
 			}
 		}
@@ -720,11 +720,11 @@ namespace SIAL
 
 				SensorFusion::updatePosAndRotFromDist(500);
 
-				bool start = true;
-				bool toOtherSide = false;
-				bool returnHome = false;
-				uint8_t consSilver = 0;
-				bool ignoreSilver = false;
+				start = true;
+				toOtherSide = false;
+				returnHome = false;
+				consSilver = 0;
+				ignoreSilver = false;
 			}
 
 			if (start) {
@@ -762,19 +762,27 @@ namespace SIAL
 					fabsf(fusedData.robotState.pitch) < 0.04f) {
 					FloorTileColour tileColour = ColorSensor::detectTileColour(fusedData.colorSensData.lux);
 
-					if (tileColour == FloorTileColour::black && toOtherSide) {
+					if (tileColour == FloorTileColour::black && toOtherSide && !returnHome) {
 						Serial.println("reached other side");
 
-						SmoothDriving::startNewTask(new TaskArray{
-							new FollowCell(38),
-							new Rotate(M_PI, 3.0f)});
+						SmoothDriving::stop();
 
 						while (!SmoothDriving::getInformation().finished) {
 							SensorFusion::updateSensors();
 							SensorFusion::distSensFusion();
 							SensorFusion::sensorFusion();
 							SmoothDriving::updateSpeeds();
-							handleBumper();
+						}
+
+						SmoothDriving::startNewTask(new TaskArray{
+							new FollowCell(38),
+							new Rotate(M_PI, 3.0f)}, true);
+
+						while (!SmoothDriving::getInformation().finished) {
+							SensorFusion::updateSensors();
+							SensorFusion::distSensFusion();
+							SensorFusion::sensorFusion();
+							SmoothDriving::updateSpeeds();
 						}
 
 						Dispenser::dispenseRight(1);
@@ -812,7 +820,7 @@ namespace SIAL
 					consSilver = 0;
 				}
 
-				if (consSilver >= 4) {
+				if (consSilver >= 5) {
 					Serial.println("Silver");
 					ignoreSilver = true;
 
@@ -849,6 +857,10 @@ namespace SIAL
 						right = true;
 					}
 
+					Serial.print("left, right: ");
+					Serial.println(left);
+					Serial.println(right);
+
 					// Maybe improve in case of fault detections
 					int16_t dist = 0;
 					fusedData = SensorFusion::getFusedData();
@@ -871,13 +883,13 @@ namespace SIAL
 						break;
 					}
 
-					dist = Min(dist - 3, 8);
+					dist = 10;
 
 					if (left) {
-						SmoothDriving::startNewTask(new TaskArray{ new FollowWall(dist, 30), new Rotate(M_PI_2, 2.0f) });
+						SmoothDriving::startNewTask(new TaskArray{ new FollowWall(dist, 30), new Rotate(M_PI_2, 2.0f) }, true);
 					}
 					else {
-						SmoothDriving::startNewTask(new TaskArray{ new FollowWall(dist, 30), new Rotate(-M_PI_2, -2.0f) });
+						SmoothDriving::startNewTask(new TaskArray{ new FollowWall(dist, 30), new Rotate(-M_PI_2, -2.0f) }, true);
 					}
 
 					while (!SmoothDriving::getInformation().finished) {
@@ -887,52 +899,57 @@ namespace SIAL
 						SmoothDriving::updateSpeeds();
 					}
 
-					while (true) {
+					auto t = millis();
+
+					while (millis() - t < 50000) {
 						CamRec::loop();
 
 						if (CamRec::dataReady) {
 							if (left) {
 								if (CamRec::getVictim(false) == Victim::blue) {
-									SmoothDriving::startNewTask(new FollowCell(38));
+									Serial.println("Start again");
+									SmoothDriving::startNewTask(new FollowCell(38), true);
 									break;
 								}
 							}
 							else {
 								if (CamRec::getVictim(true) == Victim::blue) {
-									SmoothDriving::startNewTask(new FollowCell(38));
+									Serial.println("Start again");
+									SmoothDriving::startNewTask(new FollowCell(38), true);
 									break;
 								}
 							}
 						}
 					}
 
-					delay(1000);
-
 					while (!SmoothDriving::getInformation().finished) {
 						SensorFusion::updateSensors();
 						SensorFusion::distSensFusion();
 						SensorFusion::sensorFusion();
 						SmoothDriving::updateSpeeds();
-						handleBumper();
 					}
+
+					t = millis();
+					while (millis() - t < 1000) {
+						SensorFusion::updateSensors();
+						SensorFusion::distSensFusion();
+						SensorFusion::sensorFusion();
+						SmoothDriving::updateSpeeds();
+					}
+
+					Serial.println("Let other robot pass");
 
 					if (left) {
 						SmoothDriving::startNewTask(new SmoothDriving::TaskArray{ new AlignWalls(),
 							new Rotate(-M_PI_2, -2.0f),
 							new AlignWalls(),
-							new FollowCell(38),
-							new AlignWalls(),
-							new Rotate(-M_PI_2, -2.0f),
-							new AlignWalls() });
+							new FollowCell(38)}, true);
 					}
 					else {
 						SmoothDriving::startNewTask(new SmoothDriving::TaskArray{ new AlignWalls(),
 							new Rotate(M_PI_2, 2.0f),
 							new AlignWalls(),
-							new FollowCell(38),
-							new AlignWalls(),
-							new Rotate(M_PI_2, 2.0f),
-							new AlignWalls() });
+							new FollowCell(38)}, true);
 					}
 
 					while (!SmoothDriving::getInformation().finished) {
@@ -940,10 +957,37 @@ namespace SIAL
 						SensorFusion::distSensFusion();
 						SensorFusion::sensorFusion();
 						SmoothDriving::updateSpeeds();
-						handleBumper();
 					}
 
-					delay(1000);
+					if (left) {
+						SmoothDriving::startNewTask(new SmoothDriving::TaskArray{ 
+							new AlignWalls(),
+							new Rotate(-M_PI_2, -2.0f),
+							new AlignWalls() }, true);
+					}
+					else {
+						SmoothDriving::startNewTask(new SmoothDriving::TaskArray{ 
+							new AlignWalls(),
+							new Rotate(M_PI_2, 2.0f),
+							new AlignWalls() }, true);
+					}
+
+					while (!SmoothDriving::getInformation().finished) {
+						SensorFusion::updateSensors();
+						SensorFusion::distSensFusion();
+						SensorFusion::sensorFusion();
+						SmoothDriving::updateSpeeds();
+					}
+
+					Serial.println("Wait for space...");
+
+					t = millis();
+					while (millis() - t < 1000) {
+						SensorFusion::updateSensors();
+						SensorFusion::distSensFusion();
+						SensorFusion::sensorFusion();
+						SmoothDriving::updateSpeeds();
+					}
 
 					while (true) {
 						DistanceSensors::updateDistSensors();
@@ -957,22 +1001,51 @@ namespace SIAL
 
 					Serial.println("Good to go");
 
-					delay(1000);
+					t = millis();
+					while (millis() - t < 2000) {
+						SensorFusion::updateSensors();
+						SensorFusion::distSensFusion();
+						SensorFusion::sensorFusion();
+						SmoothDriving::updateSpeeds();
+					}
+
+					Serial.println("left, right:");
+					Serial.println(left);
+					Serial.println(right);
 
 					// Free to drive to other side
+					SmoothDriving::startNewTask(new FollowCell(38), true);
+
+					while (!SmoothDriving::getInformation().finished) {
+						SensorFusion::updateSensors();
+						SensorFusion::distSensFusion();
+						SensorFusion::sensorFusion();
+						SmoothDriving::updateSpeeds();
+						handleBumper();
+					}
+
+					t = millis();
+					while (millis() - t < 200) {
+						SensorFusion::updateSensors();
+						SensorFusion::distSensFusion();
+						SensorFusion::sensorFusion();
+						SmoothDriving::updateSpeeds();
+						handleBumper();
+					}
+
 					if (left) {
-						SmoothDriving::startNewTask(new SmoothDriving::TaskArray{ new FollowCell(38),
+						SmoothDriving::startNewTask(new SmoothDriving::TaskArray{
 							new Rotate(M_PI_2, 2.0f),
 							new AlignWalls(),
 							new FollowCell(38),
-							new AlignWalls() });
+							new AlignWalls() }, true);
 					}
 					else {
-						SmoothDriving::startNewTask(new SmoothDriving::TaskArray{ new FollowCell(38),
+						SmoothDriving::startNewTask(new SmoothDriving::TaskArray{
 							new Rotate(-M_PI_2, -2.0f),
 							new AlignWalls(),
 							new FollowCell(38),
-							new AlignWalls() });
+							new AlignWalls() }, true);
 					}
 
 					toOtherSide = true;
@@ -982,8 +1055,9 @@ namespace SIAL
 						SensorFusion::distSensFusion();
 						SensorFusion::sensorFusion();
 						SmoothDriving::updateSpeeds();
-						handleBumper();
 					}
+
+					Serial.println("continue normal");
 				}
 
 				handleHeatVictim(fusedData);
