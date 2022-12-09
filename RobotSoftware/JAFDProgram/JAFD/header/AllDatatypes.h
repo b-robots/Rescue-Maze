@@ -1,3 +1,7 @@
+/*
+In this file are all definitions and includes for datatypes and name aliases, which are not specialized for one module
+*/
+
 #pragma once
 
 #include <stdint.h>
